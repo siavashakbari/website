@@ -96,7 +96,7 @@ function ProjectDetail() {
       <div
         ref={scrollRef}
         onWheel={handleWheel}
-        className="scrollbar-hide flex flex-1 min-h-0 gap-6 overflow-x-auto px-6 pb-4"
+        className="scrollbar-hide flex flex-1 min-h-0 gap-6 overflow-x-auto overflow-y-hidden px-6 pb-4"
       >
         {images.map((src: string, i: number) => (
           <figure

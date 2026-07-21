@@ -4,40 +4,43 @@ import fashionImg from "../assets/fashion.jpg";
 import visualIdentityImg from "../assets/visual-identity.jpg";
 import bookCoverImg from "../assets/book-cover.jpg";
 import productImg from "../assets/product.jpg";
-import atlasi1 from "../assets/atlasi/DSC08584.jpg.asset.json";
-import atlasi2 from "../assets/atlasi/DSC08249.jpg.asset.json";
-import atlasi3 from "../assets/atlasi/DSC08324.jpg.asset.json";
-import atlasi4 from "../assets/atlasi/DSC08424.jpg.asset.json";
-import atlasi5 from "../assets/atlasi/DSC08436.jpg.asset.json";
-import atlasi6 from "../assets/atlasi/DSC08443.jpg.asset.json";
-import atlasi7 from "../assets/atlasi/DSC08464.jpg.asset.json";
-import atlasi8 from "../assets/atlasi/DSC08494.jpg.asset.json";
-import atlasi9 from "../assets/atlasi/DSC08547.jpg.asset.json";
-import atlasi10 from "../assets/atlasi/DSC08563.jpg.asset.json";
-import atlasi11 from "../assets/atlasi/DSC09610.jpg.asset.json";
-import atlasi12 from "../assets/atlasi/DSC09615.jpg.asset.json";
-import atlasiCover from "../assets/atlasi/DSC09694.jpg.asset.json";
-import atlasi14 from "../assets/atlasi/DSC09712.jpg.asset.json";
-import sepidarCover from "../assets/sepidar/DSC09296.jpg.asset.json";
-import sepidar1 from "../assets/sepidar/DSC09299.jpg.asset.json";
-import sepidar2 from "../assets/sepidar/DSC09341.jpg.asset.json";
-import sepidar3 from "../assets/sepidar/DSC09275.jpg.asset.json";
-import sepidar4 from "../assets/sepidar/DSC07337.jpg.asset.json";
-import sepidar5 from "../assets/sepidar/DSC07382.jpg.asset.json";
-import sepidar6 from "../assets/sepidar/DSC07395.jpg.asset.json";
-import sepidar7 from "../assets/sepidar/DSC07452.jpg.asset.json";
-import sepidar8 from "../assets/sepidar/DSC03471.jpg.asset.json";
-import sepidar9 from "../assets/sepidar/DSC03419.jpg.asset.json";
-import sepidar10 from "../assets/sepidar/DSC03629.jpg.asset.json";
-import sepidar11 from "../assets/sepidar/DSC03489.jpg.asset.json";
-import sepidar12 from "../assets/sepidar/DSC00343.jpg.asset.json";
-import sepidar13 from "../assets/sepidar/DSC00278.jpg.asset.json";
-import sepidar14 from "../assets/sepidar/DSC00398.jpg.asset.json";
-import sepidar15 from "../assets/sepidar/DSC00305.jpg.asset.json";
-import sepidar16 from "../assets/sepidar/DSC00319.jpg.asset.json";
-import sepidar17 from "../assets/sepidar/DSC00360.jpg.asset.json";
-import zeeen1 from "../assets/zeeen/PIC1001.jpg.asset.json";
-import zeeen2 from "../assets/zeeen/PIC12242.jpg.asset.json";
+import atlasi1 from "../assets/atlasi/DSC08584.jpg";
+import atlasi2 from "../assets/atlasi/DSC08249.jpg";
+import atlasi3 from "../assets/atlasi/DSC08324.jpg";
+import atlasi4 from "../assets/atlasi/DSC08424.jpg";
+import atlasi5 from "../assets/atlasi/DSC08436.jpg";
+import atlasi6 from "../assets/atlasi/DSC08443.jpg";
+import atlasi7 from "../assets/atlasi/DSC08464.jpg";
+import atlasi8 from "../assets/atlasi/DSC08494.jpg";
+import atlasi9 from "../assets/atlasi/DSC08547.jpg";
+import atlasi10 from "../assets/atlasi/DSC08563.jpg";
+import atlasi11 from "../assets/atlasi/DSC09610.jpg";
+import atlasi12 from "../assets/atlasi/DSC09615.jpg";
+import atlasiCover from "../assets/atlasi/DSC09694.jpg";
+import atlasi14 from "../assets/atlasi/DSC09712.jpg";
+import atlasi15 from "../assets/atlasi/Untitled-1_01.jpg";
+import atlasi16 from "../assets/atlasi/Untitled-1_02.jpg";
+import atlasi17 from "../assets/atlasi/Untitled-1_03.jpg";
+import sepidarCover from "../assets/sepidar/DSC09296.jpg";
+import sepidar1 from "../assets/sepidar/DSC09299.jpg";
+import sepidar2 from "../assets/sepidar/DSC09341.jpg";
+import sepidar3 from "../assets/sepidar/DSC09275.jpg";
+import sepidar4 from "../assets/sepidar/DSC07337.jpg";
+import sepidar5 from "../assets/sepidar/DSC07382.jpg";
+import sepidar6 from "../assets/sepidar/DSC07395.jpg";
+import sepidar7 from "../assets/sepidar/DSC07452.jpg";
+import sepidar8 from "../assets/sepidar/DSC03471.jpg";
+import sepidar9 from "../assets/sepidar/DSC03419.jpg";
+import sepidar10 from "../assets/sepidar/DSC03629.jpg";
+import sepidar11 from "../assets/sepidar/DSC03489.jpg";
+import sepidar12 from "../assets/sepidar/DSC00343.jpg";
+import sepidar13 from "../assets/sepidar/DSC00278.jpg";
+import sepidar14 from "../assets/sepidar/DSC00398.jpg";
+import sepidar15 from "../assets/sepidar/DSC00305.jpg";
+import sepidar16 from "../assets/sepidar/DSC00319.jpg";
+import sepidar17 from "../assets/sepidar/DSC00360.jpg";
+import zeeen1 from "../assets/zeeen/PIC1001.jpg";
+import zeeen2 from "../assets/zeeen/PIC12242.jpg";
 import calligraphyCover from "../assets/calligraphy/Calligraphy_HQ_2.jpg.asset.json";
 import calligraphy1 from "../assets/calligraphy/DSC09821.jpg.asset.json";
 import calligraphy2 from "../assets/calligraphy/DSC09820.jpg.asset.json";
@@ -159,23 +162,26 @@ export const projects: Project[] = [
     year: "2024",
     description:
       "A studio fashion story built around hand-woven textiles, sculptural silhouettes, and quiet gesture.",
-    image: atlasiCover.url,
+    image: atlasiCover,
     aspect: "portrait",
     gallery: [
-      atlasiCover.url,
-      atlasi1.url,
-      atlasi2.url,
-      atlasi3.url,
-      atlasi4.url,
-      atlasi5.url,
-      atlasi6.url,
-      atlasi7.url,
-      atlasi8.url,
-      atlasi9.url,
-      atlasi10.url,
-      atlasi11.url,
-      atlasi12.url,
-      atlasi14.url,
+      atlasiCover,
+      atlasi1,
+      atlasi2,
+      atlasi3,
+      atlasi4,
+      atlasi5,
+      atlasi6,
+      atlasi7,
+      atlasi8,
+      atlasi9,
+      atlasi10,
+      atlasi11,
+      atlasi12,
+      atlasi14,
+      atlasi15,
+      atlasi16,
+      atlasi17,
     ],
   },
   {
@@ -186,27 +192,27 @@ export const projects: Project[] = [
     year: "2024",
     description:
       "A fashion story weaving heritage textiles, tailored silhouettes, and quiet portraiture.",
-    image: sepidarCover.url,
+    image: sepidarCover,
     aspect: "portrait",
     gallery: [
-      sepidarCover.url,
-      sepidar1.url,
-      sepidar2.url,
-      sepidar3.url,
-      sepidar4.url,
-      sepidar5.url,
-      sepidar6.url,
-      sepidar7.url,
-      sepidar8.url,
-      sepidar9.url,
-      sepidar10.url,
-      sepidar11.url,
-      sepidar12.url,
-      sepidar13.url,
-      sepidar14.url,
-      sepidar15.url,
-      sepidar16.url,
-      sepidar17.url,
+      sepidarCover,
+      sepidar1,
+      sepidar2,
+      sepidar3,
+      sepidar4,
+      sepidar5,
+      sepidar6,
+      sepidar7,
+      sepidar8,
+      sepidar9,
+      sepidar10,
+      sepidar11,
+      sepidar12,
+      sepidar13,
+      sepidar14,
+      sepidar15,
+      sepidar16,
+      sepidar17,
     ],
   },
   {
@@ -217,9 +223,9 @@ export const projects: Project[] = [
     year: "2024",
     description:
       "A fashion story rooted in place — handwoven color, heritage textiles, and the architecture of Persian light.",
-    image: zeeen1.url,
+    image: zeeen1,
     aspect: "portrait",
-    gallery: [zeeen1.url, zeeen2.url],
+    gallery: [zeeen1, zeeen2],
   },
   {
     id: "calligraphy",

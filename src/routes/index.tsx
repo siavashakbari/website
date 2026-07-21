@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import heroPortrait from "../assets/hero-portrait.jpg.asset.json";
+import heroPortrait from "../assets/hero-portrait.jpg";
 import { DISCIPLINES } from "@/data/disciplines";
 import { useEffect, useState } from "react";
 import { Logo } from "@/components/Logo";
@@ -66,7 +66,7 @@ function Index() {
       {/* Hero */}
       <section className="relative h-screen w-full overflow-hidden bg-background">
         <img
-          src={heroPortrait.url}
+          src={heroPortrait}
           alt="Portrait"
           className="absolute inset-0 h-full w-full object-cover object-center"
           loading="eager"

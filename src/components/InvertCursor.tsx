@@ -1,5 +1,8 @@
 import { useEffect, useRef } from "react";
 
+const SIZE_PX = 24; // 30px − 20%
+const HALF = SIZE_PX / 2;
+
 export function InvertCursor() {
   const dotRef = useRef<HTMLDivElement | null>(null);
 
@@ -38,11 +41,11 @@ export function InvertCursor() {
     };
 
     const tick = () => {
-      // Ease: exponential smoothing (both start & stop ease).
-      const ease = 0.15;
+      // Half the previous lag (was 0.15 → snappier catch-up).
+      const ease = 0.3;
       currentX += (targetX - currentX) * ease;
       currentY += (targetY - currentY) * ease;
-      el.style.transform = `translate3d(${currentX - 5}px, ${currentY - 5}px, 0)`;
+      el.style.transform = `translate3d(${currentX - HALF}px, ${currentY - HALF}px, 0)`;
       raf = requestAnimationFrame(tick);
     };
     raf = requestAnimationFrame(tick);
@@ -64,12 +67,15 @@ export function InvertCursor() {
     <div
       ref={dotRef}
       aria-hidden
-      className="pointer-events-none fixed left-0 top-0 z-[9999] hidden opacity-0 lg:block"
+      className="pointer-events-none fixed left-0 top-0 z-[9999] hidden opacity-0 mix-blend-difference lg:block"
       style={{ willChange: "transform" }}
     >
       <span
-        className="block h-[10px] w-[10px] animate-cursor-breathe rounded-full bg-white"
-        style={{ mixBlendMode: "difference" }}
+        className="block animate-cursor-breathe rounded-full bg-white"
+        style={{
+          width: SIZE_PX,
+          height: SIZE_PX,
+        }}
       />
     </div>
   );

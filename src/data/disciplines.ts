@@ -4,7 +4,7 @@ import foodImg from "../assets/food.jpg";
 import productImg from "../assets/product.jpg";
 import visualIdentityImg from "../assets/visual-identity.jpg";
 import bookCoverImg from "../assets/book-cover.jpg";
-import fashionAsset from "../assets/atlasi/DSC09694.jpg.asset.json";
+import fashionAsset from "../assets/atlasi/DSC09694.jpg";
 import portraitAsset from "../assets/calligraphy/Calligraphy_HQ_2.jpg.asset.json";
 
 export interface DisciplineCard {
@@ -20,7 +20,7 @@ export const DISCIPLINES: DisciplineCard[] = [
   {
     slug: "fashion-photography",
     label: "Fashion Photography",
-    image: fashionAsset.url,
+    image: fashionAsset,
     disciplines: ["photography"],
     match: (c) => c.toLowerCase().includes("fashion"),
     blurb: "Studio fashion stories — silhouette, texture, and quiet gesture.",

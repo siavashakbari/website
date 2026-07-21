@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { motion } from "motion/react";
 import { cn } from "@/lib/utils";
 
@@ -19,6 +19,25 @@ const LOGO_PATHS = [
   "M883.1,1.16h7.89v87h-7.89V1.16Z",
 ];
 
+const CURSOR_RADIUS_PX = 70;
+
+function clientToSvgPoint(svg: SVGSVGElement, clientX: number, clientY: number) {
+  const ctm = svg.getScreenCTM();
+  if (!ctm) return null;
+  const point = svg.createSVGPoint();
+  point.x = clientX;
+  point.y = clientY;
+  return point.matrixTransform(ctm.inverse());
+}
+
+function screenPxToSvgRadius(svg: SVGSVGElement, px: number) {
+  const ctm = svg.getScreenCTM();
+  if (!ctm) return px;
+  // Uniform scale from screen px → SVG user units
+  const scale = Math.hypot(ctm.a, ctm.b);
+  return scale === 0 ? px : px / scale;
+}
+
 export const LogoHoverEffect = ({
   duration,
   className,
@@ -27,24 +46,35 @@ export const LogoHoverEffect = ({
   className?: string;
 }) => {
   const svgRef = useRef<SVGSVGElement>(null);
-  const [cursor, setCursor] = useState({ x: 0, y: 0 });
   const [hovered, setHovered] = useState(false);
-  const [maskPosition, setMaskPosition] = useState({ cx: "50%", cy: "50%" });
+  const [mask, setMask] = useState({ x: 0, y: 0, r: 0 });
 
-  useEffect(() => {
-    if (svgRef.current) {
-      const svgRect = svgRef.current.getBoundingClientRect();
-      const cxPercentage = ((cursor.x - svgRect.left) / svgRect.width) * 100;
-      const cyPercentage = ((cursor.y - svgRect.top) / svgRect.height) * 100;
-      setMaskPosition({ cx: `${cxPercentage}%`, cy: `${cyPercentage}%` });
+  const updateMask = useCallback((clientX: number, clientY: number, active: boolean) => {
+    const svg = svgRef.current;
+    if (!svg || !active) {
+      setMask((prev) => ({ ...prev, r: 0 }));
+      return;
     }
-  }, [cursor]);
+    const point = clientToSvgPoint(svg, clientX, clientY);
+    if (!point) return;
+    setMask({
+      x: point.x,
+      y: point.y,
+      r: screenPxToSvgRadius(svg, CURSOR_RADIUS_PX),
+    });
+  }, []);
 
   return (
     <div
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      onMouseMove={(e) => setCursor({ x: e.clientX, y: e.clientY })}
+      onMouseEnter={(e) => {
+        setHovered(true);
+        updateMask(e.clientX, e.clientY, true);
+      }}
+      onMouseLeave={() => {
+        setHovered(false);
+        setMask((prev) => ({ ...prev, r: 0 }));
+      }}
+      onMouseMove={(e) => updateMask(e.clientX, e.clientY, true)}
       className={cn("relative w-full cursor-pointer select-none px-[8%] py-16", className)}
       aria-label="Siavash Akbari"
     >
@@ -58,29 +88,32 @@ export const LogoHoverEffect = ({
         style={{ overflow: "visible" }}
       >
         <defs>
-          <motion.radialGradient
-            id="logoRevealMask"
-            gradientUnits="userSpaceOnUse"
-            initial={{ cx: "50%", cy: "50%", r: "0%" }}
-            animate={{ ...maskPosition, r: hovered ? "45%" : "0%" }}
-            transition={{ duration: duration ?? 0.5, ease: [0.22, 1, 0.36, 1] }}
-          >
-            <stop offset="0%" stopColor="white" />
-            <stop offset="60%" stopColor="white" stopOpacity="0.5" />
-            <stop offset="100%" stopColor="black" />
-          </motion.radialGradient>
-          <mask id="logoThickMask">
-            <rect x="-100%" y="-100%" width="300%" height="300%" fill="url(#logoRevealMask)" />
+          <radialGradient id="logoFeatherGrad" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stopColor="#ffffff" />
+            <stop offset="30%" stopColor="#ffffff" />
+            <stop offset="65%" stopColor="#777777" />
+            <stop offset="100%" stopColor="#000000" />
+          </radialGradient>
+          <mask id="logoThickMask" maskUnits="userSpaceOnUse">
+            <rect x="-200" y="-200" width="1400" height="600" fill="black" />
+            <motion.circle
+              cx={mask.x}
+              cy={mask.y}
+              fill="url(#logoFeatherGrad)"
+              initial={false}
+              animate={{ r: hovered ? mask.r : 0 }}
+              transition={{ duration: duration ?? 0.15, ease: [0.22, 1, 0.36, 1] }}
+            />
           </mask>
         </defs>
 
-        {/* Thin white base outline */}
+        {/* Thin base outline — 1px */}
         <g
           fill="none"
           stroke="white"
-          strokeWidth="3"
+          strokeWidth="1"
+          strokeLinecap="round"
           strokeLinejoin="round"
-          vectorEffect="non-scaling-stroke"
           style={{ vectorEffect: "non-scaling-stroke" }}
         >
           {LOGO_PATHS.map((d, i) => (
@@ -88,13 +121,15 @@ export const LogoHoverEffect = ({
           ))}
         </g>
 
-        {/* Thick white overlay revealed near the cursor */}
+        {/* Thick overlay — 5px, feathered around cursor */}
         <g
           fill="none"
           stroke="white"
-          strokeWidth="10"
+          strokeWidth="5"
+          strokeLinecap="round"
           strokeLinejoin="round"
           mask="url(#logoThickMask)"
+          style={{ vectorEffect: "non-scaling-stroke" }}
         >
           {LOGO_PATHS.map((d, i) => (
             <path key={`thick-${i}`} d={d} vectorEffect="non-scaling-stroke" />

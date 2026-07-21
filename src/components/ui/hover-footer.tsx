@@ -115,7 +115,7 @@ export const FooterBackgroundGradient = () => {
     <div
       className="absolute inset-0 z-0"
       style={{
-        background: "linear-gradient(to bottom, #000000 0%, #3A3A3A 100%)",
+        background: "linear-gradient(to bottom, #0f0f0f 0%, #000000 100%)",
       }}
     />
   );

@@ -106,10 +106,6 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "stylesheet", href: appCss },
       { rel: "icon", href: "/favicon.svg", type: "image/svg+xml" },
       {
-        rel: "stylesheet",
-        href: "https://fonts.cdnfonts.com/css/orkney",
-      },
-      {
         rel: "preconnect",
         href: "https://fonts.googleapis.com",
       },
@@ -240,6 +236,19 @@ function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const router = useRouter();
   const isProjectPage = router.state.location.pathname.startsWith("/projects/");
+
+  useEffect(() => {
+    if (!isProjectPage) return;
+    const html = document.documentElement;
+    const prevHtmlOverflow = html.style.overflow;
+    const prevBodyOverflow = document.body.style.overflow;
+    html.style.overflow = "hidden";
+    document.body.style.overflow = "hidden";
+    return () => {
+      html.style.overflow = prevHtmlOverflow;
+      document.body.style.overflow = prevBodyOverflow;
+    };
+  }, [isProjectPage]);
 
   return (
     <QueryClientProvider client={queryClient}>

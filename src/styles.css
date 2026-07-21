@@ -63,8 +63,8 @@
 :root {
   --radius: 0.25rem;
 
-  --font-display: "Orkney", system-ui, sans-serif;
-  --font-body: "Orkney", system-ui, sans-serif;
+  --font-display: "Inter", system-ui, sans-serif;
+  --font-body: "Inter", system-ui, sans-serif;
 
   /* Light mode: warm editorial paper with teal accent */
   --background: #efefef;
@@ -128,6 +128,7 @@
 
   html {
     scroll-behavior: smooth;
+    scrollbar-gutter: stable;
   }
 
   body {
