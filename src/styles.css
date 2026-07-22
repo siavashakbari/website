@@ -124,11 +124,21 @@
 @layer base {
   * {
     border-color: var(--color-border);
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  *::-webkit-scrollbar {
+    display: none;
   }
 
   html {
     scroll-behavior: smooth;
-    scrollbar-gutter: stable;
+  }
+
+  html.intro-scroll-lock,
+  html.intro-scroll-lock body {
+    overflow: hidden !important;
   }
 
   body {

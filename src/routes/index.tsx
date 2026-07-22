@@ -1,8 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import heroPortrait from "../assets/hero-portrait.jpg";
 import { DISCIPLINES } from "@/data/disciplines";
-import { useEffect, useState } from "react";
-import { Logo } from "@/components/Logo";
+import { useCallback, useState } from "react";
+import { LandingIntro } from "@/components/LandingIntro";
+
+const INTRO_SCROLL_LOCK = "intro-scroll-lock";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -10,14 +12,17 @@ export const Route = createFileRoute("/")({
       { title: "Siavash Akbari" },
       {
         name: "description",
-        content:
-          "Siavash Akbari Portfolio",
+        content: "Siavash Akbari Portfolio",
       },
       { property: "og:title", content: "Siavash Akbari" },
       {
         property: "og:description",
-        content:
-          "Siavash Akbari Portfolio",
+        content: "Siavash Akbari Portfolio",
+      },
+    ],
+    scripts: [
+      {
+        children: `document.documentElement.classList.add("${INTRO_SCROLL_LOCK}");`,
       },
     ],
   }),
@@ -26,42 +31,14 @@ export const Route = createFileRoute("/")({
 
 function Index() {
   const [showIntro, setShowIntro] = useState(true);
-  const [fadeOut, setFadeOut] = useState(false);
-
-  useEffect(() => {
-    // Lock scroll while the intro overlay is visible.
-    const prevOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-
-    const holdTimer = setTimeout(() => {
-      setFadeOut(true);
-    }, 1000);
-
-    const removeTimer = setTimeout(() => {
-      setShowIntro(false);
-      document.body.style.overflow = prevOverflow;
-    }, 2000);
-
-    return () => {
-      clearTimeout(holdTimer);
-      clearTimeout(removeTimer);
-      document.body.style.overflow = prevOverflow;
-    };
+  const handleIntroComplete = useCallback(() => {
+    document.documentElement.classList.remove(INTRO_SCROLL_LOCK);
+    setShowIntro(false);
   }, []);
 
   return (
     <div className="flex flex-col">
-      {/* Intro overlay */}
-      {showIntro && (
-        <div
-          className={`fixed inset-0 z-50 flex items-center justify-center bg-background/60 backdrop-blur-xl transition-all duration-1000 ease-out ${
-            fadeOut ? "pointer-events-none opacity-0" : "opacity-100"
-          }`}
-          aria-hidden={fadeOut}
-        >
-          <Logo className="w-[78vw] text-foreground md:w-[55vw]" />
-        </div>
-      )}
+      {showIntro ? <LandingIntro onComplete={handleIntroComplete} /> : null}
 
       {/* Hero */}
       <section className="relative h-screen w-full overflow-hidden bg-background">
@@ -128,7 +105,6 @@ function Index() {
           ))}
         </div>
       </section>
-
     </div>
   );
 }
