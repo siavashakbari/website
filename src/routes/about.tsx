@@ -26,42 +26,81 @@ export const Route = createFileRoute("/about")({
 
 function About() {
   return (
-    <div className="flex min-h-[calc(100dvh-3.5rem)] w-full items-center justify-center px-6 py-12">
-      <div className="mx-auto w-full max-w-3xl text-center">
-        <p className="text-xs font-semibold uppercase tracking-[0.25em] text-secondary">About</p>
-        <h1 className="mt-4 font-display text-5xl font-medium leading-[1.1] text-foreground md:text-6xl lg:text-7xl">
-          A studio practice built on curiosity.
-        </h1>
-        <div className="mt-8 space-y-6 text-base leading-relaxed text-muted-foreground">
-          <p>
-            Siavash Akbari is the portfolio of a multidisciplinary creative working across
-            photography, graphic design, and product design. The work is united by a single
-            obsession: the moment when form, light, and meaning align.
-          </p>
-          <p>
-            In photography, that means treating food, portrait, and fashion as stories told through
-            shadow and composition. In graphic design, it means building visual identities and book
-            covers that feel timeless rather than trendy. In product design, it means shaping
-            objects that people want to live with.
-          </p>
-          <p>
-            Every project begins with listening — to the client, the material, and the intended
-            feeling. The result is work that is restrained, deliberate, and quietly luxurious.
-          </p>
+    <div className="flex min-h-[calc(100dvh-3.5rem)] w-full items-center justify-center px-6 py-12 md:px-10 lg:px-14">
+      <div className="mx-auto flex w-full max-w-[96rem] flex-col">
+        <p className="flex items-center justify-center gap-3 text-[0.8125rem] font-semibold uppercase tracking-[0.25em] text-secondary md:text-[0.975rem]">
+          <span>About</span>
+          <span aria-hidden className="text-[1.1rem] leading-none">
+            ·
+          </span>
+          <span
+            lang="fa"
+            dir="rtl"
+            className="font-farsi text-[1.015625rem] font-semibold normal-case tracking-normal md:text-[1.21875rem]"
+          >
+            درباره‌ی من
+          </span>
+        </p>
+
+        <div className="mt-10 flex flex-col gap-12 md:mt-12 md:flex-row md:items-start md:justify-between md:gap-16 lg:gap-24">
+          <div className="w-full md:w-[min(100%,42%)]" lang="en" dir="ltr">
+            <h1 className="max-w-xl text-left font-display text-[1.68rem] font-medium leading-[1.25] text-foreground md:text-[2.1rem] lg:text-[2.52rem]">
+              I am Siavash Akbari;
+              <br />
+              Designer, photographer, and art director
+            </h1>
+            <div className="mt-8 max-w-xl space-y-6 text-left text-[1.15rem] leading-relaxed text-muted-foreground">
+              <p>
+                My path began at thirteen, when I first discovered Photoshop. From the start, I
+                refused to limit myself to a single discipline — alongside graphic design, I
+                explored photography, cinematography, editing, 3D design, architecture, and product
+                design. That journey taught me that design is, above all, a way to solve problems
+                and tell a story.
+              </p>
+              <p>
+                In recent years, I&apos;ve collaborated with brands and individuals across fashion,
+                furniture, carpets, skincare, food, and publishing. I believe combining experience
+                across different design disciplines leads to more creative solutions and brands that
+                last.
+              </p>
+            </div>
+          </div>
+
+          <div className="w-full md:w-[min(100%,42%)]" lang="fa" dir="rtl">
+            <p className="ml-auto max-w-xl text-right font-farsi text-[1.68rem] font-medium leading-[1.25] text-foreground md:text-[2.1rem] lg:text-[2.52rem]">
+              من سیاوش اکبری هستم؛
+              <br />
+              طراح، عکاس و کارگردان هنری
+            </p>
+            <div className="mt-8 ml-auto max-w-xl space-y-6 text-right font-farsi text-[1.15rem] leading-relaxed text-muted-foreground">
+              <p>
+                مسیر من از ۱۳ سالگی و آشنایی با فتوشاپ آغاز شد. از همان اول تلاش کردم خودم رو به یک
+                شاخه محدود نکنم و در کنار طراحی گرافیک، عکاسی، فیلم‌برداری، تدوین، طراحی سه‌بعدی،
+                معماری و طراحی محصول رو هم تجربه کردم. این مسیر به من یاد داد که طراحی، پیش از هر
+                چیز، راهی برای حل مسئله و روایت یک داستان است.
+              </p>
+              <p>
+                در سال‌های اخیر با برندها و افراد مختلفی در حوزه‌هایی مانند مد، مبلمان، فرش، محصولات
+                مراقبت از پوست، صنایع غذایی و نشر همکاری کرده‌ام. باور دارم ترکیب تجربه در شاخه‌های
+                مختلف طراحی، به خلق راه‌حل‌های خلاقانه‌تر و ساخت برندهایی ماندگار کمک می‌کند.
+              </p>
+            </div>
+          </div>
         </div>
-        <div className="mt-10 grid grid-cols-3 gap-8 border-t border-border pt-8">
+
+        <div className="mx-auto mt-10 grid w-full max-w-3xl grid-cols-3 gap-8 border-t border-border pt-8 text-center">
           <div>
             <p className="font-display text-3xl font-medium text-foreground">10+</p>
             <p className="mt-1 text-xs uppercase tracking-widest text-muted-foreground">Years</p>
           </div>
           <div>
-            <p className="font-display text-3xl font-medium text-foreground">3</p>
+            <p className="font-display text-3xl font-medium text-foreground">6</p>
             <p className="mt-1 text-xs uppercase tracking-widest text-muted-foreground">
               Disciplines
             </p>
           </div>
           <div>
-            <p className="font-display text-3xl font-medium text-foreground">50+</p>
+            <p className="font-display text-3xl font-medium text-foreground">30+</p>
             <p className="mt-1 text-xs uppercase tracking-widest text-muted-foreground">Projects</p>
           </div>
         </div>
