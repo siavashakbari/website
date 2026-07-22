@@ -343,6 +343,14 @@
     "color": "#e8b876",
     "ratio": 0.66667
   },
+  "food-gastronomie-23": {
+    "color": "#f3e637",
+    "ratio": 1.5
+  },
+  "food-gastronomie-24": {
+    "color": "#dbc402",
+    "ratio": 0.66667
+  },
   "food-tasting-01": {
     "color": "#986737",
     "ratio": 1.5
@@ -354,10 +362,6 @@
   "food-tasting-03": {
     "color": "#e7a659",
     "ratio": 0.56235
-  },
-  "food-tasting-04": {
-    "color": "#ebb366",
-    "ratio": 0.66667
   },
   "food-tasting-05": {
     "color": "#fbe8d4",
@@ -499,10 +503,6 @@
     "color": "#79838d",
     "ratio": 0.56233
   },
-  "product-objects-01": {
-    "color": "#681919",
-    "ratio": 0.80074
-  },
   "product-objects-02": {
     "color": "#763717",
     "ratio": 0.56252
@@ -539,6 +539,34 @@
     "color": "#cdc4c2",
     "ratio": 0.79981
   },
+  "product-objects-100": {
+    "color": "#e8c896",
+    "ratio": 0.66667
+  },
+  "product-objects-101": {
+    "color": "#494767",
+    "ratio": 0.66667
+  },
+  "product-objects-102": {
+    "color": "#d5ccc3",
+    "ratio": 0.66672
+  },
+  "product-objects-103": {
+    "color": "#b6a897",
+    "ratio": 0.66667
+  },
+  "product-objects-104": {
+    "color": "#996836",
+    "ratio": 0.66667
+  },
+  "product-objects-105": {
+    "color": "#c8b599",
+    "ratio": 0.66667
+  },
+  "product-objects-106": {
+    "color": "#d6cab9",
+    "ratio": 0.66667
+  },
   "product-objects-11": {
     "color": "#c5bab8",
     "ratio": 0.80015
@@ -550,10 +578,6 @@
   "product-objects-13": {
     "color": "#c6bbb8",
     "ratio": 0.80005
-  },
-  "product-objects-14": {
-    "color": "#b4a9a6",
-    "ratio": 0.8
   },
   "product-objects-15": {
     "color": "#b7aba7",
@@ -567,33 +591,9 @@
     "color": "#c6bcb8",
     "ratio": 0.80009
   },
-  "product-objects-18": {
-    "color": "#b5aaa6",
-    "ratio": 0.8
-  },
   "product-objects-19": {
     "color": "#c7bdba",
     "ratio": 0.79995
-  },
-  "product-objects-20": {
-    "color": "#775936",
-    "ratio": 0.75
-  },
-  "product-objects-21": {
-    "color": "#aea392",
-    "ratio": 0.75
-  },
-  "product-objects-22": {
-    "color": "#78542a",
-    "ratio": 0.75
-  },
-  "product-objects-23": {
-    "color": "#c6c8cb",
-    "ratio": 0.75
-  },
-  "product-objects-24": {
-    "color": "#867a6a",
-    "ratio": 0.75
   },
   "product-objects-25": {
     "color": "#d4ac88",
@@ -622,6 +622,258 @@
   "product-objects-31": {
     "color": "#78362a",
     "ratio": 0.8
+  },
+  "product-objects-32": {
+    "color": "#d78707",
+    "ratio": 0.79992
+  },
+  "product-objects-33": {
+    "color": "#875719",
+    "ratio": 0.8
+  },
+  "product-objects-34": {
+    "color": "#996729",
+    "ratio": 0.79986
+  },
+  "product-objects-35": {
+    "color": "#59390b",
+    "ratio": 0.80004
+  },
+  "product-objects-36": {
+    "color": "#e2c398",
+    "ratio": 0.79992
+  },
+  "product-objects-37": {
+    "color": "#c8ab88",
+    "ratio": 1.5
+  },
+  "product-objects-38": {
+    "color": "#e3c6a6",
+    "ratio": 0.5625
+  },
+  "product-objects-39": {
+    "color": "#c59c68",
+    "ratio": 0.80004
+  },
+  "product-objects-40": {
+    "color": "#ebcba7",
+    "ratio": 0.79987
+  },
+  "product-objects-41": {
+    "color": "#e6dacb",
+    "ratio": 0.8
+  },
+  "product-objects-42": {
+    "color": "#e6d8c7",
+    "ratio": 0.79991
+  },
+  "product-objects-43": {
+    "color": "#ecd4b8",
+    "ratio": 0.80004
+  },
+  "product-objects-44": {
+    "color": "#eacaa8",
+    "ratio": 0.80004
+  },
+  "product-objects-45": {
+    "color": "#946837",
+    "ratio": 0.79996
+  },
+  "product-objects-46": {
+    "color": "#cc9459",
+    "ratio": 0.79991
+  },
+  "product-objects-47": {
+    "color": "#e8c399",
+    "ratio": 0.56248
+  },
+  "product-objects-48": {
+    "color": "#f7d8a8",
+    "ratio": 0.5625
+  },
+  "product-objects-49": {
+    "color": "#a58b76",
+    "ratio": 0.8
+  },
+  "product-objects-50": {
+    "color": "#b78655",
+    "ratio": 0.80007
+  },
+  "product-objects-51": {
+    "color": "#d9b288",
+    "ratio": 0.8
+  },
+  "product-objects-56": {
+    "color": "#55595b",
+    "ratio": 0.80008
+  },
+  "product-objects-57": {
+    "color": "#895636",
+    "ratio": 1.49986
+  },
+  "product-objects-58": {
+    "color": "#aba79c",
+    "ratio": 0.66673
+  },
+  "product-objects-59": {
+    "color": "#484745",
+    "ratio": 0.66667
+  },
+  "product-objects-61": {
+    "color": "#e5dac5",
+    "ratio": 1.5
+  },
+  "product-objects-62": {
+    "color": "#c7c4c6",
+    "ratio": 0.8
+  },
+  "product-objects-63": {
+    "color": "#bab6b7",
+    "ratio": 0.80009
+  },
+  "product-objects-64": {
+    "color": "#775536",
+    "ratio": 0.8
+  },
+  "product-objects-65": {
+    "color": "#d9b689",
+    "ratio": 0.79994
+  },
+  "product-objects-66": {
+    "color": "#cc6626",
+    "ratio": 0.79996
+  },
+  "product-objects-67": {
+    "color": "#c65a1a",
+    "ratio": 0.79988
+  },
+  "product-objects-68": {
+    "color": "#9a8349",
+    "ratio": 0.79985
+  },
+  "product-objects-69": {
+    "color": "#846c36",
+    "ratio": 0.79985
+  },
+  "product-objects-70": {
+    "color": "#967a38",
+    "ratio": 0.79976
+  },
+  "product-objects-71": {
+    "color": "#d7c7b5",
+    "ratio": 0.79998
+  },
+  "product-objects-72": {
+    "color": "#694525",
+    "ratio": 0.79996
+  },
+  "product-objects-73": {
+    "color": "#b7b7b8",
+    "ratio": 0.66667
+  },
+  "product-objects-74": {
+    "color": "#7b8768",
+    "ratio": 1.5
+  },
+  "product-objects-75": {
+    "color": "#5b644b",
+    "ratio": 1.50015
+  },
+  "product-objects-76": {
+    "color": "#473525",
+    "ratio": 0.66667
+  },
+  "product-objects-77": {
+    "color": "#e9d7b8",
+    "ratio": 1.50031
+  },
+  "product-objects-78": {
+    "color": "#e8ca98",
+    "ratio": 1.5
+  },
+  "product-objects-79": {
+    "color": "#573218",
+    "ratio": 0.66667
+  },
+  "product-objects-80": {
+    "color": "#f5e4c7",
+    "ratio": 0.66667
+  },
+  "product-objects-81": {
+    "color": "#f4c879",
+    "ratio": 0.66667
+  },
+  "product-objects-82": {
+    "color": "#4a2407",
+    "ratio": 0.66667
+  },
+  "product-objects-83": {
+    "color": "#f5dcb7",
+    "ratio": 0.66672
+  },
+  "product-objects-84": {
+    "color": "#bcb3a7",
+    "ratio": 0.66667
+  },
+  "product-objects-85": {
+    "color": "#b8aba6",
+    "ratio": 0.66667
+  },
+  "product-objects-86": {
+    "color": "#37261a",
+    "ratio": 0.66667
+  },
+  "product-objects-87": {
+    "color": "#a4998b",
+    "ratio": 0.66667
+  },
+  "product-objects-88": {
+    "color": "#474554",
+    "ratio": 0.66667
+  },
+  "product-objects-89": {
+    "color": "#a99d8a",
+    "ratio": 0.8
+  },
+  "product-objects-90": {
+    "color": "#6a4923",
+    "ratio": 0.66667
+  },
+  "product-objects-91": {
+    "color": "#c4c8c8",
+    "ratio": 0.79989
+  },
+  "product-objects-92": {
+    "color": "#765936",
+    "ratio": 0.66667
+  },
+  "product-objects-93": {
+    "color": "#c3c7cc",
+    "ratio": 0.66661
+  },
+  "product-objects-94": {
+    "color": "#ca6b73",
+    "ratio": 0.66667
+  },
+  "product-objects-95": {
+    "color": "#cac4b9",
+    "ratio": 1.5
+  },
+  "product-objects-96": {
+    "color": "#c9c7c5",
+    "ratio": 0.66667
+  },
+  "product-objects-97": {
+    "color": "#c6c9c9",
+    "ratio": 0.66667
+  },
+  "product-objects-98": {
+    "color": "#e9c696",
+    "ratio": 0.66667
+  },
+  "product-objects-99": {
+    "color": "#eae2d6",
+    "ratio": 0.66667
   },
   "product-design-aurelia-01": {
     "color": "#474747",

@@ -21,6 +21,8 @@ import gastronomie19 from "../assets/food/gastronomie/food-gastronomie-19.jpg";
 import gastronomie20 from "../assets/food/gastronomie/food-gastronomie-20.jpg";
 import gastronomie21 from "../assets/food/gastronomie/food-gastronomie-21.jpg";
 import gastronomie22 from "../assets/food/gastronomie/food-gastronomie-22.jpg";
+import gastronomie23 from "../assets/food/gastronomie/food-gastronomie-23.jpg";
+import gastronomie24 from "../assets/food/gastronomie/food-gastronomie-24.jpg";
 import cuisine1 from "../assets/food/cuisine/food-cuisine-01.jpg";
 import cuisine2 from "../assets/food/cuisine/food-cuisine-02.jpg";
 import cuisine3 from "../assets/food/cuisine/food-cuisine-03.jpg";
@@ -35,7 +37,6 @@ import cuisine11 from "../assets/food/cuisine/food-cuisine-11.jpg";
 import tasting1 from "../assets/food/tasting/food-tasting-01.jpg";
 import tasting2 from "../assets/food/tasting/food-tasting-02.jpg";
 import tasting3 from "../assets/food/tasting/food-tasting-03.jpg";
-import tasting4 from "../assets/food/tasting/food-tasting-04.jpg";
 import tasting5 from "../assets/food/tasting/food-tasting-05.jpg";
 import tasting6 from "../assets/food/tasting/food-tasting-06.jpg";
 import tasting7 from "../assets/food/tasting/food-tasting-07.jpg";
@@ -122,7 +123,6 @@ import photos22 from "../assets/portrait/photos/portrait-photos-22.jpg";
 import photos23 from "../assets/portrait/photos/portrait-photos-23.jpg";
 import photos24 from "../assets/portrait/photos/portrait-photos-24.jpg";
 import gaze1 from "../assets/portrait/gaze/portrait-gaze-01.jpg";
-import objects1 from "../assets/product/objects/product-objects-01.jpg";
 import objects2 from "../assets/product/objects/product-objects-02.jpg";
 import objects3 from "../assets/product/objects/product-objects-03.jpg";
 import objects4 from "../assets/product/objects/product-objects-04.jpg";
@@ -135,17 +135,10 @@ import objects10 from "../assets/product/objects/product-objects-10.jpg";
 import objects11 from "../assets/product/objects/product-objects-11.jpg";
 import objects12 from "../assets/product/objects/product-objects-12.jpg";
 import objects13 from "../assets/product/objects/product-objects-13.jpg";
-import objects14 from "../assets/product/objects/product-objects-14.jpg";
 import objects15 from "../assets/product/objects/product-objects-15.jpg";
 import objects16 from "../assets/product/objects/product-objects-16.jpg";
 import objects17 from "../assets/product/objects/product-objects-17.jpg";
-import objects18 from "../assets/product/objects/product-objects-18.jpg";
 import objects19 from "../assets/product/objects/product-objects-19.jpg";
-import objects20 from "../assets/product/objects/product-objects-20.png";
-import objects21 from "../assets/product/objects/product-objects-21.png";
-import objects22 from "../assets/product/objects/product-objects-22.png";
-import objects23 from "../assets/product/objects/product-objects-23.jpg";
-import objects24 from "../assets/product/objects/product-objects-24.png";
 import objects25 from "../assets/product/objects/product-objects-25.jpg";
 import objects26 from "../assets/product/objects/product-objects-26.jpg";
 import objects27 from "../assets/product/objects/product-objects-27.jpg";
@@ -153,6 +146,76 @@ import objects28 from "../assets/product/objects/product-objects-28.jpg";
 import objects29 from "../assets/product/objects/product-objects-29.jpg";
 import objects30 from "../assets/product/objects/product-objects-30.jpg";
 import objects31 from "../assets/product/objects/product-objects-31.jpg";
+import objects32 from "../assets/product/objects/product-objects-32.jpg";
+import objects33 from "../assets/product/objects/product-objects-33.jpg";
+import objects34 from "../assets/product/objects/product-objects-34.jpg";
+import objects35 from "../assets/product/objects/product-objects-35.jpg";
+import objects36 from "../assets/product/objects/product-objects-36.jpg";
+import objects37 from "../assets/product/objects/product-objects-37.jpg";
+import objects38 from "../assets/product/objects/product-objects-38.jpg";
+import objects39 from "../assets/product/objects/product-objects-39.jpg";
+import objects40 from "../assets/product/objects/product-objects-40.jpg";
+import objects41 from "../assets/product/objects/product-objects-41.jpg";
+import objects42 from "../assets/product/objects/product-objects-42.jpg";
+import objects43 from "../assets/product/objects/product-objects-43.jpg";
+import objects44 from "../assets/product/objects/product-objects-44.jpg";
+import objects45 from "../assets/product/objects/product-objects-45.jpg";
+import objects46 from "../assets/product/objects/product-objects-46.jpg";
+import objects47 from "../assets/product/objects/product-objects-47.jpg";
+import objects48 from "../assets/product/objects/product-objects-48.jpg";
+import objects49 from "../assets/product/objects/product-objects-49.jpg";
+import objects50 from "../assets/product/objects/product-objects-50.jpg";
+import objects51 from "../assets/product/objects/product-objects-51.jpg";
+import objects56 from "../assets/product/objects/product-objects-56.jpg";
+import objects57 from "../assets/product/objects/product-objects-57.jpg";
+import objects58 from "../assets/product/objects/product-objects-58.jpg";
+import objects59 from "../assets/product/objects/product-objects-59.jpg";
+import objects61 from "../assets/product/objects/product-objects-61.jpg";
+import objects62 from "../assets/product/objects/product-objects-62.jpg";
+import objects63 from "../assets/product/objects/product-objects-63.jpg";
+import objects64 from "../assets/product/objects/product-objects-64.jpg";
+import objects65 from "../assets/product/objects/product-objects-65.jpg";
+import objects66 from "../assets/product/objects/product-objects-66.jpg";
+import objects67 from "../assets/product/objects/product-objects-67.jpg";
+import objects68 from "../assets/product/objects/product-objects-68.jpg";
+import objects69 from "../assets/product/objects/product-objects-69.jpg";
+import objects70 from "../assets/product/objects/product-objects-70.jpg";
+import objects71 from "../assets/product/objects/product-objects-71.jpg";
+import objects72 from "../assets/product/objects/product-objects-72.jpg";
+import objects73 from "../assets/product/objects/product-objects-73.jpg";
+import objects74 from "../assets/product/objects/product-objects-74.jpg";
+import objects75 from "../assets/product/objects/product-objects-75.jpg";
+import objects76 from "../assets/product/objects/product-objects-76.jpg";
+import objects77 from "../assets/product/objects/product-objects-77.jpg";
+import objects78 from "../assets/product/objects/product-objects-78.jpg";
+import objects79 from "../assets/product/objects/product-objects-79.jpg";
+import objects80 from "../assets/product/objects/product-objects-80.jpg";
+import objects81 from "../assets/product/objects/product-objects-81.jpg";
+import objects82 from "../assets/product/objects/product-objects-82.jpg";
+import objects83 from "../assets/product/objects/product-objects-83.jpg";
+import objects84 from "../assets/product/objects/product-objects-84.jpg";
+import objects85 from "../assets/product/objects/product-objects-85.jpg";
+import objects86 from "../assets/product/objects/product-objects-86.jpg";
+import objects87 from "../assets/product/objects/product-objects-87.jpg";
+import objects88 from "../assets/product/objects/product-objects-88.jpg";
+import objects89 from "../assets/product/objects/product-objects-89.jpg";
+import objects90 from "../assets/product/objects/product-objects-90.jpg";
+import objects91 from "../assets/product/objects/product-objects-91.jpg";
+import objects92 from "../assets/product/objects/product-objects-92.jpg";
+import objects93 from "../assets/product/objects/product-objects-93.jpg";
+import objects94 from "../assets/product/objects/product-objects-94.jpg";
+import objects95 from "../assets/product/objects/product-objects-95.jpg";
+import objects96 from "../assets/product/objects/product-objects-96.jpg";
+import objects97 from "../assets/product/objects/product-objects-97.jpg";
+import objects98 from "../assets/product/objects/product-objects-98.jpg";
+import objects99 from "../assets/product/objects/product-objects-99.jpg";
+import objects100 from "../assets/product/objects/product-objects-100.jpg";
+import objects101 from "../assets/product/objects/product-objects-101.jpg";
+import objects102 from "../assets/product/objects/product-objects-102.jpg";
+import objects103 from "../assets/product/objects/product-objects-103.jpg";
+import objects104 from "../assets/product/objects/product-objects-104.jpg";
+import objects105 from "../assets/product/objects/product-objects-105.jpg";
+import objects106 from "../assets/product/objects/product-objects-106.jpg";
 
 export type Discipline = "photography" | "graphic-design" | "product-design";
 
@@ -221,6 +284,8 @@ export const projects: Project[] = [
       gastronomie20,
       gastronomie21,
       gastronomie22,
+      gastronomie23,
+      gastronomie24,
     ],
   },
   {
@@ -259,7 +324,6 @@ export const projects: Project[] = [
       tasting1,
       tasting2,
       tasting3,
-      tasting4,
       tasting5,
       tasting6,
       tasting7,
@@ -440,10 +504,9 @@ export const projects: Project[] = [
     category: "Product Photography",
     year: "2024",
     description: "A product photography series of crafted objects \u2014 form, material, and careful studio light.",
-    image: objects1,
+    image: objects92,
     aspect: "portrait",
     gallery: [
-      objects1,
       objects2,
       objects3,
       objects4,
@@ -456,17 +519,10 @@ export const projects: Project[] = [
       objects11,
       objects12,
       objects13,
-      objects14,
       objects15,
       objects16,
       objects17,
-      objects18,
       objects19,
-      objects20,
-      objects21,
-      objects22,
-      objects23,
-      objects24,
       objects25,
       objects26,
       objects27,
@@ -474,6 +530,76 @@ export const projects: Project[] = [
       objects29,
       objects30,
       objects31,
+      objects32,
+      objects33,
+      objects34,
+      objects35,
+      objects36,
+      objects37,
+      objects38,
+      objects39,
+      objects40,
+      objects41,
+      objects42,
+      objects43,
+      objects44,
+      objects45,
+      objects46,
+      objects47,
+      objects48,
+      objects49,
+      objects50,
+      objects51,
+      objects56,
+      objects57,
+      objects58,
+      objects59,
+      objects61,
+      objects62,
+      objects63,
+      objects64,
+      objects65,
+      objects66,
+      objects67,
+      objects68,
+      objects69,
+      objects70,
+      objects71,
+      objects72,
+      objects73,
+      objects74,
+      objects75,
+      objects76,
+      objects77,
+      objects78,
+      objects79,
+      objects80,
+      objects81,
+      objects82,
+      objects83,
+      objects84,
+      objects85,
+      objects86,
+      objects87,
+      objects88,
+      objects89,
+      objects90,
+      objects91,
+      objects92,
+      objects93,
+      objects94,
+      objects95,
+      objects96,
+      objects97,
+      objects98,
+      objects99,
+      objects100,
+      objects101,
+      objects102,
+      objects103,
+      objects104,
+      objects105,
+      objects106,
     ],
   },
 ];

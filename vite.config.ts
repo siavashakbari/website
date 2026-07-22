@@ -6,21 +6,29 @@ import viteReact from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import tsConfigPaths from "vite-tsconfig-paths";
 
+const projectRoot = path.resolve(import.meta.dirname);
+/** Only watch app source — root photo dumps EBUSY-crash Vite on Windows */
+const WATCH_TOP = new Set(["src", "public", "scripts"]);
+
+function ignoreDumpPaths(watchPath: string) {
+  const rel = path.relative(projectRoot, watchPath);
+  if (!rel || rel.startsWith("..") || path.isAbsolute(rel)) return false;
+  const top = rel.split(path.sep)[0];
+  // Keep watching root config files
+  if (top === rel) return false;
+  if (WATCH_TOP.has(top)) {
+    // Still skip reorg cache inside src
+    return rel.includes(`${path.sep}_assets_reorg${path.sep}`) || rel.endsWith(`${path.sep}_assets_reorg`);
+  }
+  return true;
+}
+
 export default defineConfig({
   server: {
     host: "::",
     port: 8080,
     watch: {
-      // Root photo dumps only — watching them can EBUSY-crash on Windows
-      ignored: [
-        path.resolve(import.meta.dirname, "food"),
-        path.resolve(import.meta.dirname, "food 2"),
-        path.resolve(import.meta.dirname, "fashion"),
-        path.resolve(import.meta.dirname, "products"),
-        path.resolve(import.meta.dirname, "portrait"),
-        path.resolve(import.meta.dirname, ".recover-hq"),
-        path.resolve(import.meta.dirname, "src/_assets_reorg"),
-      ],
+      ignored: ignoreDumpPaths,
     },
   },
   resolve: {

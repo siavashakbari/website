@@ -308,15 +308,6 @@
   {
     "category": "food",
     "project": "tasting",
-    "index": 4,
-    "import_path": "../assets/food/tasting/food-tasting-04.jpg",
-    "uses_url": false,
-    "var": "tasting4",
-    "src": "food3\\DSC02467.jpg"
-  },
-  {
-    "category": "food",
-    "project": "tasting",
     "index": 5,
     "import_path": "../assets/food/tasting/food-tasting-05.jpg",
     "uses_url": false,
