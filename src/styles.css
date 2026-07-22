@@ -4,14 +4,7 @@
 
 @custom-variant dark (&:is(.dark *));
 
-/* Satoshi — only weights used in the UI (no unused italics) */
-@font-face {
-  font-family: "Satoshi";
-  src: url("./assets/fonts/Satoshi-Light.woff2") format("woff2");
-  font-weight: 300;
-  font-style: normal;
-  font-display: swap;
-}
+/* Satoshi — critical weights only (Regular / Medium / Bold) */
 @font-face {
   font-family: "Satoshi";
   src: url("./assets/fonts/Satoshi-Regular.woff2") format("woff2");
@@ -33,13 +26,6 @@
   font-style: normal;
   font-display: swap;
 }
-@font-face {
-  font-family: "Satoshi";
-  src: url("./assets/fonts/Satoshi-Black.woff2") format("woff2");
-  font-weight: 900;
-  font-style: normal;
-  font-display: swap;
-}
 
 /* Peyda — Farsi (contact page); only weights actually used */
 @font-face {
@@ -47,14 +33,14 @@
   src: url("./assets/fonts/peyda/peyda-medium.woff2") format("woff2");
   font-weight: 500;
   font-style: normal;
-  font-display: swap;
+  font-display: optional;
 }
 @font-face {
   font-family: "Peyda";
   src: url("./assets/fonts/peyda/peyda-semibold.woff2") format("woff2");
   font-weight: 600;
   font-style: normal;
-  font-display: swap;
+  font-display: optional;
 }
 
 /*
@@ -247,13 +233,13 @@
 
   .font-black,
   .font-extrabold {
-    font-weight: 900;
+    font-weight: 700;
   }
 
   .font-thin,
   .font-extralight,
   .font-light {
-    font-weight: 300;
+    font-weight: 400;
   }
 }
 

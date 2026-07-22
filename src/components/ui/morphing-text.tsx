@@ -71,10 +71,44 @@ const useMorphingText = (
   }, []);
 
   useEffect(() => {
-    let animationFrameId: number;
+    let animationFrameId = 0;
+    let running = true;
+    let inView = true;
+
+    const prefersReduced =
+      typeof window !== "undefined" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    if (prefersReduced) {
+      doCooldown();
+      if (text1Ref.current) {
+        text1Ref.current.style.opacity = "0%";
+      }
+      if (text2Ref.current) {
+        text2Ref.current.textContent = texts[0] ?? "";
+        text2Ref.current.style.opacity = "100%";
+        text2Ref.current.style.filter = "none";
+      }
+      return;
+    }
+
+    const root = text1Ref.current?.parentElement ?? null;
+    let observer: IntersectionObserver | undefined;
+    if (root && typeof IntersectionObserver !== "undefined") {
+      observer = new IntersectionObserver(
+        ([entry]) => {
+          inView = entry?.isIntersecting ?? true;
+        },
+        { rootMargin: "50px" },
+      );
+      observer.observe(root);
+    }
 
     const animate = () => {
+      if (!running) return;
       animationFrameId = requestAnimationFrame(animate);
+
+      if (document.visibilityState === "hidden" || !inView) return;
 
       const newTime = new Date();
       const dt = (newTime.getTime() - timeRef.current.getTime()) / 1000;
@@ -88,9 +122,11 @@ const useMorphingText = (
 
     animate();
     return () => {
+      running = false;
       cancelAnimationFrame(animationFrameId);
+      observer?.disconnect();
     };
-  }, [doMorph, doCooldown]);
+  }, [doMorph, doCooldown, texts]);
 
   return { text1Ref, text2Ref };
 };

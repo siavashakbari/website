@@ -70,6 +70,10 @@ export default defineConfig({
     tailwindcss(),
     tsConfigPaths({ projects: ["./tsconfig.json"] }),
     tanstackStart({
+      // Keep gallery/project routes out of the homepage JS payload.
+      router: {
+        autoCodeSplitting: true,
+      },
       importProtection: {
         behavior: "error",
         client: {

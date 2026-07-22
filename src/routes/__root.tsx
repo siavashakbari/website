@@ -7,15 +7,25 @@ import {
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
-import { useEffect, useState, type ReactNode } from "react";
-import { Menu, X } from "lucide-react";
+import {
+  lazy,
+  Suspense,
+  useEffect,
+  useState,
+  type ReactNode,
+} from "react";
 
 import appCss from "../styles.css?url";
 import satoshiMedium from "../assets/fonts/Satoshi-Medium.woff2?url";
 import { Logo } from "@/components/Logo";
-import { InvertCursor } from "@/components/InvertCursor";
-import { HoverFooter } from "@/components/HoverFooter";
 import { NotFoundPage } from "@/components/NotFoundPage";
+
+const InvertCursor = lazy(() =>
+  import("@/components/InvertCursor").then((m) => ({ default: m.InvertCursor })),
+);
+const HoverFooter = lazy(() =>
+  import("@/components/HoverFooter").then((m) => ({ default: m.HoverFooter })),
+);
 
 function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   console.error(error);
@@ -130,7 +140,7 @@ function Header() {
                 key={link.to}
                 to={link.to}
                 style={{ fontFamily: "Satoshi, system-ui, sans-serif" }}
-                className="flex h-full items-center text-sm font-light uppercase leading-none tracking-widest text-foreground transition-colors hover:text-secondary data-[status=active]:font-black data-[status=active]:text-secondary"
+                className="flex h-full items-center text-sm font-normal uppercase leading-none tracking-widest text-foreground transition-colors hover:text-secondary data-[status=active]:font-bold data-[status=active]:text-secondary"
               >
                 {link.label}
               </Link>
@@ -145,6 +155,22 @@ function Header() {
   );
 }
 
+function MenuIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" aria-hidden>
+      <path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function CloseIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" aria-hidden>
+      <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 function MobileNav() {
   const [open, setOpen] = useState(false);
 
@@ -156,7 +182,7 @@ function MobileNav() {
         onClick={() => setOpen(true)}
         className="inline-flex items-center justify-center text-foreground transition-colors hover:opacity-70"
       >
-        <Menu className="h-[0.9rem] w-[0.9rem]" />
+        <MenuIcon className="h-[0.9rem] w-[0.9rem]" />
       </button>
 
       <div
@@ -180,7 +206,7 @@ function MobileNav() {
               onClick={() => setOpen(false)}
               className="inline-flex items-center justify-center p-2 text-foreground transition-colors hover:opacity-70"
             >
-              <X className="h-[0.9rem] w-[0.9rem]" />
+              <CloseIcon className="h-[0.9rem] w-[0.9rem]" />
             </button>
           </div>
           <nav className="flex flex-col gap-6 pt-10">
@@ -189,7 +215,7 @@ function MobileNav() {
                 key={link.to}
                 to={link.to}
                 onClick={() => setOpen(false)}
-                className="font-display text-2xl font-light text-foreground transition-transform hover:scale-105 data-[status=active]:font-bold data-[status=active]:text-secondary"
+                className="font-display text-2xl font-normal text-foreground transition-transform hover:scale-105 data-[status=active]:font-bold data-[status=active]:text-secondary"
               >
                 {link.label}
               </Link>
@@ -198,6 +224,39 @@ function MobileNav() {
         </div>
       </div>
     </div>
+  );
+}
+
+/** Cursor + footer are deferred so they don't inflate homepage TBT. */
+function DeferredChrome({ showFooter }: { showFooter: boolean }) {
+  const [ready, setReady] = useState(false);
+
+  useEffect(() => {
+    let idleId = 0;
+    let timeoutId = 0;
+    const enable = () => setReady(true);
+
+    if (typeof window !== "undefined" && "requestIdleCallback" in window) {
+      idleId = window.requestIdleCallback(enable, { timeout: 1800 });
+    } else {
+      timeoutId = window.setTimeout(enable, 250);
+    }
+
+    return () => {
+      if (idleId && "cancelIdleCallback" in window) {
+        window.cancelIdleCallback(idleId);
+      }
+      if (timeoutId) window.clearTimeout(timeoutId);
+    };
+  }, []);
+
+  if (!ready) return null;
+
+  return (
+    <Suspense fallback={null}>
+      <InvertCursor />
+      {showFooter ? <HoverFooter /> : null}
+    </Suspense>
   );
 }
 
@@ -223,7 +282,7 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <InvertCursor />
+      <DeferredChrome showFooter={!hideFooter} />
       <div
         className={`flex flex-col bg-background ${
           isProjectPage ? "h-dvh overflow-hidden overscroll-none" : "min-h-screen"
@@ -237,7 +296,6 @@ function RootComponent() {
         >
           <Outlet />
         </main>
-        {!hideFooter && <HoverFooter />}
       </div>
     </QueryClientProvider>
   );

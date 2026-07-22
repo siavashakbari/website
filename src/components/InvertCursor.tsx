@@ -90,10 +90,14 @@ export function InvertCursor() {
     };
 
     const findMagnet = (x: number, y: number) => {
+      // Cheap early-out: only scan magnets when cursor is moving / near UI
       const nodes = document.querySelectorAll<HTMLElement>("[data-cursor-magnet]");
+      if (nodes.length === 0) return null;
+
       let best: { cx: number; cy: number; dist: number; r: number } | null = null;
 
-      nodes.forEach((node) => {
+      for (let i = 0; i < nodes.length; i++) {
+        const node = nodes[i]!;
         const style = getComputedStyle(node);
         if (
           style.pointerEvents === "none" ||
@@ -101,25 +105,34 @@ export function InvertCursor() {
           style.visibility === "hidden" ||
           style.display === "none"
         ) {
-          return;
+          continue;
         }
         const rect = node.getBoundingClientRect();
-        if (rect.width < 2 || rect.height < 2) return;
+        if (rect.width < 2 || rect.height < 2) continue;
         const cx = rect.left + rect.width / 2;
         const cy = rect.top + rect.height / 2;
         const r = Math.min(rect.width, rect.height) / 2;
         const dist = Math.hypot(x - cx, y - cy);
-        if (dist > MAGNET_RANGE) return;
+        if (dist > MAGNET_RANGE) continue;
         if (!best || dist < best.dist) best = { cx, cy, dist, r };
-      });
+      }
 
       return best;
     };
 
+    let frame = 0;
+    let magnetCache: ReturnType<typeof findMagnet> = null;
+
     const tick = () => {
+      frame += 1;
+      // querySelectorAll + getBoundingClientRect every frame is expensive; refresh magnets every 3rd frame
+      if (frame % 3 === 0) {
+        magnetCache = visible ? findMagnet(targetX, targetY) : null;
+      }
+
       let aimX = targetX;
       let aimY = targetY;
-      const magnet = visible ? findMagnet(targetX, targetY) : null;
+      const magnet = magnetCache;
       let wantMagnet = 0;
 
       if (magnet) {

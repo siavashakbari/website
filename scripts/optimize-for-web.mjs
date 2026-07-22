@@ -108,8 +108,8 @@ async function writeHomepageVariants() {
       outs: [
         {
           dest: path.join(ROOT, "food", "gastronomie", "food-gastronomie-19-thumb.webp"),
-          width: 800,
-          quality: 75,
+          width: 480,
+          quality: 70,
         },
       ],
     },
@@ -118,8 +118,8 @@ async function writeHomepageVariants() {
       outs: [
         {
           dest: path.join(ROOT, "product", "objects", "product-objects-92-thumb.webp"),
-          width: 800,
-          quality: 75,
+          width: 480,
+          quality: 70,
         },
       ],
     },
@@ -128,8 +128,8 @@ async function writeHomepageVariants() {
       outs: [
         {
           dest: path.join(ROOT, "fashion", "atlasi", "fashion-atlasi-09-thumb.webp"),
-          width: 800,
-          quality: 75,
+          width: 480,
+          quality: 70,
         },
       ],
     },
@@ -138,8 +138,8 @@ async function writeHomepageVariants() {
       outs: [
         {
           dest: path.join(ROOT, "portrait", "calligraphy", "portrait-calligraphy-02-thumb.webp"),
-          width: 800,
-          quality: 75,
+          width: 480,
+          quality: 70,
         },
       ],
     },
