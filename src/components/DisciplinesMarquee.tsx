@@ -121,7 +121,7 @@ function DisciplineTile({ discipline }: { discipline: DisciplineCard }) {
  */
 export function DisciplinesMarquee() {
   return (
-    <div className="w-full bg-[#0F0F0F] px-4 py-12 md:px-6 md:py-16 lg:px-8">
+    <div className="w-full bg-[#0F0F0F] px-[10px] pt-1.5 pb-12 md:pb-16">
       <div className="grid grid-cols-2 gap-1.5 md:grid-cols-4">
         {DISCIPLINES.map((discipline) => (
           <DisciplineTile key={discipline.slug} discipline={discipline} />
