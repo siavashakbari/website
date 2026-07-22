@@ -4,6 +4,10 @@ import foodImg from "../assets/food/gastronomie/food-gastronomie-19-thumb.webp";
 import productImg from "../assets/product/objects/product-objects-92-thumb.webp";
 import fashionAsset from "../assets/fashion/atlasi/fashion-atlasi-09-thumb.webp";
 import portraitAsset from "../assets/portrait/calligraphy/portrait-calligraphy-02-thumb.webp";
+import visualIdentityImg from "../assets/product/objects/product-objects-37.jpg";
+import bookCoverImg from "../assets/fashion/atlasi/fashion-atlasi-13.jpg";
+import postersImg from "../assets/portrait/photos/portrait-photos-11.jpg";
+import videosImg from "../assets/food/tasting/food-tasting-07.jpg";
 
 export interface DisciplineCard {
   slug: string;
@@ -50,6 +54,7 @@ export const DISCIPLINES: DisciplineCard[] = [
   {
     slug: "visual-identity",
     label: "Visual Identity",
+    image: visualIdentityImg,
     disciplines: ["graphic-design"],
     match: (c) => c.toLowerCase().includes("visual identity"),
     blurb: "Identity systems that carry a brand's voice across every touchpoint.",
@@ -57,6 +62,7 @@ export const DISCIPLINES: DisciplineCard[] = [
   {
     slug: "book-covers",
     label: "Book Covers",
+    image: bookCoverImg,
     disciplines: ["graphic-design"],
     match: (c) => c.toLowerCase().includes("book cover"),
     blurb: "Cover design and typography that invites the reader before the first page.",
@@ -64,6 +70,7 @@ export const DISCIPLINES: DisciplineCard[] = [
   {
     slug: "posters",
     label: "Posters",
+    image: postersImg,
     disciplines: ["graphic-design"],
     match: (c) => c.toLowerCase().includes("poster"),
     blurb: "Bold, graphic statements for spaces, events, and campaigns.",
@@ -71,6 +78,7 @@ export const DISCIPLINES: DisciplineCard[] = [
   {
     slug: "videos",
     label: "Videos",
+    image: videosImg,
     match: (c) => c.toLowerCase().includes("video"),
     blurb: "Moving image work — rhythm, atmosphere, and story in time.",
   },

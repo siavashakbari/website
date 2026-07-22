@@ -250,6 +250,9 @@
   .font-farsi {
     font-family: var(--font-farsi);
   }
+  .font-inter {
+    font-family: "Inter", system-ui, sans-serif;
+  }
 
   .font-body {
     font-family: var(--font-body);

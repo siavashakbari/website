@@ -1,81 +1,5 @@
-import { useLayoutEffect, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { DISCIPLINES, type DisciplineCard } from "@/data/disciplines";
-import { cn } from "@/lib/utils";
-
-const FULL_WIDTH = 1000;
-/** Letter-spacing as a fraction of the leftover width after glyphs. */
-const SPACING_FACTOR = 0.24;
-
-/**
- * Uppercase centered label sized to fill `fillPercent` of the parent width.
- * ViewBox height controls how large the type renders on screen.
- */
-function StretchLabel({
-  text,
-  className,
-  height = 40,
-  fillPercent = 80,
-}: {
-  text: string;
-  className?: string;
-  /** SVG viewBox height — larger = bigger rendered type */
-  height?: number;
-  /** How much of the parent width the text block should occupy */
-  fillPercent?: number;
-}) {
-  const label = text.toUpperCase();
-  const textRef = useRef<SVGTextElement>(null);
-  const [textLength, setTextLength] = useState(FULL_WIDTH);
-  const [fontSize, setFontSize] = useState(height * 0.72);
-
-  useLayoutEffect(() => {
-    const el = textRef.current;
-    if (!el) return;
-
-    el.removeAttribute("textLength");
-
-    // Grow type as large as the viewBox allows, then ease down only if
-    // glyphs alone would overflow the line before letter-spacing.
-    let size = height * 0.82;
-    el.style.fontSize = `${size}px`;
-    let natural = el.getComputedTextLength();
-
-    const maxNatural = FULL_WIDTH * (1 - SPACING_FACTOR * 0.5);
-    if (natural > maxNatural && natural > 0) {
-      size = size * (maxNatural / natural);
-      el.style.fontSize = `${size}px`;
-      natural = el.getComputedTextLength();
-    }
-
-    const spacing = Math.max(0, FULL_WIDTH - natural);
-    setFontSize(size);
-    setTextLength(natural + spacing * SPACING_FACTOR);
-  }, [label, height]);
-
-  return (
-    <svg
-      viewBox={`0 0 ${FULL_WIDTH} ${height}`}
-      className={cn("mx-auto block overflow-visible", className)}
-      style={{ width: `${fillPercent}%` }}
-      role="img"
-      aria-label={text}
-      preserveAspectRatio="xMidYMid meet"
-    >
-      <text
-        ref={textRef}
-        x={(FULL_WIDTH - textLength) / 2}
-        y={height * 0.78}
-        textLength={textLength}
-        lengthAdjust="spacing"
-        className="fill-current font-display font-bold"
-        style={{ fontSize }}
-      >
-        {label}
-      </text>
-    </svg>
-  );
-}
 
 function DisciplineTile({ discipline }: { discipline: DisciplineCard }) {
   return (
@@ -83,7 +7,7 @@ function DisciplineTile({ discipline }: { discipline: DisciplineCard }) {
       to="/$discipline"
       params={{ discipline: discipline.slug }}
       aria-label={`View ${discipline.label}`}
-      className="group relative block aspect-[3/4] cursor-pointer overflow-hidden rounded-[3px] no-underline"
+      className="group relative isolate block aspect-[3/4] cursor-pointer overflow-hidden rounded-[3px] no-underline [clip-path:inset(0_round_3px)]"
     >
       {discipline.image ? (
         <img
@@ -94,23 +18,39 @@ function DisciplineTile({ discipline }: { discipline: DisciplineCard }) {
           loading="lazy"
           decoding="async"
           draggable={false}
-          className="h-full w-full object-cover object-center"
+          className="h-full w-full rounded-[3px] object-cover object-center transition-[filter] duration-500 ease-out group-hover:brightness-[0.45]"
         />
       ) : (
-        <div className="flex h-full w-full items-center justify-center bg-[#0F0F0F]">
+        <div className="flex h-full w-full items-center justify-center rounded-[3px] bg-[#0F0F0F] transition-[filter] duration-500 ease-out group-hover:brightness-[0.45]">
           <span className="text-xs font-semibold uppercase tracking-widest text-[#EFEFEF]/40">
             Coming soon
           </span>
         </div>
       )}
 
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-[#0F0F0F]/85 to-transparent px-0 pb-3 pt-12 md:pb-4">
-        <StretchLabel
-          text={discipline.label}
-          height={140}
-          fillPercent={90}
-          className="text-[#EFEFEF]"
-        />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 bg-[#0F0F0F]/0 transition-colors duration-500 ease-out group-hover:bg-[#0F0F0F]/35"
+      />
+
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 bottom-0 h-[55%] bg-gradient-to-t from-[#0F0F0F]/85 via-[#0F0F0F]/45 to-transparent transition-opacity duration-500 ease-out group-hover:opacity-0"
+      />
+
+      {/* Transform-only motion — % is relative to this full-card layer */}
+      <div className="pointer-events-none absolute inset-0 flex items-end justify-center px-2 pb-[calc(0.75rem+35px)] transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] will-change-transform group-hover:translate-y-[calc(-50%+2.75rem)] md:pb-[calc(1rem+35px)]">
+        <span className="relative inline-grid origin-center place-items-center transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] will-change-transform group-hover:scale-[1.2]">
+          <span className="font-inter col-start-1 row-start-1 text-center text-[13.2px] font-normal uppercase tracking-[0.16em] text-[#EFEFEF] transition-opacity duration-500 ease-out group-hover:opacity-0 md:text-[14.52px]">
+            {discipline.label}
+          </span>
+          <span
+            aria-hidden
+            className="font-inter col-start-1 row-start-1 text-center text-[13.2px] font-black uppercase tracking-[0.16em] text-[#EFEFEF] opacity-0 transition-opacity duration-500 ease-out group-hover:opacity-100 md:text-[14.52px]"
+          >
+            {discipline.label}
+          </span>
+        </span>
       </div>
     </Link>
   );
