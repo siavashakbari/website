@@ -1,6 +1,7 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { ExpandableCard, ExpandableCardGrid } from "@/components/ui/expandable-card";
 import { GalleryLoadProvider } from "@/components/AdaptiveThumb";
+import { BackToTop } from "@/components/BackToTop";
 import { DISCIPLINES } from "@/data/disciplines";
 import { projects, type Project } from "@/data/projects";
 
@@ -145,6 +146,7 @@ function DisciplinePage() {
           </ExpandableCardGrid>
         </GalleryLoadProvider>
       )}
+      <BackToTop />
     </section>
   );
 }

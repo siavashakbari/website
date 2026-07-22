@@ -1,11 +1,21 @@
 import { useEffect, useRef } from "react";
 
 const SIZE_PX = 24;
-const HALF = SIZE_PX / 2;
 
 const VELOCITY_FULL = 28;
 const VELOCITY_DECAY = 0.14;
 const MORPH_EASE = 0.2;
+
+/** Distance from button center where magnetism begins */
+const MAGNET_RANGE = 110;
+/** Inside this distance from center, cursor locks onto the button */
+const MAGNET_STICK = 36;
+const MAGNET_EASE = 0.28;
+
+function smoothstep(t: number) {
+  const x = Math.max(0, Math.min(1, t));
+  return x * x * (3 - 2 * x);
+}
 
 export function InvertCursor() {
   const dotRef = useRef<HTMLDivElement | null>(null);
@@ -40,6 +50,8 @@ export function InvertCursor() {
     let lastScrollY = window.scrollY;
     let lastWheelAt = 0;
     let lastAngle = 0;
+    let magnetStrength = 0;
+    let lastButtonRadius = SIZE_PX / 2;
 
     const onMove = (e: MouseEvent) => {
       targetX = e.clientX;
@@ -77,10 +89,61 @@ export function InvertCursor() {
       lastScrollY = y;
     };
 
+    const findMagnet = (x: number, y: number) => {
+      const nodes = document.querySelectorAll<HTMLElement>("[data-cursor-magnet]");
+      let best: { cx: number; cy: number; dist: number; r: number } | null = null;
+
+      nodes.forEach((node) => {
+        const style = getComputedStyle(node);
+        if (
+          style.pointerEvents === "none" ||
+          style.opacity === "0" ||
+          style.visibility === "hidden" ||
+          style.display === "none"
+        ) {
+          return;
+        }
+        const rect = node.getBoundingClientRect();
+        if (rect.width < 2 || rect.height < 2) return;
+        const cx = rect.left + rect.width / 2;
+        const cy = rect.top + rect.height / 2;
+        const r = Math.min(rect.width, rect.height) / 2;
+        const dist = Math.hypot(x - cx, y - cy);
+        if (dist > MAGNET_RANGE) return;
+        if (!best || dist < best.dist) best = { cx, cy, dist, r };
+      });
+
+      return best;
+    };
+
     const tick = () => {
-      const ease = 0.3;
-      currentX += (targetX - currentX) * ease;
-      currentY += (targetY - currentY) * ease;
+      let aimX = targetX;
+      let aimY = targetY;
+      const magnet = visible ? findMagnet(targetX, targetY) : null;
+      let wantMagnet = 0;
+
+      if (magnet) {
+        lastButtonRadius = magnet.r;
+        if (magnet.dist <= MAGNET_STICK) {
+          wantMagnet = 1;
+          aimX = magnet.cx;
+          aimY = magnet.cy;
+        } else {
+          wantMagnet = smoothstep(
+            1 - (magnet.dist - MAGNET_STICK) / (MAGNET_RANGE - MAGNET_STICK),
+          );
+          const pull = wantMagnet * wantMagnet;
+          aimX = targetX + (magnet.cx - targetX) * pull;
+          aimY = targetY + (magnet.cy - targetY) * pull;
+        }
+      }
+
+      magnetStrength += (wantMagnet - magnetStrength) * MAGNET_EASE;
+      if (magnetStrength < 0.001) magnetStrength = 0;
+
+      const ease = magnetStrength > 0.5 ? 0.45 : 0.3;
+      currentX += (aimX - currentX) * ease;
+      currentY += (aimY - currentY) * ease;
 
       velX += impulseX;
       velY += impulseY;
@@ -89,8 +152,10 @@ export function InvertCursor() {
       velX *= 1 - VELOCITY_DECAY;
       velY *= 1 - VELOCITY_DECAY;
 
-      const targetMorphX = Math.max(-1, Math.min(1, velX / VELOCITY_FULL));
-      const targetMorphY = Math.max(-1, Math.min(1, velY / VELOCITY_FULL));
+      // Kill stretch while stuck so it sits clean on the button
+      const morphDamp = 1 - magnetStrength;
+      const targetMorphX = Math.max(-1, Math.min(1, (velX / VELOCITY_FULL) * morphDamp));
+      const targetMorphY = Math.max(-1, Math.min(1, (velY / VELOCITY_FULL) * morphDamp));
       morphX += (targetMorphX - morphX) * MORPH_EASE;
       morphY += (targetMorphY - morphY) * MORPH_EASE;
       if (Math.abs(morphX) < 0.001) morphX = 0;
@@ -98,7 +163,6 @@ export function InvertCursor() {
 
       const intensity = Math.min(1, Math.hypot(morphX, morphY));
 
-      // Keep last heading when nearly still so the ease-out doesn’t snap angle
       if (intensity >= 0.02) {
         lastAngle = Math.atan2(morphY, morphX);
       }
@@ -110,15 +174,19 @@ export function InvertCursor() {
       if (intensity >= 0.02) {
         const wide = 60 + intensity * 12;
         const narrow = 40 - intensity * 14;
-        // Local +X = movement direction after rotate.
-        // Swapped ends: narrower on the trailing side (−X).
         radius = `${wide}% ${narrow}% ${narrow}% ${wide}% / 50% 50% 50% 50%`;
       }
 
       const angleDeg = (lastAngle * 180) / Math.PI;
 
-      el.style.transform = `translate3d(${currentX - HALF}px, ${currentY - HALF}px, 0)`;
-      // Rotate into the motion angle, then stretch into an ovoid along that axis
+      // Grow to button radius − 2px when stuck
+      const stuckSize = Math.max(SIZE_PX, lastButtonRadius * 2 - 4);
+      const drawSize = SIZE_PX + (stuckSize - SIZE_PX) * magnetStrength * magnetStrength;
+      const half = drawSize / 2;
+
+      el.style.transform = `translate3d(${currentX - half}px, ${currentY - half}px, 0)`;
+      shape.style.width = `${drawSize}px`;
+      shape.style.height = `${drawSize}px`;
       shape.style.transform =
         intensity < 0.02
           ? "none"
@@ -160,7 +228,7 @@ export function InvertCursor() {
           width: SIZE_PX,
           height: SIZE_PX,
           borderRadius: "50%",
-          willChange: "transform, border-radius",
+          willChange: "transform, border-radius, width, height",
           transformOrigin: "center center",
         }}
       />

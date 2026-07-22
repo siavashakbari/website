@@ -2,8 +2,6 @@ import type { Discipline } from "./projects";
 
 import foodImg from "../assets/food/gastronomie/food-gastronomie-19.jpg";
 import productImg from "../assets/product/objects/product-objects-03.jpg";
-import visualIdentityImg from "../assets/graphic/visual-identity/graphic-visual-identity-01.jpg";
-import bookCoverImg from "../assets/graphic/book-cover/graphic-book-cover-01.jpg";
 import fashionAsset from "../assets/fashion/atlasi/fashion-atlasi-09.jpg";
 import portraitAsset from "../assets/portrait/calligraphy/portrait-calligraphy-02.jpg";
 
@@ -52,7 +50,6 @@ export const DISCIPLINES: DisciplineCard[] = [
   {
     slug: "visual-identity",
     label: "Visual Identity",
-    image: visualIdentityImg,
     disciplines: ["graphic-design"],
     match: (c) => c.toLowerCase().includes("visual identity"),
     blurb: "Identity systems that carry a brand's voice across every touchpoint.",
@@ -60,7 +57,6 @@ export const DISCIPLINES: DisciplineCard[] = [
   {
     slug: "book-covers",
     label: "Book Covers",
-    image: bookCoverImg,
     disciplines: ["graphic-design"],
     match: (c) => c.toLowerCase().includes("book cover"),
     blurb: "Cover design and typography that invites the reader before the first page.",

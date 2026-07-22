@@ -271,6 +271,11 @@
     cursor: none !important;
   }
 
+  .back-to-top {
+    border: none;
+    background: #0f0f0f;
+  }
+
   .text-balance {
     text-wrap: balance;
   }

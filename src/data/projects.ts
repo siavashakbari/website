@@ -1,5 +1,3 @@
-import visualIdentityImg from "../assets/graphic/visual-identity/graphic-visual-identity-01.jpg";
-import bookCoverImg from "../assets/graphic/book-cover/graphic-book-cover-01.jpg";
 import productImg from "../assets/product-design/aurelia/product-design-aurelia-01.jpg";
 import gastronomie1 from "../assets/food/gastronomie/food-gastronomie-01.jpg";
 import gastronomie2 from "../assets/food/gastronomie/food-gastronomie-02.jpg";
@@ -145,7 +143,7 @@ import objects19 from "../assets/product/objects/product-objects-19.jpg";
 import objects20 from "../assets/product/objects/product-objects-20.png";
 import objects21 from "../assets/product/objects/product-objects-21.png";
 import objects22 from "../assets/product/objects/product-objects-22.png";
-import objects23 from "../assets/product/objects/product-objects-23.png";
+import objects23 from "../assets/product/objects/product-objects-23.jpg";
 import objects24 from "../assets/product/objects/product-objects-24.png";
 import objects25 from "../assets/product/objects/product-objects-25.jpg";
 import objects26 from "../assets/product/objects/product-objects-26.jpg";
@@ -422,26 +420,6 @@ export const projects: Project[] = [
     gallery: [
       gaze1,
     ],
-  },
-  {
-    id: "velmore-atelier",
-    title: "Velmore Atelier",
-    discipline: "graphic-design",
-    category: "Visual Identity",
-    year: "2024",
-    description: "A complete visual identity system for a bespoke leather goods house.",
-    image: visualIdentityImg,
-    aspect: "landscape",
-  },
-  {
-    id: "the-wild-hours",
-    title: "The Wild Hours",
-    discipline: "graphic-design",
-    category: "Book Cover",
-    year: "2023",
-    description: "Cover design and typography for a poetry collection on nature and stillness.",
-    image: bookCoverImg,
-    aspect: "portrait",
   },
   {
     id: "aurelia-h1",

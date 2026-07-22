@@ -1,8 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import heroPortrait from "../assets/brand/hero/brand-hero-01.jpg";
-import { useLayoutEffect } from "react";
+import { useLayoutEffect, useState } from "react";
 import { DisciplinesMarquee } from "@/components/DisciplinesMarquee";
 import { MorphingText } from "@/components/ui/morphing-text";
+import { cn } from "@/lib/utils";
 
 const HERO_ROLES = [
   "Multi-disciplinary Designer",
@@ -37,7 +38,10 @@ export const Route = createFileRoute("/")({
 });
 
 function Index() {
+  const [isWindows, setIsWindows] = useState(false);
+
   useLayoutEffect(() => {
+    setIsWindows(/Win/i.test(navigator.userAgent));
     if ("scrollRestoration" in history) {
       history.scrollRestoration = "manual";
     }
@@ -66,7 +70,10 @@ function Index() {
             texts={HERO_ROLES}
             morphTime={2.25}
             cooldownTime={0.75}
-            className="h-auto min-h-[1.6em] max-w-none font-display text-[15.3pt] font-medium uppercase tracking-[0.2em] text-foreground lg:text-[2.295rem]"
+            className={cn(
+              "h-auto min-h-[1.6em] max-w-none font-display text-[12.24pt] font-medium uppercase tracking-[0.2em] text-foreground lg:text-[1.836rem]",
+              isWindows && "translate-y-[10px]",
+            )}
           />
         </div>
       </section>

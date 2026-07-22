@@ -11,7 +11,6 @@ import { useEffect, useState, type ReactNode } from "react";
 import { Menu, X } from "lucide-react";
 
 import appCss from "../styles.css?url";
-import { reportLovableError } from "../lib/lovable-error-reporting";
 import { Logo } from "@/components/Logo";
 import { InvertCursor } from "@/components/InvertCursor";
 import { HoverFooter } from "@/components/HoverFooter";
@@ -41,9 +40,6 @@ function NotFoundComponent() {
 function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   console.error(error);
   const router = useRouter();
-  useEffect(() => {
-    reportLovableError(error, { boundary: "tanstack_root_error_component" });
-  }, [error]);
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
@@ -99,8 +95,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "twitter:site", content: "@siavashakbari" },
       { name: "twitter:title", content: "Siavash Akbari" },
       { name: "twitter:description", content: "Siavash Akbari Portfolio" },
-      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/c300a005-d295-4b8b-94b3-6c8812faa3c5/id-preview-a4cda077--3131727f-1085-40e3-ac0e-533e6c964a0a.lovable.app-1784621692440.png" },
-      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/c300a005-d295-4b8b-94b3-6c8812faa3c5/id-preview-a4cda077--3131727f-1085-40e3-ac0e-533e6c964a0a.lovable.app-1784621692440.png" },
+      { property: "og:image", content: "/og.jpg" },
+      { name: "twitter:image", content: "/og.jpg" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
