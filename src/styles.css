@@ -76,6 +76,71 @@
   font-display: swap;
 }
 
+/* Peyda — Farsi / Persian */
+@font-face {
+  font-family: "Peyda";
+  src: url("./assets/fonts/peyda/peyda-thin.ttf") format("truetype");
+  font-weight: 100;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Peyda";
+  src: url("./assets/fonts/peyda/peyda-extralight.ttf") format("truetype");
+  font-weight: 200;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Peyda";
+  src: url("./assets/fonts/peyda/peyda-light.ttf") format("truetype");
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Peyda";
+  src: url("./assets/fonts/peyda/peyda-regular.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Peyda";
+  src: url("./assets/fonts/peyda/peyda-medium.ttf") format("truetype");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Peyda";
+  src: url("./assets/fonts/peyda/peyda-semibold.ttf") format("truetype");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Peyda";
+  src: url("./assets/fonts/peyda/peyda-bold.ttf") format("truetype");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Peyda";
+  src: url("./assets/fonts/peyda/peyda-extrabold.ttf") format("truetype");
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Peyda";
+  src: url("./assets/fonts/peyda/peyda-black.ttf") format("truetype");
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+}
+
 /*
  * Design system: Noir & Gold
  * Luxury editorial portfolio with dark-dominant palette,
@@ -119,6 +184,7 @@
 
   --font-sans: var(--font-body);
   --font-serif: var(--font-display);
+  --font-farsi: "Peyda", "Satoshi", system-ui, sans-serif;
 
   --animate-cursor-breathe: cursor-breathe 2.4s ease-in-out infinite;
 }
@@ -132,33 +198,58 @@
   }
 }
 
+@keyframes contact-caret {
+  0%,
+  100% {
+    opacity: 0.2;
+    box-shadow:
+      0 0 5px color-mix(in oklab, var(--secondary) 66%, transparent),
+      0 0 14px color-mix(in oklab, var(--secondary) 42%, transparent);
+  }
+  50% {
+    opacity: 1;
+    box-shadow:
+      0 0 7px color-mix(in oklab, var(--secondary) 100%, transparent),
+      0 0 22px color-mix(in oklab, var(--secondary) 66%, transparent),
+      0 0 34px color-mix(in oklab, var(--secondary) 36%, transparent);
+  }
+}
+
+.contact-caret {
+  background-color: var(--secondary);
+  box-shadow:
+    0 0 7px color-mix(in oklab, var(--secondary) 100%, transparent),
+    0 0 22px color-mix(in oklab, var(--secondary) 66%, transparent);
+}
+
 :root {
   --radius: 0.25rem;
 
   --font-display: "Satoshi", system-ui, sans-serif;
   --font-body: "Satoshi", system-ui, sans-serif;
+  --font-farsi: "Peyda", "Satoshi", system-ui, sans-serif;
 
-  /* Light: #EFEFEF ground, #0F0F0F type, #A0A0A0 accent */
+  /* Light: #EFEFEF ground, #0F0F0F type, #3febcc secondary */
   --background: #efefef;
   --foreground: #0f0f0f;
   --card: #efefef;
   --card-foreground: #0f0f0f;
   --popover: #efefef;
   --popover-foreground: #0f0f0f;
-  --primary: #a0a0a0;
+  --primary: #3febcc;
   --primary-foreground: #0f0f0f;
-  --secondary: #a0a0a0;
+  --secondary: #3febcc;
   --secondary-foreground: #0f0f0f;
   --muted: #efefef;
-  --muted-foreground: #a0a0a0;
+  --muted-foreground: #3febcc;
   --accent: #efefef;
   --accent-foreground: #0f0f0f;
   --destructive: oklch(0.577 0.245 27.325);
   --destructive-foreground: #efefef;
-  --border: #a0a0a0;
-  --input: #a0a0a0;
-  --ring: #a0a0a0;
-  --chart-1: #a0a0a0;
+  --border: #3febcc;
+  --input: #3febcc;
+  --ring: #3febcc;
+  --chart-1: #3febcc;
   --chart-2: oklch(0.883 0.098 91.699);
   --chart-3: oklch(0.297 0 277.635);
   --chart-4: oklch(0.218 0 277.635);
@@ -166,27 +257,27 @@
 }
 
 .dark {
-  /* Dark: #0F0F0F ground, #EFEFEF type, #A0A0A0 accent */
+  /* Dark: #0F0F0F ground, #EFEFEF type, #3febcc secondary */
   --background: #0f0f0f;
   --foreground: #efefef;
   --card: #0f0f0f;
   --card-foreground: #efefef;
   --popover: #0f0f0f;
   --popover-foreground: #efefef;
-  --primary: #a0a0a0;
+  --primary: #3febcc;
   --primary-foreground: #0f0f0f;
-  --secondary: #a0a0a0;
+  --secondary: #3febcc;
   --secondary-foreground: #0f0f0f;
   --muted: #0f0f0f;
-  --muted-foreground: #a0a0a0;
+  --muted-foreground: #3febcc;
   --accent: #0f0f0f;
   --accent-foreground: #efefef;
   --destructive: oklch(0.704 0.191 22.216);
   --destructive-foreground: #efefef;
-  --border: #a0a0a0;
-  --input: #a0a0a0;
-  --ring: #a0a0a0;
-  --chart-1: #a0a0a0;
+  --border: #3febcc;
+  --input: #3febcc;
+  --ring: #3febcc;
+  --chart-1: #3febcc;
   --chart-2: oklch(0.883 0.098 91.699);
   --chart-3: oklch(0.297 0 277.635);
   --chart-4: oklch(0.218 0 277.635);
@@ -253,6 +344,9 @@
 @layer utilities {
   .font-display {
     font-family: var(--font-display);
+  }
+  .font-farsi {
+    font-family: var(--font-farsi);
   }
 
   .font-body {

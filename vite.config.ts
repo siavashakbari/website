@@ -7,18 +7,31 @@ import tailwindcss from "@tailwindcss/vite";
 import tsConfigPaths from "vite-tsconfig-paths";
 
 const projectRoot = path.resolve(import.meta.dirname);
-/** Only watch app source — root photo dumps EBUSY-crash Vite on Windows */
+/** Only watch app source — root dumps / PDFs EBUSY-crash Vite on Windows */
 const WATCH_TOP = new Set(["src", "public", "scripts"]);
+const WATCH_ROOT_FILES = new Set([
+  "vite.config.ts",
+  "vite.config.js",
+  "package.json",
+  "package-lock.json",
+  "tsconfig.json",
+  "tsconfig.app.json",
+  "tsconfig.node.json",
+  "index.html",
+  "components.json",
+]);
 
 function ignoreDumpPaths(watchPath: string) {
   const rel = path.relative(projectRoot, watchPath);
   if (!rel || rel.startsWith("..") || path.isAbsolute(rel)) return false;
   const top = rel.split(path.sep)[0];
-  // Keep watching root config files
-  if (top === rel) return false;
+  // Root-level files: only watch known config/entry files
+  if (top === rel) return !WATCH_ROOT_FILES.has(top);
   if (WATCH_TOP.has(top)) {
-    // Still skip reorg cache inside src
-    return rel.includes(`${path.sep}_assets_reorg${path.sep}`) || rel.endsWith(`${path.sep}_assets_reorg`);
+    return (
+      rel.includes(`${path.sep}_assets_reorg${path.sep}`) ||
+      rel.endsWith(`${path.sep}_assets_reorg`)
+    );
   }
   return true;
 }

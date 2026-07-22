@@ -13,6 +13,7 @@ import { Menu, X } from "lucide-react";
 import appCss from "../styles.css?url";
 import { Logo } from "@/components/Logo";
 import { InvertCursor } from "@/components/InvertCursor";
+import { HoverFooter } from "@/components/HoverFooter";
 import { NotFoundPage } from "@/components/NotFoundPage";
 
 function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
@@ -208,7 +209,9 @@ function MobileNav() {
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const router = useRouter();
-  const isProjectPage = router.state.location.pathname.startsWith("/projects/");
+  const pathname = router.state.location.pathname;
+  const isProjectPage = pathname.startsWith("/projects/");
+  const hideFooter = isProjectPage || pathname === "/about" || pathname === "/contact";
 
   useEffect(() => {
     if (!isProjectPage) return;
@@ -239,6 +242,7 @@ function RootComponent() {
         >
           <Outlet />
         </main>
+        {!hideFooter && <HoverFooter />}
       </div>
     </QueryClientProvider>
   );
