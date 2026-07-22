@@ -16,7 +16,6 @@ import { Route as GraphicDesignRouteImport } from './routes/graphic-design'
 import { Route as PhotographyRouteImport } from './routes/photography'
 import { Route as ProductDesignRouteImport } from './routes/product-design'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
-import { Route as WorkRouteImport } from './routes/work'
 import { Route as DisciplinesDisciplineRouteImport } from './routes/disciplines.$discipline'
 import { Route as ProjectsProjectIdRouteImport } from './routes/projects.$projectId'
 
@@ -55,11 +54,6 @@ const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   path: '/sitemap.xml',
   getParentRoute: () => rootRouteImport,
 } as any)
-const WorkRoute = WorkRouteImport.update({
-  id: '/work',
-  path: '/work',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const DisciplinesDisciplineRoute = DisciplinesDisciplineRouteImport.update({
   id: '/disciplines/$discipline',
   path: '/disciplines/$discipline',
@@ -79,7 +73,6 @@ export interface FileRoutesByFullPath {
   '/photography': typeof PhotographyRoute
   '/product-design': typeof ProductDesignRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
-  '/work': typeof WorkRoute
   '/disciplines/$discipline': typeof DisciplinesDisciplineRoute
   '/projects/$projectId': typeof ProjectsProjectIdRoute
 }
@@ -91,7 +84,6 @@ export interface FileRoutesByTo {
   '/photography': typeof PhotographyRoute
   '/product-design': typeof ProductDesignRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
-  '/work': typeof WorkRoute
   '/disciplines/$discipline': typeof DisciplinesDisciplineRoute
   '/projects/$projectId': typeof ProjectsProjectIdRoute
 }
@@ -104,7 +96,6 @@ export interface FileRoutesById {
   '/photography': typeof PhotographyRoute
   '/product-design': typeof ProductDesignRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
-  '/work': typeof WorkRoute
   '/disciplines/$discipline': typeof DisciplinesDisciplineRoute
   '/projects/$projectId': typeof ProjectsProjectIdRoute
 }
@@ -118,7 +109,6 @@ export interface FileRouteTypes {
     | '/photography'
     | '/product-design'
     | '/sitemap.xml'
-    | '/work'
     | '/disciplines/$discipline'
     | '/projects/$projectId'
   fileRoutesByTo: FileRoutesByTo
@@ -130,7 +120,6 @@ export interface FileRouteTypes {
     | '/photography'
     | '/product-design'
     | '/sitemap.xml'
-    | '/work'
     | '/disciplines/$discipline'
     | '/projects/$projectId'
   id:
@@ -142,7 +131,6 @@ export interface FileRouteTypes {
     | '/photography'
     | '/product-design'
     | '/sitemap.xml'
-    | '/work'
     | '/disciplines/$discipline'
     | '/projects/$projectId'
   fileRoutesById: FileRoutesById
@@ -155,7 +143,6 @@ export interface RootRouteChildren {
   PhotographyRoute: typeof PhotographyRoute
   ProductDesignRoute: typeof ProductDesignRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
-  WorkRoute: typeof WorkRoute
   DisciplinesDisciplineRoute: typeof DisciplinesDisciplineRoute
   ProjectsProjectIdRoute: typeof ProjectsProjectIdRoute
 }
@@ -211,13 +198,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SitemapDotxmlRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/work': {
-      id: '/work'
-      path: '/work'
-      fullPath: '/work'
-      preLoaderRoute: typeof WorkRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/disciplines/$discipline': {
       id: '/disciplines/$discipline'
       path: '/disciplines/$discipline'
@@ -243,7 +223,6 @@ const rootRouteChildren: RootRouteChildren = {
   PhotographyRoute: PhotographyRoute,
   ProductDesignRoute: ProductDesignRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
-  WorkRoute: WorkRoute,
   DisciplinesDisciplineRoute: DisciplinesDisciplineRoute,
   ProjectsProjectIdRoute: ProjectsProjectIdRoute,
 }

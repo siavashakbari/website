@@ -1,6 +1,7 @@
 import * as React from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { cn } from "@/lib/utils";
+import { GlowingEffect } from "@/components/ui/glowing-effect";
 
 interface ExpandableCardProps {
   title: string;
@@ -56,7 +57,6 @@ export function ExpandableCard({
   classNameExpanded,
 }: ExpandableCardProps) {
   const [active, setActive] = React.useState(false);
-  const [hovered, setHovered] = React.useState(false);
   const [ratio, setRatio] = React.useState<number | null>(null);
   const cardRef = React.useRef<HTMLDivElement>(null);
   const id = React.useId();
@@ -127,8 +127,6 @@ export function ExpandableCard({
       ? ({ aspectRatio: `${ratio}`, width: "100%", height: "auto" } as const)
       : ({ width: "100%", height: "auto" } as const);
 
-  const showBar = hovered && !active;
-
   return (
     <>
       <AnimatePresence>
@@ -177,23 +175,14 @@ export function ExpandableCard({
               <div className="relative shrink-0 text-white">
                 <div className="flex items-start justify-between gap-4 p-5 sm:p-6">
                   <div className="min-w-0">
-                    <motion.p
-                      layoutId={`description-${description}-${id}`}
-                      className="text-base text-white/55 sm:text-lg"
-                    >
-                      {description}
-                    </motion.p>
-                    <motion.h3
-                      layoutId={`title-${title}-${id}`}
-                      className="mt-0.5 truncate text-2xl font-semibold uppercase tracking-wide text-white sm:text-3xl"
-                    >
+                    <p className="text-base text-white/55 sm:text-lg">{description}</p>
+                    <h3 className="mt-0.5 truncate text-2xl font-semibold uppercase tracking-wide text-white sm:text-3xl">
                       {title}
-                    </motion.h3>
+                    </h3>
                   </div>
-                  <motion.button
+                  <button
                     type="button"
                     aria-label="Close card"
-                    layoutId={`button-${title}-${id}`}
                     className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-white/40 bg-transparent text-white transition-colors duration-300 hover:border-white hover:bg-white/10 focus:outline-none"
                     onClick={() => setActive(false)}
                   >
@@ -204,11 +193,10 @@ export function ExpandableCard({
                     >
                       {plusIcon}
                     </motion.div>
-                  </motion.button>
+                  </button>
                 </div>
                 <div className="relative px-5 sm:px-6">
                   <motion.div
-                    layout
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
@@ -223,29 +211,30 @@ export function ExpandableCard({
         ) : null}
       </AnimatePresence>
 
-      <motion.div
-        role="button"
-        tabIndex={0}
-        aria-labelledby={`card-title-${id}`}
-        layoutId={`card-${title}-${id}`}
-        onClick={() => setActive(true)}
-        onMouseEnter={() => setHovered(true)}
-        onMouseLeave={() => setHovered(false)}
-        onFocus={() => setHovered(true)}
-        onBlur={() => setHovered(false)}
-        onKeyDown={(event) => {
-          if (event.key === "Enter" || event.key === " ") {
-            event.preventDefault();
-            setActive(true);
-          }
-        }}
+      <div
         className={cn(
-          "relative flex h-fit w-full cursor-pointer flex-col overflow-hidden rounded-2xl border border-gray-200/70 bg-zinc-50 shadow-sm dark:border-zinc-900 dark:bg-zinc-950 dark:shadow-none",
+          "relative",
           active && "invisible pointer-events-none",
           className,
         )}
       >
-        <div className="relative w-full">
+        <motion.div
+          role="button"
+          tabIndex={0}
+          aria-labelledby={`card-title-${id}`}
+          layoutId={`card-${title}-${id}`}
+          onClick={() => setActive(true)}
+          onKeyDown={(event) => {
+            if (event.key === "Enter" || event.key === " ") {
+              event.preventDefault();
+              setActive(true);
+            }
+          }}
+          className="relative h-fit w-full cursor-pointer overflow-hidden rounded-2xl bg-zinc-50 shadow-sm dark:bg-zinc-950 dark:shadow-none"
+        >
+          <h3 id={`card-title-${id}`} className="sr-only">
+            {title}
+          </h3>
           <motion.div layoutId={`image-${title}-${id}`} style={imageStyle}>
             <img
               src={src}
@@ -256,54 +245,17 @@ export function ExpandableCard({
               style={imageStyle}
             />
           </motion.div>
-
-          {/* Always mounted so layoutIds can morph; visibility follows hover */}
-          <div
-            className={cn(
-              "absolute inset-x-0 bottom-0 transition-opacity duration-300",
-              showBar ? "opacity-100" : "pointer-events-none opacity-0",
-            )}
-          >
-            <div className="bg-zinc-950">
-              <div className="relative flex items-center justify-between gap-3 px-3 py-3">
-                <div className="min-w-0">
-                  <motion.p
-                    layoutId={`description-${description}-${id}`}
-                    className="truncate text-[10px] font-medium uppercase tracking-wider text-white/50"
-                  >
-                    {description}
-                  </motion.p>
-                  <motion.h3
-                    layoutId={`title-${title}-${id}`}
-                    id={`card-title-${id}`}
-                    className="min-w-0 truncate text-sm font-semibold uppercase tracking-wide text-white md:text-base"
-                  >
-                    {title}
-                  </motion.h3>
-                </div>
-                <motion.button
-                  type="button"
-                  aria-label="Open card"
-                  layoutId={`button-${title}-${id}`}
-                  className="pointer-events-auto flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-white/40 bg-transparent text-white transition-colors duration-300 hover:border-white hover:bg-white/10 focus:outline-none"
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    setActive(true);
-                  }}
-                >
-                  <motion.div
-                    animate={{ rotate: active ? 45 : 0 }}
-                    transition={{ duration: 0.4 }}
-                    className="flex items-center justify-center"
-                  >
-                    {plusIcon}
-                  </motion.div>
-                </motion.button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </motion.div>
+          <GlowingEffect
+            spread={40}
+            glow
+            disabled={active}
+            proximity={64}
+            centerZone={0.55}
+            borderWidth={2}
+            className="z-10"
+          />
+        </motion.div>
+      </div>
     </>
   );
 }

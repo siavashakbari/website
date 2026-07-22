@@ -20,22 +20,17 @@ export function HoverFooter() {
             <h4 className="mb-6 text-lg font-semibold text-white">Navigate</h4>
             <ul className="space-y-3 text-muted-foreground">
               <li>
-                <Link to="/" className="transition-colors hover:text-[#3ca2fa]">
+                <Link to="/" className="transition-colors hover:text-secondary">
                   Home
                 </Link>
               </li>
               <li>
-                <Link to="/work" className="transition-colors hover:text-[#3ca2fa]">
-                  Work
-                </Link>
-              </li>
-              <li>
-                <Link to="/about" className="transition-colors hover:text-[#3ca2fa]">
+                <Link to="/about" className="transition-colors hover:text-secondary">
                   About
                 </Link>
               </li>
               <li>
-                <Link to="/contact" className="transition-colors hover:text-[#3ca2fa]">
+                <Link to="/contact" className="transition-colors hover:text-secondary">
                   Contact
                 </Link>
               </li>
@@ -48,7 +43,7 @@ export function HoverFooter() {
               <li>
                 <Link
                   to="/photography"
-                  className="transition-colors hover:text-[#3ca2fa]"
+                  className="transition-colors hover:text-secondary"
                 >
                   Photography
                 </Link>
@@ -56,7 +51,7 @@ export function HoverFooter() {
               <li>
                 <Link
                   to="/graphic-design"
-                  className="transition-colors hover:text-[#3ca2fa]"
+                  className="transition-colors hover:text-secondary"
                 >
                   Graphic Design
                 </Link>
@@ -64,7 +59,7 @@ export function HoverFooter() {
               <li>
                 <Link
                   to="/product-design"
-                  className="transition-colors hover:text-[#3ca2fa]"
+                  className="transition-colors hover:text-secondary"
                 >
                   Product Design
                 </Link>
@@ -76,32 +71,32 @@ export function HoverFooter() {
             <h4 className="mb-6 text-lg font-semibold text-white">Contact</h4>
             <ul className="space-y-4 text-muted-foreground">
               <li className="flex items-center space-x-3">
-                <Mail size={18} className="text-[#3ca2fa]" />
+                <Mail size={18} className="text-secondary" />
                 <a
                   href="mailto:Siavakbari@gmail.com"
-                  className="transition-colors hover:text-[#3ca2fa]"
+                  className="transition-colors hover:text-secondary"
                 >
                   Siavakbari@gmail.com
                 </a>
               </li>
               <li className="flex items-center space-x-3">
-                <Instagram size={18} className="text-[#3ca2fa]" />
+                <Instagram size={18} className="text-secondary" />
                 <a
                   href="https://instagram.com/siavashakbari"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="transition-colors hover:text-[#3ca2fa]"
+                  className="transition-colors hover:text-secondary"
                 >
                   @siavashakbari
                 </a>
               </li>
               <li className="flex items-center space-x-3">
-                <Globe size={18} className="text-[#3ca2fa]" />
+                <Globe size={18} className="text-secondary" />
                 <a
                   href="https://www.behance.net/siavashakbari"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="transition-colors hover:text-[#3ca2fa]"
+                  className="transition-colors hover:text-secondary"
                 >
                   Behance
                 </a>
@@ -119,14 +114,14 @@ export function HoverFooter() {
               target="_blank"
               rel="noopener noreferrer"
               aria-label="Instagram"
-              className="transition-colors hover:text-[#3ca2fa]"
+              className="transition-colors hover:text-secondary"
             >
               <Instagram size={20} />
             </a>
             <a
               href="mailto:Siavakbari@gmail.com"
               aria-label="Email"
-              className="transition-colors hover:text-[#3ca2fa]"
+              className="transition-colors hover:text-secondary"
             >
               <Mail size={20} />
             </a>
@@ -135,7 +130,7 @@ export function HoverFooter() {
               target="_blank"
               rel="noopener noreferrer"
               aria-label="Behance"
-              className="transition-colors hover:text-[#3ca2fa]"
+              className="transition-colors hover:text-secondary"
             >
               <Globe size={20} />
             </a>

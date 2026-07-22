@@ -121,11 +121,11 @@ export const LogoHoverEffect = ({
           ))}
         </g>
 
-        {/* Thick overlay — 5px, feathered around cursor */}
+        {/* Thick overlay — 3px, feathered around cursor */}
         <g
           fill="none"
           stroke="white"
-          strokeWidth="5"
+          strokeWidth="3"
           strokeLinecap="round"
           strokeLinejoin="round"
           mask="url(#logoThickMask)"

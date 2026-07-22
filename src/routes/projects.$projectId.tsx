@@ -40,8 +40,8 @@ export const Route = createFileRoute("/projects/$projectId")({
   notFoundComponent: () => (
     <div className="mx-auto max-w-3xl px-6 py-32 text-center">
       <h1 className="font-display text-4xl">Project not found</h1>
-      <Link to="/work" className="mt-6 inline-block text-primary underline">
-        Back to work
+      <Link to="/" className="mt-6 inline-block text-primary underline">
+        Back to home
       </Link>
     </div>
   ),
