@@ -174,6 +174,7 @@ export function AdaptiveThumb({
           ref={imgRef}
           src={src}
           alt={alt}
+          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
           draggable={false}
           onDragStart={(e) => e.preventDefault()}
           decoding="async"

@@ -8,6 +8,7 @@
     "build": "vite build",
     "build:dev": "vite build --mode development",
     "preview": "vite preview",
+    "optimize:images": "node scripts/optimize-for-web.mjs",
     "lint": "eslint .",
     "format": "prettier --write ."
   },

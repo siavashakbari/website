@@ -15,6 +15,7 @@ export function ProjectCard({ project, index = 0, aspectRatio }: ProjectCardProp
       width={project.aspect === "portrait" ? 1024 : 1280}
       height={project.aspect === "portrait" ? 1280 : 1024}
       loading={index < 2 ? "eager" : "lazy"}
+      decoding="async"
       className={`w-full object-cover transition-transform duration-700 ease-out group-hover:scale-105 ${aspectRatio ? "h-full" : ""}`}
     />
   );

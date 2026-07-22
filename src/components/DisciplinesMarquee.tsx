@@ -89,7 +89,10 @@ function DisciplineTile({ discipline }: { discipline: DisciplineCard }) {
         <img
           src={discipline.image}
           alt={discipline.label}
+          width={800}
+          height={1067}
           loading="lazy"
+          decoding="async"
           draggable={false}
           className="h-full w-full object-cover object-center"
         />

@@ -1,9 +1,9 @@
 import type { Discipline } from "./projects";
 
-import foodImg from "../assets/food/gastronomie/food-gastronomie-19.jpg";
-import productImg from "../assets/product/objects/product-objects-92.jpg";
-import fashionAsset from "../assets/fashion/atlasi/fashion-atlasi-09.jpg";
-import portraitAsset from "../assets/portrait/calligraphy/portrait-calligraphy-02.jpg";
+import foodImg from "../assets/food/gastronomie/food-gastronomie-19-thumb.webp";
+import productImg from "../assets/product/objects/product-objects-92-thumb.webp";
+import fashionAsset from "../assets/fashion/atlasi/fashion-atlasi-09-thumb.webp";
+import portraitAsset from "../assets/portrait/calligraphy/portrait-calligraphy-02-thumb.webp";
 
 export interface DisciplineCard {
   slug: string;

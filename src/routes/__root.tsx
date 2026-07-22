@@ -11,6 +11,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import { Menu, X } from "lucide-react";
 
 import appCss from "../styles.css?url";
+import satoshiMedium from "../assets/fonts/Satoshi-Medium.woff2?url";
 import { Logo } from "@/components/Logo";
 import { InvertCursor } from "@/components/InvertCursor";
 import { HoverFooter } from "@/components/HoverFooter";
@@ -81,17 +82,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "stylesheet", href: appCss },
       { rel: "icon", href: "/favicon.svg", type: "image/svg+xml" },
       {
-        rel: "preconnect",
-        href: "https://fonts.googleapis.com",
-      },
-      {
-        rel: "preconnect",
-        href: "https://fonts.gstatic.com",
+        rel: "preload",
+        href: satoshiMedium,
+        as: "font",
+        type: "font/woff2",
         crossOrigin: "anonymous",
-      },
-      {
-        rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;700;900&display=swap",
       },
     ],
   }),

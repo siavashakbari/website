@@ -56,6 +56,8 @@ export function MosaicGallery({ items, onSelect }: MosaicGalleryProps) {
                       src={item.src}
                       alt={item.alt}
                       loading={colIdx < 2 && idxInCol === 0 ? "eager" : "lazy"}
+                      decoding="async"
+                      sizes="(max-width: 768px) 50vw, 33vw"
                       className="block h-auto w-full transition-opacity duration-500 group-hover:opacity-80"
                     />
                   </div>
