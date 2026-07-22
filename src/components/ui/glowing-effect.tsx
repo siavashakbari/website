@@ -1,11 +1,37 @@
 "use client";
 
-import { memo, useCallback, useEffect, useRef, type CSSProperties } from "react";
+import { memo, useCallback, useEffect, useRef, useState, type CSSProperties } from "react";
 import { cn } from "@/lib/utils";
 import { animate } from "motion/react";
 
 const GLOW_MASK =
   "linear-gradient(#0000,#0000), conic-gradient(from calc((var(--start) - var(--spread)) * 1deg), #0000 0deg, #fff, #0000 calc(var(--spread) * 2deg))";
+
+/** Shared flag so every glow turns off while an expandable card overlay is open */
+const OVERLAY_OPEN_CLASS = "expandable-card-open";
+
+export function setExpandableCardOverlayOpen(open: boolean) {
+  document.documentElement.classList.toggle(OVERLAY_OPEN_CLASS, open);
+}
+
+function useOverlayBlocksGlow() {
+  const [blocked, setBlocked] = useState(() =>
+    typeof document !== "undefined"
+      ? document.documentElement.classList.contains(OVERLAY_OPEN_CLASS)
+      : false,
+  );
+
+  useEffect(() => {
+    const html = document.documentElement;
+    const sync = () => setBlocked(html.classList.contains(OVERLAY_OPEN_CLASS));
+    sync();
+    const observer = new MutationObserver(sync);
+    observer.observe(html, { attributes: true, attributeFilter: ["class"] });
+    return () => observer.disconnect();
+  }, []);
+
+  return blocked;
+}
 
 interface GlowingEffectProps {
   blur?: number;
@@ -42,6 +68,8 @@ const GlowingEffect = memo(
     const containerRef = useRef<HTMLDivElement>(null);
     const lastPosition = useRef({ x: 0, y: 0 });
     const animationFrameRef = useRef<number>(0);
+    const overlayBlocks = useOverlayBlocksGlow();
+    const isDisabled = disabled || overlayBlocks;
 
     const handleMove = useCallback(
       (e?: MouseEvent | { x: number; y: number }) => {
@@ -54,6 +82,11 @@ const GlowingEffect = memo(
         animationFrameRef.current = requestAnimationFrame(() => {
           const element = containerRef.current;
           if (!element) return;
+
+          if (document.documentElement.classList.contains(OVERLAY_OPEN_CLASS)) {
+            element.style.setProperty("--active", "0");
+            return;
+          }
 
           const { left, top, width, height } = element.getBoundingClientRect();
           const mouseX = e?.x ?? lastPosition.current.x;
@@ -105,7 +138,10 @@ const GlowingEffect = memo(
     );
 
     useEffect(() => {
-      if (disabled) return;
+      if (isDisabled) {
+        containerRef.current?.style.setProperty("--active", "0");
+        return;
+      }
 
       const handleScroll = () => handleMove();
       const handlePointerMove = (e: PointerEvent) => handleMove(e);
@@ -122,7 +158,7 @@ const GlowingEffect = memo(
         window.removeEventListener("scroll", handleScroll);
         document.body.removeEventListener("pointermove", handlePointerMove);
       };
-    }, [handleMove, disabled]);
+    }, [handleMove, isDisabled]);
 
     return (
       <div
@@ -162,7 +198,7 @@ const GlowingEffect = memo(
           glow && "opacity-100",
           blur > 0 && "blur-[var(--blur)]",
           className,
-          disabled && "!hidden",
+          isDisabled && "!hidden",
         )}
       >
         <div

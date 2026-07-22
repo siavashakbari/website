@@ -1,5 +1,5 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
-import { ExpandableCard } from "@/components/ui/expandable-card";
+import { ExpandableCard, ExpandableCardGrid } from "@/components/ui/expandable-card";
 import { DISCIPLINES } from "@/data/disciplines";
 import { projects, type Project } from "@/data/projects";
 
@@ -86,14 +86,14 @@ function DisciplinePage() {
           More coming soon.
         </p>
       ) : (
-        <div className="w-full columns-1 gap-4 px-2 sm:columns-2 lg:columns-3 xl:columns-4">
+        <ExpandableCardGrid className="columns-1 gap-0 px-[13px] sm:columns-2 lg:columns-3">
           {items.map((item) => (
             <ExpandableCard
               key={item.key}
+              cardId={item.key}
               title={item.title}
               src={item.src}
-              description={item.category}
-              className="mb-4 break-inside-avoid"
+              className="mb-0"
               classNameExpanded="[&_h4]:font-medium [&_h4]:text-black dark:[&_h4]:text-white"
             >
               <p className="text-[10px] font-light uppercase tracking-[0.3em] text-zinc-400">
@@ -120,7 +120,7 @@ function DisciplinePage() {
               ) : null}
             </ExpandableCard>
           ))}
-        </div>
+        </ExpandableCardGrid>
       )}
     </section>
   );

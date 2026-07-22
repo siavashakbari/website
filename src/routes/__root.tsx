@@ -152,26 +152,30 @@ const navLinks = [
 
 function Header() {
   return (
-    <header className="sticky top-0 z-50 border-b border-foreground/10 bg-background">
-      <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
-        <Link to="/" className="text-foreground">
-          <Logo className="h-[1.05rem] w-auto" />
-        </Link>
-        <nav className="hidden items-center gap-12 md:flex">
-          {navLinks.map((link) => (
-            <Link
-              key={link.to}
-              to={link.to}
-              style={{ fontFamily: "Inter, system-ui, sans-serif" }}
-              className="text-sm font-light uppercase tracking-widest text-foreground transition-colors hover:text-secondary data-[status=active]:font-black data-[status=active]:text-secondary"
-            >
-              {link.label}
-            </Link>
-          ))}
-        </nav>
-        <MobileNav />
-      </div>
-    </header>
+    <>
+      <header className="fixed inset-x-0 top-0 z-[200] border-b border-foreground/10 bg-background">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
+          <Link to="/" className="text-foreground">
+            <Logo className="h-[1.05rem] w-auto" />
+          </Link>
+          <nav className="hidden items-center gap-12 md:flex">
+            {navLinks.map((link) => (
+              <Link
+                key={link.to}
+                to={link.to}
+                style={{ fontFamily: "Inter, system-ui, sans-serif" }}
+                className="text-sm font-light uppercase tracking-widest text-foreground transition-colors hover:text-secondary data-[status=active]:font-black data-[status=active]:text-secondary"
+              >
+                {link.label}
+              </Link>
+            ))}
+          </nav>
+          <MobileNav />
+        </div>
+      </header>
+      {/* Spacer matches fixed header height so content isn't hidden underneath */}
+      <div className="h-[3.55rem] shrink-0" aria-hidden />
+    </>
   );
 }
 
