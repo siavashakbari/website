@@ -227,8 +227,8 @@ function MobileNav() {
   );
 }
 
-/** Cursor + footer are deferred so they don't inflate homepage TBT. */
-function DeferredChrome({ showFooter }: { showFooter: boolean }) {
+/** Custom cursor only — keep it out of the first paint path. */
+function DeferredCursor() {
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
@@ -255,7 +255,6 @@ function DeferredChrome({ showFooter }: { showFooter: boolean }) {
   return (
     <Suspense fallback={null}>
       <InvertCursor />
-      {showFooter ? <HoverFooter /> : null}
     </Suspense>
   );
 }
@@ -282,7 +281,7 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <DeferredChrome showFooter={!hideFooter} />
+      <DeferredCursor />
       <div
         className={`flex flex-col bg-background ${
           isProjectPage ? "h-dvh overflow-hidden overscroll-none" : "min-h-screen"
@@ -296,6 +295,11 @@ function RootComponent() {
         >
           <Outlet />
         </main>
+        {!hideFooter && (
+          <Suspense fallback={null}>
+            <HoverFooter />
+          </Suspense>
+        )}
       </div>
     </QueryClientProvider>
   );
