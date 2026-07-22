@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import heroPortrait from "../assets/hero-portrait.jpg";
+import heroPortrait from "../assets/brand/hero/brand-hero-01.jpg";
 import { useLayoutEffect } from "react";
 import { DisciplinesMarquee } from "@/components/DisciplinesMarquee";
 import { MorphingText } from "@/components/ui/morphing-text";
@@ -11,7 +11,7 @@ const HERO_ROLES = [
 ];
 
 /** Matches fixed header spacer in __root.tsx */
-const HEADER_H = "3.55rem";
+const HEADER_H = "3.5rem";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -61,7 +61,6 @@ function Index() {
           className="absolute inset-0 h-full w-full object-cover object-center"
           loading="eager"
         />
-        <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-background/80 via-background/30 to-transparent" />
         <div className="absolute inset-x-0 bottom-0 px-6 pb-6 md:pb-8">
           <MorphingText
             texts={HERO_ROLES}
@@ -72,11 +71,8 @@ function Index() {
         </div>
       </section>
 
-      {/* Disciplines */}
-      <section className="flex min-h-dvh w-full flex-col justify-center bg-background py-16 md:py-20">
-        <h2 className="shrink-0 px-6 pb-10 text-center font-display text-4xl font-medium uppercase leading-none tracking-tight text-foreground md:px-10 md:pb-14 md:text-5xl">
-          DISCIPLINES
-        </h2>
+      {/* Disciplines — OMS-style category tile strip */}
+      <section className="w-full">
         <DisciplinesMarquee />
       </section>
     </div>

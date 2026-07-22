@@ -4,10 +4,82 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* Satoshi — thin (Light) through heavy (Black) */
+@font-face {
+  font-family: "Satoshi";
+  src: url("./assets/fonts/Satoshi-Light.otf") format("opentype");
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Satoshi";
+  src: url("./assets/fonts/Satoshi-LightItalic.otf") format("opentype");
+  font-weight: 300;
+  font-style: italic;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Satoshi";
+  src: url("./assets/fonts/Satoshi-Regular.otf") format("opentype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Satoshi";
+  src: url("./assets/fonts/Satoshi-Italic.otf") format("opentype");
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Satoshi";
+  src: url("./assets/fonts/Satoshi-Medium.otf") format("opentype");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Satoshi";
+  src: url("./assets/fonts/Satoshi-MediumItalic.otf") format("opentype");
+  font-weight: 500;
+  font-style: italic;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Satoshi";
+  src: url("./assets/fonts/Satoshi-Bold.otf") format("opentype");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Satoshi";
+  src: url("./assets/fonts/Satoshi-BoldItalic.otf") format("opentype");
+  font-weight: 700;
+  font-style: italic;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Satoshi";
+  src: url("./assets/fonts/Satoshi-Black.otf") format("opentype");
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Satoshi";
+  src: url("./assets/fonts/Satoshi-BlackItalic.otf") format("opentype");
+  font-weight: 900;
+  font-style: italic;
+  font-display: swap;
+}
+
 /*
  * Design system: Noir & Gold
  * Luxury editorial portfolio with dark-dominant palette,
- * Cormorant display + Karla body typography.
+ * Satoshi display + body typography.
  */
 
 @theme inline {
@@ -63,30 +135,30 @@
 :root {
   --radius: 0.25rem;
 
-  --font-display: "Inter", system-ui, sans-serif;
-  --font-body: "Inter", system-ui, sans-serif;
+  --font-display: "Satoshi", system-ui, sans-serif;
+  --font-body: "Satoshi", system-ui, sans-serif;
 
-  /* Light mode: warm editorial paper with teal accent */
+  /* Light: #EFEFEF ground, #0F0F0F type, #A0A0A0 accent */
   --background: #efefef;
   --foreground: #0f0f0f;
-  --card: #f5f5f5;
+  --card: #efefef;
   --card-foreground: #0f0f0f;
-  --popover: #f5f5f5;
+  --popover: #efefef;
   --popover-foreground: #0f0f0f;
-  --primary: #3febcc;
+  --primary: #a0a0a0;
   --primary-foreground: #0f0f0f;
-  --secondary: #3febcc;
+  --secondary: #a0a0a0;
   --secondary-foreground: #0f0f0f;
-  --muted: #e5e5e5;
-  --muted-foreground: #555555;
-  --accent: #e5e5e5;
+  --muted: #efefef;
+  --muted-foreground: #a0a0a0;
+  --accent: #efefef;
   --accent-foreground: #0f0f0f;
   --destructive: oklch(0.577 0.245 27.325);
-  --destructive-foreground: oklch(0.984 0.003 247.858);
-  --border: #d4d4d4;
-  --input: #d4d4d4;
-  --ring: #3febcc;
-  --chart-1: #3febcc;
+  --destructive-foreground: #efefef;
+  --border: #a0a0a0;
+  --input: #a0a0a0;
+  --ring: #a0a0a0;
+  --chart-1: #a0a0a0;
   --chart-2: oklch(0.883 0.098 91.699);
   --chart-3: oklch(0.297 0 277.635);
   --chart-4: oklch(0.218 0 277.635);
@@ -94,27 +166,27 @@
 }
 
 .dark {
-  /* Dark mode: Noir & Gold with teal accent */
+  /* Dark: #0F0F0F ground, #EFEFEF type, #A0A0A0 accent */
   --background: #0f0f0f;
   --foreground: #efefef;
-  --card: #1a1a1a;
+  --card: #0f0f0f;
   --card-foreground: #efefef;
-  --popover: #1a1a1a;
+  --popover: #0f0f0f;
   --popover-foreground: #efefef;
-  --primary: #3febcc;
+  --primary: #a0a0a0;
   --primary-foreground: #0f0f0f;
-  --secondary: #3febcc;
+  --secondary: #a0a0a0;
   --secondary-foreground: #0f0f0f;
-  --muted: #1a1a1a;
+  --muted: #0f0f0f;
   --muted-foreground: #a0a0a0;
-  --accent: #1a1a1a;
+  --accent: #0f0f0f;
   --accent-foreground: #efefef;
   --destructive: oklch(0.704 0.191 22.216);
-  --destructive-foreground: oklch(0.984 0.003 247.858);
-  --border: #262626;
-  --input: #262626;
-  --ring: #3febcc;
-  --chart-1: #3febcc;
+  --destructive-foreground: #efefef;
+  --border: #a0a0a0;
+  --input: #a0a0a0;
+  --ring: #a0a0a0;
+  --chart-1: #a0a0a0;
   --chart-2: oklch(0.883 0.098 91.699);
   --chart-3: oklch(0.297 0 277.635);
   --chart-4: oklch(0.218 0 277.635);
@@ -163,7 +235,18 @@
   b,
   strong,
   .font-bold {
-    font-weight: 800;
+    font-weight: 700;
+  }
+
+  .font-black,
+  .font-extrabold {
+    font-weight: 900;
+  }
+
+  .font-thin,
+  .font-extralight,
+  .font-light {
+    font-weight: 300;
   }
 }
 

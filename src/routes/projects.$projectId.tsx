@@ -116,7 +116,7 @@ function ProjectDetail() {
 
       {activeIndex !== null && (
         <div
-          className="fixed inset-0 z-50 flex cursor-zoom-out items-center justify-center bg-black"
+          className="fixed inset-0 z-50 flex cursor-zoom-out items-center justify-center bg-[#0F0F0F]"
           onClick={() => setActiveIndex(null)}
         >
           <img

@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 import { animate } from "motion/react";
 
 const GLOW_MASK =
-  "linear-gradient(#0000,#0000), conic-gradient(from calc((var(--start) - var(--spread)) * 1deg), #0000 0deg, #fff, #0000 calc(var(--spread) * 2deg))";
+  "linear-gradient(#0000,#0000), conic-gradient(from calc((var(--start) - var(--spread)) * 1deg), #0000 0deg, #EFEFEF, #0000 calc(var(--spread) * 2deg))";
 
 /** Shared flag so every glow turns off while an expandable card overlay is open */
 const OVERLAY_OPEN_CLASS = "expandable-card-open";
@@ -176,8 +176,8 @@ const GlowingEffect = memo(
               variant === "white"
                 ? `repeating-conic-gradient(
                   from 236.84deg at 50% 50%,
-                  var(--black),
-                  var(--black) calc(25% / var(--repeating-conic-gradient-times))
+                  #0F0F0F,
+                  #0F0F0F calc(25% / var(--repeating-conic-gradient-times))
                 )`
                 : `radial-gradient(circle, var(--secondary) 10%, transparent 20%),
                 radial-gradient(circle at 40% 40%, var(--secondary) 5%, transparent 15%),

@@ -3,6 +3,8 @@ import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "motion/react";
 import { cn } from "@/lib/utils";
 import { setExpandableCardOverlayOpen } from "@/components/ui/glowing-effect";
+import { AdaptiveThumb, resolveFullImageSrc } from "@/components/AdaptiveThumb";
+import { metaFromSrc } from "@/lib/adaptive-image";
 
 interface ExpandableCardProps {
   title: string;
@@ -12,6 +14,8 @@ interface ExpandableCardProps {
   className?: string;
   classNameExpanded?: string;
   cardId?: string;
+  /** Position in the gallery — used for top-to-bottom adaptive loading */
+  index?: number;
 }
 
 type HoverContextValue = {
@@ -22,9 +26,6 @@ type HoverContextValue = {
 };
 
 const HoverContext = React.createContext<HoverContextValue | null>(null);
-
-const HOVERED_CARD_SHADOW =
-  "0 12px 28px rgba(0,0,0,0.225), 0 4px 10px rgba(0,0,0,0.14)";
 
 /**
  * Edge-to-edge masonry hover chrome.
@@ -65,8 +66,6 @@ export function ExpandableCardGrid({
     [setHovered, setOpenCard, hoveredId, openCardId],
   );
 
-  const hoverActive = !openCardId && hoveredId;
-
   return (
     <HoverContext.Provider value={value}>
       <div ref={rootRef} className={cn("relative w-full select-none", className)}>
@@ -74,23 +73,9 @@ export function ExpandableCardGrid({
           if (!React.isValidElement<{ cardId?: string }>(child)) return child;
           const id = child.props.cardId;
           if (!id) return child;
-          const isHovered = hoverActive === id;
-          const isDimmed = Boolean(hoverActive) && hoverActive !== id;
           return (
-            <div
-              key={id}
-              className="relative break-inside-avoid"
-              style={{
-                boxShadow: isHovered ? HOVERED_CARD_SHADOW : "none",
-                transition: "box-shadow 480ms ease",
-              }}
-            >
+            <div key={id} className="relative mb-[4px] break-inside-avoid">
               {child}
-              <div
-                aria-hidden
-                className="pointer-events-none absolute inset-0 bg-black transition-opacity duration-500 ease-out"
-                style={{ opacity: isDimmed ? 0.2 : 0 }}
-              />
             </div>
           );
         })}
@@ -133,9 +118,10 @@ export function ExpandableCard({
   className,
   classNameExpanded,
   cardId,
+  index = 0,
 }: ExpandableCardProps) {
   const [active, setActive] = React.useState(false);
-  const [ratio, setRatio] = React.useState<number | null>(null);
+  const [ratio, setRatio] = React.useState<number | null>(() => metaFromSrc(src).ratio);
   const [viewport, setViewport] = React.useState({ w: 1200, h: 800 });
   const cardRef = React.useRef<HTMLDivElement>(null);
   const id = React.useId();
@@ -154,12 +140,13 @@ export function ExpandableCard({
     return () => window.removeEventListener("resize", sync);
   }, []);
 
-  const handleImageLoad = (event: React.SyntheticEvent<HTMLImageElement>) => {
-    const { naturalWidth, naturalHeight } = event.currentTarget;
-    if (naturalWidth > 0 && naturalHeight > 0) {
-      setRatio(naturalWidth / naturalHeight);
-    }
-  };
+  const handleRatio = React.useCallback((r: number) => {
+    setRatio(r);
+  }, []);
+
+  React.useEffect(() => {
+    setRatio(metaFromSrc(src).ratio);
+  }, [src]);
 
   React.useEffect(() => {
     hover?.setOpenCard(active ? trackId : null);
@@ -231,6 +218,8 @@ export function ExpandableCard({
       ? ({ aspectRatio: `${ratio}`, width: "100%", height: "auto" } as const)
       : ({ width: "100%", height: "auto" } as const);
 
+  const fullSrc = resolveFullImageSrc(src);
+
   const overlay =
     mounted &&
     createPortal(
@@ -241,7 +230,7 @@ export function ExpandableCard({
             <motion.div
               key="backdrop"
               aria-hidden
-              className="fixed inset-0 z-[140] bg-black/50 backdrop-blur-[6px]"
+              className="fixed inset-0 z-[140] bg-[#0F0F0F]/50 backdrop-blur-[6px]"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
@@ -270,42 +259,41 @@ export function ExpandableCard({
                 transition={{ duration: 0.34, ease: [0.22, 1, 0.36, 1] }}
                 style={{ width: fitted.width }}
                 className={cn(
-                  "pointer-events-auto relative flex max-h-full flex-col overflow-hidden bg-zinc-950 shadow-2xl",
+                  "pointer-events-auto relative flex max-h-full flex-col overflow-hidden bg-[#0F0F0F] shadow-2xl",
                   classNameExpanded,
                 )}
               >
                 {/* Exact aspect box — fill = no crop, no letterbox */}
                 <div
-                  className="relative shrink-0 overflow-hidden bg-zinc-950"
+                  className="relative shrink-0 overflow-hidden bg-[#0F0F0F]"
                   style={{ width: fitted.width, height: fitted.imageHeight }}
                 >
                   <img
-                    src={src}
+                    src={fullSrc}
                     alt={title}
-                    onLoad={handleImageLoad}
                     draggable={false}
                     className="pointer-events-none block h-full w-full object-cover object-center"
                   />
                 </div>
 
-                <div className="relative shrink-0 bg-zinc-950 text-white">
+                <div className="relative shrink-0 bg-[#0F0F0F] text-[#EFEFEF]">
                   <div className="flex items-start justify-between gap-4 px-5 pb-2 pt-4 sm:px-6 sm:pt-5">
                     <div className="min-w-0">
-                      <h3 className="truncate text-xl font-semibold uppercase tracking-wide text-white sm:text-2xl">
+                      <h3 className="truncate text-xl font-semibold uppercase tracking-wide text-[#EFEFEF] sm:text-2xl">
                         {title}
                       </h3>
                     </div>
                     <button
                       type="button"
                       aria-label="Close card"
-                      className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-white/40 bg-transparent text-white transition-colors duration-300 hover:border-white hover:bg-white/10 focus:outline-none"
+                      className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[#EFEFEF]/40 bg-transparent text-[#EFEFEF] transition-colors duration-300 hover:border-[#EFEFEF] hover:bg-[#EFEFEF]/10 focus:outline-none"
                       onClick={() => setActive(false)}
                     >
                       <span className="flex rotate-45 items-center justify-center">{plusIcon}</span>
                     </button>
                   </div>
                   <div className="px-5 pb-4 sm:px-6 sm:pb-5">
-                    <div className="line-clamp-4 flex flex-col items-start gap-1.5 text-sm text-white/60">
+                    <div className="flex max-h-[9.5rem] flex-col items-start gap-1.5 overflow-y-auto text-sm text-[#EFEFEF]/60">
                       {children}
                     </div>
                   </div>
@@ -343,22 +331,19 @@ export function ExpandableCard({
               setActive(true);
             }
           }}
-          className="relative h-fit w-full cursor-pointer select-none overflow-hidden rounded-none bg-zinc-50 dark:bg-zinc-950"
+          className="relative h-fit w-full cursor-pointer select-none overflow-hidden rounded-none bg-[#EFEFEF] dark:bg-[#0F0F0F]"
         >
           <h3 id={`card-title-${id}`} className="sr-only">
             {title}
           </h3>
-          <div style={thumbStyle}>
-            <img
-              src={src}
-              alt={title}
-              onLoad={handleImageLoad}
-              draggable={false}
-              onDragStart={(event) => event.preventDefault()}
-              className="pointer-events-none block h-auto w-full select-none object-cover object-center"
-              style={thumbStyle}
-            />
-          </div>
+          <AdaptiveThumb
+            src={src}
+            index={index}
+            alt={title}
+            onRatio={handleRatio}
+            className="pointer-events-none block h-auto w-full select-none"
+            style={thumbStyle}
+          />
         </div>
       </div>
     </>

@@ -1,119 +1,137 @@
-import { useEffect, useRef } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { DISCIPLINES, type DisciplineCard } from "@/data/disciplines";
-import { GlowingEffect } from "@/components/ui/glowing-effect";
-import { ProgressiveBlur } from "@/components/ui/progressive-blur";
+import { cn } from "@/lib/utils";
 
-function DisciplineCardItem({ discipline }: { discipline: DisciplineCard }) {
+const FULL_WIDTH = 1000;
+/** Letter-spacing as a fraction of the leftover width after glyphs. */
+const SPACING_FACTOR = 0.24;
+
+/**
+ * Uppercase centered label sized to fill `fillPercent` of the parent width.
+ * ViewBox height controls how large the type renders on screen.
+ */
+function StretchLabel({
+  text,
+  className,
+  height = 40,
+  fillPercent = 80,
+}: {
+  text: string;
+  className?: string;
+  /** SVG viewBox height — larger = bigger rendered type */
+  height?: number;
+  /** How much of the parent width the text block should occupy */
+  fillPercent?: number;
+}) {
+  const label = text.toUpperCase();
+  const textRef = useRef<SVGTextElement>(null);
+  const [textLength, setTextLength] = useState(FULL_WIDTH);
+  const [fontSize, setFontSize] = useState(height * 0.72);
+
+  useLayoutEffect(() => {
+    const el = textRef.current;
+    if (!el) return;
+
+    el.removeAttribute("textLength");
+
+    // Grow type as large as the viewBox allows, then ease down only if
+    // glyphs alone would overflow the line before letter-spacing.
+    let size = height * 0.82;
+    el.style.fontSize = `${size}px`;
+    let natural = el.getComputedTextLength();
+
+    const maxNatural = FULL_WIDTH * (1 - SPACING_FACTOR * 0.5);
+    if (natural > maxNatural && natural > 0) {
+      size = size * (maxNatural / natural);
+      el.style.fontSize = `${size}px`;
+      natural = el.getComputedTextLength();
+    }
+
+    const spacing = Math.max(0, FULL_WIDTH - natural);
+    setFontSize(size);
+    setTextLength(natural + spacing * SPACING_FACTOR);
+  }, [label, height]);
+
+  return (
+    <svg
+      viewBox={`0 0 ${FULL_WIDTH} ${height}`}
+      className={cn("mx-auto block overflow-visible", className)}
+      style={{ width: `${fillPercent}%` }}
+      role="img"
+      aria-label={text}
+      preserveAspectRatio="xMidYMid meet"
+    >
+      <text
+        ref={textRef}
+        x={(FULL_WIDTH - textLength) / 2}
+        y={height * 0.78}
+        textLength={textLength}
+        lengthAdjust="spacing"
+        className="fill-current font-display font-bold"
+        style={{ fontSize }}
+      >
+        {label}
+      </text>
+    </svg>
+  );
+}
+
+function DisciplineTile({ discipline }: { discipline: DisciplineCard }) {
   return (
     <Link
       to="/disciplines/$discipline"
       params={{ discipline: discipline.slug }}
-      className="group relative shrink-0"
       aria-label={`View ${discipline.label}`}
+      className="group relative block aspect-[3/4] cursor-pointer overflow-hidden rounded-[3px] no-underline"
     >
-      <div className="relative aspect-[3/4] h-[min(52dvh,380px)] w-auto overflow-hidden rounded-[2rem] bg-zinc-50 shadow-sm sm:h-[min(56dvh,460px)] sm:rounded-[2.5rem] md:h-[min(60dvh,560px)] md:rounded-[3rem] dark:bg-zinc-950 dark:shadow-none">
-        {discipline.image ? (
-          <img
-            src={discipline.image}
-            alt={discipline.label}
-            className="pointer-events-none h-full w-full object-cover object-center"
-            loading="lazy"
-            draggable={false}
-          />
-        ) : (
-          <div className="flex h-full w-full flex-col items-center justify-center bg-card p-5">
-            <span className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-              Coming soon
-            </span>
-          </div>
-        )}
-        <GlowingEffect
-          spread={40}
-          glow
-          disabled={false}
-          proximity={64}
-          centerZone={0.55}
-          borderWidth={2}
-          className="z-10"
+      {discipline.image ? (
+        <img
+          src={discipline.image}
+          alt={discipline.label}
+          loading="lazy"
+          draggable={false}
+          className="h-full w-full object-cover object-center"
         />
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 flex justify-center p-4 md:p-6">
-          <span className="inline-flex items-center justify-center rounded-full border border-white/40 bg-black/45 px-4 py-2 font-display text-xs font-medium tracking-wide text-white backdrop-blur-md sm:text-sm md:px-6 md:py-2.5 md:text-base">
-            {discipline.label}
+      ) : (
+        <div className="flex h-full w-full items-center justify-center bg-[#0F0F0F]">
+          <span className="text-xs font-semibold uppercase tracking-widest text-[#EFEFEF]/40">
+            Coming soon
           </span>
         </div>
+      )}
+
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-[#0F0F0F]/85 to-transparent px-0 pb-3 pt-12 md:pb-4">
+        <StretchLabel
+          text={discipline.label}
+          height={140}
+          fillPercent={90}
+          className="text-[#EFEFEF]"
+        />
       </div>
     </Link>
   );
 }
 
+/**
+ * Category strip: title on the left, equal tiles on the right.
+ */
 export function DisciplinesMarquee() {
-  const rootRef = useRef<HTMLDivElement>(null);
-  const scrollerRef = useRef<HTMLDivElement>(null);
-  const activeRef = useRef(false);
-
-  useEffect(() => {
-    const root = rootRef.current;
-    const scroller = scrollerRef.current;
-    if (!root || !scroller) return;
-
-    const io = new IntersectionObserver(
-      ([entry]) => {
-        activeRef.current = entry.isIntersecting && entry.intersectionRatio >= 0.55;
-      },
-      { threshold: [0, 0.55, 0.8, 1] },
-    );
-    io.observe(root);
-
-    let raf = 0;
-
-    const onWheel = (event: WheelEvent) => {
-      if (!activeRef.current) return;
-
-      // Only remap dominant vertical wheel → horizontal (skip trackpad sideways)
-      if (Math.abs(event.deltaY) <= Math.abs(event.deltaX)) return;
-
-      const maxScroll = scroller.scrollWidth - scroller.clientWidth;
-      if (maxScroll <= 1) return;
-
-      const { deltaY } = event;
-      const atStart = scroller.scrollLeft <= 0.5;
-      const atEnd = scroller.scrollLeft >= maxScroll - 0.5;
-
-      // Let the page keep scrolling when the strip can't move further
-      if ((deltaY < 0 && atStart) || (deltaY > 0 && atEnd)) return;
-
-      event.preventDefault();
-
-      cancelAnimationFrame(raf);
-      raf = requestAnimationFrame(() => {
-        const next = Math.min(maxScroll, Math.max(0, scroller.scrollLeft + deltaY));
-        scroller.scrollLeft = next;
-      });
-    };
-
-    root.addEventListener("wheel", onWheel, { passive: false });
-    return () => {
-      io.disconnect();
-      cancelAnimationFrame(raf);
-      root.removeEventListener("wheel", onWheel);
-    };
-  }, []);
-
   return (
-    <div ref={rootRef} className="relative w-full">
-      <div
-        ref={scrollerRef}
-        className="flex w-full items-stretch gap-4 overflow-x-auto overflow-y-hidden px-6 py-2 sm:gap-5 sm:px-10 md:gap-8 md:px-16"
-        style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
-      >
-        {DISCIPLINES.map((discipline) => (
-          <DisciplineCardItem key={discipline.slug} discipline={discipline} />
-        ))}
-      </div>
+    <div className="w-full bg-[#0F0F0F] px-4 py-12 md:px-6 md:py-16 lg:px-8">
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:gap-3">
+        <div className="flex shrink-0 justify-center md:justify-start">
+          <h2 className="font-display text-center text-4xl font-bold uppercase tracking-normal text-[#EFEFEF] md:text-left md:text-5xl md:[writing-mode:vertical-rl] md:rotate-180 lg:text-6xl xl:text-7xl">
+            Things I Do
+          </h2>
+        </div>
 
-      <ProgressiveBlur position="left" width="72px" className="z-30" />
-      <ProgressiveBlur position="right" width="72px" className="z-30" />
+        <div className="grid min-w-0 flex-1 grid-cols-2 gap-1.5 md:grid-cols-4">
+          {DISCIPLINES.map((discipline) => (
+            <DisciplineTile key={discipline.slug} discipline={discipline} />
+          ))}
+        </div>
+      </div>
     </div>
   );
 }

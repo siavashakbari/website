@@ -89,13 +89,13 @@ export const LogoHoverEffect = ({
       >
         <defs>
           <radialGradient id="logoFeatherGrad" cx="50%" cy="50%" r="50%">
-            <stop offset="0%" stopColor="#ffffff" />
-            <stop offset="30%" stopColor="#ffffff" />
-            <stop offset="65%" stopColor="#777777" />
-            <stop offset="100%" stopColor="#000000" />
+            <stop offset="0%" stopColor="#EFEFEF" />
+            <stop offset="30%" stopColor="#EFEFEF" />
+            <stop offset="65%" stopColor="#A0A0A0" />
+            <stop offset="100%" stopColor="#0F0F0F" />
           </radialGradient>
           <mask id="logoThickMask" maskUnits="userSpaceOnUse">
-            <rect x="-200" y="-200" width="1400" height="600" fill="black" />
+            <rect x="-200" y="-200" width="1400" height="600" fill="#0F0F0F" />
             <motion.circle
               cx={mask.x}
               cy={mask.y}
@@ -110,7 +110,7 @@ export const LogoHoverEffect = ({
         {/* Thin base outline — 1px */}
         <g
           fill="none"
-          stroke="white"
+          stroke="#EFEFEF"
           strokeWidth="1"
           strokeLinecap="round"
           strokeLinejoin="round"
@@ -124,7 +124,7 @@ export const LogoHoverEffect = ({
         {/* Thick overlay — 3px, feathered around cursor */}
         <g
           fill="none"
-          stroke="white"
+          stroke="#EFEFEF"
           strokeWidth="3"
           strokeLinecap="round"
           strokeLinejoin="round"

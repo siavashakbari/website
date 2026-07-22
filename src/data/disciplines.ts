@@ -1,11 +1,11 @@
 import type { Discipline } from "./projects";
 
-import foodImg from "../assets/food.jpg";
-import productImg from "../assets/product.jpg";
-import visualIdentityImg from "../assets/visual-identity.jpg";
-import bookCoverImg from "../assets/book-cover.jpg";
-import fashionAsset from "../assets/atlasi/DSC09694.jpg";
-import portraitAsset from "../assets/calligraphy/Calligraphy_HQ_2.jpg.asset.json";
+import foodImg from "../assets/food/gastronomie/food-gastronomie-19.jpg";
+import productImg from "../assets/product/objects/product-objects-03.jpg";
+import visualIdentityImg from "../assets/graphic/visual-identity/graphic-visual-identity-01.jpg";
+import bookCoverImg from "../assets/graphic/book-cover/graphic-book-cover-01.jpg";
+import fashionAsset from "../assets/fashion/atlasi/fashion-atlasi-09.jpg";
+import portraitAsset from "../assets/portrait/calligraphy/portrait-calligraphy-02.jpg";
 
 export interface DisciplineCard {
   slug: string;
@@ -36,7 +36,7 @@ export const DISCIPLINES: DisciplineCard[] = [
   {
     slug: "portrait-photography",
     label: "Portrait Photography",
-    image: portraitAsset.url,
+    image: portraitAsset,
     disciplines: ["photography"],
     match: (c) => c.toLowerCase().includes("portrait"),
     blurb: "Portraits that hold a person still enough to be seen.",

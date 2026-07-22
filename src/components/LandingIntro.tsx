@@ -85,7 +85,7 @@ export function LandingIntro({ onComplete }: { onComplete: () => void }) {
   return (
     <div className="fixed inset-0 z-50 overflow-hidden" aria-hidden>
       <motion.div
-        className="absolute inset-0 bg-black/85 backdrop-blur-2xl"
+        className="absolute inset-0 bg-[#0F0F0F]/85 backdrop-blur-2xl"
         initial={{ opacity: 1 }}
         animate={{ opacity: veilVisible ? 1 : 0 }}
         transition={{ duration: VEIL_FADE_MS / 1000, ease: [0.22, 1, 0.36, 1] }}
@@ -94,7 +94,7 @@ export function LandingIntro({ onComplete }: { onComplete: () => void }) {
       <div className="relative z-10 flex h-full w-full items-center justify-center px-6">
         <MorphingText
           texts={MORPH_TEXTS}
-          className="h-auto min-h-12 font-display text-[1.25rem] font-medium tracking-wide text-white sm:min-h-14 sm:text-2xl md:min-h-16 md:text-4xl lg:text-4xl"
+          className="h-auto min-h-12 font-display text-[1.25rem] font-medium tracking-wide text-[#EFEFEF] sm:min-h-14 sm:text-2xl md:min-h-16 md:text-4xl lg:text-4xl"
         />
       </div>
     </div>

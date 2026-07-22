@@ -9,7 +9,7 @@ export function HoverFooter() {
       <div className="relative z-40 mx-auto max-w-7xl p-8 md:p-14">
         <div className="grid grid-cols-1 gap-12 pb-12 md:grid-cols-2 md:gap-8 lg:grid-cols-4 lg:gap-16">
           <div className="flex flex-col space-y-4">
-            <span className="text-3xl font-bold text-white">Siavash Akbari</span>
+            <span className="text-3xl font-bold text-[#EFEFEF]">Siavash Akbari</span>
             <p className="text-sm leading-relaxed text-muted-foreground">
               Photography, graphic design, and product design — a curated body of
               editorial work made with intention.
@@ -17,7 +17,7 @@ export function HoverFooter() {
           </div>
 
           <div>
-            <h4 className="mb-6 text-lg font-semibold text-white">Navigate</h4>
+            <h4 className="mb-6 text-lg font-semibold text-[#EFEFEF]">Navigate</h4>
             <ul className="space-y-3 text-muted-foreground">
               <li>
                 <Link to="/" className="transition-colors hover:text-secondary">
@@ -38,7 +38,7 @@ export function HoverFooter() {
           </div>
 
           <div>
-            <h4 className="mb-6 text-lg font-semibold text-white">Disciplines</h4>
+            <h4 className="mb-6 text-lg font-semibold text-[#EFEFEF]">Disciplines</h4>
             <ul className="space-y-3 text-muted-foreground">
               <li>
                 <Link
@@ -68,7 +68,7 @@ export function HoverFooter() {
           </div>
 
           <div>
-            <h4 className="mb-6 text-lg font-semibold text-white">Contact</h4>
+            <h4 className="mb-6 text-lg font-semibold text-[#EFEFEF]">Contact</h4>
             <ul className="space-y-4 text-muted-foreground">
               <li className="flex items-center space-x-3">
                 <Mail size={18} className="text-secondary" />

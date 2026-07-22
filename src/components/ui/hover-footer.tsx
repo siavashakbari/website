@@ -63,8 +63,8 @@ export const TextHoverEffect = ({
           animate={maskPosition}
           transition={{ duration: duration ?? 0, ease: "easeOut" }}
         >
-          <stop offset="0%" stopColor="white" />
-          <stop offset="100%" stopColor="black" />
+          <stop offset="0%" stopColor="#EFEFEF" />
+          <stop offset="100%" stopColor="#0F0F0F" />
         </motion.radialGradient>
         <mask id="textMask">
           <rect x="0" y="0" width="100%" height="100%" fill="url(#revealMask)" />
@@ -115,7 +115,7 @@ export const FooterBackgroundGradient = () => {
     <div
       className="absolute inset-0 z-0"
       style={{
-        background: "linear-gradient(to bottom, #0f0f0f 0%, #000000 100%)",
+        background: "linear-gradient(to bottom, #0F0F0F 0%, #0F0F0F 100%)",
       }}
     />
   );

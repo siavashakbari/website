@@ -155,7 +155,7 @@ export function InvertCursor() {
     >
       <span
         ref={shapeRef}
-        className="block bg-white"
+        className="block bg-[#EFEFEF]"
         style={{
           width: SIZE_PX,
           height: SIZE_PX,

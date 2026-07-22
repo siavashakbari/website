@@ -118,10 +118,6 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         rel: "stylesheet",
         href: "https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;700;900&display=swap",
       },
-      {
-        rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap",
-      },
     ],
   }),
   shellComponent: RootShell,
@@ -154,17 +150,17 @@ function Header() {
   return (
     <>
       <header className="fixed inset-x-0 top-0 z-[200] border-b border-foreground/10 bg-background">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
-          <Link to="/" className="text-foreground">
-            <Logo className="h-[1.05rem] w-auto" />
+        <div className="mx-auto flex h-14 w-full items-center justify-between px-6">
+          <Link to="/" className="flex items-center text-foreground">
+            <Logo className="block h-[1.05rem] w-auto" />
           </Link>
-          <nav className="hidden items-center gap-12 md:flex">
+          <nav className="hidden h-full items-center gap-12 md:flex">
             {navLinks.map((link) => (
               <Link
                 key={link.to}
                 to={link.to}
-                style={{ fontFamily: "Inter, system-ui, sans-serif" }}
-                className="text-sm font-light uppercase tracking-widest text-foreground transition-colors hover:text-secondary data-[status=active]:font-black data-[status=active]:text-secondary"
+                style={{ fontFamily: "Satoshi, system-ui, sans-serif" }}
+                className="flex h-full items-center text-sm font-light uppercase leading-none tracking-widest text-foreground transition-colors hover:text-secondary data-[status=active]:font-black data-[status=active]:text-secondary"
               >
                 {link.label}
               </Link>
@@ -174,7 +170,7 @@ function Header() {
         </div>
       </header>
       {/* Spacer matches fixed header height so content isn't hidden underneath */}
-      <div className="h-[3.55rem] shrink-0" aria-hidden />
+      <div className="h-14 shrink-0" aria-hidden />
     </>
   );
 }
@@ -188,7 +184,7 @@ function MobileNav() {
         aria-label="Open menu"
         aria-expanded={open}
         onClick={() => setOpen(true)}
-        className="inline-flex items-center justify-center p-2 text-foreground transition-colors hover:opacity-70"
+        className="inline-flex items-center justify-center text-foreground transition-colors hover:opacity-70"
       >
         <Menu className="h-[0.9rem] w-[0.9rem]" />
       </button>
