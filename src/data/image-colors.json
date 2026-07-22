@@ -1,12 +1,4 @@
 {
-  "brand-fashion-legacy-01": {
-    "color": "#46372a",
-    "ratio": 0.8
-  },
-  "brand-food-legacy-01": {
-    "color": "#464649",
-    "ratio": 0.8
-  },
   "brand-hero-01": {
     "color": "#a7a7a7",
     "ratio": 1.77786
@@ -14,18 +6,6 @@
   "brand-portrait-01": {
     "color": "#372817",
     "ratio": 0.8
-  },
-  "fashion-atelier-01": {
-    "color": "#351a02",
-    "ratio": 0.5625
-  },
-  "fashion-atelier-02": {
-    "color": "#c5b7a9",
-    "ratio": 0.66667
-  },
-  "fashion-atelier-03": {
-    "color": "#d6c3bb",
-    "ratio": 1
   },
   "fashion-atlasi-01": {
     "color": "#46372a",
@@ -92,7 +72,7 @@
     "ratio": 0.79993
   },
   "fashion-sepidar-02": {
-    "color": "#968a84",
+    "color": "#978a84",
     "ratio": 0.80014
   },
   "fashion-sepidar-03": {
@@ -100,7 +80,7 @@
     "ratio": 0.8
   },
   "fashion-sepidar-04": {
-    "color": "#482428",
+    "color": "#a49a99",
     "ratio": 1.5
   },
   "fashion-sepidar-05": {
@@ -120,11 +100,11 @@
     "ratio": 0.66667
   },
   "fashion-sepidar-09": {
-    "color": "#c6d3cb",
+    "color": "#c5d4cb",
     "ratio": 1.5
   },
   "fashion-sepidar-10": {
-    "color": "#bbc5b8",
+    "color": "#bcc4b8",
     "ratio": 0.67625
   },
   "fashion-sepidar-11": {
@@ -136,7 +116,7 @@
     "ratio": 0.80004
   },
   "fashion-sepidar-13": {
-    "color": "#494439",
+    "color": "#484439",
     "ratio": 0.66667
   },
   "fashion-sepidar-14": {
@@ -148,7 +128,7 @@
     "ratio": 0.8
   },
   "fashion-sepidar-16": {
-    "color": "#c6c8c4",
+    "color": "#c6c7c4",
     "ratio": 0.80006
   },
   "fashion-sepidar-17": {
@@ -156,7 +136,7 @@
     "ratio": 0.79997
   },
   "fashion-sepidar-18": {
-    "color": "#c5c6c5",
+    "color": "#c5c6c6",
     "ratio": 0.8
   },
   "fashion-sepidar-19": {
@@ -164,7 +144,7 @@
     "ratio": 0.80008
   },
   "fashion-sepidar-20": {
-    "color": "#c97646",
+    "color": "#c97547",
     "ratio": 0.8
   },
   "fashion-sepidar-21": {
@@ -180,7 +160,7 @@
     "ratio": 0.8
   },
   "fashion-sepidar-24": {
-    "color": "#e7dac8",
+    "color": "#e6dac8",
     "ratio": 0.79992
   },
   "fashion-sepidar-25": {
@@ -188,7 +168,7 @@
     "ratio": 1.5
   },
   "fashion-sepidar-26": {
-    "color": "#d8e9f5",
+    "color": "#d8e9f6",
     "ratio": 0.8
   },
   "fashion-sepidar-27": {
@@ -196,7 +176,7 @@
     "ratio": 0.79985
   },
   "fashion-sepidar-28": {
-    "color": "#370706",
+    "color": "#370607",
     "ratio": 0.80009
   },
   "fashion-sepidar-29": {
@@ -248,19 +228,19 @@
     "ratio": 1
   },
   "food-cuisine-05": {
-    "color": "#a59b99",
+    "color": "#a69b99",
     "ratio": 1
   },
   "food-cuisine-06": {
-    "color": "#976437",
+    "color": "#d68735",
     "ratio": 1
   },
   "food-cuisine-07": {
-    "color": "#a75618",
+    "color": "#b8b8b7",
     "ratio": 1
   },
   "food-cuisine-08": {
-    "color": "#f8eac6",
+    "color": "#f9eac6",
     "ratio": 1
   },
   "food-cuisine-09": {
@@ -268,7 +248,7 @@
     "ratio": 1.5
   },
   "food-cuisine-10": {
-    "color": "#c3b7b7",
+    "color": "#c2b7b7",
     "ratio": 1
   },
   "food-cuisine-11": {
@@ -288,7 +268,7 @@
     "ratio": 1
   },
   "food-gastronomie-04": {
-    "color": "#e6d5b8",
+    "color": "#e6d6b8",
     "ratio": 1
   },
   "food-gastronomie-05": {
@@ -316,11 +296,11 @@
     "ratio": 1
   },
   "food-gastronomie-11": {
-    "color": "#ecb917",
+    "color": "#ecb916",
     "ratio": 1.5
   },
   "food-gastronomie-12": {
-    "color": "#885638",
+    "color": "#885738",
     "ratio": 0.66667
   },
   "food-gastronomie-13": {
@@ -336,23 +316,31 @@
     "ratio": 0.66667
   },
   "food-gastronomie-16": {
-    "color": "#faca38",
+    "color": "#fbca38",
     "ratio": 1.5
   },
   "food-gastronomie-17": {
-    "color": "#f8c428",
+    "color": "#f8c529",
     "ratio": 1.5
   },
   "food-gastronomie-18": {
-    "color": "#5a4437",
+    "color": "#5a4537",
     "ratio": 1.5
   },
   "food-gastronomie-19": {
-    "color": "#7c6247",
+    "color": "#7d6247",
     "ratio": 0.66667
   },
   "food-gastronomie-20": {
     "color": "#f5b968",
+    "ratio": 0.66667
+  },
+  "food-gastronomie-21": {
+    "color": "#c7772a",
+    "ratio": 1.5
+  },
+  "food-gastronomie-22": {
+    "color": "#e8b876",
     "ratio": 0.66667
   },
   "food-tasting-01": {
@@ -373,31 +361,19 @@
   },
   "food-tasting-05": {
     "color": "#fbe8d4",
-    "ratio": 0.66667
+    "ratio": 0.76104
   },
   "food-tasting-06": {
-    "color": "#182838",
+    "color": "#192838",
     "ratio": 0.66667
   },
   "food-tasting-07": {
-    "color": "#4a4747",
+    "color": "#3a3838",
     "ratio": 0.66661
-  },
-  "food-tasting-08": {
-    "color": "#353b43",
-    "ratio": 1.5
   },
   "food-tasting-09": {
     "color": "#e7d8b5",
     "ratio": 0.66667
-  },
-  "graphic-book-cover-01": {
-    "color": "#372919",
-    "ratio": 0.8
-  },
-  "graphic-visual-identity-01": {
-    "color": "#c7bdb3",
-    "ratio": 1.25
   },
   "portrait-calligraphy-01": {
     "color": "#bab9b7",
@@ -416,7 +392,7 @@
     "ratio": 0.66667
   },
   "portrait-calligraphy-05": {
-    "color": "#785639",
+    "color": "#372618",
     "ratio": 0.66667
   },
   "portrait-calligraphy-06": {
@@ -432,7 +408,7 @@
     "ratio": 0.66667
   },
   "portrait-photos-02": {
-    "color": "#b9a688",
+    "color": "#b9a788",
     "ratio": 0.66667
   },
   "portrait-photos-03": {
@@ -452,7 +428,7 @@
     "ratio": 0.66667
   },
   "portrait-photos-07": {
-    "color": "#3b3428",
+    "color": "#3b3329",
     "ratio": 0.66667
   },
   "portrait-photos-08": {
@@ -464,7 +440,7 @@
     "ratio": 0.66667
   },
   "portrait-photos-10": {
-    "color": "#4b433d",
+    "color": "#4b443d",
     "ratio": 0.8
   },
   "portrait-photos-11": {
@@ -480,7 +456,7 @@
     "ratio": 0.80005
   },
   "portrait-photos-14": {
-    "color": "#0a172c",
+    "color": "#0b172c",
     "ratio": 0.66667
   },
   "portrait-photos-15": {
@@ -516,11 +492,11 @@
     "ratio": 0.80007
   },
   "portrait-photos-23": {
-    "color": "#b7b7b7",
+    "color": "#b8b8b8",
     "ratio": 0.68271
   },
   "portrait-photos-24": {
-    "color": "#7c8792",
+    "color": "#79838d",
     "ratio": 0.56233
   },
   "product-objects-01": {
@@ -528,7 +504,7 @@
     "ratio": 0.80074
   },
   "product-objects-02": {
-    "color": "#363b46",
+    "color": "#763717",
     "ratio": 0.56252
   },
   "product-objects-03": {
@@ -544,7 +520,7 @@
     "ratio": 0.5625
   },
   "product-objects-06": {
-    "color": "#381609",
+    "color": "#371609",
     "ratio": 0.56252
   },
   "product-objects-07": {
@@ -552,11 +528,11 @@
     "ratio": 0.8
   },
   "product-objects-08": {
-    "color": "#8a837b",
+    "color": "#847c74",
     "ratio": 0.8
   },
   "product-objects-09": {
-    "color": "#3b2307",
+    "color": "#3b2208",
     "ratio": 0.66667
   },
   "product-objects-10": {
@@ -564,7 +540,7 @@
     "ratio": 0.79981
   },
   "product-objects-11": {
-    "color": "#c4bab8",
+    "color": "#c5bab8",
     "ratio": 0.80015
   },
   "product-objects-12": {
@@ -620,7 +596,7 @@
     "ratio": 0.75
   },
   "product-objects-25": {
-    "color": "#d3ac89",
+    "color": "#d4ac88",
     "ratio": 0.8
   },
   "product-objects-26": {
@@ -628,11 +604,11 @@
     "ratio": 0.66667
   },
   "product-objects-27": {
-    "color": "#d9c9b8",
+    "color": "#d9c8b9",
     "ratio": 0.80022
   },
   "product-objects-28": {
-    "color": "#e9d8c7",
+    "color": "#e8d8c8",
     "ratio": 1.49973
   },
   "product-objects-29": {

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { createFileRoute, Link, notFound } from "@tanstack/react-router";
+import { createFileRoute, notFound, rootRouteId } from "@tanstack/react-router";
 import { projects } from "@/data/projects";
 
 function useIsDesktop() {
@@ -19,7 +19,7 @@ function useIsDesktop() {
 export const Route = createFileRoute("/projects/$projectId")({
   loader: ({ params }) => {
     const project = projects.find((p) => p.id === params.projectId);
-    if (!project) throw notFound();
+    if (!project) throw notFound({ routeId: rootRouteId });
     return { project };
   },
   head: ({ loaderData }) => {
@@ -37,14 +37,6 @@ export const Route = createFileRoute("/projects/$projectId")({
     };
   },
   component: ProjectDetail,
-  notFoundComponent: () => (
-    <div className="mx-auto max-w-3xl px-6 py-32 text-center">
-      <h1 className="font-display text-4xl">Project not found</h1>
-      <Link to="/" className="mt-6 inline-block text-primary underline">
-        Back to home
-      </Link>
-    </div>
-  ),
   errorComponent: ({ error }) => (
     <div className="mx-auto max-w-3xl px-6 py-32 text-center">
       <h1 className="font-display text-4xl">Something went wrong</h1>

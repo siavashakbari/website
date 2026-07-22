@@ -80,7 +80,7 @@ function StretchLabel({
 function DisciplineTile({ discipline }: { discipline: DisciplineCard }) {
   return (
     <Link
-      to="/disciplines/$discipline"
+      to="/$discipline"
       params={{ discipline: discipline.slug }}
       aria-label={`View ${discipline.label}`}
       className="group relative block aspect-[3/4] cursor-pointer overflow-hidden rounded-[3px] no-underline"
@@ -114,23 +114,15 @@ function DisciplineTile({ discipline }: { discipline: DisciplineCard }) {
 }
 
 /**
- * Category strip: title on the left, equal tiles on the right.
+ * Category strip: equal tiles across the section.
  */
 export function DisciplinesMarquee() {
   return (
     <div className="w-full bg-[#0F0F0F] px-4 py-12 md:px-6 md:py-16 lg:px-8">
-      <div className="flex flex-col gap-4 md:flex-row md:items-center md:gap-3">
-        <div className="flex shrink-0 justify-center md:justify-start">
-          <h2 className="font-display text-center text-4xl font-bold uppercase tracking-normal text-[#EFEFEF] md:text-left md:text-5xl md:[writing-mode:vertical-rl] md:rotate-180 lg:text-6xl xl:text-7xl">
-            Things I Do
-          </h2>
-        </div>
-
-        <div className="grid min-w-0 flex-1 grid-cols-2 gap-1.5 md:grid-cols-4">
-          {DISCIPLINES.map((discipline) => (
-            <DisciplineTile key={discipline.slug} discipline={discipline} />
-          ))}
-        </div>
+      <div className="grid grid-cols-2 gap-1.5 md:grid-cols-4">
+        {DISCIPLINES.map((discipline) => (
+          <DisciplineTile key={discipline.slug} discipline={discipline} />
+        ))}
       </div>
     </div>
   );

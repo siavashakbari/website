@@ -142,7 +142,7 @@ export function HoverFooter() {
         </div>
       </div>
 
-      <div className="relative z-50 hidden px-20 pb-10 pt-4 lg:block">
+      <div className="relative z-50 hidden px-2 pb-0 pt-4 lg:block">
         <LogoHoverEffect />
       </div>
 

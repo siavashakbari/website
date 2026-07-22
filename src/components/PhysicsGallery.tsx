@@ -181,7 +181,7 @@ export default function PhysicsGallery({ items }: { items: MosaicItem[] }) {
 
   const onOpen: OpenFn = (item) => {
     void navigate({
-      to: "/disciplines/$discipline_/$photo",
+      to: "/$discipline_/$photo",
       params: { discipline: item.discipline, photo: item.photo },
     });
   };
@@ -216,7 +216,7 @@ export default function PhysicsGallery({ items }: { items: MosaicItem[] }) {
         {items.map((item) => (
           <li key={item.key}>
             <a
-              href={`/disciplines/${item.discipline}/${item.photo}`}
+              href={`/${item.discipline}/${item.photo}`}
             >{`${item.title} — ${item.year}`}</a>
           </li>
         ))}

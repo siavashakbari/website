@@ -344,15 +344,6 @@
   {
     "category": "food",
     "project": "tasting",
-    "index": 8,
-    "import_path": "../assets/food/tasting/food-tasting-08.png",
-    "uses_url": false,
-    "var": "tasting8",
-    "src": "food3\\_PIC3448 copy.png"
-  },
-  {
-    "category": "food",
-    "project": "tasting",
     "index": 9,
     "import_path": "../assets/food/tasting/food-tasting-09.jpg",
     "uses_url": false,

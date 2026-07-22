@@ -75,15 +75,15 @@ export const LogoHoverEffect = ({
         setMask((prev) => ({ ...prev, r: 0 }));
       }}
       onMouseMove={(e) => updateMask(e.clientX, e.clientY, true)}
-      className={cn("relative w-full cursor-pointer select-none px-[8%] py-16", className)}
+      className={cn("relative w-full cursor-pointer select-none px-0 pb-0 pt-2", className)}
       aria-label="Siavash Akbari"
     >
       <svg
         ref={svgRef}
         width="100%"
         height="100%"
-        viewBox="-80 -60 1050.99 210.48"
-        preserveAspectRatio="xMidYMid meet"
+        viewBox="0 0 891 92"
+        preserveAspectRatio="xMidYMax meet"
         xmlns="http://www.w3.org/2000/svg"
         style={{ overflow: "visible" }}
       >

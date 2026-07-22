@@ -19,6 +19,8 @@ import gastronomie17 from "../assets/food/gastronomie/food-gastronomie-17.jpg";
 import gastronomie18 from "../assets/food/gastronomie/food-gastronomie-18.jpg";
 import gastronomie19 from "../assets/food/gastronomie/food-gastronomie-19.jpg";
 import gastronomie20 from "../assets/food/gastronomie/food-gastronomie-20.jpg";
+import gastronomie21 from "../assets/food/gastronomie/food-gastronomie-21.jpg";
+import gastronomie22 from "../assets/food/gastronomie/food-gastronomie-22.jpg";
 import cuisine1 from "../assets/food/cuisine/food-cuisine-01.jpg";
 import cuisine2 from "../assets/food/cuisine/food-cuisine-02.jpg";
 import cuisine3 from "../assets/food/cuisine/food-cuisine-03.jpg";
@@ -37,7 +39,6 @@ import tasting4 from "../assets/food/tasting/food-tasting-04.jpg";
 import tasting5 from "../assets/food/tasting/food-tasting-05.jpg";
 import tasting6 from "../assets/food/tasting/food-tasting-06.jpg";
 import tasting7 from "../assets/food/tasting/food-tasting-07.jpg";
-import tasting8 from "../assets/food/tasting/food-tasting-08.jpg";
 import tasting9 from "../assets/food/tasting/food-tasting-09.jpg";
 import atlasi1 from "../assets/fashion/atlasi/fashion-atlasi-01.jpg";
 import atlasi2 from "../assets/fashion/atlasi/fashion-atlasi-02.jpg";
@@ -218,6 +219,8 @@ export const projects: Project[] = [
       gastronomie18,
       gastronomie19,
       gastronomie20,
+      gastronomie21,
+      gastronomie22,
     ],
   },
   {
@@ -260,7 +263,6 @@ export const projects: Project[] = [
       tasting5,
       tasting6,
       tasting7,
-      tasting8,
       tasting9,
     ],
   },

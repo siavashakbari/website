@@ -10,6 +10,18 @@ export default defineConfig({
   server: {
     host: "::",
     port: 8080,
+    watch: {
+      // Root photo dumps only — watching them can EBUSY-crash on Windows
+      ignored: [
+        path.resolve(import.meta.dirname, "food"),
+        path.resolve(import.meta.dirname, "food 2"),
+        path.resolve(import.meta.dirname, "fashion"),
+        path.resolve(import.meta.dirname, "products"),
+        path.resolve(import.meta.dirname, "portrait"),
+        path.resolve(import.meta.dirname, ".recover-hq"),
+        path.resolve(import.meta.dirname, "src/_assets_reorg"),
+      ],
+    },
   },
   resolve: {
     alias: {

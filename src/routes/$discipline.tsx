@@ -1,4 +1,4 @@
-import { createFileRoute, Link, notFound } from "@tanstack/react-router";
+import { createFileRoute, notFound, rootRouteId } from "@tanstack/react-router";
 import { ExpandableCard, ExpandableCardGrid } from "@/components/ui/expandable-card";
 import { GalleryLoadProvider } from "@/components/AdaptiveThumb";
 import { BackToTop } from "@/components/BackToTop";
@@ -35,10 +35,10 @@ function imageNameFromSrc(src: string): string {
     .join(" ");
 }
 
-export const Route = createFileRoute("/disciplines/$discipline")({
+export const Route = createFileRoute("/$discipline")({
   loader: ({ params }) => {
     const discipline = DISCIPLINES.find((d) => d.slug === params.discipline);
-    if (!discipline) throw notFound();
+    if (!discipline) throw notFound({ routeId: rootRouteId });
     const matching = projects.filter(
       (p) =>
         (!discipline.disciplines || discipline.disciplines.includes(p.discipline)) &&
@@ -80,14 +80,6 @@ export const Route = createFileRoute("/disciplines/$discipline")({
     };
   },
   component: DisciplinePage,
-  notFoundComponent: () => (
-    <div className="mx-auto max-w-3xl px-6 py-32 text-center">
-      <h1 className="font-display text-4xl">DISCIPLINE not found</h1>
-      <Link to="/" className="mt-6 inline-block text-primary underline">
-        Back home
-      </Link>
-    </div>
-  ),
   errorComponent: ({ error }) => (
     <div className="mx-auto max-w-3xl px-6 py-32 text-center">
       <h1 className="font-display text-4xl">Something went wrong</h1>
