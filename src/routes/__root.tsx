@@ -13,7 +13,6 @@ import { Menu, X } from "lucide-react";
 import appCss from "../styles.css?url";
 import { Logo } from "@/components/Logo";
 import { InvertCursor } from "@/components/InvertCursor";
-import { HoverFooter } from "@/components/HoverFooter";
 import { NotFoundPage } from "@/components/NotFoundPage";
 
 function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
@@ -240,7 +239,6 @@ function RootComponent() {
         >
           <Outlet />
         </main>
-        {!isProjectPage && <HoverFooter />}
       </div>
     </QueryClientProvider>
   );

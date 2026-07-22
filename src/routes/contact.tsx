@@ -37,22 +37,22 @@ function Contact() {
           </p>
           <div className="mt-10 space-y-6">
             <a
-              href="mailto:hello@siavashakbari.com"
+              href="mailto:Siavakbari@gmail.com"
               className="flex items-center gap-4 text-muted-foreground transition-colors hover:text-foreground"
             >
               <Mail className="h-5 w-5 text-primary" />
-              <span className="text-sm">hello@siavashakbari.com</span>
+              <span className="text-sm">Siavakbari@gmail.com</span>
             </a>
             <a
-              href="tel:+1234567890"
+              href="tel:+989386087846"
               className="flex items-center gap-4 text-muted-foreground transition-colors hover:text-foreground"
             >
               <Phone className="h-5 w-5 text-primary" />
-              <span className="text-sm">+1 (234) 567-890</span>
+              <span className="text-sm">+989386087846</span>
             </a>
             <div className="flex items-center gap-4 text-muted-foreground">
               <MapPin className="h-5 w-5 text-primary" />
-              <span className="text-sm">New York, NY</span>
+              <span className="text-sm">Esfahan, Iran</span>
             </div>
           </div>
         </div>
