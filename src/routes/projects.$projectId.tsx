@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { createFileRoute, notFound, rootRouteId } from "@tanstack/react-router";
 import { projects } from "@/data/projects";
+import { jsonLdScript, pageHead, projectJsonLd } from "@/lib/seo";
 
 function useIsDesktop() {
   const [isDesktop, setIsDesktop] = useState(false);
@@ -25,15 +26,19 @@ export const Route = createFileRoute("/projects/$projectId")({
   head: ({ loaderData }) => {
     const p = loaderData?.project;
     const title = p ? `${p.title} — Siavash Akbari` : "Project — Siavash Akbari";
-    const description = p?.description ?? "";
+    const description =
+      p?.description ??
+      "Project from the portfolio of Siavash Akbari.";
+    const seo = pageHead({
+      title,
+      description,
+      path: p ? `/projects/${p.id}` : "/projects",
+      image: p?.image,
+      type: "article",
+    });
     return {
-      meta: [
-        { title },
-        { name: "description", content: description },
-        { property: "og:title", content: title },
-        { property: "og:description", content: description },
-        ...(p ? [{ property: "og:image", content: p.image }] : []),
-      ],
+      ...seo,
+      scripts: p ? [jsonLdScript(projectJsonLd(p))] : [],
     };
   },
   component: ProjectDetail,

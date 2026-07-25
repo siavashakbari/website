@@ -1,24 +1,16 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { ProjectGrid } from "@/components/ProjectGrid";
 import { projectsByDiscipline } from "@/data/projects";
+import { pageHead } from "@/lib/seo";
 
 export const Route = createFileRoute("/product-design")({
-  head: () => ({
-    meta: [
-      { title: "Product Design — Siavash Akbari" },
-      {
-        name: "description",
-        content:
-          "Product design portfolio: objects shaped by purpose and quiet detail by Siavash Akbari.",
-      },
-      { property: "og:title", content: "Product Design — Siavash Akbari" },
-      {
-        property: "og:description",
-        content:
-          "Product design portfolio: objects shaped by purpose and quiet detail by Siavash Akbari.",
-      },
-    ],
-  }),
+  head: () =>
+    pageHead({
+      title: "Product Design — Siavash Akbari",
+      description:
+        "Product design by Siavash Akbari — objects shaped by purpose, material honesty, and quiet detail.",
+      path: "/product-design",
+    }),
   component: ProductDesign,
 });
 

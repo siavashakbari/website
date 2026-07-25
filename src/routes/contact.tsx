@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Instagram, Mail, MapPin, Phone } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { pageHead } from "@/lib/seo";
 
 const contactBtnClass =
   "inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-full border border-[#EFEFEF] bg-transparent px-5 text-sm font-medium text-[#EFEFEF] shadow-none transition-[background-color,border-color,color,box-shadow] duration-300 ease-out hover:border-transparent hover:bg-secondary hover:text-secondary-foreground hover:shadow-[0_0_8px_color-mix(in_oklab,var(--secondary)_42%,transparent),0_0_17px_color-mix(in_oklab,var(--secondary)_24%,transparent),0_0_25px_color-mix(in_oklab,var(--secondary)_12%,transparent)]";
@@ -179,22 +180,13 @@ function BehanceIcon({ className }: { className?: string }) {
 }
 
 export const Route = createFileRoute("/contact")({
-  head: () => ({
-    meta: [
-      { title: "Contact — Siavash Akbari" },
-      {
-        name: "description",
-        content:
-          "Get in touch with Siavash Akbari for photography, graphic design, and product design commissions.",
-      },
-      { property: "og:title", content: "Contact — Siavash Akbari" },
-      {
-        property: "og:description",
-        content:
-          "Get in touch with Siavash Akbari for photography, graphic design, and product design commissions.",
-      },
-    ],
-  }),
+  head: () =>
+    pageHead({
+      title: "Contact — Siavash Akbari",
+      description:
+        "Commission photography, graphic design, or product design with Siavash Akbari in Esfahan, Iran. Email, phone, Instagram, and Behance.",
+      path: "/contact",
+    }),
   component: Contact,
 });
 
@@ -202,6 +194,7 @@ function Contact() {
   return (
     <div className="flex min-h-[calc(100dvh-3.5rem)] w-full items-center justify-center px-6 py-12 md:px-10 lg:px-14">
       <div className="mx-auto flex w-full max-w-[96rem] flex-col">
+        <h1 className="sr-only">Contact Siavash Akbari</h1>
         {/* Eyebrow — centered */}
         <p className="flex items-center justify-center gap-3 text-[0.8125rem] font-semibold uppercase tracking-[0.25em] text-secondary md:text-[0.975rem]">
           <span>Contact</span>

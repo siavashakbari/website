@@ -7,6 +7,7 @@ import { motion, useScroll, useSpring, useTransform } from "motion/react";
 import { DisciplinesMarquee } from "@/components/DisciplinesMarquee";
 import { MorphingText } from "@/components/ui/morphing-text";
 import { cn } from "@/lib/utils";
+import { SITE_DESCRIPTION, SITE_TITLE_DEFAULT, pageHead } from "@/lib/seo";
 
 const HERO_ROLES = [
   "Multi-disciplinary Designer",
@@ -27,36 +28,33 @@ const HERO_SRCSET = `${heroPortraitWebpSm} 960w, ${heroPortraitWebp} 1920w`;
 const HERO_SIZES = "100vw";
 
 export const Route = createFileRoute("/")({
-  head: () => ({
-    meta: [
-      { title: "Siavash Akbari" },
-      {
-        name: "description",
-        content: "Siavash Akbari Portfolio",
-      },
-      { property: "og:title", content: "Siavash Akbari" },
-      {
-        property: "og:description",
-        content: "Siavash Akbari Portfolio",
-      },
-    ],
-    links: [
-      {
-        rel: "preload",
-        as: "image",
-        href: heroPortraitWebp,
-        type: "image/webp",
-        imageSrcSet: HERO_SRCSET,
-        imageSizes: HERO_SIZES,
-        fetchPriority: "high",
-      },
-    ],
-    scripts: [
-      {
-        children: `if("scrollRestoration"in history)history.scrollRestoration="manual";document.documentElement.style.scrollBehavior="auto";window.scrollTo(0,0);`,
-      },
-    ],
-  }),
+  head: () => {
+    const seo = pageHead({
+      title: SITE_TITLE_DEFAULT,
+      description: SITE_DESCRIPTION,
+      path: "/",
+    });
+    return {
+      ...seo,
+      links: [
+        ...seo.links,
+        {
+          rel: "preload",
+          as: "image",
+          href: heroPortraitWebp,
+          type: "image/webp",
+          imageSrcSet: HERO_SRCSET,
+          imageSizes: HERO_SIZES,
+          fetchPriority: "high",
+        },
+      ],
+      scripts: [
+        {
+          children: `if("scrollRestoration"in history)history.scrollRestoration="manual";document.documentElement.style.scrollBehavior="auto";window.scrollTo(0,0);`,
+        },
+      ],
+    };
+  },
   component: Index,
 });
 
@@ -88,7 +86,11 @@ function Index() {
       <section
         className="relative w-full overflow-hidden bg-background"
         style={{ height: `calc(100dvh - ${HEADER_H})` }}
+        aria-labelledby="home-heading"
       >
+        <h1 id="home-heading" className="sr-only">
+          Siavash Akbari — Photographer, Designer &amp; Creative Director
+        </h1>
         <motion.div
           className="absolute inset-0 box-border"
           style={{
@@ -104,7 +106,7 @@ function Index() {
               <source type="image/webp" srcSet={HERO_SRCSET} sizes={HERO_SIZES} />
               <img
                 src={heroPortrait}
-                alt="Portrait"
+                alt="Siavash Akbari, multidisciplinary designer and photographer"
                 width={1920}
                 height={1080}
                 className="absolute inset-0 h-full w-full object-cover object-center"
@@ -129,7 +131,7 @@ function Index() {
       </section>
 
       {/* Disciplines — OMS-style category tile strip */}
-      <section className="w-full">
+      <section className="w-full" aria-label="Disciplines">
         <DisciplinesMarquee />
       </section>
     </div>

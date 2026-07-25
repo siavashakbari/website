@@ -1,24 +1,16 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { ProjectGrid } from "@/components/ProjectGrid";
 import { projectsByDiscipline } from "@/data/projects";
+import { pageHead } from "@/lib/seo";
 
 export const Route = createFileRoute("/graphic-design")({
-  head: () => ({
-    meta: [
-      { title: "Graphic Design — Siavash Akbari" },
-      {
-        name: "description",
-        content:
-          "Visual identity and book cover design portfolio by Siavash Akbari.",
-      },
-      { property: "og:title", content: "Graphic Design — Siavash Akbari" },
-      {
-        property: "og:description",
-        content:
-          "Visual identity and book cover design portfolio by Siavash Akbari.",
-      },
-    ],
-  }),
+  head: () =>
+    pageHead({
+      title: "Graphic Design — Siavash Akbari",
+      description:
+        "Visual identity, book covers, and poster design by Siavash Akbari — brand systems with a clear editorial voice.",
+      path: "/graphic-design",
+    }),
   component: GraphicDesign,
 });
 

@@ -19,6 +19,16 @@ import appCss from "../styles.css?url";
 import satoshiMedium from "../assets/fonts/Satoshi-Medium.woff2?url";
 import { Logo } from "@/components/Logo";
 import { NotFoundPage } from "@/components/NotFoundPage";
+import {
+  SITE_DESCRIPTION,
+  SITE_NAME,
+  SITE_TITLE_DEFAULT,
+  TWITTER_HANDLE,
+  absoluteUrl,
+  getSiteUrl,
+  jsonLdScript,
+  siteJsonLd,
+} from "@/lib/seo";
 
 const InvertCursor = lazy(() =>
   import("@/components/InvertCursor").then((m) => ({ default: m.InvertCursor })),
@@ -63,53 +73,66 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
 }
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
-  head: () => ({
-    meta: [
-      { charSet: "utf-8" },
-      { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Siavash Akbari" },
-      {
-        name: "description",
-        content:
-          "Siavash Akbari Portfolio",
-      },
-      { name: "author", content: "Siavash Akbari" },
-      { property: "og:title", content: "Siavash Akbari" },
-      {
-        property: "og:description",
-        content:
-          "Siavash Akbari Portfolio",
-      },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:site", content: "@siavashakbari" },
-      { name: "twitter:title", content: "Siavash Akbari" },
-      { name: "twitter:description", content: "Siavash Akbari Portfolio" },
-      { property: "og:image", content: "/og.jpg" },
-      { name: "twitter:image", content: "/og.jpg" },
-    ],
-    links: [
-      { rel: "stylesheet", href: appCss },
-      { rel: "icon", href: "/favicon.svg", type: "image/svg+xml" },
-      { rel: "preconnect", href: "https://fonts.googleapis.com" },
-      {
-        rel: "preconnect",
-        href: "https://fonts.gstatic.com",
-        crossOrigin: "anonymous",
-      },
-      {
-        rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,900&display=swap",
-      },
-      {
-        rel: "preload",
-        href: satoshiMedium,
-        as: "font",
-        type: "font/woff2",
-        crossOrigin: "anonymous",
-      },
-    ],
-  }),
+  head: () => {
+    const siteUrl = getSiteUrl();
+    const ogImage = absoluteUrl("/og.jpg");
+    return {
+      meta: [
+        { charSet: "utf-8" },
+        { name: "viewport", content: "width=device-width, initial-scale=1" },
+        { title: SITE_TITLE_DEFAULT },
+        { name: "description", content: SITE_DESCRIPTION },
+        { name: "author", content: SITE_NAME },
+        {
+          name: "robots",
+          content: "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1",
+        },
+        { name: "theme-color", content: "#0F0F0F" },
+        { name: "googlebot", content: "index, follow" },
+        { property: "og:title", content: SITE_TITLE_DEFAULT },
+        { property: "og:description", content: SITE_DESCRIPTION },
+        { property: "og:type", content: "website" },
+        { property: "og:url", content: siteUrl },
+        { property: "og:site_name", content: SITE_NAME },
+        { property: "og:locale", content: "en_US" },
+        { property: "og:locale:alternate", content: "fa_IR" },
+        { property: "og:image", content: ogImage },
+        { property: "og:image:width", content: "1200" },
+        { property: "og:image:height", content: "630" },
+        { property: "og:image:alt", content: SITE_TITLE_DEFAULT },
+        { name: "twitter:card", content: "summary_large_image" },
+        { name: "twitter:site", content: TWITTER_HANDLE },
+        { name: "twitter:creator", content: TWITTER_HANDLE },
+        { name: "twitter:title", content: SITE_TITLE_DEFAULT },
+        { name: "twitter:description", content: SITE_DESCRIPTION },
+        { name: "twitter:image", content: ogImage },
+      ],
+      links: [
+        { rel: "stylesheet", href: appCss },
+        { rel: "icon", href: "/favicon.svg", type: "image/svg+xml" },
+        { rel: "apple-touch-icon", href: "/favicon.svg" },
+        { rel: "manifest", href: "/site.webmanifest" },
+        { rel: "preconnect", href: "https://fonts.googleapis.com" },
+        {
+          rel: "preconnect",
+          href: "https://fonts.gstatic.com",
+          crossOrigin: "anonymous",
+        },
+        {
+          rel: "stylesheet",
+          href: "https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,900&display=swap",
+        },
+        {
+          rel: "preload",
+          href: satoshiMedium,
+          as: "font",
+          type: "font/woff2",
+          crossOrigin: "anonymous",
+        },
+      ],
+      scripts: [jsonLdScript(siteJsonLd())],
+    };
+  },
   shellComponent: RootShell,
   component: RootComponent,
   notFoundComponent: NotFoundPage,
@@ -140,8 +163,12 @@ function Header() {
   return (
     <>
       <header className="fixed inset-x-0 top-0 z-[200] border-b border-foreground/10 bg-background">
-        <div className="mx-auto flex h-14 w-full items-center justify-between px-6">
-          <Link to="/" className="flex items-center text-foreground">
+        <div className="mx-auto flex h-14 w-full items-center justify-between px-6 md:px-9">
+          <Link
+            to="/"
+            className="flex items-center text-foreground"
+            aria-label="Siavash Akbari — Home"
+          >
             <Logo className="block h-[1.05rem] w-auto" />
           </Link>
           <nav className="hidden h-full items-center gap-12 md:flex">

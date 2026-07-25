@@ -4,6 +4,7 @@ import { GalleryLoadProvider } from "@/components/AdaptiveThumb";
 import { BackToTop } from "@/components/BackToTop";
 import { DISCIPLINES } from "@/data/disciplines";
 import { projects, type Project } from "@/data/projects";
+import { pageHead } from "@/lib/seo";
 
 interface DisciplinePhoto {
   key: string;
@@ -69,15 +70,16 @@ export const Route = createFileRoute("/$discipline")({
     };
   },
   head: ({ loaderData }) => {
-    const label = loaderData?.discipline.label ?? "DISCIPLINE";
-    return {
-      meta: [
-        { title: `${label} — Siavash Akbari` },
-        { name: "description", content: loaderData?.discipline.blurb ?? "" },
-        { property: "og:title", content: `${label} — Siavash Akbari` },
-        { property: "og:description", content: loaderData?.discipline.blurb ?? "" },
-      ],
-    };
+    const label = loaderData?.discipline.label ?? "Discipline";
+    const blurb =
+      loaderData?.discipline.blurb ??
+      `${label} work by Siavash Akbari.`;
+    const slug = loaderData?.discipline.slug ?? "";
+    return pageHead({
+      title: `${label} — Siavash Akbari`,
+      description: `${blurb} Browse the ${label.toLowerCase()} portfolio of Siavash Akbari.`,
+      path: slug ? `/${slug}` : "/",
+    });
   },
   component: DisciplinePage,
   errorComponent: ({ error }) => (
@@ -92,7 +94,13 @@ function DisciplinePage() {
   const { discipline, items } = Route.useLoaderData();
 
   return (
-    <section className="relative w-full bg-background pb-40 pt-3 md:pt-3.5">
+    <section
+      className="relative w-full bg-background pb-40 pt-3 md:pt-3.5"
+      aria-labelledby="discipline-heading"
+    >
+      <h1 id="discipline-heading" className="sr-only">
+        {discipline.label} — Siavash Akbari
+      </h1>
       {items.length === 0 ? (
         <p className="mx-auto max-w-3xl px-6 text-center text-muted-foreground">
           More coming soon.

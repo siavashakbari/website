@@ -1,24 +1,16 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { ProjectGrid } from "@/components/ProjectGrid";
 import { projectsByDiscipline } from "@/data/projects";
+import { pageHead } from "@/lib/seo";
 
 export const Route = createFileRoute("/photography")({
-  head: () => ({
-    meta: [
-      { title: "Photography — Siavash Akbari" },
-      {
-        name: "description",
-        content:
-          "Editorial photography portfolio: food, portrait, and fashion stories by Siavash Akbari.",
-      },
-      { property: "og:title", content: "Photography — Siavash Akbari" },
-      {
-        property: "og:description",
-        content:
-          "Editorial photography portfolio: food, portrait, and fashion stories by Siavash Akbari.",
-      },
-    ],
-  }),
+  head: () =>
+    pageHead({
+      title: "Photography — Siavash Akbari",
+      description:
+        "Editorial photography by Siavash Akbari — food, portrait, fashion, and product stories shaped by light and mood.",
+      path: "/photography",
+    }),
   component: Photography,
 });
 

@@ -1,26 +1,19 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Download } from "lucide-react";
+import { pageHead } from "@/lib/seo";
 
 const portfolioBtnClass =
   "inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-full border border-[#EFEFEF] bg-transparent px-5 text-sm font-medium text-[#EFEFEF] shadow-none transition-[background-color,border-color,color,box-shadow] duration-300 ease-out hover:border-transparent hover:bg-secondary hover:text-secondary-foreground hover:shadow-[0_0_8px_color-mix(in_oklab,var(--secondary)_42%,transparent),0_0_17px_color-mix(in_oklab,var(--secondary)_24%,transparent),0_0_25px_color-mix(in_oklab,var(--secondary)_12%,transparent)]";
 
 export const Route = createFileRoute("/about")({
-  head: () => ({
-    meta: [
-      { title: "About — Siavash Akbari" },
-      {
-        name: "description",
-        content:
-          "Learn about Siavash Akbari, a multidisciplinary studio for photography, graphic design, and product design.",
-      },
-      { property: "og:title", content: "About — Siavash Akbari" },
-      {
-        property: "og:description",
-        content:
-          "Learn about Siavash Akbari, a multidisciplinary studio for photography, graphic design, and product design.",
-      },
-    ],
-  }),
+  head: () =>
+    pageHead({
+      title: "About — Siavash Akbari",
+      description:
+        "Meet Siavash Akbari — designer, photographer, and art director from Esfahan. Multidisciplinary work across fashion, food, product, and brand identity.",
+      path: "/about",
+      type: "profile",
+    }),
   component: About,
 });
 
