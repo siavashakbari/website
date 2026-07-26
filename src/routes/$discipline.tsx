@@ -53,6 +53,20 @@ function matchingProjects(discipline: (typeof DISCIPLINES)[number]): Project[] {
   );
 }
 
+function useIsDesktop() {
+  const [isDesktop, setIsDesktop] = useState(false);
+
+  useEffect(() => {
+    const media = window.matchMedia("(min-width: 1024px)");
+    const update = () => setIsDesktop(media.matches);
+    update();
+    media.addEventListener("change", update);
+    return () => media.removeEventListener("change", update);
+  }, []);
+
+  return isDesktop;
+}
+
 export const Route = createFileRoute("/$discipline")({
   loader: ({ params }) => {
     const discipline = DISCIPLINES.find((d) => d.slug === params.discipline);
@@ -120,18 +134,46 @@ export const Route = createFileRoute("/$discipline")({
   ),
 });
 
+function PhotoMasonry({ items }: { items: DisciplinePhoto[] }) {
+  return (
+    <GalleryLoadProvider total={items.length}>
+      <ExpandableCardGrid className="columns-1 gap-x-[4px] px-[13px] sm:columns-2 lg:columns-3">
+        {items.map((item, index) => (
+          <ExpandableCard
+            key={item.key}
+            cardId={item.key}
+            index={index}
+            title={item.imageName}
+            src={item.src}
+            classNameExpanded="[&_h4]:font-medium [&_h4]:text-[#0F0F0F] dark:[&_h4]:text-[#EFEFEF]"
+          >
+            <h4>Name</h4>
+            <p>{item.imageName}</p>
+            <h4>Project</h4>
+            <p>{item.title}</p>
+            <h4>Date</h4>
+            <p>{item.year}</p>
+          </ExpandableCard>
+        ))}
+      </ExpandableCardGrid>
+    </GalleryLoadProvider>
+  );
+}
+
 function DisciplinePage() {
   const { discipline, items, projectCards } = Route.useLoaderData();
+  const isDesktop = useIsDesktop();
   const isEmpty = discipline.browseByProject
     ? projectCards.length === 0
     : items.length === 0;
 
-  const isScroll = discipline.layout === "scroll";
+  // Side-scroll only on desktop / large screens; phones get the masonry gallery.
+  const useSideScroll = discipline.layout === "scroll" && isDesktop;
 
   return (
     <section
       className={`relative w-full bg-background ${
-        isScroll ? "overflow-hidden pt-3 md:pt-3.5" : "pb-40 pt-3 md:pt-3.5"
+        useSideScroll ? "overflow-hidden pt-3 md:pt-3.5" : "pb-40 pt-3 md:pt-3.5"
       }`}
       aria-labelledby="discipline-heading"
     >
@@ -142,7 +184,7 @@ function DisciplinePage() {
         <p className="mx-auto max-w-3xl px-6 text-center text-muted-foreground">
           More coming soon.
         </p>
-      ) : discipline.layout === "scroll" ? (
+      ) : useSideScroll ? (
         <ScrollGallery items={items} label={discipline.label} />
       ) : discipline.browseByProject ? (
         <div className="w-full px-[20px]">
@@ -160,70 +202,17 @@ function DisciplinePage() {
           </div>
         </div>
       ) : (
-        <GalleryLoadProvider total={items.length}>
-          <ExpandableCardGrid className="columns-1 gap-x-[4px] px-[13px] sm:columns-2 lg:columns-3">
-            {items.map((item, index) => (
-              <ExpandableCard
-                key={item.key}
-                cardId={item.key}
-                index={index}
-                title={item.imageName}
-                src={item.src}
-                classNameExpanded="[&_h4]:font-medium [&_h4]:text-[#0F0F0F] dark:[&_h4]:text-[#EFEFEF]"
-              >
-                <h4>Name</h4>
-                <p>{item.imageName}</p>
-                <p className="text-[10px] font-light uppercase tracking-[0.3em] text-secondary">
-                  {discipline.label} · {item.year} · {String(item.photoIndex).padStart(2, "0")} /{" "}
-                  {String(item.photoTotal).padStart(2, "0")}
-                </p>
-                <h4>About</h4>
-                <p>{item.description}</p>
-                {item.client ? (
-                  <>
-                    <h4>Client</h4>
-                    <p>{item.client}</p>
-                  </>
-                ) : null}
-                {item.credits && item.credits.length > 0 ? (
-                  <>
-                    <h4>Credits</h4>
-                    <ul className="list-none space-y-1">
-                      {item.credits.map((credit) => (
-                        <li key={credit}>{credit}</li>
-                      ))}
-                    </ul>
-                  </>
-                ) : null}
-              </ExpandableCard>
-            ))}
-          </ExpandableCardGrid>
-        </GalleryLoadProvider>
+        <PhotoMasonry items={items} />
       )}
       <BackToTop />
     </section>
   );
 }
 
-function useIsDesktop() {
-  const [isDesktop, setIsDesktop] = useState(false);
-
-  useEffect(() => {
-    const media = window.matchMedia("(min-width: 1024px)");
-    const update = () => setIsDesktop(media.matches);
-    update();
-    media.addEventListener("change", update);
-    return () => media.removeEventListener("change", update);
-  }, []);
-
-  return isDesktop;
-}
-
 /** Full-height horizontal side-scrolling strip with wheel-to-scroll and click-to-zoom. */
 function ScrollGallery({ items, label }: { items: DisciplinePhoto[]; label: string }) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
-  const isDesktop = useIsDesktop();
 
   const handleWheel = (e: React.WheelEvent<HTMLDivElement>) => {
     const el = scrollRef.current;
@@ -247,13 +236,13 @@ function ScrollGallery({ items, label }: { items: DisciplinePhoto[]; label: stri
       <div
         ref={scrollRef}
         onWheel={handleWheel}
-        className="scrollbar-hide flex h-[calc(100dvh-3.5rem-1.5rem)] min-h-0 items-center gap-6 overflow-x-auto overflow-y-hidden px-[20px]"
+        className="scrollbar-hide flex h-[calc(100svh-3.5rem-1.5rem)] min-h-0 items-center gap-6 overflow-x-auto overflow-y-hidden px-[20px]"
       >
         {items.map((item, i) => (
           <figure
             key={item.key}
-            className={`shrink-0 h-full max-h-full py-4 ${isDesktop ? "cursor-zoom-in" : ""}`}
-            onClick={() => isDesktop && setActiveIndex(i)}
+            className="shrink-0 h-full max-h-full cursor-zoom-in py-4"
+            onClick={() => setActiveIndex(i)}
           >
             <img
               src={item.src}

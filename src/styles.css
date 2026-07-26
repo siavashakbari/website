@@ -100,6 +100,26 @@
   }
 }
 
+@keyframes home-scroll-blink {
+  0%,
+  100% {
+    opacity: 0.25;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.home-scroll-hint {
+  animation: home-scroll-blink 6s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .home-scroll-hint {
+    animation: none;
+  }
+}
+
 @keyframes contact-caret {
   0%,
   100% {
@@ -199,6 +219,14 @@
 
   html {
     scroll-behavior: smooth;
+  }
+
+  /* Smooth scroll + rubber-banding fights mobile browsers at page ends */
+  @media (hover: none), (pointer: coarse) {
+    html {
+      scroll-behavior: auto;
+      overscroll-behavior-y: none;
+    }
   }
 
   html.intro-scroll-lock,

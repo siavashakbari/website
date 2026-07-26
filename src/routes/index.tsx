@@ -60,16 +60,23 @@ export const Route = createFileRoute("/")({
 
 function Index() {
   const [isWindows, setIsWindows] = useState(false);
+  const [preferInstantScrollFx, setPreferInstantScrollFx] = useState(false);
 
   const { scrollY } = useScroll();
   const insetRaw = useTransform(scrollY, [0, HERO_SHRINK_SCROLL_PX], [0, HERO_INSET_PX]);
   const radiusRaw = useTransform(scrollY, [0, HERO_SHRINK_SCROLL_PX], [0, HERO_RADIUS_PX]);
   const spring = { stiffness: 220, damping: 28, mass: 0.25 };
-  const inset = useSpring(insetRaw, spring);
-  const radius = useSpring(radiusRaw, spring);
+  const insetSpring = useSpring(insetRaw, spring);
+  const radiusSpring = useSpring(radiusRaw, spring);
+  // Springs fight momentum scroll on phones; use the raw transform there.
+  const inset = preferInstantScrollFx ? insetRaw : insetSpring;
+  const radius = preferInstantScrollFx ? radiusRaw : radiusSpring;
 
   useLayoutEffect(() => {
     setIsWindows(/Win/i.test(navigator.userAgent));
+    const coarse = window.matchMedia("(pointer: coarse)").matches;
+    const noHover = window.matchMedia("(hover: none)").matches;
+    setPreferInstantScrollFx(coarse || noHover);
     if ("scrollRestoration" in history) {
       history.scrollRestoration = "manual";
     }
@@ -81,11 +88,11 @@ function Index() {
   }, []);
 
   return (
-    <div className="flex flex-col">
-      {/* Hero fills exactly the viewport below the fixed header */}
+    <div className="flex flex-col overscroll-y-contain">
+      {/* Hero fills the first screen; svh stays stable when mobile chrome shows/hides */}
       <section
         className="relative w-full overflow-hidden bg-background"
-        style={{ height: `calc(100dvh - ${HEADER_H})` }}
+        style={{ height: `calc(100svh - ${HEADER_H})` }}
         aria-labelledby="home-heading"
       >
         <h1 id="home-heading" className="sr-only">
@@ -116,12 +123,15 @@ function Index() {
               />
             </picture>
             <div className="absolute inset-x-0 bottom-0 px-6 pb-6 md:pb-8">
+              <span className="home-scroll-hint block font-display text-[12.24pt] font-medium tracking-[0.2em] text-foreground md:hidden">
+                scroll
+              </span>
               <MorphingText
                 texts={HERO_ROLES}
                 morphTime={2.25}
                 cooldownTime={0.75}
                 className={cn(
-                  "h-auto min-h-[1.6em] max-w-none font-display text-[12.24pt] font-medium uppercase tracking-[0.2em] text-foreground lg:text-[1.836rem]",
+                  "hidden h-auto min-h-[1.6em] max-w-none font-display text-[12.24pt] font-medium uppercase tracking-[0.2em] text-foreground md:block lg:text-[1.836rem]",
                   isWindows && "translate-y-[10px]",
                 )}
               />

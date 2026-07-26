@@ -21,14 +21,7 @@ import echoSupplements3 from "../assets/graphic-design/echo-supplements/graphic-
 import echoSupplements4 from "../assets/graphic-design/echo-supplements/graphic-design-echo-supplements-04.jpg";
 import echoSupplements5 from "../assets/graphic-design/echo-supplements/graphic-design-echo-supplements-05.jpg";
 import echoSupplements6 from "../assets/graphic-design/echo-supplements/graphic-design-echo-supplements-06.jpg";
-import echoTrading1 from "../assets/graphic-design/echo-trading/graphic-design-echo-trading-01.jpg";
-import echoTrading2 from "../assets/graphic-design/echo-trading/graphic-design-echo-trading-02.jpg";
-import echoTrading3 from "../assets/graphic-design/echo-trading/graphic-design-echo-trading-03.jpg";
-import echoTrading4 from "../assets/graphic-design/echo-trading/graphic-design-echo-trading-04.jpg";
-import echoTrading5 from "../assets/graphic-design/echo-trading/graphic-design-echo-trading-05.jpg";
-import echoTrading6 from "../assets/graphic-design/echo-trading/graphic-design-echo-trading-06.jpg";
-import echoTrading7 from "../assets/graphic-design/echo-trading/graphic-design-echo-trading-07.jpg";
-import echoTrading8 from "../assets/graphic-design/echo-trading/graphic-design-echo-trading-08.jpg";
+import echoSupplements7 from "../assets/graphic-design/echo-supplements/graphic-design-echo-supplements-07.gif";
 import goats1 from "../assets/graphic-design/goats/graphic-design-goats-01.jpg";
 import goats2 from "../assets/graphic-design/goats/graphic-design-goats-02.jpg";
 import goats3 from "../assets/graphic-design/goats/graphic-design-goats-03.jpg";
@@ -383,27 +376,7 @@ export const projects: Project[] = [
       echoSupplements4,
       echoSupplements5,
       echoSupplements6,
-    ],
-  },
-  {
-    id: "echo-trading",
-    title: "Echo Trading",
-    discipline: "graphic-design",
-    category: "Visual Identity",
-    year: "2025",
-    description:
-      "A bold trading identity pairing navy type with a solar disc — an echo mark designed for clarity at every scale.",
-    image: echoTrading1,
-    aspect: "landscape",
-    gallery: [
-      echoTrading1,
-      echoTrading2,
-      echoTrading3,
-      echoTrading4,
-      echoTrading5,
-      echoTrading6,
-      echoTrading7,
-      echoTrading8,
+      echoSupplements7,
     ],
   },
   {

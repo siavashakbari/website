@@ -14,11 +14,19 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import { ChevronDown } from "lucide-react";
 
 import appCss from "../styles.css?url";
 import satoshiMedium from "../assets/fonts/Satoshi-Medium.woff2?url";
 import { Logo } from "@/components/Logo";
 import { NotFoundPage } from "@/components/NotFoundPage";
+import { DISCIPLINES } from "@/data/disciplines";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   SITE_DESCRIPTION,
   SITE_NAME,
@@ -153,13 +161,57 @@ function RootShell({ children }: { children: ReactNode }) {
   );
 }
 
-const navLinks = [
-  { to: "/", label: "Home" },
-  { to: "/about", label: "About" },
-  { to: "/contact", label: "Contact" },
-];
+const navLinkClass =
+  "flex h-full items-center text-sm font-normal uppercase leading-none tracking-widest text-foreground transition-colors hover:text-secondary data-[status=active]:font-bold data-[status=active]:text-secondary";
+
+const navFont = { fontFamily: "Satoshi, system-ui, sans-serif" } as const;
+
+function isDisciplinePath(pathname: string) {
+  return DISCIPLINES.some((d) => pathname === `/${d.slug}`);
+}
+
+function WorksDropdown({ active }: { active: boolean }) {
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger
+        style={navFont}
+        className={`${navLinkClass} gap-1.5 outline-none data-[state=open]:text-secondary ${
+          active ? "font-bold text-secondary" : ""
+        }`}
+      >
+        Works
+        <ChevronDown
+          className="h-3 w-3 shrink-0 transition-transform duration-200 [[data-state=open]_&]:rotate-180"
+          aria-hidden
+        />
+      </DropdownMenuTrigger>
+      <DropdownMenuContent
+        align="start"
+        sideOffset={0}
+        className="z-[210] min-w-[14rem] rounded-none border-foreground/10 bg-background p-1 shadow-none"
+      >
+        {DISCIPLINES.map((discipline) => (
+          <DropdownMenuItem key={discipline.slug} asChild className="rounded-none p-0 focus:bg-foreground/5">
+            <Link
+              to="/$discipline"
+              params={{ discipline: discipline.slug }}
+              style={navFont}
+              className="block cursor-pointer px-3 py-2.5 text-xs font-normal uppercase tracking-widest text-foreground transition-colors hover:text-secondary data-[status=active]:font-bold data-[status=active]:text-secondary"
+            >
+              {discipline.label}
+            </Link>
+          </DropdownMenuItem>
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
 
 function Header() {
+  const router = useRouter();
+  const pathname = router.state.location.pathname;
+  const worksActive = isDisciplinePath(pathname);
+
   return (
     <>
       <header className="fixed inset-x-0 top-0 z-[200] border-b border-foreground/10 bg-background">
@@ -172,16 +224,16 @@ function Header() {
             <Logo className="block h-[1.05rem] w-auto" />
           </Link>
           <nav className="hidden h-full items-center gap-12 md:flex">
-            {navLinks.map((link) => (
-              <Link
-                key={link.to}
-                to={link.to}
-                style={{ fontFamily: "Satoshi, system-ui, sans-serif" }}
-                className="flex h-full items-center text-sm font-normal uppercase leading-none tracking-widest text-foreground transition-colors hover:text-secondary data-[status=active]:font-bold data-[status=active]:text-secondary"
-              >
-                {link.label}
-              </Link>
-            ))}
+            <Link to="/" style={navFont} className={navLinkClass}>
+              Home
+            </Link>
+            <WorksDropdown active={worksActive} />
+            <Link to="/about" style={navFont} className={navLinkClass}>
+              About
+            </Link>
+            <Link to="/contact" style={navFont} className={navLinkClass}>
+              Contact
+            </Link>
           </nav>
           <MobileNav />
         </div>
@@ -210,6 +262,9 @@ function CloseIcon({ className }: { className?: string }) {
 
 function MobileNav() {
   const [open, setOpen] = useState(false);
+  const [worksOpen, setWorksOpen] = useState(false);
+  const router = useRouter();
+  const worksActive = isDisciplinePath(router.state.location.pathname);
 
   return (
     <div className="md:hidden">
@@ -247,16 +302,69 @@ function MobileNav() {
             </button>
           </div>
           <nav className="flex flex-col gap-6 pt-10">
-            {navLinks.map((link) => (
-              <Link
-                key={link.to}
-                to={link.to}
-                onClick={() => setOpen(false)}
-                className="font-display text-2xl font-normal text-foreground transition-transform hover:scale-105 data-[status=active]:font-bold data-[status=active]:text-secondary"
+            <Link
+              to="/"
+              onClick={() => setOpen(false)}
+              className="font-display text-2xl font-normal text-foreground transition-transform hover:scale-105 data-[status=active]:font-bold data-[status=active]:text-secondary"
+            >
+              Home
+            </Link>
+
+            <div>
+              <button
+                type="button"
+                aria-expanded={worksOpen}
+                onClick={() => setWorksOpen((v) => !v)}
+                className={`flex w-full items-center justify-between font-display text-2xl font-normal text-foreground transition-transform hover:scale-105 ${
+                  worksActive ? "font-bold text-secondary" : ""
+                }`}
               >
-                {link.label}
-              </Link>
-            ))}
+                Works
+                <ChevronDown
+                  className={`h-5 w-5 shrink-0 transition-transform duration-200 ${
+                    worksOpen ? "rotate-180" : ""
+                  }`}
+                  aria-hidden
+                />
+              </button>
+              <div
+                className={`grid transition-[grid-template-rows] duration-200 ${
+                  worksOpen ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
+                }`}
+              >
+                <div className="overflow-hidden">
+                  <div className="flex flex-col gap-3 pt-4 pl-1">
+                    {DISCIPLINES.map((discipline) => (
+                      <Link
+                        key={discipline.slug}
+                        to="/$discipline"
+                        params={{ discipline: discipline.slug }}
+                        onClick={() => setOpen(false)}
+                        className="text-base font-normal uppercase tracking-widest text-foreground/80 transition-colors hover:text-secondary data-[status=active]:font-bold data-[status=active]:text-secondary"
+                        style={navFont}
+                      >
+                        {discipline.label}
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <Link
+              to="/about"
+              onClick={() => setOpen(false)}
+              className="font-display text-2xl font-normal text-foreground transition-transform hover:scale-105 data-[status=active]:font-bold data-[status=active]:text-secondary"
+            >
+              About
+            </Link>
+            <Link
+              to="/contact"
+              onClick={() => setOpen(false)}
+              className="font-display text-2xl font-normal text-foreground transition-transform hover:scale-105 data-[status=active]:font-bold data-[status=active]:text-secondary"
+            >
+              Contact
+            </Link>
           </nav>
         </div>
       </div>
@@ -301,15 +409,28 @@ function RootComponent() {
   const router = useRouter();
   const pathname = router.state.location.pathname;
   const isProjectPage = pathname.startsWith("/projects/");
+  const isSideScrollDiscipline =
+    pathname === "/book-covers" || pathname === "/posters";
+  const [isDesktop, setIsDesktop] = useState(false);
+
+  useEffect(() => {
+    const media = window.matchMedia("(min-width: 1024px)");
+    const update = () => setIsDesktop(media.matches);
+    update();
+    media.addEventListener("change", update);
+    return () => media.removeEventListener("change", update);
+  }, []);
+
+  // Lock page scroll only for desktop side-scroll project pages.
+  const lockProjectScroll = isProjectPage && isDesktop;
   const hideFooter =
     isProjectPage ||
     pathname === "/about" ||
     pathname === "/contact" ||
-    pathname === "/book-covers" ||
-    pathname === "/posters";
+    (isSideScrollDiscipline && isDesktop);
 
   useEffect(() => {
-    if (!isProjectPage) return;
+    if (!lockProjectScroll) return;
     const html = document.documentElement;
     const prevHtmlOverflow = html.style.overflow;
     const prevBodyOverflow = document.body.style.overflow;
@@ -319,20 +440,20 @@ function RootComponent() {
       html.style.overflow = prevHtmlOverflow;
       document.body.style.overflow = prevBodyOverflow;
     };
-  }, [isProjectPage]);
+  }, [lockProjectScroll]);
 
   return (
     <QueryClientProvider client={queryClient}>
       <DeferredCursor />
       <div
         className={`flex flex-col bg-background ${
-          isProjectPage ? "h-dvh overflow-hidden overscroll-none" : "min-h-screen"
+          lockProjectScroll ? "h-dvh overflow-hidden overscroll-none" : "min-h-screen"
         }`}
       >
         <Header />
         <main
           className={`flex-1 ${
-            isProjectPage ? "flex min-h-0 flex-col overflow-hidden" : ""
+            lockProjectScroll ? "flex min-h-0 flex-col overflow-hidden" : ""
           }`}
         >
           <Outlet />
