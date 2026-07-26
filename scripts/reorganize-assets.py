@@ -389,7 +389,6 @@ def main() -> None:
     misc = [
         ("graphic", "visual-identity", ASSETS / "visual-identity.jpg"),
         ("graphic", "book-cover", ASSETS / "book-cover.jpg"),
-        ("product-design", "aurelia", ASSETS / "product.jpg"),
         ("brand", "hero", ASSETS / "hero-portrait.jpg"),
         ("brand", "portrait", ASSETS / "portrait.jpg"),
         ("brand", "fashion-legacy", ASSETS / "fashion.jpg"),

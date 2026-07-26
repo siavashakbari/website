@@ -29,13 +29,11 @@ def main() -> None:
     # misc single assets
     vi = by_project("visual-identity")[0]
     bc = by_project("book-cover")[0]
-    aurelia = by_project("aurelia")[0]
     hero = by_project("hero")[0]
     portrait_about = by_project("portrait")[0]
 
     lines.append(import_line("visualIdentityImg", vi))
     lines.append(import_line("bookCoverImg", bc))
-    lines.append(import_line("productImg", aurelia))
 
     series_defs = [
         ("gastronomie", "gastronomie", False),
@@ -247,17 +245,6 @@ def main() -> None:
     lines.append("    image: bookCoverImg,")
     lines.append('    aspect: "portrait",')
     lines.append("  },")
-    lines.append("  {")
-    lines.append('    id: "aurelia-h1",')
-    lines.append('    title: "Aurelia H1",')
-    lines.append('    discipline: "product-design",')
-    lines.append('    category: "Product Design",')
-    lines.append('    year: "2024",')
-    lines.append('    description: "A premium over-ear headphone designed for acoustic warmth and daily ritual.",')
-    lines.append("    image: productImg,")
-    lines.append('    aspect: "landscape",')
-    lines.append("  },")
-
     project_block(
         "carpet-lover-club",
         "Carpet Lover Club",

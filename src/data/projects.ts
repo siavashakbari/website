@@ -1,4 +1,3 @@
-import productImg from "../assets/product-design/aurelia/product-design-aurelia-01.jpg";
 import dodareh1 from "../assets/graphic-design/dodareh/graphic-design-dodareh-01.jpg";
 import ahuraCctv1 from "../assets/graphic-design/ahura-cctv/graphic-design-ahura-cctv-01.jpg";
 import ahuraCctv2 from "../assets/graphic-design/ahura-cctv/graphic-design-ahura-cctv-02.jpg";
@@ -27,6 +26,13 @@ import goats2 from "../assets/graphic-design/goats/graphic-design-goats-02.jpg";
 import goats3 from "../assets/graphic-design/goats/graphic-design-goats-03.jpg";
 import goats4 from "../assets/graphic-design/goats/graphic-design-goats-04.jpg";
 import goats5 from "../assets/graphic-design/goats/graphic-design-goats-05.jpg";
+import nozadPublication1 from "../assets/graphic-design/nozad-publication/graphic-design-nozad-publication-01.jpg";
+import nozadPublication2 from "../assets/graphic-design/nozad-publication/graphic-design-nozad-publication-02.jpg";
+import nozadPublication3 from "../assets/graphic-design/nozad-publication/graphic-design-nozad-publication-03.jpg";
+import nozadPublication4 from "../assets/graphic-design/nozad-publication/graphic-design-nozad-publication-04.jpg";
+import nozadPublication5 from "../assets/graphic-design/nozad-publication/graphic-design-nozad-publication-05.jpg";
+import onSwipe1 from "../assets/graphic-design/on-swipe/graphic-design-on-swipe-01.jpg";
+import onSwipe2 from "../assets/graphic-design/on-swipe/graphic-design-on-swipe-02.jpg";
 import zen1 from "../assets/graphic-design/zen/graphic-design-zen-01.jpg";
 import zen2 from "../assets/graphic-design/zen/graphic-design-zen-02.jpg";
 import zen3 from "../assets/graphic-design/zen/graphic-design-zen-03.jpg";
@@ -305,12 +311,12 @@ export const disciplines: { id: Discipline; label: string; description: string }
 export const projects: Project[] = [
   {
     id: "dodareh",
-    title: "Dodareh",
+    title: "Dobareh Accesories",
     discipline: "graphic-design",
     category: "Visual Identity",
     year: "2025",
     description:
-      "A playful visual identity for an accessories brand, pairing sculptural letterforms with a warm, understated palette.",
+      "Visual identity for Dobareh Accesories — a playful accessories brand built around sculptural letterforms.",
     image: dodareh1,
     aspect: "landscape",
     gallery: [dodareh1],
@@ -322,7 +328,7 @@ export const projects: Project[] = [
     category: "Visual Identity",
     year: "2025",
     description:
-      "A high-contrast identity for a surveillance systems brand, built around angular Persian typography, signal red, and cinematic security imagery.",
+      "Visual identity for Ahura CCTV — a surveillance systems brand with angular Persian typography and cinematic security imagery.",
     image: ahuraCctv3,
     aspect: "portrait",
     gallery: [
@@ -342,7 +348,7 @@ export const projects: Project[] = [
     category: "Visual Identity & Catalogue",
     year: "2026",
     description:
-      "A bilingual industrial identity and product catalogue for FEMIQ, balancing engineered forms with a precise cream-and-violet visual system.",
+      "Visual identity and product catalogue for FEMIQ — a bilingual industrial brand balancing engineered forms with a precise visual system.",
     image: femiq1,
     aspect: "landscape",
     gallery: [femiq1, femiq2, femiq3, femiq4, femiq5, femiq6, femiq7],
@@ -354,7 +360,7 @@ export const projects: Project[] = [
     category: "Visual Identity",
     year: "2025",
     description:
-      "A sharp geometric wordmark for Polarity Atelier — olive depth, cream type, and a cut that reads as both mark and attitude.",
+      "Visual identity for Polarity Atelier — a sharp geometric wordmark that reads as both mark and attitude.",
     image: polarity1,
     aspect: "landscape",
     gallery: [polarity1],
@@ -366,7 +372,7 @@ export const projects: Project[] = [
     category: "Visual Identity",
     year: "2025",
     description:
-      "A cobalt identity for Echo Supplements built around a jar silhouette, ripple motif, and packaging that carries the brand into product form.",
+      "Visual identity for Echo Supplements — built around a jar silhouette, ripple motif, and packaging that carries the brand into product form.",
     image: echoSupplements1,
     aspect: "portrait",
     gallery: [
@@ -386,10 +392,40 @@ export const projects: Project[] = [
     category: "Visual Identity",
     year: "2025",
     description:
-      "A forest-green coffee identity where a goat silhouette lives inside a bean mark — quiet packaging with a memorable cut.",
+      "Visual identity for Goat's Coffee — a coffee brand where a goat silhouette lives inside a bean mark, with quiet packaging and a memorable cut.",
     image: goats1,
     aspect: "portrait",
     gallery: [goats1, goats2, goats3, goats4, goats5],
+  },
+  {
+    id: "nozad-publication",
+    title: "Nozad Publications",
+    discipline: "graphic-design",
+    category: "Visual Identity",
+    year: "2025",
+    description:
+      "Visual identity for Nozad Publications — a publishing brand with a sprout mark and modern Persian type.",
+    image: nozadPublication1,
+    aspect: "landscape",
+    gallery: [
+      nozadPublication1,
+      nozadPublication2,
+      nozadPublication3,
+      nozadPublication4,
+      nozadPublication5,
+    ],
+  },
+  {
+    id: "on-swipe",
+    title: "On Swipe",
+    discipline: "graphic-design",
+    category: "Visual Identity",
+    year: "2026",
+    description:
+      "Visual identity for On Swipe — an AI-powered job-finding app — with open letterforms and a keyhole icon.",
+    image: onSwipe1,
+    aspect: "landscape",
+    gallery: [onSwipe1, onSwipe2],
   },
   {
     id: "zen-studio",
@@ -398,7 +434,7 @@ export const projects: Project[] = [
     category: "Visual Identity",
     year: "2025",
     description:
-      "An architectural wordmark for Zen Studio Products in coral red and palatial white — stencil geometry with a calm industrial voice.",
+      "Visual identity for Zen Studio Products — an architectural wordmark with stencil geometry and a calm industrial voice.",
     image: zen1,
     aspect: "landscape",
     gallery: [zen1, zen2, zen3],
@@ -559,8 +595,8 @@ export const projects: Project[] = [
     title: "Zeeen",
     discipline: "photography",
     category: "Fashion Photography",
-    year: "2024",
-    description: "A fashion story rooted in place \u2014 handwoven color, heritage textiles, and the architecture of Persian light.",
+    year: "2019",
+    description: "A fashion story rooted in place \u2014 heritage textiles and the architecture of Persian light.",
     image: zeeen1,
     aspect: "portrait",
     gallery: [
@@ -573,7 +609,7 @@ export const projects: Project[] = [
     title: "Sepidar",
     discipline: "photography",
     category: "Fashion Photography",
-    year: "2024",
+    year: "2020",
     description:
       "A fashion series of presence and fabric in open air \u2014 light, landscape, and quiet posture.",
     image: sepidar1,
@@ -683,16 +719,6 @@ export const projects: Project[] = [
     gallery: [
       gaze1,
     ],
-  },
-  {
-    id: "aurelia-h1",
-    title: "Aurelia H1",
-    discipline: "product-design",
-    category: "Product Design",
-    year: "2024",
-    description: "A premium over-ear headphone designed for acoustic warmth and daily ritual.",
-    image: productImg,
-    aspect: "landscape",
   },
   {
     id: "objects",

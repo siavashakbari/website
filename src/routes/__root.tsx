@@ -442,6 +442,53 @@ function RootComponent() {
     };
   }, [lockProjectScroll]);
 
+  useEffect(() => {
+    const isEditable = (target: EventTarget | null) => {
+      if (!(target instanceof HTMLElement)) return false;
+      const tag = target.tagName;
+      return (
+        tag === "INPUT" ||
+        tag === "TEXTAREA" ||
+        target.isContentEditable
+      );
+    };
+
+    const block = (e: Event) => {
+      if (isEditable(e.target)) return;
+      e.preventDefault();
+    };
+
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (isEditable(e.target)) return;
+      const key = e.key.toLowerCase();
+      const mod = e.ctrlKey || e.metaKey;
+      if (!mod) return;
+      if (key === "c" || key === "x" || key === "a" || key === "s" || key === "p") {
+        e.preventDefault();
+      }
+    };
+
+    const onDragStart = (e: DragEvent) => {
+      if (e.target instanceof HTMLImageElement || e.target instanceof HTMLAnchorElement) {
+        e.preventDefault();
+      }
+    };
+
+    document.addEventListener("copy", block);
+    document.addEventListener("cut", block);
+    document.addEventListener("contextmenu", block);
+    document.addEventListener("dragstart", onDragStart);
+    document.addEventListener("keydown", onKeyDown);
+
+    return () => {
+      document.removeEventListener("copy", block);
+      document.removeEventListener("cut", block);
+      document.removeEventListener("contextmenu", block);
+      document.removeEventListener("dragstart", onDragStart);
+      document.removeEventListener("keydown", onKeyDown);
+    };
+  }, []);
+
   return (
     <QueryClientProvider client={queryClient}>
       <DeferredCursor />

@@ -1611,15 +1611,6 @@
     "src": "src\\assets\\book-cover.jpg"
   },
   {
-    "category": "product-design",
-    "project": "aurelia",
-    "index": 1,
-    "import_path": "../assets/product-design/aurelia/product-design-aurelia-01.jpg",
-    "uses_url": false,
-    "var": "aurelia1",
-    "src": "src\\assets\\product.jpg"
-  },
-  {
     "category": "brand",
     "project": "hero",
     "index": 1,

@@ -539,6 +539,34 @@
     "color": "#c8c7c3",
     "ratio": 0.5625
   },
+  "graphic-design-nozad-publication-01": {
+    "color": "#cbd5c5",
+    "ratio": 1
+  },
+  "graphic-design-nozad-publication-02": {
+    "color": "#daf4d5",
+    "ratio": 1
+  },
+  "graphic-design-nozad-publication-03": {
+    "color": "#464739",
+    "ratio": 1
+  },
+  "graphic-design-nozad-publication-04": {
+    "color": "#56574a",
+    "ratio": 1
+  },
+  "graphic-design-nozad-publication-05": {
+    "color": "#28971d",
+    "ratio": 1
+  },
+  "graphic-design-on-swipe-01": {
+    "color": "#99fdb2",
+    "ratio": 1
+  },
+  "graphic-design-on-swipe-02": {
+    "color": "#8eeda6",
+    "ratio": 1
+  },
   "graphic-design-polarity-01": {
     "color": "#536123",
     "ratio": 0.75
@@ -1090,9 +1118,5 @@
   "product-objects-99": {
     "color": "#ebe3d7",
     "ratio": 0.6665
-  },
-  "product-design-aurelia-01": {
-    "color": "#474747",
-    "ratio": 1.25
   }
 }

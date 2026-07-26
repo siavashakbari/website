@@ -50,7 +50,7 @@ export function CoverTile({ to, params, label, image, ariaLabel }: CoverTileProp
       />
 
       <div className="pointer-events-none absolute inset-0 flex items-end justify-center px-2 pb-[calc(0.75rem+35px)] transition-transform duration-[1000ms] ease-[cubic-bezier(0.22,1,0.36,1)] will-change-transform group-hover:translate-y-[calc(-50%+2.75rem)] md:pb-[calc(1rem+35px)]">
-        <span className="relative inline-grid origin-center place-items-center transition-transform duration-[1000ms] ease-[cubic-bezier(0.22,1,0.36,1)] will-change-transform group-hover:scale-[1.44]">
+        <span className="relative inline-grid place-items-center">
           <span className="font-inter col-start-1 row-start-1 text-center text-[13.2px] font-normal uppercase tracking-[0.16em] text-[#EFEFEF] transition-opacity duration-[1000ms] ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:opacity-0 md:text-[14.52px]">
             {label}
           </span>
