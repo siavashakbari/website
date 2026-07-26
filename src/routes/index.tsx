@@ -19,7 +19,7 @@ const HERO_ROLES = [
 const HEADER_H = "3.5rem";
 
 /** Matches discipline strip side padding + card corner radius / gap */
-const HERO_INSET_PX = 10;
+const HERO_INSET_PX = 20;
 const HERO_RADIUS_PX = 3;
 /** Full shrink completes after this much scroll — further scroll does nothing */
 const HERO_SHRINK_SCROLL_PX = 40;

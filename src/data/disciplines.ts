@@ -4,9 +4,9 @@ import foodImg from "../assets/food/gastronomie/food-gastronomie-19-thumb.webp";
 import productImg from "../assets/product/objects/product-objects-92-thumb.webp";
 import fashionAsset from "../assets/fashion/atlasi/fashion-atlasi-09-thumb.webp";
 import portraitAsset from "../assets/portrait/calligraphy/portrait-calligraphy-02-thumb.webp";
-import visualIdentityImg from "../assets/product/objects/product-objects-37.jpg";
-import bookCoverImg from "../assets/fashion/atlasi/fashion-atlasi-13.jpg";
-import postersImg from "../assets/portrait/photos/portrait-photos-11.jpg";
+import visualIdentityImg from "../assets/graphic-design/ahura-cctv/graphic-design-ahura-cctv-03.jpg";
+import bookCoverImg from "../assets/graphic-design/book-covers/graphic-design-book-covers-12.jpg";
+import postersImg from "../assets/graphic-design/posters/graphic-design-posters-06.jpg";
 import videosImg from "../assets/food/tasting/food-tasting-07.jpg";
 
 export interface DisciplineCard {
@@ -16,6 +16,10 @@ export interface DisciplineCard {
   disciplines?: Discipline[];
   match: (category: string) => boolean;
   blurb: string;
+  /** When true, /$discipline lists project cards linking to /projects/$id instead of a flat photo gallery. */
+  browseByProject?: boolean;
+  /** Layout for the photo view. "scroll" = full-height horizontal side-scrolling strip. Default = masonry grid. */
+  layout?: "scroll";
 }
 
 export const DISCIPLINES: DisciplineCard[] = [
@@ -58,6 +62,7 @@ export const DISCIPLINES: DisciplineCard[] = [
     disciplines: ["graphic-design"],
     match: (c) => c.toLowerCase().includes("visual identity"),
     blurb: "Identity systems that carry a brand's voice across every touchpoint.",
+    browseByProject: true,
   },
   {
     slug: "book-covers",
@@ -66,6 +71,7 @@ export const DISCIPLINES: DisciplineCard[] = [
     disciplines: ["graphic-design"],
     match: (c) => c.toLowerCase().includes("book cover"),
     blurb: "Cover design and typography that invites the reader before the first page.",
+    layout: "scroll",
   },
   {
     slug: "posters",
@@ -74,6 +80,7 @@ export const DISCIPLINES: DisciplineCard[] = [
     disciplines: ["graphic-design"],
     match: (c) => c.toLowerCase().includes("poster"),
     blurb: "Bold, graphic statements for spaces, events, and campaigns.",
+    layout: "scroll",
   },
   {
     slug: "videos",

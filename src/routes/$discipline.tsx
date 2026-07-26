@@ -1,7 +1,9 @@
+import { useEffect, useRef, useState } from "react";
 import { createFileRoute, notFound, rootRouteId } from "@tanstack/react-router";
 import { ExpandableCard, ExpandableCardGrid } from "@/components/ui/expandable-card";
 import { GalleryLoadProvider } from "@/components/AdaptiveThumb";
 import { BackToTop } from "@/components/BackToTop";
+import { CoverTile } from "@/components/CoverTile";
 import { DISCIPLINES } from "@/data/disciplines";
 import { projects, type Project } from "@/data/projects";
 import { pageHead } from "@/lib/seo";
@@ -21,6 +23,13 @@ interface DisciplinePhoto {
   photoTotal: number;
 }
 
+interface ProjectCardItem {
+  id: string;
+  title: string;
+  image: string;
+  year: string;
+}
+
 /** e.g. /assets/fashion-atlasi-01-a1b2c3d4.jpg → "Fashion Atlasi 01" */
 function imageNameFromSrc(src: string): string {
   const file = decodeURIComponent((src.split("/").pop() ?? src).split("?")[0] ?? "");
@@ -36,15 +45,38 @@ function imageNameFromSrc(src: string): string {
     .join(" ");
 }
 
+function matchingProjects(discipline: (typeof DISCIPLINES)[number]): Project[] {
+  return projects.filter(
+    (p) =>
+      (!discipline.disciplines || discipline.disciplines.includes(p.discipline)) &&
+      discipline.match(p.category),
+  );
+}
+
 export const Route = createFileRoute("/$discipline")({
   loader: ({ params }) => {
     const discipline = DISCIPLINES.find((d) => d.slug === params.discipline);
     if (!discipline) throw notFound({ routeId: rootRouteId });
-    const matching = projects.filter(
-      (p) =>
-        (!discipline.disciplines || discipline.disciplines.includes(p.discipline)) &&
-        discipline.match(p.category),
-    );
+
+    const matching = matchingProjects(discipline);
+    const meta = {
+      slug: discipline.slug,
+      label: discipline.label,
+      blurb: discipline.blurb,
+      browseByProject: Boolean(discipline.browseByProject),
+      layout: discipline.layout ?? null,
+    };
+
+    if (discipline.browseByProject) {
+      const projectCards: ProjectCardItem[] = matching.map((project) => ({
+        id: project.id,
+        title: project.title,
+        image: project.image,
+        year: project.year,
+      }));
+      return { discipline: meta, items: [] as DisciplinePhoto[], projectCards };
+    }
+
     const items: DisciplinePhoto[] = [];
     matching.forEach((project: Project) => {
       const gallery = project.gallery ?? [project.image];
@@ -64,10 +96,8 @@ export const Route = createFileRoute("/$discipline")({
         });
       });
     });
-    return {
-      discipline: { slug: discipline.slug, label: discipline.label, blurb: discipline.blurb },
-      items,
-    };
+
+    return { discipline: meta, items, projectCards: [] as ProjectCardItem[] };
   },
   head: ({ loaderData }) => {
     const label = loaderData?.discipline.label ?? "Discipline";
@@ -91,20 +121,44 @@ export const Route = createFileRoute("/$discipline")({
 });
 
 function DisciplinePage() {
-  const { discipline, items } = Route.useLoaderData();
+  const { discipline, items, projectCards } = Route.useLoaderData();
+  const isEmpty = discipline.browseByProject
+    ? projectCards.length === 0
+    : items.length === 0;
+
+  const isScroll = discipline.layout === "scroll";
 
   return (
     <section
-      className="relative w-full bg-background pb-40 pt-3 md:pt-3.5"
+      className={`relative w-full bg-background ${
+        isScroll ? "overflow-hidden pt-3 md:pt-3.5" : "pb-40 pt-3 md:pt-3.5"
+      }`}
       aria-labelledby="discipline-heading"
     >
       <h1 id="discipline-heading" className="sr-only">
         {discipline.label} — Siavash Akbari
       </h1>
-      {items.length === 0 ? (
+      {isEmpty ? (
         <p className="mx-auto max-w-3xl px-6 text-center text-muted-foreground">
           More coming soon.
         </p>
+      ) : discipline.layout === "scroll" ? (
+        <ScrollGallery items={items} label={discipline.label} />
+      ) : discipline.browseByProject ? (
+        <div className="w-full px-[20px]">
+          <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4">
+            {projectCards.map((project) => (
+              <CoverTile
+                key={project.id}
+                to="/projects/$projectId"
+                params={{ projectId: project.id }}
+                label={project.title}
+                image={project.image}
+                ariaLabel={`View ${project.title}`}
+              />
+            ))}
+          </div>
+        </div>
       ) : (
         <GalleryLoadProvider total={items.length}>
           <ExpandableCardGrid className="columns-1 gap-x-[4px] px-[13px] sm:columns-2 lg:columns-3">
@@ -148,5 +202,82 @@ function DisciplinePage() {
       )}
       <BackToTop />
     </section>
+  );
+}
+
+function useIsDesktop() {
+  const [isDesktop, setIsDesktop] = useState(false);
+
+  useEffect(() => {
+    const media = window.matchMedia("(min-width: 1024px)");
+    const update = () => setIsDesktop(media.matches);
+    update();
+    media.addEventListener("change", update);
+    return () => media.removeEventListener("change", update);
+  }, []);
+
+  return isDesktop;
+}
+
+/** Full-height horizontal side-scrolling strip with wheel-to-scroll and click-to-zoom. */
+function ScrollGallery({ items, label }: { items: DisciplinePhoto[]; label: string }) {
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [activeIndex, setActiveIndex] = useState<number | null>(null);
+  const isDesktop = useIsDesktop();
+
+  const handleWheel = (e: React.WheelEvent<HTMLDivElement>) => {
+    const el = scrollRef.current;
+    if (!el) return;
+    if (e.deltaY === 0) return;
+    e.preventDefault();
+    el.scrollLeft += e.deltaY;
+  };
+
+  useEffect(() => {
+    if (activeIndex === null) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setActiveIndex(null);
+    };
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [activeIndex]);
+
+  return (
+    <>
+      <div
+        ref={scrollRef}
+        onWheel={handleWheel}
+        className="scrollbar-hide flex h-[calc(100dvh-3.5rem-1.5rem)] min-h-0 items-center gap-6 overflow-x-auto overflow-y-hidden px-[20px]"
+      >
+        {items.map((item, i) => (
+          <figure
+            key={item.key}
+            className={`shrink-0 h-full max-h-full py-4 ${isDesktop ? "cursor-zoom-in" : ""}`}
+            onClick={() => isDesktop && setActiveIndex(i)}
+          >
+            <img
+              src={item.src}
+              alt={item.imageName || `${label} — image ${i + 1}`}
+              loading={i < 2 ? "eager" : "lazy"}
+              decoding="async"
+              className="h-full w-auto max-w-none rounded-[3px] bg-card object-contain"
+            />
+          </figure>
+        ))}
+      </div>
+
+      {activeIndex !== null && (
+        <div
+          className="fixed inset-0 z-50 flex cursor-zoom-out items-center justify-center bg-[#0F0F0F] p-6"
+          onClick={() => setActiveIndex(null)}
+        >
+          <img
+            src={items[activeIndex].src}
+            alt={items[activeIndex].imageName || `${label} — full view`}
+            className="max-h-full max-w-full object-contain"
+          />
+        </div>
+      )}
+    </>
   );
 }

@@ -301,7 +301,12 @@ function RootComponent() {
   const router = useRouter();
   const pathname = router.state.location.pathname;
   const isProjectPage = pathname.startsWith("/projects/");
-  const hideFooter = isProjectPage || pathname === "/about" || pathname === "/contact";
+  const hideFooter =
+    isProjectPage ||
+    pathname === "/about" ||
+    pathname === "/contact" ||
+    pathname === "/book-covers" ||
+    pathname === "/posters";
 
   useEffect(() => {
     if (!isProjectPage) return;

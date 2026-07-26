@@ -1,4 +1,62 @@
 import productImg from "../assets/product-design/aurelia/product-design-aurelia-01.jpg";
+import dodareh1 from "../assets/graphic-design/dodareh/graphic-design-dodareh-01.jpg";
+import ahuraCctv1 from "../assets/graphic-design/ahura-cctv/graphic-design-ahura-cctv-01.jpg";
+import ahuraCctv2 from "../assets/graphic-design/ahura-cctv/graphic-design-ahura-cctv-02.jpg";
+import ahuraCctv3 from "../assets/graphic-design/ahura-cctv/graphic-design-ahura-cctv-03.jpg";
+import ahuraCctv4 from "../assets/graphic-design/ahura-cctv/graphic-design-ahura-cctv-04.jpg";
+import ahuraCctv5 from "../assets/graphic-design/ahura-cctv/graphic-design-ahura-cctv-05.jpg";
+import ahuraCctv6 from "../assets/graphic-design/ahura-cctv/graphic-design-ahura-cctv-06.jpg";
+import ahuraCctv7 from "../assets/graphic-design/ahura-cctv/graphic-design-ahura-cctv-07.jpg";
+import femiq1 from "../assets/graphic-design/femiq/graphic-design-femiq-01.jpg";
+import femiq2 from "../assets/graphic-design/femiq/graphic-design-femiq-02.jpg";
+import femiq3 from "../assets/graphic-design/femiq/graphic-design-femiq-03.jpg";
+import femiq4 from "../assets/graphic-design/femiq/graphic-design-femiq-04.jpg";
+import femiq5 from "../assets/graphic-design/femiq/graphic-design-femiq-05.jpg";
+import femiq6 from "../assets/graphic-design/femiq/graphic-design-femiq-06.jpg";
+import femiq7 from "../assets/graphic-design/femiq/graphic-design-femiq-07.jpg";
+import polarity1 from "../assets/graphic-design/polarity/graphic-design-polarity-01.jpg";
+import echoSupplements1 from "../assets/graphic-design/echo-supplements/graphic-design-echo-supplements-01.jpg";
+import echoSupplements2 from "../assets/graphic-design/echo-supplements/graphic-design-echo-supplements-02.jpg";
+import echoSupplements3 from "../assets/graphic-design/echo-supplements/graphic-design-echo-supplements-03.jpg";
+import echoSupplements4 from "../assets/graphic-design/echo-supplements/graphic-design-echo-supplements-04.jpg";
+import echoSupplements5 from "../assets/graphic-design/echo-supplements/graphic-design-echo-supplements-05.jpg";
+import echoSupplements6 from "../assets/graphic-design/echo-supplements/graphic-design-echo-supplements-06.jpg";
+import echoTrading1 from "../assets/graphic-design/echo-trading/graphic-design-echo-trading-01.jpg";
+import echoTrading2 from "../assets/graphic-design/echo-trading/graphic-design-echo-trading-02.jpg";
+import echoTrading3 from "../assets/graphic-design/echo-trading/graphic-design-echo-trading-03.jpg";
+import echoTrading4 from "../assets/graphic-design/echo-trading/graphic-design-echo-trading-04.jpg";
+import echoTrading5 from "../assets/graphic-design/echo-trading/graphic-design-echo-trading-05.jpg";
+import echoTrading6 from "../assets/graphic-design/echo-trading/graphic-design-echo-trading-06.jpg";
+import echoTrading7 from "../assets/graphic-design/echo-trading/graphic-design-echo-trading-07.jpg";
+import echoTrading8 from "../assets/graphic-design/echo-trading/graphic-design-echo-trading-08.jpg";
+import goats1 from "../assets/graphic-design/goats/graphic-design-goats-01.jpg";
+import goats2 from "../assets/graphic-design/goats/graphic-design-goats-02.jpg";
+import goats3 from "../assets/graphic-design/goats/graphic-design-goats-03.jpg";
+import goats4 from "../assets/graphic-design/goats/graphic-design-goats-04.jpg";
+import goats5 from "../assets/graphic-design/goats/graphic-design-goats-05.jpg";
+import zen1 from "../assets/graphic-design/zen/graphic-design-zen-01.jpg";
+import zen2 from "../assets/graphic-design/zen/graphic-design-zen-02.jpg";
+import zen3 from "../assets/graphic-design/zen/graphic-design-zen-03.jpg";
+import bookCovers1 from "../assets/graphic-design/book-covers/graphic-design-book-covers-01.jpg";
+import bookCovers2 from "../assets/graphic-design/book-covers/graphic-design-book-covers-02.jpg";
+import bookCovers3 from "../assets/graphic-design/book-covers/graphic-design-book-covers-03.jpg";
+import bookCovers4 from "../assets/graphic-design/book-covers/graphic-design-book-covers-04.jpg";
+import bookCovers5 from "../assets/graphic-design/book-covers/graphic-design-book-covers-05.jpg";
+import bookCovers6 from "../assets/graphic-design/book-covers/graphic-design-book-covers-06.jpg";
+import bookCovers7 from "../assets/graphic-design/book-covers/graphic-design-book-covers-07.jpg";
+import bookCovers8 from "../assets/graphic-design/book-covers/graphic-design-book-covers-08.jpg";
+import bookCovers9 from "../assets/graphic-design/book-covers/graphic-design-book-covers-09.jpg";
+import bookCovers10 from "../assets/graphic-design/book-covers/graphic-design-book-covers-10.jpg";
+import bookCovers11 from "../assets/graphic-design/book-covers/graphic-design-book-covers-11.jpg";
+import bookCovers12 from "../assets/graphic-design/book-covers/graphic-design-book-covers-12.jpg";
+import posters1 from "../assets/graphic-design/posters/graphic-design-posters-01.jpg";
+import posters2 from "../assets/graphic-design/posters/graphic-design-posters-02.jpg";
+import posters3 from "../assets/graphic-design/posters/graphic-design-posters-03.jpg";
+import posters4 from "../assets/graphic-design/posters/graphic-design-posters-04.jpg";
+import posters5 from "../assets/graphic-design/posters/graphic-design-posters-05.jpg";
+import posters6 from "../assets/graphic-design/posters/graphic-design-posters-06.jpg";
+import posters7 from "../assets/graphic-design/posters/graphic-design-posters-07.jpg";
+import posters8 from "../assets/graphic-design/posters/graphic-design-posters-08.jpg";
 import gastronomie1 from "../assets/food/gastronomie/food-gastronomie-01.jpg";
 import gastronomie2 from "../assets/food/gastronomie/food-gastronomie-02.jpg";
 import gastronomie3 from "../assets/food/gastronomie/food-gastronomie-03.jpg";
@@ -252,6 +310,172 @@ export const disciplines: { id: Discipline; label: string; description: string }
 ];
 
 export const projects: Project[] = [
+  {
+    id: "dodareh",
+    title: "Dodareh",
+    discipline: "graphic-design",
+    category: "Visual Identity",
+    year: "2025",
+    description:
+      "A playful visual identity for an accessories brand, pairing sculptural letterforms with a warm, understated palette.",
+    image: dodareh1,
+    aspect: "landscape",
+    gallery: [dodareh1],
+  },
+  {
+    id: "ahura-cctv",
+    title: "Ahura CCTV",
+    discipline: "graphic-design",
+    category: "Visual Identity",
+    year: "2025",
+    description:
+      "A high-contrast identity for a surveillance systems brand, built around angular Persian typography, signal red, and cinematic security imagery.",
+    image: ahuraCctv3,
+    aspect: "portrait",
+    gallery: [
+      ahuraCctv1,
+      ahuraCctv2,
+      ahuraCctv3,
+      ahuraCctv4,
+      ahuraCctv5,
+      ahuraCctv6,
+      ahuraCctv7,
+    ],
+  },
+  {
+    id: "femiq",
+    title: "FEMIQ",
+    discipline: "graphic-design",
+    category: "Visual Identity & Catalogue",
+    year: "2026",
+    description:
+      "A bilingual industrial identity and product catalogue for FEMIQ, balancing engineered forms with a precise cream-and-violet visual system.",
+    image: femiq1,
+    aspect: "landscape",
+    gallery: [femiq1, femiq2, femiq3, femiq4, femiq5, femiq6, femiq7],
+  },
+  {
+    id: "polarity",
+    title: "Polarity Atelier",
+    discipline: "graphic-design",
+    category: "Visual Identity",
+    year: "2025",
+    description:
+      "A sharp geometric wordmark for Polarity Atelier — olive depth, cream type, and a cut that reads as both mark and attitude.",
+    image: polarity1,
+    aspect: "landscape",
+    gallery: [polarity1],
+  },
+  {
+    id: "echo-supplements",
+    title: "Echo Supplements",
+    discipline: "graphic-design",
+    category: "Visual Identity",
+    year: "2025",
+    description:
+      "A cobalt identity for Echo Supplements built around a jar silhouette, ripple motif, and packaging that carries the brand into product form.",
+    image: echoSupplements1,
+    aspect: "portrait",
+    gallery: [
+      echoSupplements1,
+      echoSupplements2,
+      echoSupplements3,
+      echoSupplements4,
+      echoSupplements5,
+      echoSupplements6,
+    ],
+  },
+  {
+    id: "echo-trading",
+    title: "Echo Trading",
+    discipline: "graphic-design",
+    category: "Visual Identity",
+    year: "2025",
+    description:
+      "A bold trading identity pairing navy type with a solar disc — an echo mark designed for clarity at every scale.",
+    image: echoTrading1,
+    aspect: "landscape",
+    gallery: [
+      echoTrading1,
+      echoTrading2,
+      echoTrading3,
+      echoTrading4,
+      echoTrading5,
+      echoTrading6,
+      echoTrading7,
+      echoTrading8,
+    ],
+  },
+  {
+    id: "goats-coffee",
+    title: "Goat's Coffee",
+    discipline: "graphic-design",
+    category: "Visual Identity",
+    year: "2025",
+    description:
+      "A forest-green coffee identity where a goat silhouette lives inside a bean mark — quiet packaging with a memorable cut.",
+    image: goats1,
+    aspect: "portrait",
+    gallery: [goats1, goats2, goats3, goats4, goats5],
+  },
+  {
+    id: "zen-studio",
+    title: "Zen Studio Products",
+    discipline: "graphic-design",
+    category: "Visual Identity",
+    year: "2025",
+    description:
+      "An architectural wordmark for Zen Studio Products in coral red and palatial white — stencil geometry with a calm industrial voice.",
+    image: zen1,
+    aspect: "landscape",
+    gallery: [zen1, zen2, zen3],
+  },
+  {
+    id: "book-covers",
+    title: "Book Covers",
+    discipline: "graphic-design",
+    category: "Book Covers",
+    year: "2025",
+    description:
+      "A series of book cover designs for Persian titles — typography-led covers where script, image, and restraint carry each story.",
+    image: bookCovers1,
+    aspect: "landscape",
+    gallery: [
+      bookCovers1,
+      bookCovers3,
+      bookCovers4,
+      bookCovers6,
+      bookCovers7,
+      bookCovers9,
+      bookCovers10,
+      bookCovers11,
+      bookCovers12,
+      bookCovers8,
+      bookCovers2,
+      bookCovers5,
+    ],
+  },
+  {
+    id: "posters",
+    title: "Posters",
+    discipline: "graphic-design",
+    category: "Posters",
+    year: "2025",
+    description:
+      "Poster designs for events, culture, and campaigns — bold composition, type, and image made for the wall.",
+    image: posters1,
+    aspect: "portrait",
+    gallery: [
+      posters1,
+      posters2,
+      posters3,
+      posters4,
+      posters5,
+      posters6,
+      posters7,
+      posters8,
+    ],
+  },
   {
     id: "gastronomie",
     title: "Gastronomie",
