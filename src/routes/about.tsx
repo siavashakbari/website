@@ -1163,7 +1163,6 @@ function SkillsSection({
     >
       <div className="mx-auto w-full max-w-6xl">
         <motion.p
-          key={`cap-${lang}`}
           initial={reduceMotion ? false : { opacity: 0, y: 14 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-10%" }}
@@ -1177,7 +1176,6 @@ function SkillsSection({
           {t(COPY.capabilities, lang)}
         </motion.p>
         <motion.h2
-          key={`skills-${lang}`}
           initial={reduceMotion ? false : { opacity: 0, y: 24 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-10%" }}
