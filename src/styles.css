@@ -324,8 +324,24 @@
   }
 
   .back-to-top {
-    border: none;
-    background: #0f0f0f;
+    border: 1px solid color-mix(in oklab, #efefef 18%, transparent);
+    transition: box-shadow 0.35s ease, border-color 0.35s ease;
+  }
+
+  /* Larger circular hit area — keeps the visible control a circle */
+  .back-to-top::before {
+    content: "";
+    position: absolute;
+    inset: -14px;
+    border-radius: 9999px;
+  }
+
+  .back-to-top:hover,
+  .back-to-top:focus-visible {
+    border-color: color-mix(in oklab, var(--secondary) 55%, transparent);
+    box-shadow:
+      0 0 16px color-mix(in oklab, var(--secondary) 64%, transparent),
+      0 0 36px color-mix(in oklab, var(--secondary) 28%, transparent);
   }
 
   .text-balance {
