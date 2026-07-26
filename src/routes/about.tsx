@@ -111,7 +111,7 @@ const COPY = {
   heroAccent: { en: "creating images.", fa: "خلق تصویر." },
   heroBody: {
     en: "From the first photo edit in 2013 to art direction and brand building.",
-    fa: "از اولین ادیت عکس در ۲۰۱۳ تا کارگردانی هنری و ساخت.",
+    fa: "از اولین ادیت عکس در ۱۳ سالگی تا خلق هویت برند و کارگردانی هنری؛",
   },
   period: { en: "2013 — Present", fa: "۲۰۱۳ — اکنون" },
   capabilities: { en: "Capabilities", fa: "توانمندی‌ها" },
@@ -1080,8 +1080,8 @@ function TimelineEntry({
           className={`pl-8 md:pl-0 ${cardAlign}`}
           dir={isFa ? "rtl" : "ltr"}
         >
-          <div className="mb-3 flex items-center gap-3 md:hidden">
-            <p className="font-display text-[2.7rem] font-bold leading-none tracking-tight text-foreground/[0.16]">
+          <div className="mb-3 flex min-w-0 items-center gap-3 overflow-visible md:hidden">
+            <p className="shrink-0 font-display text-[2.7rem] font-bold leading-none tracking-tight text-foreground/[0.16]">
               {milestone.year}
             </p>
             {showGallery && (
@@ -1254,16 +1254,17 @@ function SkillColumn({
                 aria-label={`${score} out of 5`}
               >
                 <motion.span
-                  initial={reduceMotion ? false : { scaleX: 0 }}
-                  whileInView={{ scaleX: 1 }}
-                  viewport={{ once: true, margin: "-10%" }}
+                  initial={
+                    reduceMotion ? { width: `${fillPct}%` } : { width: 0 }
+                  }
+                  whileInView={{ width: `${fillPct}%` }}
+                  viewport={{ once: true, amount: 0.4, margin: "0px 0px -5% 0px" }}
                   transition={{
                     duration: 0.7,
                     delay: Math.min(i * 0.08, 0.4),
                     ease: easeOut,
                   }}
-                  className="absolute inset-y-0 start-0 origin-left rounded-full bg-secondary shadow-[0_0_10px_color-mix(in_oklab,var(--secondary)_40%,transparent)] rtl:origin-right"
-                  style={{ width: `${fillPct}%` }}
+                  className="absolute inset-y-0 start-0 rounded-full bg-secondary shadow-[0_0_10px_color-mix(in_oklab,var(--secondary)_40%,transparent)]"
                 />
               </div>
             </li>

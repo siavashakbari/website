@@ -111,7 +111,7 @@
 }
 
 .home-scroll-hint {
-  animation: home-scroll-blink 6s ease-in-out infinite;
+  animation: home-scroll-blink 3s ease-in-out infinite;
 }
 
 @media (prefers-reduced-motion: reduce) {

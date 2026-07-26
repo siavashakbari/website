@@ -23,6 +23,8 @@ const HERO_INSET_PX = 20;
 const HERO_RADIUS_PX = 3;
 /** Full shrink completes after this much scroll — further scroll does nothing */
 const HERO_SHRINK_SCROLL_PX = 40;
+/** Phone-only "scroll" hint is gone by this scroll offset */
+const HERO_HINT_FADE_PX = 80;
 
 const HERO_SRCSET = `${heroPortraitWebpSm} 960w, ${heroPortraitWebp} 1920w`;
 const HERO_SIZES = "100vw";
@@ -65,6 +67,7 @@ function Index() {
   const { scrollY } = useScroll();
   const insetRaw = useTransform(scrollY, [0, HERO_SHRINK_SCROLL_PX], [0, HERO_INSET_PX]);
   const radiusRaw = useTransform(scrollY, [0, HERO_SHRINK_SCROLL_PX], [0, HERO_RADIUS_PX]);
+  const scrollHintOpacity = useTransform(scrollY, [0, HERO_HINT_FADE_PX], [1, 0]);
   const spring = { stiffness: 220, damping: 28, mass: 0.25 };
   const insetSpring = useSpring(insetRaw, spring);
   const radiusSpring = useSpring(radiusRaw, spring);
@@ -123,9 +126,15 @@ function Index() {
               />
             </picture>
             <div className="absolute inset-x-0 bottom-0 px-6 pb-6 md:pb-8">
-              <span className="home-scroll-hint block font-display text-[12.24pt] font-medium tracking-[0.2em] text-foreground md:hidden">
-                scroll
-              </span>
+              <motion.div
+                aria-hidden
+                className="pointer-events-none md:hidden"
+                style={{ opacity: scrollHintOpacity }}
+              >
+                <span className="home-scroll-hint mx-auto block text-center font-display text-[9pt] font-medium tracking-[0.42em] text-foreground">
+                  scroll
+                </span>
+              </motion.div>
               <MorphingText
                 texts={HERO_ROLES}
                 morphTime={2.25}

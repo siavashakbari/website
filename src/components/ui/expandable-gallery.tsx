@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, AnimatePresence, LayoutGroup } from "motion/react";
-import { useId, useRef, useState } from "react";
+import { useId, useRef, useState, useEffect } from "react";
 import { ArrowLeft, X } from "lucide-react";
 import { useOutsideClick } from "@/hooks/use-outside-click";
 import { cn } from "@/lib/utils";
@@ -27,6 +27,13 @@ const COMPACT_STACK_LAYOUT = [
   { rotation: -10, x: -75, y: 8, zIndex: 10 },
   { rotation: 2, x: 0, y: -10, zIndex: 20 },
   { rotation: 10, x: 75, y: 6, zIndex: 30 },
+] as const;
+
+/** Phone compact stack: 20% smaller cards (100px) — half overlap → ±50px */
+const COMPACT_STACK_MOBILE = [
+  { rotation: -10, x: -50, y: 6, zIndex: 10 },
+  { rotation: 2, x: 0, y: -8, zIndex: 20 },
+  { rotation: 10, x: 50, y: 4, zIndex: 30 },
 ] as const;
 
 const transition = {
@@ -56,15 +63,28 @@ export function ExpandableGallery({
   expandable = true,
 }: ExpandableGalleryProps) {
   const [isExpanded, setIsExpanded] = useState(false);
+  const [isMd, setIsMd] = useState(false);
   const layoutGroupId = useId();
   const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const mq = window.matchMedia("(min-width: 768px)");
+    const sync = () => setIsMd(mq.matches);
+    sync();
+    mq.addEventListener("change", sync);
+    return () => mq.removeEventListener("change", sync);
+  }, []);
 
   useOutsideClick(containerRef, () => {
     if (expandable && isExpanded) setIsExpanded(false);
   });
 
   // Compact stacks use half-overlap layout sized for the larger cards
-  const layout = compact ? COMPACT_STACK_LAYOUT : STACK_LAYOUT;
+  const layout = compact
+    ? isMd
+      ? COMPACT_STACK_LAYOUT
+      : COMPACT_STACK_MOBILE
+    : STACK_LAYOUT;
   const single = photos.length === 1;
 
   const stackPhotos = photos.slice(0, 3).map((photo, i) => ({
@@ -85,7 +105,7 @@ export function ExpandableGallery({
         className={cn(
           "relative",
           compact
-            ? "h-[12rem] w-[18.75rem] shrink-0"
+            ? "h-[9.6rem] w-[15rem] shrink-0 md:h-[12rem] md:w-[18.75rem]"
             : "min-h-[280px] w-full",
           className,
         )}
@@ -181,7 +201,7 @@ export function ExpandableGallery({
                         : "absolute rounded-[1.25rem] border-[3px] border-background shadow-[0_12px_28px_rgba(0,0,0,0.35)] md:rounded-[1.5rem]",
                       !showExpanded &&
                         (compact
-                          ? "h-[7.8125rem] w-[7.8125rem] md:h-[9.375rem] md:w-[9.375rem]"
+                          ? "h-[6.25rem] w-[6.25rem] md:h-[9.375rem] md:w-[9.375rem]"
                           : "h-20 w-20 md:h-24 md:w-24"),
                     )}
                     onClick={() => {

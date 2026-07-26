@@ -15,7 +15,7 @@ const HEADLINES = [
       "font-farsi text-[clamp(1.85rem,3.4vw,3.75rem)] font-medium leading-[1.25]",
   },
   {
-    text: "Let's build something meaningful.",
+    text: "Let's build something lasting.",
     lang: "en",
     dir: "ltr",
     className:
