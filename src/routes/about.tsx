@@ -1080,8 +1080,8 @@ function TimelineEntry({
           className={`pl-8 md:pl-0 ${cardAlign}`}
           dir={isFa ? "rtl" : "ltr"}
         >
-          <div className="mb-3 flex min-w-0 items-center gap-3 overflow-visible md:hidden">
-            <p className="shrink-0 font-display text-[2.7rem] font-bold leading-none tracking-tight text-foreground/[0.16]">
+          <div className="mb-3 flex flex-col items-start gap-3 md:hidden">
+            <p className="font-display text-[2.7rem] font-bold leading-none tracking-tight text-foreground/[0.16]">
               {milestone.year}
             </p>
             {showGallery && (
