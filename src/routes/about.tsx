@@ -18,6 +18,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { pageHead } from "@/lib/seo";
+import { BackToTop } from "@/components/BackToTop";
 import {
   ExpandableGallery,
   type GalleryPhoto,
@@ -521,6 +522,7 @@ function AboutPage() {
       />
       <Timeline reduceMotion={!!reduceMotion} lang={lang} filters={filters} />
       <SkillsSection reduceMotion={!!reduceMotion} lang={lang} />
+      <BackToTop />
     </div>
   );
 }
