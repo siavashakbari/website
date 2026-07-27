@@ -26,14 +26,6 @@ export function metaFromSrc(src: string): ColorMeta {
 }
 
 /**
- * Ordered unlock: only the next `concurrency` ranks may start,
- * advancing from the top as earlier ranks complete.
- */
-export function nextUnlockCount(doneCount: number, total: number, concurrency: number): number {
-  return Math.min(total, doneCount + concurrency);
-}
-
-/**
  * CSS `columns` fill column-major. Return DOM indices in visual row-major
  * order so we load left → middle → right per row.
  */

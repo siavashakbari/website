@@ -4,19 +4,14 @@ import {
   useContext,
   useEffect,
   useMemo,
-  useRef,
   useState,
   type CSSProperties,
   type ReactNode,
 } from "react";
-import {
-  loadRankForIndex,
-  metaFromSrc,
-  nextUnlockCount,
-} from "@/lib/adaptive-image";
+import { loadRankForIndex, metaFromSrc } from "@/lib/adaptive-image";
 
-/** How many full-res images may fetch at once (row-major). */
-const HQ_CONCURRENCY = 3;
+/** Images within the first visual rows load eagerly; the rest lazy-load natively. */
+const EAGER_COUNT = 6;
 
 /** Matches `columns-1 sm:columns-2 lg:columns-3` on the category grid. */
 function useGalleryColumnCount() {
@@ -43,9 +38,7 @@ function useGalleryColumnCount() {
 }
 
 type GalleryLoadContextValue = {
-  hqUnlocked: number;
   rankOf: (domIndex: number) => number;
-  reportHqDone: (rank: number) => void;
   total: number;
   cols: number;
 };
@@ -60,40 +53,15 @@ export function GalleryLoadProvider({
   children: ReactNode;
 }) {
   const cols = useGalleryColumnCount();
-  const [hqDone, setHqDone] = useState(0);
-  const hqSet = useRef(new Set<number>());
-
-  useEffect(() => {
-    hqSet.current = new Set();
-    setHqDone(0);
-  }, [total, cols]);
-
-  const recount = (set: Set<number>) => {
-    let n = 0;
-    while (set.has(n)) n += 1;
-    return n;
-  };
 
   const rankOf = useCallback(
     (domIndex: number) => loadRankForIndex(domIndex, total, cols),
     [total, cols],
   );
 
-  const reportHqDone = useCallback((rank: number) => {
-    if (hqSet.current.has(rank)) return;
-    hqSet.current.add(rank);
-    setHqDone(recount(hqSet.current));
-  }, []);
-
   const value = useMemo<GalleryLoadContextValue>(
-    () => ({
-      hqUnlocked: nextUnlockCount(hqDone, total, HQ_CONCURRENCY),
-      rankOf,
-      reportHqDone,
-      total,
-      cols,
-    }),
-    [hqDone, total, cols, rankOf, reportHqDone],
+    () => ({ rankOf, total, cols }),
+    [rankOf, total, cols],
   );
 
   return (
@@ -115,8 +83,9 @@ type AdaptiveThumbProps = {
 };
 
 /**
- * 1) Immediate solid placeholder (dominant color of the image)
- * 2) Full-quality image loads when its row-major rank is unlocked
+ * Dominant-color placeholder behind a real `<img>` that is always present in
+ * the markup (SSR/no-JS friendly). Browser-native lazy loading staggers
+ * fetches; the first visual rows load eagerly.
  */
 export function AdaptiveThumb({
   src,
@@ -128,38 +97,12 @@ export function AdaptiveThumb({
 }: AdaptiveThumbProps) {
   const gallery = useGalleryLoad();
   const meta = useMemo(() => metaFromSrc(src), [src]);
-  const [loaded, setLoaded] = useState(false);
-  const reported = useRef(false);
 
   const rank = gallery ? gallery.rankOf(index) : index;
-  const canLoad = !gallery || rank < gallery.hqUnlocked;
 
   useEffect(() => {
-    reported.current = false;
-    setLoaded(false);
     onRatio?.(meta.ratio);
-  }, [rank, src, meta.ratio, onRatio]);
-
-  useEffect(() => {
-    if (!canLoad || !loaded || reported.current) return;
-    reported.current = true;
-    gallery?.reportHqDone(rank);
-  }, [canLoad, loaded, gallery, rank]);
-
-  const markLoaded = () => {
-    setLoaded(true);
-  };
-
-  // Cached / already-complete images
-  const imgRef = useRef<HTMLImageElement>(null);
-  useEffect(() => {
-    if (!canLoad) return;
-    const img = imgRef.current;
-    if (img?.complete && img.naturalWidth > 0) {
-      markLoaded();
-      onRatio?.(img.naturalWidth / img.naturalHeight);
-    }
-  }, [canLoad, src, onRatio]);
+  }, [src, meta.ratio, onRatio]);
 
   const boxStyle: CSSProperties = {
     ...style,
@@ -169,31 +112,24 @@ export function AdaptiveThumb({
 
   return (
     <div className="relative w-full overflow-hidden" style={boxStyle}>
-      {canLoad ? (
-        <img
-          ref={imgRef}
-          src={src}
-          alt={alt}
-          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-          draggable={false}
-          onDragStart={(e) => e.preventDefault()}
-          decoding="async"
-          onLoad={(e) => {
-            const img = e.currentTarget;
-            if (img.naturalWidth > 0 && img.naturalHeight > 0) {
-              onRatio?.(img.naturalWidth / img.naturalHeight);
-            }
-            markLoaded();
-          }}
-          onError={markLoaded}
-          className={className}
-          style={{
-            ...style,
-            opacity: loaded ? 1 : 0,
-            transition: "opacity 320ms ease",
-          }}
-        />
-      ) : null}
+      <img
+        src={src}
+        alt={alt}
+        loading={rank < EAGER_COUNT ? "eager" : "lazy"}
+        fetchPriority={rank < 3 ? "high" : undefined}
+        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+        draggable={false}
+        onDragStart={(e) => e.preventDefault()}
+        decoding="async"
+        onLoad={(e) => {
+          const img = e.currentTarget;
+          if (img.naturalWidth > 0 && img.naturalHeight > 0) {
+            onRatio?.(img.naturalWidth / img.naturalHeight);
+          }
+        }}
+        className={className}
+        style={style}
+      />
     </div>
   );
 }

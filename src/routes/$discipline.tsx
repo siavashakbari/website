@@ -11,7 +11,7 @@ import { pageHead } from "@/lib/seo";
 interface DisciplinePhoto {
   key: string;
   src: string;
-  /** Display name derived from the image filename */
+  /** Clean caption: project title plus photo number, e.g. "Atlasi — 08" */
   imageName: string;
   title: string;
   year: string;
@@ -30,19 +30,10 @@ interface ProjectCardItem {
   year: string;
 }
 
-/** e.g. /assets/fashion-atlasi-01-a1b2c3d4.jpg → "Fashion Atlasi 01" */
-function imageNameFromSrc(src: string): string {
-  const file = decodeURIComponent((src.split("/").pop() ?? src).split("?")[0] ?? "");
-  let stem = file.replace(/\.[^.]+$/, "");
-  // Strip Vite content hash suffix (e.g. -a1b2c3d4)
-  stem = stem.replace(/-[A-Za-z0-9_]{7,}$/, (match) =>
-    /^-\d+$/.test(match) ? match : "",
-  );
-  return stem
-    .split(/[-_]+/)
-    .filter(Boolean)
-    .map((part) => (/^\d+$/.test(part) ? part : part.charAt(0).toUpperCase() + part.slice(1)))
-    .join(" ");
+/** "Atlasi — 08" for multi-photo projects, just the title for single photos. */
+function photoCaption(title: string, index: number, total: number): string {
+  if (total <= 1) return title;
+  return `${title} — ${String(index + 1).padStart(2, "0")}`;
 }
 
 function matchingProjects(discipline: (typeof DISCIPLINES)[number]): Project[] {
@@ -136,7 +127,7 @@ export const Route = createFileRoute("/$discipline")({
         items.push({
           key: `${project.id}-${idx}`,
           src,
-          imageName: imageNameFromSrc(src),
+          imageName: photoCaption(project.title, idx, gallery.length),
           title: project.title,
           year: project.year,
           category: project.category,
