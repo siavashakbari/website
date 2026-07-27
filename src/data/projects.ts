@@ -218,7 +218,6 @@ import photos22 from "../assets/portrait/photos/portrait-photos-22.jpg";
 import photos23 from "../assets/portrait/photos/portrait-photos-23.jpg";
 import photos24 from "../assets/portrait/photos/portrait-photos-24.jpg";
 import gaze1 from "../assets/portrait/gaze/portrait-gaze-01.jpg";
-import objects2 from "../assets/product/objects/product-objects-02.jpg";
 import objects3 from "../assets/product/objects/product-objects-03.jpg";
 import objects4 from "../assets/product/objects/product-objects-04.jpg";
 import objects5 from "../assets/product/objects/product-objects-05.jpg";
@@ -871,7 +870,6 @@ export const projects: Project[] = [
     image: objects92,
     aspect: "portrait",
     gallery: [
-      objects2,
       objects3,
       objects4,
       objects5,
