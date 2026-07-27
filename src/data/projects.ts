@@ -1,4 +1,5 @@
 import dodareh1 from "../assets/graphic-design/dodareh/graphic-design-dodareh-01.jpg";
+import dodareh2 from "../assets/graphic-design/dodareh/graphic-design-dodareh-02.jpg";
 import ahuraCctv1 from "../assets/graphic-design/ahura-cctv/graphic-design-ahura-cctv-01.jpg";
 import ahuraCctv2 from "../assets/graphic-design/ahura-cctv/graphic-design-ahura-cctv-02.jpg";
 import ahuraCctv3 from "../assets/graphic-design/ahura-cctv/graphic-design-ahura-cctv-03.jpg";
@@ -13,6 +14,7 @@ import femiq4 from "../assets/graphic-design/femiq/graphic-design-femiq-04.jpg";
 import femiq5 from "../assets/graphic-design/femiq/graphic-design-femiq-05.jpg";
 import femiq6 from "../assets/graphic-design/femiq/graphic-design-femiq-06.jpg";
 import femiq7 from "../assets/graphic-design/femiq/graphic-design-femiq-07.jpg";
+import femiq8 from "../assets/graphic-design/femiq/graphic-design-femiq-08.jpg";
 import polarity1 from "../assets/graphic-design/polarity/graphic-design-polarity-01.jpg";
 import echoSupplements1 from "../assets/graphic-design/echo-supplements/graphic-design-echo-supplements-01.jpg";
 import echoSupplements2 from "../assets/graphic-design/echo-supplements/graphic-design-echo-supplements-02.jpg";
@@ -36,6 +38,42 @@ import onSwipe2 from "../assets/graphic-design/on-swipe/graphic-design-on-swipe-
 import zen1 from "../assets/graphic-design/zen/graphic-design-zen-01.jpg";
 import zen2 from "../assets/graphic-design/zen/graphic-design-zen-02.jpg";
 import zen3 from "../assets/graphic-design/zen/graphic-design-zen-03.jpg";
+import artemis1 from "../assets/graphic-design/artemis/graphic-design-artemis-01.jpg";
+import artemis2 from "../assets/graphic-design/artemis/graphic-design-artemis-02.jpg";
+import artemis3 from "../assets/graphic-design/artemis/graphic-design-artemis-03.jpg";
+import artemis4 from "../assets/graphic-design/artemis/graphic-design-artemis-04.gif";
+import cichon1 from "../assets/graphic-design/cichon/graphic-design-cichon-01.jpg";
+import cichon2 from "../assets/graphic-design/cichon/graphic-design-cichon-02.jpg";
+import cichon3 from "../assets/graphic-design/cichon/graphic-design-cichon-03.jpg";
+import cichon4 from "../assets/graphic-design/cichon/graphic-design-cichon-04.jpg";
+import cichon5 from "../assets/graphic-design/cichon/graphic-design-cichon-05.jpg";
+import cichon6 from "../assets/graphic-design/cichon/graphic-design-cichon-06.jpg";
+import cichon7 from "../assets/graphic-design/cichon/graphic-design-cichon-07.jpg";
+import farshidRahimi1 from "../assets/graphic-design/farshid-rahimi/graphic-design-farshid-rahimi-01.jpg";
+import farshidRahimi2 from "../assets/graphic-design/farshid-rahimi/graphic-design-farshid-rahimi-02.jpg";
+import farshidRahimi3 from "../assets/graphic-design/farshid-rahimi/graphic-design-farshid-rahimi-03.jpg";
+import maanaar1 from "../assets/graphic-design/maanaar/graphic-design-maanaar-01.jpg";
+import maanaar2 from "../assets/graphic-design/maanaar/graphic-design-maanaar-02.jpg";
+import maanaar3 from "../assets/graphic-design/maanaar/graphic-design-maanaar-03.jpg";
+import mamrezz1 from "../assets/graphic-design/mamrezz/graphic-design-mamrezz-01.jpg";
+import mamrezz2 from "../assets/graphic-design/mamrezz/graphic-design-mamrezz-02.jpg";
+import mamrezz3 from "../assets/graphic-design/mamrezz/graphic-design-mamrezz-03.jpg";
+import snowSnack1 from "../assets/graphic-design/snow-snack/graphic-design-snow-snack-01.jpg";
+import snowSnack2 from "../assets/graphic-design/snow-snack/graphic-design-snow-snack-02.jpg";
+import snowSnack3 from "../assets/graphic-design/snow-snack/graphic-design-snow-snack-03.jpg";
+import snowSnack4 from "../assets/graphic-design/snow-snack/graphic-design-snow-snack-04.jpg";
+import snowSnack5 from "../assets/graphic-design/snow-snack/graphic-design-snow-snack-05.jpg";
+import snowSnack6 from "../assets/graphic-design/snow-snack/graphic-design-snow-snack-06.jpg";
+import zeeeProducts1 from "../assets/graphic-design/zeee-products/graphic-design-zeee-products-01.jpg";
+import zeeeProducts2 from "../assets/graphic-design/zeee-products/graphic-design-zeee-products-02.jpg";
+import zeeeProducts3 from "../assets/graphic-design/zeee-products/graphic-design-zeee-products-03.jpg";
+import zeeeProducts4 from "../assets/graphic-design/zeee-products/graphic-design-zeee-products-04.jpg";
+import zeeeProducts5 from "../assets/graphic-design/zeee-products/graphic-design-zeee-products-05.jpg";
+import zeeeProducts6 from "../assets/graphic-design/zeee-products/graphic-design-zeee-products-06.gif";
+import awli1 from "../assets/graphic-design/awli/graphic-design-awli-01.jpg";
+import awli2 from "../assets/graphic-design/awli/graphic-design-awli-02.jpg";
+import awli3 from "../assets/graphic-design/awli/graphic-design-awli-03.jpg";
+import awli4 from "../assets/graphic-design/awli/graphic-design-awli-04.gif";
 import bookCovers1 from "../assets/graphic-design/book-covers/graphic-design-book-covers-01.jpg";
 import bookCovers2 from "../assets/graphic-design/book-covers/graphic-design-book-covers-02.jpg";
 import bookCovers3 from "../assets/graphic-design/book-covers/graphic-design-book-covers-03.jpg";
@@ -317,9 +355,9 @@ export const projects: Project[] = [
     year: "2025",
     description:
       "Visual identity for Dobareh Accesories — a playful accessories brand built around sculptural letterforms.",
-    image: dodareh1,
-    aspect: "landscape",
-    gallery: [dodareh1],
+    image: dodareh2,
+    aspect: "portrait",
+    gallery: [dodareh2, dodareh1],
   },
   {
     id: "ahura-cctv",
@@ -346,12 +384,12 @@ export const projects: Project[] = [
     title: "FEMIQ",
     discipline: "graphic-design",
     category: "Visual Identity & Catalogue",
-    year: "2026",
+    year: "2025",
     description:
-      "Visual identity and product catalogue for FEMIQ — a bilingual industrial brand balancing engineered forms with a precise visual system.",
-    image: femiq1,
-    aspect: "landscape",
-    gallery: [femiq1, femiq2, femiq3, femiq4, femiq5, femiq6, femiq7],
+      "Visual identity and product catalogue for FEMIQ — precision stone-slab machinery, built around engineered forms and a bilingual industrial system.",
+    image: femiq8,
+    aspect: "portrait",
+    gallery: [femiq8, femiq1, femiq2, femiq3, femiq4, femiq5, femiq6, femiq7],
   },
   {
     id: "polarity",
@@ -438,6 +476,109 @@ export const projects: Project[] = [
     image: zen1,
     aspect: "landscape",
     gallery: [zen1, zen2, zen3],
+  },
+  {
+    id: "artemis",
+    title: "Artemis",
+    discipline: "graphic-design",
+    category: "Visual Identity",
+    year: "2019",
+    description:
+      "Visual identity for Artemis — a brand system built around a mark, jar packaging, and a patterned language that moves.",
+    image: artemis1,
+    aspect: "portrait",
+    gallery: [artemis1, artemis2, artemis3, artemis4],
+  },
+  {
+    id: "cichon",
+    title: "Cichon",
+    discipline: "graphic-design",
+    category: "Visual Identity",
+    year: "2024",
+    description:
+      "Visual identity for Cichon — a refined brand system with strong typographic presence across print and packaging touchpoints.",
+    image: cichon1,
+    aspect: "landscape",
+    gallery: [cichon1, cichon2, cichon3, cichon4, cichon5, cichon6, cichon7],
+  },
+  {
+    id: "farshid-rahimi",
+    title: "Farshid Rahimi",
+    discipline: "graphic-design",
+    category: "Visual Identity",
+    year: "2019",
+    description:
+      "Visual identity for Farshid Rahimi — a personal brand with a clear logo mark, card system, and supporting pattern.",
+    image: farshidRahimi1,
+    aspect: "landscape",
+    gallery: [farshidRahimi1, farshidRahimi2, farshidRahimi3],
+  },
+  {
+    id: "maanaar",
+    title: "Maanaar",
+    discipline: "graphic-design",
+    category: "Visual Identity",
+    year: "2025",
+    description:
+      "Visual identity for Maanaar — a quiet, considered brand system with a focused mark and application set.",
+    image: maanaar1,
+    aspect: "landscape",
+    gallery: [maanaar1, maanaar2, maanaar3],
+  },
+  {
+    id: "mamrezz",
+    title: "Mamrezz",
+    discipline: "graphic-design",
+    category: "Visual Identity",
+    year: "2023",
+    description:
+      "Visual identity for Mamrezz — a bold mark-led system with a compact set of brand applications.",
+    image: mamrezz3,
+    aspect: "portrait",
+    gallery: [mamrezz1, mamrezz2, mamrezz3],
+  },
+  {
+    id: "snow-snack",
+    title: "Snow Snack",
+    discipline: "graphic-design",
+    category: "Visual Identity",
+    year: "2020",
+    description:
+      "Visual identity for Snow Snack — an ice cream brand with packaging across flavor lines, bottle formats, and a playful pattern language.",
+    image: snowSnack1,
+    aspect: "portrait",
+    gallery: [snowSnack1, snowSnack2, snowSnack3, snowSnack4, snowSnack5, snowSnack6],
+  },
+  {
+    id: "zeee-products",
+    title: "ZEEE Products",
+    discipline: "graphic-design",
+    category: "Visual Identity",
+    year: "2025",
+    description:
+      "Visual identity for ZEEE Products — a mark and type system with bright and orange applications for a product brand.",
+    image: zeeeProducts1,
+    aspect: "landscape",
+    gallery: [
+      zeeeProducts6,
+      zeeeProducts1,
+      zeeeProducts2,
+      zeeeProducts3,
+      zeeeProducts4,
+      zeeeProducts5,
+    ],
+  },
+  {
+    id: "awli",
+    title: "AWLI",
+    discipline: "graphic-design",
+    category: "Visual Identity",
+    year: "2021",
+    description:
+      "Visual identity for AWLI — a gamertag mark system with a focused set of applications and motion.",
+    image: awli1,
+    aspect: "portrait",
+    gallery: [awli1, awli2, awli3, awli4],
   },
   {
     id: "book-covers",

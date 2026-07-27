@@ -46,11 +46,49 @@ function imageNameFromSrc(src: string): string {
 }
 
 function matchingProjects(discipline: (typeof DISCIPLINES)[number]): Project[] {
-  return projects.filter(
+  const matching = projects.filter(
     (p) =>
       (!discipline.disciplines || discipline.disciplines.includes(p.discipline)) &&
       discipline.match(p.category),
   );
+
+  if (discipline.slug !== "visual-identity") return matching;
+
+  const leadOrder = [
+    "echo-supplements",
+    "ahura-cctv",
+    "femiq",
+    "awli",
+    "cichon",
+    "goats-coffee",
+    "zeee-products",
+  ];
+  const endOrder = ["polarity", "dodareh"];
+
+  return matching
+    .map((project, index) => ({ project, index }))
+    .sort((a, b) => {
+      const aLead = leadOrder.indexOf(a.project.id);
+      const bLead = leadOrder.indexOf(b.project.id);
+      const aEnd = endOrder.indexOf(a.project.id);
+      const bEnd = endOrder.indexOf(b.project.id);
+
+      const aPos =
+        aLead !== -1
+          ? aLead
+          : aEnd !== -1
+            ? leadOrder.length + 1000 + aEnd
+            : leadOrder.length + a.index;
+      const bPos =
+        bLead !== -1
+          ? bLead
+          : bEnd !== -1
+            ? leadOrder.length + 1000 + bEnd
+            : leadOrder.length + b.index;
+
+      return aPos - bPos;
+    })
+    .map(({ project }) => project);
 }
 
 function useIsDesktop() {

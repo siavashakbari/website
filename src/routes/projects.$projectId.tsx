@@ -11,7 +11,7 @@ const backBtnClass =
 
 // Phones have no hover, so show the green + glow state permanently, at 80% size.
 const backBtnMobileClass =
-  "inline-flex h-11 shrink-0 scale-[0.8] items-center justify-center gap-2 rounded-full border border-transparent bg-secondary px-5 text-sm font-medium text-secondary-foreground shadow-[0_0_8px_color-mix(in_oklab,var(--secondary)_42%,transparent),0_0_17px_color-mix(in_oklab,var(--secondary)_24%,transparent),0_0_25px_color-mix(in_oklab,var(--secondary)_12%,transparent)]";
+  "inline-flex h-11 shrink-0 scale-[0.8] items-center justify-center gap-2 whitespace-nowrap rounded-full border border-transparent bg-secondary px-5 text-sm font-medium text-secondary-foreground shadow-[0_0_8px_color-mix(in_oklab,var(--secondary)_42%,transparent),0_0_17px_color-mix(in_oklab,var(--secondary)_24%,transparent),0_0_25px_color-mix(in_oklab,var(--secondary)_12%,transparent)]";
 
 function useIsDesktop() {
   const [isDesktop, setIsDesktop] = useState(false);

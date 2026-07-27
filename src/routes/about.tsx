@@ -150,6 +150,13 @@ const TIMELINE_LOGO_ONLY = new Set([
   "zen-studio",
   "femiq",
   "on-swipe",
+  "dodareh",
+  "awli",
+  "mamrezz",
+  "artemis",
+  "farshid-rahimi",
+  "maanaar",
+  "snow-snack",
 ]);
 
 function projectGalleryPhotos(project: Project): GalleryPhoto[] {
@@ -186,8 +193,10 @@ const ZEEE_PRODUCTS_PHOTOS: GalleryPhoto[] = [
 
 /** Named client / brand projects + every visual identity in the portfolio. */
 function isTimelinePortfolioProject(project: Project) {
-  // Nozad already appears on the timeline as a Job entry.
-  if (project.id === "nozad-publication") return false;
+  // Already appear on the timeline as Job entries.
+  if (project.id === "nozad-publication" || project.id === "zeee-products") {
+    return false;
+  }
   if (project.category.toLowerCase().includes("visual identity")) return true;
   return (
     project.id === "atlasi" ||
@@ -198,14 +207,22 @@ function isTimelinePortfolioProject(project: Project) {
 
 const PROJECT_TITLE_FA: Record<string, string> = {
   dodareh: "دوباره",
-  "ahura-cctv": "اهورا سی‌سی‌تی‌وی",
+  "ahura-cctv": "اهورا",
   femiq: "فمیک",
-  polarity: "پلاریتی آتلیه",
-  "echo-supplements": "اکو ساپلمنتس",
+  polarity: "پلاریتی",
+  "echo-supplements": "Echo Supplements",
   "goats-coffee": "قهوه‌ی بز",
   "nozad-publication": "انتشارات نوزاد",
   "on-swipe": "آن سوایپ",
   "zen-studio": "محصولات استودیو زن",
+  artemis: "آرتمیس",
+  cichon: "سیچون",
+  "farshid-rahimi": "فرشید رحیمی",
+  maanaar: "مانار",
+  mamrezz: "Mamrezz",
+  "snow-snack": "اسنو اسنک",
+  "zeee-products": "محصولات زی",
+  awli: "AWLI",
   atlasi: "اطلسی",
   zeeen: "زین",
   sepidar: "سپیدار",
@@ -214,7 +231,7 @@ const PROJECT_TITLE_FA: Record<string, string> = {
 const PROJECT_ROLE_FA: Record<string, string> = {
   "Visual Identity": "هویت بصری",
   "Visual Identity & Catalogue": "هویت بصری و کاتالوگ",
-  "Fashion Photography": "عکاسی مد",
+  "Fashion Photography": "عکاسی فشن",
   "Product Design": "طراحی محصول",
 };
 
@@ -222,13 +239,13 @@ const PROJECT_DESC_FA: Record<string, string> = {
   dodareh:
     "پروژه هویت بصری برای دوباره اکسسوریز — برند اکسسوری با فرم‌های حروفی مجسمه‌گونه و لحنی بازیگوش.",
   "ahura-cctv":
-    "پروژه هویت بصری برای اهورا سی‌سی‌تی‌وی — برند سیستم‌های نظارتی با تایپوگرافی زاویه‌دار فارسی و تصویرسازی سینمایی.",
+    "پروژه هویت بصری برای اهورا — برند سیستم‌های نظارتی با تایپوگرافی زاویه‌دار فارسی و تصویرسازی سینمایی.",
   femiq:
-    "پروژه هویت بصری و کاتالوگ محصول برای فمیک — برند صنعتی دوزبانه با تعادل میان فرم مهندسی و سیستم بصری دقیق.",
+    "پروژه هویت بصری و کاتالوگ محصول برای فمیک — ماشین‌آلات دقیق برش و کار سنگ اسلب، با فرم مهندسی و سیستم بصری صنعتی دوزبانه.",
   polarity:
-    "پروژه هویت بصری برای پلاریتی آتلیه — وردمارک هندسی تیز که هم نشان است و هم نگرش.",
+    "پروژه هویت بصری برای پلاریتی — وردمارک هندسی تیز که هم نشان است و هم نگرش.",
   "echo-supplements":
-    "پروژه هویت بصری برای اکو ساپلمنتس — برند مکمل حول سیلوئت شیشه، موتیف موج و بسته‌بندی که برند را به فرم محصول می‌برد.",
+    "پروژه هویت بصری برای Echo Supplements — برند مکمل حول سیلوئت شیشه، موتیف موج و بسته‌بندی که برند را به فرم محصول می‌برد.",
   "goats-coffee":
     "پروژه هویت بصری برای قهوه‌ی بز — برند قهوه که سیلوئت بز داخل نشان دانه زندگی می‌کند، با بسته‌بندی آرام و برشی به‌یادماندنی.",
   "nozad-publication":
@@ -237,6 +254,22 @@ const PROJECT_DESC_FA: Record<string, string> = {
     "پروژه هویت بصری برای آن سوایپ — نرم‌افزار شغل‌یابی با هوش مصنوعی؛ حروف باز و آیکون سوراخ کلید.",
   "zen-studio":
     "پروژه هویت بصری برای محصولات استودیو زن — وردمارک معماری با هندسه شابلونی و صدای صنعتی آرام.",
+  artemis:
+    "پروژه هویت بصری برای آرتمیس — سیستم برند حول نشان، بسته‌بندی شیشه و زبان الگویی متحرک.",
+  cichon:
+    "پروژه هویت بصری برای سیچون — سیستم برند ظریف با حضور تایپوگرافیک قوی در چاپ و بسته‌بندی.",
+  "farshid-rahimi":
+    "پروژه هویت بصری برای فرشید رحیمی — برند شخصی با نشان واضح، سیستم کارت و الگوی پشتیبان.",
+  maanaar:
+    "پروژه هویت بصری برای مانار — سیستم برند آرام و سنجیده با نشان متمرکز و مجموعه کاربردها.",
+  mamrezz:
+    "پروژه هویت بصری برای Mamrezz — سیستم نشان‌محور جسور با مجموعه فشرده‌ای از کاربردهای برند.",
+  "snow-snack":
+    "پروژه هویت بصری برای اسنو اسنک — برند بستنی با بسته‌بندی در طعم‌ها، بطری‌ها و زبان الگویی بازیگوش.",
+  "zeee-products":
+    "پروژه هویت بصری برای محصولات زی — سیستم نشان و تایپ با کاربردهای روشن و نارنجی برای برند محصول.",
+  awli:
+    "پروژه هویت بصری برای AWLI — سیستم نشان گیم‌تگ با مجموعه متمرکز کاربردها و موشن.",
   atlasi:
     "داستان مد استودیویی حول پارچه‌های دست‌بافت، سیلوئت‌های مجسمه‌گونه و ژست‌های آرام.",
   zeeen:
@@ -305,7 +338,7 @@ const CAREER_MILESTONES: Milestone[] = [
     lengthYears: 9,
     description: {
       en: "Specialized in fashion, product, industrial, and portrait photography.",
-      fa: "تخصص در عکاسی مد، محصول، صنعتی و پرتره.",
+      fa: "تخصص در عکاسی فشن، محصول، صنعتی و پرتره.",
     },
   },
   {
