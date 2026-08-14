@@ -194,10 +194,8 @@ import calligraphy4 from "../assets/portrait/calligraphy/portrait-calligraphy-04
 import calligraphy5 from "../assets/portrait/calligraphy/portrait-calligraphy-05.jpg";
 import calligraphy6 from "../assets/portrait/calligraphy/portrait-calligraphy-06.jpg";
 import photos1 from "../assets/portrait/photos/portrait-photos-01.jpg";
-import photos2 from "../assets/portrait/photos/portrait-photos-02.jpg";
 import photos3 from "../assets/portrait/photos/portrait-photos-03.jpg";
 import photos4 from "../assets/portrait/photos/portrait-photos-04.jpg";
-import photos5 from "../assets/portrait/photos/portrait-photos-05.jpg";
 import photos7 from "../assets/portrait/photos/portrait-photos-07.jpg";
 import photos8 from "../assets/portrait/photos/portrait-photos-08.jpg";
 import photos9 from "../assets/portrait/photos/portrait-photos-09.jpg";
@@ -214,7 +212,6 @@ import photos19 from "../assets/portrait/photos/portrait-photos-19.jpg";
 import photos20 from "../assets/portrait/photos/portrait-photos-20.jpg";
 import photos21 from "../assets/portrait/photos/portrait-photos-21.jpg";
 import photos22 from "../assets/portrait/photos/portrait-photos-22.jpg";
-import photos23 from "../assets/portrait/photos/portrait-photos-23.jpg";
 import photos24 from "../assets/portrait/photos/portrait-photos-24.jpg";
 import gaze1 from "../assets/portrait/gaze/portrait-gaze-01.jpg";
 import objects3 from "../assets/product/objects/product-objects-03.jpg";
@@ -821,10 +818,8 @@ export const projects: Project[] = [
     aspect: "portrait",
     gallery: [
       photos1,
-      photos2,
       photos3,
       photos4,
-      photos5,
       photos7,
       photos8,
       photos9,
@@ -841,7 +836,6 @@ export const projects: Project[] = [
       photos20,
       photos21,
       photos22,
-      photos23,
       photos24,
     ],
   },

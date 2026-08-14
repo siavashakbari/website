@@ -651,10 +651,6 @@
     "color": "#a68776",
     "ratio": 0.6665
   },
-  "portrait-photos-02": {
-    "color": "#c7ac87",
-    "ratio": 0.6665
-  },
   "portrait-photos-03": {
     "color": "#2c3748",
     "ratio": 1.50038
@@ -662,10 +658,6 @@
   "portrait-photos-04": {
     "color": "#897666",
     "ratio": 0.6665
-  },
-  "portrait-photos-05": {
-    "color": "#68350d",
-    "ratio": 0.5625
   },
   "portrait-photos-07": {
     "color": "#3b3329",
@@ -730,10 +722,6 @@
   "portrait-photos-22": {
     "color": "#cdd7e1",
     "ratio": 0.8
-  },
-  "portrait-photos-23": {
-    "color": "#a9a9a9",
-    "ratio": 0.6825
   },
   "portrait-photos-24": {
     "color": "#7d8892",
