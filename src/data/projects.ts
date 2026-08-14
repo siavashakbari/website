@@ -94,41 +94,6 @@ import posters5 from "../assets/graphic-design/posters/graphic-design-posters-05
 import posters6 from "../assets/graphic-design/posters/graphic-design-posters-06.jpg";
 import posters7 from "../assets/graphic-design/posters/graphic-design-posters-07.jpg";
 import posters8 from "../assets/graphic-design/posters/graphic-design-posters-08.jpg";
-import gastronomie1 from "../assets/food/gastronomie/food-gastronomie-01.jpg";
-import gastronomie2 from "../assets/food/gastronomie/food-gastronomie-02.jpg";
-import gastronomie3 from "../assets/food/gastronomie/food-gastronomie-03.jpg";
-import gastronomie4 from "../assets/food/gastronomie/food-gastronomie-04.jpg";
-import gastronomie5 from "../assets/food/gastronomie/food-gastronomie-05.jpg";
-import gastronomie6 from "../assets/food/gastronomie/food-gastronomie-06.jpg";
-import gastronomie7 from "../assets/food/gastronomie/food-gastronomie-07.jpg";
-import gastronomie8 from "../assets/food/gastronomie/food-gastronomie-08.jpg";
-import gastronomie9 from "../assets/food/gastronomie/food-gastronomie-09.jpg";
-import gastronomie10 from "../assets/food/gastronomie/food-gastronomie-10.jpg";
-import gastronomie11 from "../assets/food/gastronomie/food-gastronomie-11.jpg";
-import gastronomie12 from "../assets/food/gastronomie/food-gastronomie-12.jpg";
-import gastronomie13 from "../assets/food/gastronomie/food-gastronomie-13.jpg";
-import gastronomie14 from "../assets/food/gastronomie/food-gastronomie-14.jpg";
-import gastronomie15 from "../assets/food/gastronomie/food-gastronomie-15.jpg";
-import gastronomie16 from "../assets/food/gastronomie/food-gastronomie-16.jpg";
-import gastronomie17 from "../assets/food/gastronomie/food-gastronomie-17.jpg";
-import gastronomie18 from "../assets/food/gastronomie/food-gastronomie-18.jpg";
-import gastronomie19 from "../assets/food/gastronomie/food-gastronomie-19.jpg";
-import gastronomie20 from "../assets/food/gastronomie/food-gastronomie-20.jpg";
-import gastronomie21 from "../assets/food/gastronomie/food-gastronomie-21.jpg";
-import gastronomie22 from "../assets/food/gastronomie/food-gastronomie-22.jpg";
-import gastronomie23 from "../assets/food/gastronomie/food-gastronomie-23.jpg";
-import gastronomie24 from "../assets/food/gastronomie/food-gastronomie-24.jpg";
-import cuisine1 from "../assets/food/cuisine/food-cuisine-01.jpg";
-import cuisine2 from "../assets/food/cuisine/food-cuisine-02.jpg";
-import cuisine3 from "../assets/food/cuisine/food-cuisine-03.jpg";
-import cuisine4 from "../assets/food/cuisine/food-cuisine-04.jpg";
-import cuisine5 from "../assets/food/cuisine/food-cuisine-05.jpg";
-import cuisine6 from "../assets/food/cuisine/food-cuisine-06.jpg";
-import cuisine7 from "../assets/food/cuisine/food-cuisine-07.jpg";
-import cuisine8 from "../assets/food/cuisine/food-cuisine-08.jpg";
-import cuisine9 from "../assets/food/cuisine/food-cuisine-09.jpg";
-import cuisine10 from "../assets/food/cuisine/food-cuisine-10.jpg";
-import cuisine11 from "../assets/food/cuisine/food-cuisine-11.jpg";
 import tasting1 from "../assets/food/tasting/food-tasting-01.jpg";
 import tasting2 from "../assets/food/tasting/food-tasting-02.jpg";
 import tasting3 from "../assets/food/tasting/food-tasting-03.jpg";
@@ -209,7 +174,6 @@ import photos16 from "../assets/portrait/photos/portrait-photos-16.jpg";
 import photos17 from "../assets/portrait/photos/portrait-photos-17.jpg";
 import photos18 from "../assets/portrait/photos/portrait-photos-18.jpg";
 import photos19 from "../assets/portrait/photos/portrait-photos-19.jpg";
-import photos20 from "../assets/portrait/photos/portrait-photos-20.jpg";
 import photos21 from "../assets/portrait/photos/portrait-photos-21.jpg";
 import photos22 from "../assets/portrait/photos/portrait-photos-22.jpg";
 import photos24 from "../assets/portrait/photos/portrait-photos-24.jpg";
@@ -833,7 +797,6 @@ export const projects: Project[] = [
       photos17,
       photos18,
       photos19,
-      photos20,
       photos21,
       photos22,
       photos24,
