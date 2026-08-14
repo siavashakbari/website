@@ -198,7 +198,6 @@ import photos2 from "../assets/portrait/photos/portrait-photos-02.jpg";
 import photos3 from "../assets/portrait/photos/portrait-photos-03.jpg";
 import photos4 from "../assets/portrait/photos/portrait-photos-04.jpg";
 import photos5 from "../assets/portrait/photos/portrait-photos-05.jpg";
-import photos6 from "../assets/portrait/photos/portrait-photos-06.jpg";
 import photos7 from "../assets/portrait/photos/portrait-photos-07.jpg";
 import photos8 from "../assets/portrait/photos/portrait-photos-08.jpg";
 import photos9 from "../assets/portrait/photos/portrait-photos-09.jpg";
@@ -826,7 +825,6 @@ export const projects: Project[] = [
       photos3,
       photos4,
       photos5,
-      photos6,
       photos7,
       photos8,
       photos9,
