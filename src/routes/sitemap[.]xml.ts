@@ -16,7 +16,6 @@ function buildEntries(): SitemapEntry[] {
     { path: "/", changefreq: "weekly", priority: "1.0" },
     { path: "/photography", changefreq: "weekly", priority: "0.9" },
     { path: "/graphic-design", changefreq: "weekly", priority: "0.9" },
-    { path: "/product-design", changefreq: "weekly", priority: "0.9" },
     { path: "/about", changefreq: "monthly", priority: "0.8" },
     { path: "/contact", changefreq: "monthly", priority: "0.8" },
   ];

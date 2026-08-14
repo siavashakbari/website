@@ -271,7 +271,7 @@ import objects104 from "../assets/product/objects/product-objects-104.jpg";
 import objects105 from "../assets/product/objects/product-objects-105.jpg";
 import objects106 from "../assets/product/objects/product-objects-106.jpg";
 
-export type Discipline = "photography" | "graphic-design" | "product-design";
+export type Discipline = "photography" | "graphic-design";
 
 export interface Project {
   id: string;
@@ -297,11 +297,6 @@ export const disciplines: { id: Discipline; label: string; description: string }
     id: "graphic-design",
     label: "Graphic Design",
     description: "Visual identities and book covers that carry a brand's voice.",
-  },
-  {
-    id: "product-design",
-    label: "Product Design",
-    description: "Objects shaped by purpose, material, and quiet detail.",
   },
 ];
 

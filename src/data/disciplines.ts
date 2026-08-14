@@ -1,6 +1,6 @@
 import type { Discipline } from "./projects";
 
-import foodImg from "../assets/food/gastronomie/food-gastronomie-19-thumb.webp";
+import foodImg from "../assets/food/tasting/food-tasting-01.jpg";
 import productImg from "../assets/product/objects/product-objects-92-thumb.webp";
 import fashionAsset from "../assets/fashion/atlasi/fashion-atlasi-09-thumb.webp";
 import portraitAsset from "../assets/portrait/calligraphy/portrait-calligraphy-02-thumb.webp";

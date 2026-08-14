@@ -15,7 +15,6 @@ import { Route as AboutRouteImport } from './routes/about'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as GraphicDesignRouteImport } from './routes/graphic-design'
 import { Route as PhotographyRouteImport } from './routes/photography'
-import { Route as ProductDesignRouteImport } from './routes/product-design'
 import { Route as RobotsDottxtRouteImport } from './routes/robots[.]txt'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as ProjectsProjectIdRouteImport } from './routes/projects.$projectId'
@@ -50,11 +49,6 @@ const PhotographyRoute = PhotographyRouteImport.update({
   path: '/photography',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ProductDesignRoute = ProductDesignRouteImport.update({
-  id: '/product-design',
-  path: '/product-design',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const RobotsDottxtRoute = RobotsDottxtRouteImport.update({
   id: '/robots.txt',
   path: '/robots.txt',
@@ -78,7 +72,6 @@ export interface FileRoutesByFullPath {
   '/contact': typeof ContactRoute
   '/graphic-design': typeof GraphicDesignRoute
   '/photography': typeof PhotographyRoute
-  '/product-design': typeof ProductDesignRoute
   '/robots.txt': typeof RobotsDottxtRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/projects/$projectId': typeof ProjectsProjectIdRoute
@@ -90,7 +83,6 @@ export interface FileRoutesByTo {
   '/contact': typeof ContactRoute
   '/graphic-design': typeof GraphicDesignRoute
   '/photography': typeof PhotographyRoute
-  '/product-design': typeof ProductDesignRoute
   '/robots.txt': typeof RobotsDottxtRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/projects/$projectId': typeof ProjectsProjectIdRoute
@@ -103,7 +95,6 @@ export interface FileRoutesById {
   '/contact': typeof ContactRoute
   '/graphic-design': typeof GraphicDesignRoute
   '/photography': typeof PhotographyRoute
-  '/product-design': typeof ProductDesignRoute
   '/robots.txt': typeof RobotsDottxtRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/projects/$projectId': typeof ProjectsProjectIdRoute
@@ -117,7 +108,6 @@ export interface FileRouteTypes {
     | '/contact'
     | '/graphic-design'
     | '/photography'
-    | '/product-design'
     | '/robots.txt'
     | '/sitemap.xml'
     | '/projects/$projectId'
@@ -129,7 +119,6 @@ export interface FileRouteTypes {
     | '/contact'
     | '/graphic-design'
     | '/photography'
-    | '/product-design'
     | '/robots.txt'
     | '/sitemap.xml'
     | '/projects/$projectId'
@@ -141,7 +130,6 @@ export interface FileRouteTypes {
     | '/contact'
     | '/graphic-design'
     | '/photography'
-    | '/product-design'
     | '/robots.txt'
     | '/sitemap.xml'
     | '/projects/$projectId'
@@ -154,7 +142,6 @@ export interface RootRouteChildren {
   ContactRoute: typeof ContactRoute
   GraphicDesignRoute: typeof GraphicDesignRoute
   PhotographyRoute: typeof PhotographyRoute
-  ProductDesignRoute: typeof ProductDesignRoute
   RobotsDottxtRoute: typeof RobotsDottxtRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   ProjectsProjectIdRoute: typeof ProjectsProjectIdRoute
@@ -204,13 +191,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PhotographyRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/product-design': {
-      id: '/product-design'
-      path: '/product-design'
-      fullPath: '/product-design'
-      preLoaderRoute: typeof ProductDesignRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/robots.txt': {
       id: '/robots.txt'
       path: '/robots.txt'
@@ -242,7 +222,6 @@ const rootRouteChildren: RootRouteChildren = {
   ContactRoute: ContactRoute,
   GraphicDesignRoute: GraphicDesignRoute,
   PhotographyRoute: PhotographyRoute,
-  ProductDesignRoute: ProductDesignRoute,
   RobotsDottxtRoute: RobotsDottxtRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   ProjectsProjectIdRoute: ProjectsProjectIdRoute,
