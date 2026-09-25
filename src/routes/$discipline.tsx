@@ -46,6 +46,7 @@ function matchingProjects(discipline: (typeof DISCIPLINES)[number]): Project[] {
   if (discipline.slug !== "visual-identity") return matching;
 
   const leadOrder = [
+    "shekarchian",
     "echo-supplements",
     "ahura-cctv",
     "femiq",

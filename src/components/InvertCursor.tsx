@@ -89,30 +89,34 @@ export function InvertCursor() {
       lastScrollY = y;
     };
 
+    let cachedMagnets: HTMLElement[] = [];
+    let lastMagnetUpdate = 0;
+
     const findMagnet = (x: number, y: number) => {
-      // Cheap early-out: only scan magnets when cursor is moving / near UI
-      const nodes = document.querySelectorAll<HTMLElement>("[data-cursor-magnet]");
-      if (nodes.length === 0) return null;
+      const now = performance.now();
+      // Only query the DOM for new magnets every 500ms to avoid DOM thrashing
+      if (now - lastMagnetUpdate > 500) {
+        cachedMagnets = Array.from(document.querySelectorAll<HTMLElement>("[data-cursor-magnet]"));
+        lastMagnetUpdate = now;
+      }
+
+      if (cachedMagnets.length === 0) return null;
 
       let best: { cx: number; cy: number; dist: number; r: number } | null = null;
 
-      for (let i = 0; i < nodes.length; i++) {
-        const node = nodes[i]!;
-        const style = getComputedStyle(node);
-        if (
-          style.pointerEvents === "none" ||
-          style.opacity === "0" ||
-          style.visibility === "hidden" ||
-          style.display === "none"
-        ) {
-          continue;
-        }
+      for (let i = 0; i < cachedMagnets.length; i++) {
+        const node = cachedMagnets[i];
+        if (!node || !node.isConnected) continue;
+
+        // getBoundingClientRect forces layout, but without getComputedStyle it's much faster.
         const rect = node.getBoundingClientRect();
         if (rect.width < 2 || rect.height < 2) continue;
+        
         const cx = rect.left + rect.width / 2;
         const cy = rect.top + rect.height / 2;
         const r = Math.min(rect.width, rect.height) / 2;
         const dist = Math.hypot(x - cx, y - cy);
+        
         if (dist > MAGNET_RANGE) continue;
         if (!best || dist < best.dist) best = { cx, cy, dist, r };
       }
@@ -125,8 +129,8 @@ export function InvertCursor() {
 
     const tick = () => {
       frame += 1;
-      // querySelectorAll + getBoundingClientRect every frame is expensive; refresh magnets every 3rd frame
-      if (frame % 3 === 0) {
+      // Only calculate closest magnet every 4th frame (~60ms) to save main thread time
+      if (frame % 4 === 0) {
         magnetCache = visible ? findMagnet(targetX, targetY) : null;
       }
 
@@ -183,28 +187,23 @@ export function InvertCursor() {
       const stretch = 1 + intensity * 0.85;
       const squish = 1 - intensity * 0.22;
 
-      let radius = "50%";
-      if (intensity >= 0.02) {
-        const wide = 60 + intensity * 12;
-        const narrow = 40 - intensity * 14;
-        radius = `${wide}% ${narrow}% ${narrow}% ${wide}% / 50% 50% 50% 50%`;
-      }
-
       const angleDeg = (lastAngle * 180) / Math.PI;
 
       // Grow to button radius − 2px when stuck
       const stuckSize = Math.max(SIZE_PX, lastButtonRadius * 2 - 4);
       const drawSize = SIZE_PX + (stuckSize - SIZE_PX) * magnetStrength * magnetStrength;
-      const half = drawSize / 2;
+      const drawScale = drawSize / SIZE_PX;
+      const half = SIZE_PX / 2; // Keep base size for translation offset
+
+      // Apply all scaling and morphing purely via transform to prevent paint/layout thrashing
+      const finalStretch = stretch * drawScale;
+      const finalSquish = squish * drawScale;
 
       el.style.transform = `translate3d(${currentX - half}px, ${currentY - half}px, 0)`;
-      shape.style.width = `${drawSize}px`;
-      shape.style.height = `${drawSize}px`;
       shape.style.transform =
-        intensity < 0.02
-          ? "none"
-          : `rotate(${angleDeg}deg) scale(${stretch}, ${squish})`;
-      shape.style.borderRadius = radius;
+        intensity < 0.02 && magnetStrength < 0.001
+          ? `scale(${drawScale})`
+          : `rotate(${angleDeg}deg) scale(${finalStretch}, ${finalSquish})`;
 
       raf = requestAnimationFrame(tick);
     };
@@ -241,7 +240,7 @@ export function InvertCursor() {
           width: SIZE_PX,
           height: SIZE_PX,
           borderRadius: "50%",
-          willChange: "transform, border-radius, width, height",
+          willChange: "transform",
           transformOrigin: "center center",
         }}
       />

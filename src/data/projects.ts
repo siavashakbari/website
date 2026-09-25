@@ -1,3 +1,6 @@
+import echoPrimeVid1 from "../assets/video/echo-prime/video-echo-prime-01.mp4";
+import echoPrimeVid2 from "../assets/video/echo-prime/video-echo-prime-02.mp4";
+import echoPrimeVid3 from "../assets/video/echo-prime/video-echo-prime-03.mp4";
 import shekarchian1 from "../assets/graphic-design/shekarchian/graphic-design-shekarchian-01.jpg";
 import shekarchian2 from "../assets/graphic-design/shekarchian/graphic-design-shekarchian-02.jpg";
 import shekarchian3 from "../assets/graphic-design/shekarchian/graphic-design-shekarchian-03.jpg";
@@ -21,6 +24,7 @@ import femiq5 from "../assets/graphic-design/femiq/graphic-design-femiq-05.jpg";
 import femiq6 from "../assets/graphic-design/femiq/graphic-design-femiq-06.jpg";
 import femiq7 from "../assets/graphic-design/femiq/graphic-design-femiq-07.jpg";
 import femiq8 from "../assets/graphic-design/femiq/graphic-design-femiq-08.jpg";
+import femiq9 from "../assets/graphic-design/femiq/graphic-design-femiq-09.gif";
 import polarity1 from "../assets/graphic-design/polarity/graphic-design-polarity-01.jpg";
 import echoSupplements1 from "../assets/graphic-design/echo-supplements/graphic-design-echo-supplements-01.jpg";
 import echoSupplements2 from "../assets/graphic-design/echo-supplements/graphic-design-echo-supplements-02.jpg";
@@ -215,7 +219,6 @@ import photos16 from "../assets/portrait/photos/portrait-photos-16.jpg";
 import photos17 from "../assets/portrait/photos/portrait-photos-17.jpg";
 import photos18 from "../assets/portrait/photos/portrait-photos-18.jpg";
 import photos19 from "../assets/portrait/photos/portrait-photos-19.jpg";
-import photos20 from "../assets/portrait/photos/portrait-photos-20.jpg";
 import photos21 from "../assets/portrait/photos/portrait-photos-21.jpg";
 import photos22 from "../assets/portrait/photos/portrait-photos-22.jpg";
 import photos24 from "../assets/portrait/photos/portrait-photos-24.jpg";
@@ -313,7 +316,7 @@ import objects104 from "../assets/product/objects/product-objects-104.jpg";
 import objects105 from "../assets/product/objects/product-objects-105.jpg";
 import objects106 from "../assets/product/objects/product-objects-106.jpg";
 
-export type Discipline = "photography" | "graphic-design" | "product-design";
+export type Discipline = "photography" | "graphic-design" | "product-design" | "video";
 
 export interface Project {
   id: string;
@@ -349,13 +352,24 @@ export const disciplines: { id: Discipline; label: string; description: string }
 
 export const projects: Project[] = [
   {
+    id: "echo-prime",
+    title: "Mother Comp",
+    discipline: "video",
+    category: "Video",
+    year: "2026",
+    description: "Motion and visual effects sequences spanning dynamic transitions and rhythmic editing.",
+    image: echoPrimeVid1,
+    aspect: "portrait",
+    gallery: [echoPrimeVid1, echoPrimeVid2, echoPrimeVid3],
+  },
+  {
     id: "shekarchian",
     title: "Shekarchian Sweets",
     discipline: "graphic-design",
-    category: "Visual Identity",
+    category: "Visual Identity (Proposal)",
     year: "2026",
     description:
-      "Visual identity for Shekarchian Sweets — an established Esfahani confectionery (est. 1300) with angular Persian calligraphy, warm chocolate tones, and a brand system spanning packaging, social media, and print.",
+      "Proposed visual identity for Shekarchian Sweets — a conceptual identity proposal for the established Esfahani confectionery (est. 1300), featuring angular Persian calligraphy, warm chocolate tones, and a brand system proposal spanning packaging, social media, and print.",
     image: shekarchian1,
     aspect: "portrait",
     gallery: [
@@ -409,7 +423,7 @@ export const projects: Project[] = [
       "Visual identity and product catalogue for FEMIQ — precision stone-slab machinery, built around engineered forms and a bilingual industrial system.",
     image: femiq8,
     aspect: "portrait",
-    gallery: [femiq8, femiq1, femiq2, femiq3, femiq4, femiq5, femiq6, femiq7],
+    gallery: [femiq8, femiq1, femiq2, femiq3, femiq4, femiq5, femiq6, femiq7, femiq9],
   },
   {
     id: "polarity",
@@ -858,7 +872,6 @@ export const projects: Project[] = [
       photos17,
       photos18,
       photos19,
-      photos20,
       photos21,
       photos22,
       photos24,

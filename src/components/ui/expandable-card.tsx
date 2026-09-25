@@ -268,12 +268,23 @@ export function ExpandableCard({
                   className="relative shrink-0 overflow-hidden bg-[#0F0F0F]"
                   style={{ width: fitted.width, height: fitted.imageHeight }}
                 >
-                  <img
-                    src={fullSrc}
-                    alt={title}
-                    draggable={false}
-                    className="pointer-events-none block h-full w-full object-cover object-center"
-                  />
+                  {fullSrc.endsWith(".mp4") ? (
+                    <video
+                      src={fullSrc}
+                      autoPlay
+                      muted
+                      loop
+                      playsInline
+                      className="pointer-events-none block h-full w-full object-cover object-center"
+                    />
+                  ) : (
+                    <img
+                      src={fullSrc}
+                      alt={title}
+                      draggable={false}
+                      className="pointer-events-none block h-full w-full object-cover object-center"
+                    />
+                  )}
                 </div>
 
                 <div className="relative shrink-0 bg-[#0F0F0F] text-[#EFEFEF]">

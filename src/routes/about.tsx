@@ -206,6 +206,7 @@ function isTimelinePortfolioProject(project: Project) {
 }
 
 const PROJECT_TITLE_FA: Record<string, string> = {
+  shekarchian: "شیرینی شکرچیان",
   dodareh: "دوباره",
   "ahura-cctv": "اهورا",
   femiq: "فمیک",
@@ -230,12 +231,15 @@ const PROJECT_TITLE_FA: Record<string, string> = {
 
 const PROJECT_ROLE_FA: Record<string, string> = {
   "Visual Identity": "هویت بصری",
+  "Visual Identity (Proposal)": "هویت بصری (طرح پیشنهادی)",
   "Visual Identity & Catalogue": "هویت بصری و کاتالوگ",
   "Fashion Photography": "عکاسی فشن",
   "Product Design": "طراحی محصول",
 };
 
 const PROJECT_DESC_FA: Record<string, string> = {
+  shekarchian:
+    "پروژه پیشنهادی هویت بصری برای شیرینی شکرچیان — طرح کانسپت با خوشنویسی زاویه‌دار فارسی، لحن گرم شکلاتی و سیستم بصری پیشنهادی برای بسته‌بندی، شبکه‌های اجتماعی و هویت برند.",
   dodareh:
     "پروژه هویت بصری برای دوباره اکسسوریز — برند اکسسوری با فرم‌های حروفی مجسمه‌گونه و لحنی بازیگوش.",
   "ahura-cctv":
@@ -308,7 +312,11 @@ function sortYear(milestone: Milestone) {
 /** Insert portfolio projects after career items of the same (or earlier) year. */
 function mergeMilestones(career: Milestone[], portfolio: Milestone[]) {
   const result = [...career];
-  const sorted = [...portfolio].sort((a, b) => sortYear(a) - sortYear(b));
+  const sorted = [...portfolio].sort((a, b) => {
+    const diff = sortYear(a) - sortYear(b);
+    if (diff !== 0) return diff;
+    return portfolio.indexOf(b) - portfolio.indexOf(a);
+  });
   for (const item of sorted) {
     const y = sortYear(item);
     let i = 0;
