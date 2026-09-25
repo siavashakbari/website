@@ -5,9 +5,11 @@ import { cn } from "@/lib/utils";
 import { setExpandableCardOverlayOpen } from "@/components/ui/glowing-effect";
 import { AdaptiveThumb, resolveFullImageSrc } from "@/components/AdaptiveThumb";
 import { metaFromSrc } from "@/lib/adaptive-image";
+import { VideoPlayer } from "./video-player";
 
 interface ExpandableCardProps {
   title: string;
+  projectName?: string;
   src: string;
   description?: string;
   children?: React.ReactNode;
@@ -113,6 +115,7 @@ const plusIcon = (
 
 export function ExpandableCard({
   title,
+  projectName,
   src,
   children,
   className,
@@ -263,20 +266,28 @@ export function ExpandableCard({
                   classNameExpanded,
                 )}
               >
-                {/* Exact aspect box — fill = no crop, no letterbox */}
                 <div
                   className="relative shrink-0 overflow-hidden bg-[#0F0F0F]"
                   style={{ width: fitted.width, height: fitted.imageHeight }}
                 >
                   {fullSrc.endsWith(".mp4") ? (
-                    <video
-                      src={fullSrc}
-                      autoPlay
-                      muted
-                      loop
-                      playsInline
-                      className="pointer-events-none block h-full w-full object-cover object-center"
-                    />
+                    <>
+                      <VideoPlayer
+                        src={fullSrc}
+                        title={projectName || title}
+                        autoPlay
+                        loop
+                        className="pointer-events-auto block h-full w-full"
+                      />
+                      <button
+                        type="button"
+                        aria-label="Close video"
+                        className="pointer-events-auto absolute right-4 top-4 z-50 flex h-8 w-8 items-center justify-center rounded-full border border-[#EFEFEF]/40 bg-black/40 text-[#EFEFEF] backdrop-blur-sm transition-colors duration-300 hover:border-[#EFEFEF] hover:bg-[#EFEFEF]/20 focus:outline-none"
+                        onClick={() => setActive(false)}
+                      >
+                        <span className="flex rotate-45 items-center justify-center">{plusIcon}</span>
+                      </button>
+                    </>
                   ) : (
                     <img
                       src={fullSrc}
@@ -287,28 +298,30 @@ export function ExpandableCard({
                   )}
                 </div>
 
-                <div className="relative shrink-0 bg-[#0F0F0F] text-[#EFEFEF]">
-                  <div className="flex items-start justify-between gap-4 px-5 pb-2 pt-4 sm:px-6 sm:pt-5">
-                    <div className="min-w-0">
-                      <h3 className="truncate text-xl font-semibold uppercase tracking-wide text-[#EFEFEF] sm:text-2xl">
-                        {title}
-                      </h3>
+                {!fullSrc.endsWith(".mp4") && (
+                  <div className="relative shrink-0 bg-[#0F0F0F] text-[#EFEFEF]">
+                    <div className="flex items-start justify-between gap-4 px-5 pb-2 pt-4 sm:px-6 sm:pt-5">
+                      <div className="min-w-0">
+                        <h3 className="truncate text-xl font-semibold uppercase tracking-wide text-[#EFEFEF] sm:text-2xl">
+                          {title}
+                        </h3>
+                      </div>
+                      <button
+                        type="button"
+                        aria-label="Close card"
+                        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[#EFEFEF]/40 bg-transparent text-[#EFEFEF] transition-colors duration-300 hover:border-[#EFEFEF] hover:bg-[#EFEFEF]/10 focus:outline-none"
+                        onClick={() => setActive(false)}
+                      >
+                        <span className="flex rotate-45 items-center justify-center">{plusIcon}</span>
+                      </button>
                     </div>
-                    <button
-                      type="button"
-                      aria-label="Close card"
-                      className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[#EFEFEF]/40 bg-transparent text-[#EFEFEF] transition-colors duration-300 hover:border-[#EFEFEF] hover:bg-[#EFEFEF]/10 focus:outline-none"
-                      onClick={() => setActive(false)}
-                    >
-                      <span className="flex rotate-45 items-center justify-center">{plusIcon}</span>
-                    </button>
-                  </div>
-                  <div className="px-5 pb-4 sm:px-6 sm:pb-5">
-                    <div className="flex max-h-[9.5rem] flex-col items-start gap-1.5 overflow-y-auto text-sm text-[#EFEFEF]/60">
-                      {children}
+                    <div className="px-5 pb-4 sm:px-6 sm:pb-5">
+                      <div className="flex max-h-[9.5rem] flex-col items-start gap-1.5 overflow-y-auto text-sm text-[#EFEFEF]/60">
+                        {children}
+                      </div>
                     </div>
                   </div>
-                </div>
+                )}
               </motion.div>
             </motion.div>
           ) : null}

@@ -45,7 +45,19 @@ const CustomSlider = ({
   );
 };
 
-export const VideoPlayer = ({ src, className, autoPlay, loop }: { src: string, className?: string, autoPlay?: boolean, loop?: boolean }) => {
+export const VideoPlayer = ({
+  src,
+  className,
+  autoPlay,
+  loop,
+  title,
+}: {
+  src: string;
+  className?: string;
+  autoPlay?: boolean;
+  loop?: boolean;
+  title?: string;
+}) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isPlaying, setIsPlaying] = useState(autoPlay || false);
   const [volume, setVolume] = useState(1);
@@ -110,16 +122,16 @@ export const VideoPlayer = ({ src, className, autoPlay, loop }: { src: string, c
 
   return (
     <motion.div
-      className={cn("relative w-full h-full max-w-4xl mx-auto rounded-none overflow-hidden", className)}
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
+      className={cn("relative w-full h-full mx-auto overflow-hidden bg-black", className)}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
       transition={{ duration: 0.5 }}
       onMouseEnter={() => setShowControls(true)}
       onMouseLeave={() => setShowControls(false)}
     >
       <video
         ref={videoRef}
-        className="w-full h-full object-contain"
+        className="w-full h-full object-cover"
         onTimeUpdate={handleTimeUpdate}
         src={src}
         autoPlay={autoPlay}
@@ -129,74 +141,66 @@ export const VideoPlayer = ({ src, className, autoPlay, loop }: { src: string, c
         onPause={() => setIsPlaying(false)}
       />
 
+      {title && (
+        <div className="absolute top-6 left-1/2 -translate-x-1/2 z-20 px-6 py-2.5 rounded-full bg-black/40 backdrop-blur-xl border border-white/10 flex items-center justify-center pointer-events-none">
+          <span className="text-[#EFEFEF] font-medium text-sm tracking-wide whitespace-nowrap drop-shadow-md">
+            {title}
+          </span>
+        </div>
+      )}
+
       <AnimatePresence>
         {showControls && (
           <motion.div
-            className="absolute bottom-4 mx-auto max-w-xl left-4 right-4 p-4 bg-[#11111198] backdrop-blur-md rounded-2xl z-10"
-            initial={{ y: 20, opacity: 0, filter: "blur(10px)" }}
-            animate={{ y: 0, opacity: 1, filter: "blur(0px)" }}
-            exit={{ y: 20, opacity: 0, filter: "blur(10px)" }}
-            transition={{ duration: 0.6, ease: "circInOut", type: "spring" }}
+            className="absolute inset-0 z-10 pointer-events-none flex flex-col justify-end"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.4 }}
           >
-            <div className="flex items-center gap-2 mb-2">
-              <span className="text-[#EFEFEF] text-sm">
-                {formatTime(currentTime)}
-              </span>
-              <CustomSlider
-                value={progress}
-                onChange={handleSeek}
-                className="flex-1"
-              />
-              <span className="text-[#EFEFEF] text-sm">{formatTime(duration)}</span>
-            </div>
+            {/* Dark gradient behind controls for visibility */}
+            <div className="absolute bottom-0 left-0 right-0 h-1/2 bg-gradient-to-t from-black/80 via-black/30 to-transparent pointer-events-none" />
+            
+            <div className="relative z-20 px-8 pb-8 pointer-events-auto">
+              <div className="flex items-center gap-4 mb-6">
+                <span className="text-[#EFEFEF] text-sm font-medium tabular-nums drop-shadow-md">
+                  {formatTime(currentTime)}
+                </span>
+                <CustomSlider
+                  value={progress}
+                  onChange={handleSeek}
+                  className="flex-1"
+                />
+                <span className="text-[#EFEFEF] text-sm font-medium tabular-nums drop-shadow-md">
+                  -{formatTime(duration - currentTime)}
+                </span>
+              </div>
 
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <motion.div
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.9 }}
+              <div className="flex items-center justify-center gap-6">
+                <button
+                  onClick={() => handleSeek(Math.max(0, progress - (10 / duration) * 100))}
+                  className="h-14 w-14 rounded-full bg-black/40 backdrop-blur-xl border border-white/10 flex items-center justify-center text-[#EFEFEF] hover:bg-black/60 transition-colors focus:outline-none"
                 >
-                  <Button
-                    onClick={togglePlay}
-                    variant="ghost"
-                    size="icon"
-                    className="text-[#EFEFEF] hover:bg-[#EFEFEF]/10 hover:text-[#EFEFEF]"
-                  >
-                    {isPlaying ? (
-                      <Pause className="h-5 w-5" />
-                    ) : (
-                      <Play className="h-5 w-5" />
-                    )}
-                  </Button>
-                </motion.div>
-                <div className="flex items-center gap-x-1">
-                  <motion.div
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.9 }}
-                  >
-                    <Button
-                      onClick={toggleMute}
-                      variant="ghost"
-                      size="icon"
-                      className="text-[#EFEFEF] hover:bg-[#EFEFEF]/10 hover:text-[#EFEFEF]"
-                    >
-                      {isMuted ? (
-                        <VolumeX className="h-5 w-5" />
-                      ) : volume > 0.5 ? (
-                        <Volume2 className="h-5 w-5" />
-                      ) : (
-                        <Volume1 className="h-5 w-5" />
-                      )}
-                    </Button>
-                  </motion.div>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="19 20 9 12 19 4 19 20"></polygon><line x1="5" y1="19" x2="5" y2="5"></line></svg>
+                </button>
+                
+                <button
+                  onClick={togglePlay}
+                  className="h-14 w-14 rounded-full bg-black/40 backdrop-blur-xl border border-white/10 flex items-center justify-center text-[#EFEFEF] hover:bg-black/60 transition-colors focus:outline-none"
+                >
+                  {isPlaying ? (
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>
+                  ) : (
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                  )}
+                </button>
 
-                  <div className="w-24">
-                    <CustomSlider
-                      value={volume * 100}
-                      onChange={handleVolumeChange}
-                    />
-                  </div>
-                </div>
+                <button
+                  onClick={() => handleSeek(Math.min(100, progress + (10 / duration) * 100))}
+                  className="h-14 w-14 rounded-full bg-black/40 backdrop-blur-xl border border-white/10 flex items-center justify-center text-[#EFEFEF] hover:bg-black/60 transition-colors focus:outline-none"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="5 4 15 12 5 20 5 4"></polygon><line x1="19" y1="5" x2="19" y2="19"></line></svg>
+                </button>
               </div>
             </div>
           </motion.div>

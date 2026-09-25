@@ -6,9 +6,10 @@ import { pageHead } from "@/lib/seo";
 export const Route = createFileRoute("/graphic-design")({
   head: () =>
     pageHead({
-      title: "Graphic Design — Siavash Akbari",
+      title:
+        "Graphic Design in Isfahan — Siavash Akbari | طراحی گرافیک، برندینگ و پوستر در اصفهان",
       description:
-        "Visual identity, book covers, and poster design by Siavash Akbari — brand systems with a clear editorial voice.",
+        "Visual identity, branding, logo design, book covers, and poster design in Isfahan, Iran by Siavash Akbari. خدمات حرفه‌ای طراحی گرافیک، هویت بصری، پوستر و جلد کتاب در اصفهان و ایران.",
       path: "/graphic-design",
     }),
   component: GraphicDesign,

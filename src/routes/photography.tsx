@@ -6,9 +6,10 @@ import { pageHead } from "@/lib/seo";
 export const Route = createFileRoute("/photography")({
   head: () =>
     pageHead({
-      title: "Photography — Siavash Akbari",
+      title:
+        "Photography in Isfahan — Siavash Akbari | عکاسی صنعتی، تبلیغاتی و پرتره در اصفهان",
       description:
-        "Editorial photography by Siavash Akbari — food, portrait, fashion, and product stories shaped by light and mood.",
+        "Professional commercial, fashion, food, portrait, and product photography in Isfahan, Iran by Siavash Akbari. خدمات تخصصی عکاسی تبلیغاتی، صنعتی، فشن، پرتره و غذا در اصفهان و سراسر ایران.",
       path: "/photography",
     }),
   component: Photography,

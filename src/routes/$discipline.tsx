@@ -97,6 +97,41 @@ function useIsDesktop() {
   return isDesktop;
 }
 
+const DISCIPLINE_SEO_MAP: Record<string, { titleFa: string; descFa: string }> = {
+  "fashion-photography": {
+    titleFa: "عکاسی مد و فشن در اصفهان",
+    descFa: "خدمات تخصصی عکاسی فشن، مدلینگ و پوشاک در اصفهان و سراسر ایران.",
+  },
+  "food-photography": {
+    titleFa: "عکاسی غذا، رستوران و کافه در اصفهان",
+    descFa: "عکاسی حرفه‌ای غذا، منو و تبلیغات رستوران در اصفهان و ایران.",
+  },
+  "portrait-photography": {
+    titleFa: "عکاسی پرتره و چهره در اصفهان",
+    descFa: "عکاسی پرتره هنری، تجاری و شخصی در اصفهان توسط سیاوش اکبری.",
+  },
+  "product-photography": {
+    titleFa: "عکاسی صنعتی، محصول و کاتالوگ در اصفهان",
+    descFa: "عکاسی صنعتی، تبلیغاتی و محصول برای برندها و تولیدکنندگان در اصفهان و ایران.",
+  },
+  "visual-identity": {
+    titleFa: "طراحی هویت بصری و لوگو در اصفهان",
+    descFa: "طراحی هویت بصری جامع، لوگو و سیستم برندینگ در اصفهان و سراسر کشور.",
+  },
+  "book-covers": {
+    titleFa: "طراحی جلد کتاب و تایپوگرافی در اصفهان",
+    descFa: "طراحی تخصصی جلد کتاب و صفحه‌آرایی برای ناشران در اصفهان و ایران.",
+  },
+  posters: {
+    titleFa: "طراحی پوستر و گرافیک دیزاین در اصفهان",
+    descFa: "طراحی پوسترهای فرهنگی، هنری و تبلیغاتی در اصفهان.",
+  },
+  videos: {
+    titleFa: "فیلمبرداری، تیزر تبلیغاتی و تولید محتوا در اصفهان",
+    descFa: "خدمات فیلمبرداری، ساخت تیزر تبلیغاتی، تصویربرداری و تولید محتوای ویدیویی در اصفهان و ایران.",
+  },
+};
+
 export const Route = createFileRoute("/$discipline")({
   loader: ({ params }) => {
     const discipline = DISCIPLINES.find((d) => d.slug === params.discipline);
@@ -149,9 +184,14 @@ export const Route = createFileRoute("/$discipline")({
       loaderData?.discipline.blurb ??
       `${label} work by Siavash Akbari.`;
     const slug = loaderData?.discipline.slug ?? "";
+    const seoExtra = DISCIPLINE_SEO_MAP[slug] ?? {
+      titleFa: `${label} در اصفهان`,
+      descFa: `خدمات حرفه‌ای ${label} در اصفهان و ایران توسط سیاوش اکبری.`,
+    };
+
     return pageHead({
-      title: `${label} — Siavash Akbari`,
-      description: `${blurb} Browse the ${label.toLowerCase()} portfolio of Siavash Akbari.`,
+      title: `${label} in Isfahan — Siavash Akbari | ${seoExtra.titleFa}`,
+      description: `${blurb} ${seoExtra.descFa} Portfolio by Siavash Akbari based in Isfahan, Iran.`,
       path: slug ? `/${slug}` : "/",
     });
   },
@@ -174,6 +214,7 @@ function PhotoMasonry({ items }: { items: DisciplinePhoto[] }) {
             cardId={item.key}
             index={index}
             title={item.imageName}
+            projectName={item.title}
             src={item.src}
             classNameExpanded="[&_h4]:font-medium [&_h4]:text-[#0F0F0F] dark:[&_h4]:text-[#EFEFEF]"
           >
