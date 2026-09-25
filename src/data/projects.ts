@@ -1,3 +1,9 @@
+import shekarchian1 from "../assets/graphic-design/shekarchian/graphic-design-shekarchian-01.jpg";
+import shekarchian2 from "../assets/graphic-design/shekarchian/graphic-design-shekarchian-02.jpg";
+import shekarchian3 from "../assets/graphic-design/shekarchian/graphic-design-shekarchian-03.jpg";
+import shekarchian4 from "../assets/graphic-design/shekarchian/graphic-design-shekarchian-04.jpg";
+import shekarchian5 from "../assets/graphic-design/shekarchian/graphic-design-shekarchian-05.jpg";
+import shekarchian6 from "../assets/graphic-design/shekarchian/graphic-design-shekarchian-06.jpg";
 import dodareh1 from "../assets/graphic-design/dodareh/graphic-design-dodareh-01.jpg";
 import dodareh2 from "../assets/graphic-design/dodareh/graphic-design-dodareh-02.jpg";
 import ahuraCctv1 from "../assets/graphic-design/ahura-cctv/graphic-design-ahura-cctv-01.jpg";
@@ -342,6 +348,25 @@ export const disciplines: { id: Discipline; label: string; description: string }
 ];
 
 export const projects: Project[] = [
+  {
+    id: "shekarchian",
+    title: "Shekarchian Sweets",
+    discipline: "graphic-design",
+    category: "Visual Identity",
+    year: "2026",
+    description:
+      "Visual identity for Shekarchian Sweets — an established Esfahani confectionery (est. 1300) with angular Persian calligraphy, warm chocolate tones, and a brand system spanning packaging, social media, and print.",
+    image: shekarchian1,
+    aspect: "portrait",
+    gallery: [
+      shekarchian1,
+      shekarchian2,
+      shekarchian3,
+      shekarchian4,
+      shekarchian5,
+      shekarchian6,
+    ],
+  },
   {
     id: "dodareh",
     title: "Dobareh Accesories",

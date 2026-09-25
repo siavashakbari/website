@@ -4,7 +4,7 @@ import foodImg from "../assets/food/gastronomie/food-gastronomie-19-thumb.webp";
 import productImg from "../assets/product/objects/product-objects-92-thumb.webp";
 import fashionAsset from "../assets/fashion/atlasi/fashion-atlasi-09-thumb.webp";
 import portraitAsset from "../assets/portrait/calligraphy/portrait-calligraphy-02-thumb.webp";
-import visualIdentityImg from "../assets/graphic-design/ahura-cctv/graphic-design-ahura-cctv-03.jpg";
+import visualIdentityImg from "../assets/graphic-design/shekarchian/graphic-design-shekarchian-01.jpg";
 import bookCoverImg from "../assets/graphic-design/book-covers/graphic-design-book-covers-12.jpg";
 import postersImg from "../assets/graphic-design/posters/graphic-design-posters-06.jpg";
 
