@@ -353,7 +353,7 @@ export const disciplines: { id: Discipline; label: string; description: string }
 export const projects: Project[] = [
   {
     id: "echo-prime",
-    title: "Mother Comp",
+    title: "Echo Prime",
     discipline: "video",
     category: "Video",
     year: "2026",

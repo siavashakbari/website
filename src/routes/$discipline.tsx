@@ -237,7 +237,7 @@ function VideoGallery({ items }: { items: DisciplinePhoto[] }) {
               key={item.key}
               onClick={() => handleSelectVideo(item)}
               style={{ aspectRatio: `${itemRatio}` }}
-              className="group relative cursor-pointer overflow-hidden rounded-[20px] bg-[#141414] transition-all duration-300 hover:scale-[1.015] hover:shadow-2xl border border-white/5"
+              className="group relative cursor-pointer overflow-hidden rounded-[20px] bg-[#141414] transition-all duration-300 hover:scale-[1.015] hover:shadow-2xl border border-white/5 flex items-center justify-center"
             >
               {/* Ambient video thumbnail preview */}
               <video
