@@ -94,24 +94,23 @@ export const VideoPlayer = ({
   const togglePlay = (e?: React.MouseEvent) => {
     e?.stopPropagation();
     if (videoRef.current) {
-      if (isPlaying) {
-        videoRef.current.pause();
-      } else {
+      if (videoRef.current.paused) {
         videoRef.current.play();
+      } else {
+        videoRef.current.pause();
       }
-      setIsPlaying(!isPlaying);
       resetHideTimer();
     }
   };
 
   const handleLoadedMetadata = () => {
     if (videoRef.current) {
-      const { videoWidth, videoHeight, duration } = videoRef.current;
+      const { videoWidth, videoHeight, duration: dur } = videoRef.current;
       if (videoWidth && videoHeight) {
         onRatioChange?.(videoWidth / videoHeight);
       }
-      if (duration && !isNaN(duration)) {
-        setDuration(duration);
+      if (dur && !isNaN(dur)) {
+        setDuration(dur);
       }
     }
   };
@@ -141,34 +140,38 @@ export const VideoPlayer = ({
 
   const skipTime = (seconds: number) => {
     if (videoRef.current) {
+      const curDur = videoRef.current.duration || 0;
       const newTime = Math.min(
         Math.max(videoRef.current.currentTime + seconds, 0),
-        duration || 0
+        curDur
       );
       videoRef.current.currentTime = newTime;
       resetHideTimer();
     }
   };
 
-  // Keyboard navigation
+  // Keyboard navigation with stable ref handlers to avoid listener churn
+  const handlersRef = useRef({ togglePlay, skipTime, onClose });
+  handlersRef.current = { togglePlay, skipTime, onClose };
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === " " || e.key === "k") {
         e.preventDefault();
-        togglePlay();
+        handlersRef.current.togglePlay();
       } else if (e.key === "ArrowLeft") {
         e.preventDefault();
-        skipTime(-10);
+        handlersRef.current.skipTime(-10);
       } else if (e.key === "ArrowRight") {
         e.preventDefault();
-        skipTime(10);
+        handlersRef.current.skipTime(10);
       } else if (e.key === "Escape") {
-        onClose?.();
+        handlersRef.current.onClose?.();
       }
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isPlaying, duration, onClose]);
+  }, []);
 
   return (
     <div

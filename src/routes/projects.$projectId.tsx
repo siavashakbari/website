@@ -128,33 +128,61 @@ function ProjectDetail() {
           onWheel={handleWheel}
           className="scrollbar-hide flex min-h-0 flex-1 gap-6 overflow-x-auto overflow-y-hidden px-6 pb-4"
         >
-          {images.map((src: string, i: number) => (
-            <figure
-              key={src}
-              className="h-full shrink-0 cursor-zoom-in"
-              onClick={() => setActiveIndex(i)}
-            >
-              <img
-                src={src}
-                alt={`${project.title} — image ${i + 1}`}
-                loading={i < 2 ? "eager" : "lazy"}
-                className="h-full w-auto max-w-none bg-card object-contain"
-              />
-            </figure>
-          ))}
+          {images.map((src: string, i: number) => {
+            const isVideo = src.endsWith(".mp4");
+            return (
+              <figure
+                key={src}
+                className="h-full shrink-0 cursor-zoom-in"
+                onClick={() => setActiveIndex(i)}
+              >
+                {isVideo ? (
+                  <video
+                    src={src}
+                    autoPlay
+                    muted
+                    loop
+                    playsInline
+                    className="h-full w-auto max-w-none bg-card object-contain"
+                  />
+                ) : (
+                  <img
+                    src={src}
+                    alt={`${project.title} — image ${i + 1}`}
+                    loading={i < 2 ? "eager" : "lazy"}
+                    className="h-full w-auto max-w-none bg-card object-contain"
+                  />
+                )}
+              </figure>
+            );
+          })}
         </div>
       ) : (
         <div className="flex flex-col gap-3 px-[13px] pb-8">
-          {images.map((src: string, i: number) => (
-            <figure key={src} className="w-full overflow-hidden bg-card">
-              <img
-                src={src}
-                alt={`${project.title} — image ${i + 1}`}
-                loading={i < 2 ? "eager" : "lazy"}
-                className="h-auto w-full object-contain"
-              />
-            </figure>
-          ))}
+          {images.map((src: string, i: number) => {
+            const isVideo = src.endsWith(".mp4");
+            return (
+              <figure key={src} className="w-full overflow-hidden bg-card">
+                {isVideo ? (
+                  <video
+                    src={src}
+                    autoPlay
+                    muted
+                    loop
+                    playsInline
+                    className="h-auto w-full object-contain"
+                  />
+                ) : (
+                  <img
+                    src={src}
+                    alt={`${project.title} — image ${i + 1}`}
+                    loading={i < 2 ? "eager" : "lazy"}
+                    className="h-auto w-full object-contain"
+                  />
+                )}
+              </figure>
+            );
+          })}
         </div>
       )}
 
@@ -174,11 +202,21 @@ function ProjectDetail() {
           className="fixed inset-0 z-50 flex cursor-zoom-out items-center justify-center bg-[#0F0F0F]"
           onClick={() => setActiveIndex(null)}
         >
-          <img
-            src={images[activeIndex]}
-            alt={`${project.title} — full view`}
-            className="max-h-screen max-w-screen object-contain"
-          />
+          {images[activeIndex]?.endsWith(".mp4") ? (
+            <video
+              src={images[activeIndex]}
+              autoPlay
+              controls
+              playsInline
+              className="max-h-screen max-w-screen object-contain"
+            />
+          ) : (
+            <img
+              src={images[activeIndex]}
+              alt={`${project.title} — full view`}
+              className="max-h-screen max-w-screen object-contain"
+            />
+          )}
         </div>
       )}
     </article>
