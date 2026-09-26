@@ -187,6 +187,15 @@ export function InvertCursor() {
       const stretch = 1 + intensity * 0.85;
       const squish = 1 - intensity * 0.22;
 
+      let radius = "50%";
+      if (intensity >= 0.02) {
+        const wide = 60 + intensity * 12;
+        const narrow = 40 - intensity * 14;
+        // Local +X = movement direction after rotate.
+        // Swapped ends: narrower on the trailing side (−X).
+        radius = `${wide}% ${narrow}% ${narrow}% ${wide}% / 50% 50% 50% 50%`;
+      }
+
       const angleDeg = (lastAngle * 180) / Math.PI;
 
       // Grow to button radius − 2px when stuck
@@ -204,6 +213,7 @@ export function InvertCursor() {
         intensity < 0.02 && magnetStrength < 0.001
           ? `scale(${drawScale})`
           : `rotate(${angleDeg}deg) scale(${finalStretch}, ${finalSquish})`;
+      shape.style.borderRadius = radius;
 
       raf = requestAnimationFrame(tick);
     };
@@ -240,7 +250,7 @@ export function InvertCursor() {
           width: SIZE_PX,
           height: SIZE_PX,
           borderRadius: "50%",
-          willChange: "transform",
+          willChange: "transform, border-radius",
           transformOrigin: "center center",
         }}
       />
