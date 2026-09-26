@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { createFileRoute, notFound, rootRouteId } from "@tanstack/react-router";
+import { createFileRoute, notFound, redirect, rootRouteId } from "@tanstack/react-router";
 import { createPortal } from "react-dom";
 import { Play } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
@@ -104,6 +104,10 @@ function useIsDesktop() {
 
 export const Route = createFileRoute("/$discipline")({
   loader: ({ params }) => {
+    if (!params.discipline || params.discipline === "$discipline") {
+      throw redirect({ to: "/", statusCode: 301 });
+    }
+
     const discipline = DISCIPLINES.find((d) => d.slug === params.discipline);
     if (!discipline) throw notFound({ routeId: rootRouteId });
 

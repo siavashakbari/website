@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { createFileRoute, Link, notFound, rootRouteId } from "@tanstack/react-router";
+import { createFileRoute, Link, notFound, redirect, rootRouteId } from "@tanstack/react-router";
 import { ArrowLeft } from "lucide-react";
 import { DISCIPLINES } from "@/data/disciplines";
 import { projects } from "@/data/projects";
@@ -29,6 +29,9 @@ function useIsDesktop() {
 
 export const Route = createFileRoute("/projects/$projectId")({
   loader: ({ params }) => {
+    if (!params.projectId || params.projectId === "$projectId") {
+      throw redirect({ to: "/", statusCode: 301 });
+    }
     const project = projects.find((p) => p.id === params.projectId);
     if (!project) throw notFound({ routeId: rootRouteId });
     return { project };
