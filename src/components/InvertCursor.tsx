@@ -230,7 +230,7 @@ export function InvertCursor() {
     <div
       ref={dotRef}
       aria-hidden
-      className="pointer-events-none fixed left-0 top-0 z-[9999] hidden opacity-0 mix-blend-difference lg:block"
+      className="pointer-events-none fixed left-0 top-0 z-[100000] hidden opacity-0 mix-blend-difference lg:block"
       style={{ willChange: "transform" }}
     >
       <span
