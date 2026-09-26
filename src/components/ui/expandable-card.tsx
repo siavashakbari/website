@@ -144,11 +144,12 @@ export function ExpandableCard({
   }, []);
 
   const handleRatio = React.useCallback((r: number) => {
-    setRatio(r);
+    setRatio((prev) => (prev && Math.abs(prev - r) < 0.005 ? prev : r));
   }, []);
 
   React.useEffect(() => {
-    setRatio(metaFromSrc(src).ratio);
+    const metaR = metaFromSrc(src).ratio;
+    setRatio((prev) => (prev && Math.abs(prev - metaR) < 0.005 ? prev : metaR));
   }, [src]);
 
   React.useEffect(() => {

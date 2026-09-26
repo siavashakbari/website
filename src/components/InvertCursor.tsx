@@ -94,8 +94,8 @@ export function InvertCursor() {
 
     const findMagnet = (x: number, y: number) => {
       const now = performance.now();
-      // Only query the DOM for new magnets every 500ms to avoid DOM thrashing
-      if (now - lastMagnetUpdate > 500) {
+      // Scan for magnets only once per 1.5s or if empty
+      if (now - lastMagnetUpdate > 1500 || cachedMagnets.length === 0) {
         cachedMagnets = Array.from(document.querySelectorAll<HTMLElement>("[data-cursor-magnet]"));
         lastMagnetUpdate = now;
       }
@@ -108,16 +108,18 @@ export function InvertCursor() {
         const node = cachedMagnets[i];
         if (!node || !node.isConnected) continue;
 
-        // getBoundingClientRect forces layout, but without getComputedStyle it's much faster.
+        // Skip invisible/offscreen elements quickly without getBoundingClientRect
+        if (node.offsetParent === null) continue;
+
         const rect = node.getBoundingClientRect();
         if (rect.width < 2 || rect.height < 2) continue;
         
         const cx = rect.left + rect.width / 2;
         const cy = rect.top + rect.height / 2;
-        const r = Math.min(rect.width, rect.height) / 2;
         const dist = Math.hypot(x - cx, y - cy);
         
         if (dist > MAGNET_RANGE) continue;
+        const r = Math.min(rect.width, rect.height) / 2;
         if (!best || dist < best.dist) best = { cx, cy, dist, r };
       }
 
@@ -126,11 +128,18 @@ export function InvertCursor() {
 
     let frame = 0;
     let magnetCache: ReturnType<typeof findMagnet> = null;
+    let lastRadius = "";
+    let lastTime = performance.now();
 
-    const tick = () => {
+    const tick = (now: number) => {
+      // Calculate delta time relative to ideal 60fps (16.67ms)
+      const dtMs = Math.min(now - lastTime, 50); // cap to prevent explosion if tab was hidden
+      lastTime = now;
+      const dtRatio = dtMs / 16.67;
+
       frame += 1;
-      // Only calculate closest magnet every 4th frame (~60ms) to save main thread time
-      if (frame % 4 === 0) {
+      // Check magnet only every 8 frames (~120ms) to leave main thread completely free for page loading
+      if (frame % 8 === 0) {
         magnetCache = visible ? findMagnet(targetX, targetY) : null;
       }
 
@@ -155,26 +164,29 @@ export function InvertCursor() {
         }
       }
 
-      magnetStrength += (wantMagnet - magnetStrength) * MAGNET_EASE;
+      magnetStrength += (wantMagnet - magnetStrength) * Math.min(1, MAGNET_EASE * dtRatio);
       if (magnetStrength < 0.001) magnetStrength = 0;
 
-      const ease = magnetStrength > 0.5 ? 0.45 : 0.3;
-      currentX += (aimX - currentX) * ease;
-      currentY += (aimY - currentY) * ease;
+      const baseEase = magnetStrength > 0.5 ? 0.45 : 0.3;
+      const effectiveEase = 1 - Math.pow(1 - baseEase, Math.max(0.2, dtRatio));
+      currentX += (aimX - currentX) * effectiveEase;
+      currentY += (aimY - currentY) * effectiveEase;
 
       velX += impulseX;
       velY += impulseY;
       impulseX = 0;
       impulseY = 0;
-      velX *= 1 - VELOCITY_DECAY;
-      velY *= 1 - VELOCITY_DECAY;
+      const decayFactor = Math.pow(1 - VELOCITY_DECAY, dtRatio);
+      velX *= decayFactor;
+      velY *= decayFactor;
 
       // Kill stretch while stuck so it sits clean on the button
       const morphDamp = 1 - magnetStrength;
       const targetMorphX = Math.max(-1, Math.min(1, (velX / VELOCITY_FULL) * morphDamp));
       const targetMorphY = Math.max(-1, Math.min(1, (velY / VELOCITY_FULL) * morphDamp));
-      morphX += (targetMorphX - morphX) * MORPH_EASE;
-      morphY += (targetMorphY - morphY) * MORPH_EASE;
+      const morphEase = 1 - Math.pow(1 - MORPH_EASE, Math.max(0.2, dtRatio));
+      morphX += (targetMorphX - morphX) * morphEase;
+      morphY += (targetMorphY - morphY) * morphEase;
       if (Math.abs(morphX) < 0.001) morphX = 0;
       if (Math.abs(morphY) < 0.001) morphY = 0;
 
@@ -213,7 +225,10 @@ export function InvertCursor() {
         intensity < 0.02 && magnetStrength < 0.001
           ? `scale(${drawScale})`
           : `rotate(${angleDeg}deg) scale(${finalStretch}, ${finalSquish})`;
-      shape.style.borderRadius = radius;
+      if (radius !== lastRadius) {
+        shape.style.borderRadius = radius;
+        lastRadius = radius;
+      }
 
       raf = requestAnimationFrame(tick);
     };
