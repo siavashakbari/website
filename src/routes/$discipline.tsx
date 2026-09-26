@@ -11,6 +11,7 @@ import { DISCIPLINES } from "@/data/disciplines";
 import { projects, type Project } from "@/data/projects";
 import { pageHead } from "@/lib/seo";
 import { VideoPlayer } from "@/components/ui/video-player";
+import { metaFromSrc } from "@/lib/adaptive-image";
 
 interface DisciplinePhoto {
   key: string;
@@ -196,11 +197,18 @@ function PhotoMasonry({ items }: { items: DisciplinePhoto[] }) {
 
 function VideoGallery({ items }: { items: DisciplinePhoto[] }) {
   const [activeVideo, setActiveVideo] = useState<DisciplinePhoto | null>(null);
+  const [videoRatio, setVideoRatio] = useState<number | null>(null);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  const handleSelectVideo = (item: DisciplinePhoto) => {
+    const initialRatio = metaFromSrc(item.src).ratio || 0.5625;
+    setVideoRatio(initialRatio);
+    setActiveVideo(item);
+  };
 
   useEffect(() => {
     if (!activeVideo) return;
@@ -216,61 +224,68 @@ function VideoGallery({ items }: { items: DisciplinePhoto[] }) {
     };
   }, [activeVideo]);
 
+  const currentRatio =
+    videoRatio || (activeVideo ? metaFromSrc(activeVideo.src).ratio : 0.5625) || 0.5625;
+
   return (
     <div className="w-full px-[13px] sm:px-[20px]">
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-        {items.map((item) => (
-          <div
-            key={item.key}
-            onClick={() => setActiveVideo(item)}
-            className="group relative aspect-[3/4] sm:aspect-[4/5] cursor-pointer overflow-hidden rounded-[20px] bg-[#141414] transition-all duration-300 hover:scale-[1.015] hover:shadow-2xl border border-white/5"
-          >
-            {/* Ambient video thumbnail preview */}
-            <video
-              src={item.src}
-              muted
-              loop
-              playsInline
-              preload="metadata"
-              className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
-              onMouseEnter={(e) => e.currentTarget.play().catch(() => {})}
-              onMouseLeave={(e) => {
-                e.currentTarget.pause();
-                e.currentTarget.currentTime = 0;
-              }}
-            />
+        {items.map((item) => {
+          const itemRatio = metaFromSrc(item.src).ratio || 0.5625;
+          return (
+            <div
+              key={item.key}
+              onClick={() => handleSelectVideo(item)}
+              style={{ aspectRatio: `${itemRatio}` }}
+              className="group relative cursor-pointer overflow-hidden rounded-[20px] bg-[#141414] transition-all duration-300 hover:scale-[1.015] hover:shadow-2xl border border-white/5"
+            >
+              {/* Ambient video thumbnail preview */}
+              <video
+                src={item.src}
+                muted
+                loop
+                playsInline
+                preload="metadata"
+                className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+                onMouseEnter={(e) => e.currentTarget.play().catch(() => {})}
+                onMouseLeave={(e) => {
+                  e.currentTarget.pause();
+                  e.currentTarget.currentTime = 0;
+                }}
+              />
 
-            {/* Gradient overlay */}
-            <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-black/10 transition-opacity duration-300 group-hover:from-black/90" />
+              {/* Gradient overlay */}
+              <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-black/10 transition-opacity duration-300 group-hover:from-black/90" />
 
-            {/* Centered Play Button Hint on hover */}
-            <div className="pointer-events-none absolute inset-0 flex items-center justify-center opacity-85 transition-all duration-300 group-hover:opacity-100 group-hover:scale-110">
-              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-black/45 backdrop-blur-xl border border-white/15 text-[#EFEFEF] shadow-lg">
-                <Play className="h-6 w-6 fill-current ml-0.5" />
+              {/* Centered Play Button Hint on hover */}
+              <div className="pointer-events-none absolute inset-0 flex items-center justify-center opacity-85 transition-all duration-300 group-hover:opacity-100 group-hover:scale-110">
+                <div className="flex h-14 w-14 items-center justify-center rounded-full bg-black/45 backdrop-blur-xl border border-white/15 text-[#EFEFEF] shadow-lg">
+                  <Play className="h-6 w-6 fill-current ml-0.5" />
+                </div>
+              </div>
+
+              {/* Bottom Title Bar */}
+              <div className="pointer-events-none absolute inset-x-0 bottom-0 p-5 md:p-6 flex items-end justify-between">
+                <div>
+                  <h3 className="font-display text-xl font-medium text-[#EFEFEF] tracking-wide">
+                    {item.title}
+                  </h3>
+                  <p className="mt-1 text-xs text-[#EFEFEF]/50">
+                    {item.year || "2026"}
+                  </p>
+                </div>
               </div>
             </div>
-
-            {/* Bottom Title Bar */}
-            <div className="pointer-events-none absolute inset-x-0 bottom-0 p-5 md:p-6 flex items-end justify-between">
-              <div>
-                <h3 className="font-display text-xl font-medium text-[#EFEFEF] tracking-wide">
-                  {item.title}
-                </h3>
-                <p className="mt-1 text-xs text-[#EFEFEF]/50">
-                  {item.year || "2026"}
-                </p>
-              </div>
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
-      {/* STANDALONE POPUP MODAL VIDEO PLAYER (Isolated from photo expandable cards) */}
+      {/* STANDALONE POPUP MODAL VIDEO PLAYER (Exactly matching the video's intrinsic ratio) */}
       {mounted &&
         createPortal(
           <AnimatePresence>
             {activeVideo && (
-              <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6 md:p-10">
+              <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6 md:p-8">
                 {/* Backdrop */}
                 <motion.div
                   initial={{ opacity: 0 }}
@@ -281,13 +296,18 @@ function VideoGallery({ items }: { items: DisciplinePhoto[] }) {
                   onClick={() => setActiveVideo(null)}
                 />
 
-                {/* Centered Rounded Player Window (Design from user screenshot) */}
+                {/* Sized to the exact ratio of the video */}
                 <motion.div
-                  initial={{ opacity: 0, scale: 0.92, y: 15 }}
+                  initial={{ opacity: 0, scale: 0.94, y: 15 }}
                   animate={{ opacity: 1, scale: 1, y: 0 }}
-                  exit={{ opacity: 0, scale: 0.92, y: 15 }}
+                  exit={{ opacity: 0, scale: 0.94, y: 15 }}
                   transition={{ type: "spring", stiffness: 350, damping: 28 }}
-                  className="relative z-10 w-full max-w-[540px] aspect-[4/5] sm:aspect-square max-h-[90vh] rounded-[34px] overflow-hidden bg-black shadow-[0_25px_60px_-15px_rgba(0,0,0,0.95)] border border-white/10"
+                  style={{
+                    aspectRatio: `${currentRatio}`,
+                    maxWidth: `min(90vw, calc(86vh * ${currentRatio}))`,
+                    maxHeight: "86vh",
+                  }}
+                  className="relative z-10 w-full rounded-[34px] overflow-hidden bg-black shadow-[0_25px_60px_-15px_rgba(0,0,0,0.95)] border border-white/10 flex items-center justify-center"
                   onClick={(e) => e.stopPropagation()}
                 >
                   <VideoPlayer
@@ -296,6 +316,7 @@ function VideoGallery({ items }: { items: DisciplinePhoto[] }) {
                     autoPlay
                     loop
                     onClose={() => setActiveVideo(null)}
+                    onRatioChange={(r) => setVideoRatio(r)}
                     className="w-full h-full"
                   />
                 </motion.div>

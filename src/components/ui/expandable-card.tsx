@@ -277,6 +277,7 @@ export function ExpandableCard({
                         title={projectName || title}
                         autoPlay
                         loop
+                        onRatioChange={(r) => setRatio(r)}
                         className="pointer-events-auto block h-full w-full"
                       />
                       <button

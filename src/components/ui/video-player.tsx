@@ -54,6 +54,7 @@ export interface VideoPlayerProps {
   autoPlay?: boolean;
   loop?: boolean;
   onClose?: () => void;
+  onRatioChange?: (ratio: number) => void;
 }
 
 export const VideoPlayer = ({
@@ -63,6 +64,7 @@ export const VideoPlayer = ({
   autoPlay = true,
   loop = true,
   onClose,
+  onRatioChange,
 }: VideoPlayerProps) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isPlaying, setIsPlaying] = useState(autoPlay);
@@ -102,13 +104,25 @@ export const VideoPlayer = ({
     }
   };
 
+  const handleLoadedMetadata = () => {
+    if (videoRef.current) {
+      const { videoWidth, videoHeight, duration } = videoRef.current;
+      if (videoWidth && videoHeight) {
+        onRatioChange?.(videoWidth / videoHeight);
+      }
+      if (duration && !isNaN(duration)) {
+        setDuration(duration);
+      }
+    }
+  };
+
   const handleTimeUpdate = () => {
     if (videoRef.current) {
       const cur = videoRef.current.currentTime;
       const dur = videoRef.current.duration;
       setCurrentTime(cur);
-      setDuration(dur);
-      if (dur > 0) {
+      if (dur && !isNaN(dur) && dur > 0) {
+        setDuration(dur);
         setProgress((cur / dur) * 100);
       }
     }
@@ -169,7 +183,7 @@ export const VideoPlayer = ({
         ref={videoRef}
         className="w-full h-full object-cover cursor-pointer"
         onTimeUpdate={handleTimeUpdate}
-        onLoadedMetadata={handleTimeUpdate}
+        onLoadedMetadata={handleLoadedMetadata}
         src={src}
         autoPlay={autoPlay}
         loop={loop}
@@ -342,3 +356,4 @@ export const VideoPlayer = ({
 };
 
 export default VideoPlayer;
+
