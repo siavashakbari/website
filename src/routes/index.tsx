@@ -12,8 +12,6 @@ import { SITE_DESCRIPTION, SITE_TITLE_DEFAULT, pageHead } from "@/lib/seo";
 const HERO_ROLES = [
   "Multi-disciplinary Designer",
   "Photographer",
-  "Videographer",
-  "Content Creator",
   "Creative Director",
 ];
 
@@ -101,7 +99,7 @@ function Index() {
         aria-labelledby="home-heading"
       >
         <h1 id="home-heading" className="sr-only">
-          Siavash Akbari — Photographer, Graphic Designer, Videographer &amp; Social Media Content Creator in Isfahan, Iran | عکاسی صنعتی، تبلیغاتی، فشن، طراحی گرافیک، ساخت ویدیو و تولید محتوا در اصفهان
+          Siavash Akbari — Photographer, Designer &amp; Creative Director
         </h1>
         <motion.div
           className="absolute inset-0 box-border"

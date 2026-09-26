@@ -29,7 +29,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import {
   SITE_DESCRIPTION,
-  SITE_KEYWORDS,
   SITE_NAME,
   SITE_TITLE_DEFAULT,
   TWITTER_HANDLE,
@@ -91,12 +90,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         { name: "viewport", content: "width=device-width, initial-scale=1" },
         { title: SITE_TITLE_DEFAULT },
         { name: "description", content: SITE_DESCRIPTION },
-        { name: "keywords", content: SITE_KEYWORDS },
         { name: "author", content: SITE_NAME },
-        { name: "geo.region", content: "IR-04" },
-        { name: "geo.placename", content: "Isfahan" },
-        { name: "geo.position", content: "32.6546;51.6680" },
-        { name: "ICBM", content: "32.6546, 51.6680" },
         {
           name: "robots",
           content: "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1",

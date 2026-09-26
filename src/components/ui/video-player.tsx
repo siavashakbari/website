@@ -1,12 +1,12 @@
 "use client";
 
-import React, { useRef, useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Play, Pause, Volume2, Volume1, VolumeX } from "lucide-react";
+import React, { useRef, useState, useEffect } from "react";
+import { X } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { cn } from "@/lib/utils";
 
 const formatTime = (seconds: number) => {
+  if (isNaN(seconds) || seconds < 0) return "0:00";
   const minutes = Math.floor(seconds / 60);
   const remainingSeconds = Math.floor(seconds % 60);
   return `${minutes}:${remainingSeconds.toString().padStart(2, "0")}`;
@@ -22,9 +22,9 @@ const CustomSlider = ({
   className?: string;
 }) => {
   return (
-    <motion.div
+    <div
       className={cn(
-        "relative w-full h-1 bg-[#EFEFEF]/20 rounded-full cursor-pointer",
+        "relative w-full h-1 bg-white/25 rounded-full cursor-pointer py-1.5 flex items-center",
         className
       )}
       onClick={(e) => {
@@ -34,40 +34,63 @@ const CustomSlider = ({
         onChange(Math.min(Math.max(percentage, 0), 100));
       }}
     >
-      <motion.div
-        className="absolute top-0 left-0 h-full bg-[#EFEFEF] rounded-full"
-        style={{ width: `${value}%` }}
-        initial={{ width: 0 }}
-        animate={{ width: `${value}%` }}
-        transition={{ type: "spring", stiffness: 300, damping: 30 }}
-      />
-    </motion.div>
+      <div className="relative w-full h-1 bg-white/20 rounded-full overflow-hidden">
+        <motion.div
+          className="absolute top-0 left-0 h-full bg-[#EFEFEF] rounded-full"
+          style={{ width: `${value}%` }}
+          initial={{ width: 0 }}
+          animate={{ width: `${value}%` }}
+          transition={{ type: "spring", stiffness: 300, damping: 30 }}
+        />
+      </div>
+    </div>
   );
 };
 
-export const VideoPlayer = ({
-  src,
-  className,
-  autoPlay,
-  loop,
-  title,
-}: {
+export interface VideoPlayerProps {
   src: string;
+  title?: string;
   className?: string;
   autoPlay?: boolean;
   loop?: boolean;
-  title?: string;
-}) => {
+  onClose?: () => void;
+}
+
+export const VideoPlayer = ({
+  src,
+  title,
+  className,
+  autoPlay = true,
+  loop = true,
+  onClose,
+}: VideoPlayerProps) => {
   const videoRef = useRef<HTMLVideoElement>(null);
-  const [isPlaying, setIsPlaying] = useState(autoPlay || false);
-  const [volume, setVolume] = useState(1);
+  const [isPlaying, setIsPlaying] = useState(autoPlay);
   const [progress, setProgress] = useState(0);
-  const [isMuted, setIsMuted] = useState(false);
-  const [showControls, setShowControls] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
+  const [showControls, setShowControls] = useState(true);
+  const hideControlsTimer = useRef<NodeJS.Timeout | null>(null);
 
-  const togglePlay = () => {
+  const resetHideTimer = () => {
+    setShowControls(true);
+    if (hideControlsTimer.current) clearTimeout(hideControlsTimer.current);
+    hideControlsTimer.current = setTimeout(() => {
+      if (isPlaying) {
+        setShowControls(false);
+      }
+    }, 3500);
+  };
+
+  useEffect(() => {
+    resetHideTimer();
+    return () => {
+      if (hideControlsTimer.current) clearTimeout(hideControlsTimer.current);
+    };
+  }, [isPlaying]);
+
+  const togglePlay = (e?: React.MouseEvent) => {
+    e?.stopPropagation();
     if (videoRef.current) {
       if (isPlaying) {
         videoRef.current.pause();
@@ -75,25 +98,19 @@ export const VideoPlayer = ({
         videoRef.current.play();
       }
       setIsPlaying(!isPlaying);
-    }
-  };
-
-  const handleVolumeChange = (value: number) => {
-    if (videoRef.current) {
-      const newVolume = value / 100;
-      videoRef.current.volume = newVolume;
-      setVolume(newVolume);
-      setIsMuted(newVolume === 0);
+      resetHideTimer();
     }
   };
 
   const handleTimeUpdate = () => {
     if (videoRef.current) {
-      const progress =
-        (videoRef.current.currentTime / videoRef.current.duration) * 100;
-      setProgress(isFinite(progress) ? progress : 0);
-      setCurrentTime(videoRef.current.currentTime);
-      setDuration(videoRef.current.duration);
+      const cur = videoRef.current.currentTime;
+      const dur = videoRef.current.duration;
+      setCurrentTime(cur);
+      setDuration(dur);
+      if (dur > 0) {
+        setProgress((cur / dur) * 100);
+      }
     }
   };
 
@@ -103,67 +120,113 @@ export const VideoPlayer = ({
       if (isFinite(time)) {
         videoRef.current.currentTime = time;
         setProgress(value);
+        resetHideTimer();
       }
     }
   };
 
-  const toggleMute = () => {
+  const skipTime = (seconds: number) => {
     if (videoRef.current) {
-      videoRef.current.muted = !isMuted;
-      setIsMuted(!isMuted);
-      if (!isMuted) {
-        setVolume(0);
-      } else {
-        setVolume(1);
-        videoRef.current.volume = 1;
-      }
+      const newTime = Math.min(
+        Math.max(videoRef.current.currentTime + seconds, 0),
+        duration || 0
+      );
+      videoRef.current.currentTime = newTime;
+      resetHideTimer();
     }
   };
+
+  // Keyboard navigation
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === " " || e.key === "k") {
+        e.preventDefault();
+        togglePlay();
+      } else if (e.key === "ArrowLeft") {
+        e.preventDefault();
+        skipTime(-10);
+      } else if (e.key === "ArrowRight") {
+        e.preventDefault();
+        skipTime(10);
+      } else if (e.key === "Escape") {
+        onClose?.();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isPlaying, duration, onClose]);
 
   return (
-    <motion.div
-      className={cn("relative w-full h-full mx-auto overflow-hidden bg-black", className)}
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.5 }}
-      onMouseEnter={() => setShowControls(true)}
-      onMouseLeave={() => setShowControls(false)}
+    <div
+      className={cn(
+        "relative w-full h-full mx-auto overflow-hidden bg-black select-none",
+        className
+      )}
+      onMouseMove={resetHideTimer}
+      onClick={resetHideTimer}
     >
       <video
         ref={videoRef}
-        className="w-full h-full object-cover"
+        className="w-full h-full object-cover cursor-pointer"
         onTimeUpdate={handleTimeUpdate}
+        onLoadedMetadata={handleTimeUpdate}
         src={src}
         autoPlay={autoPlay}
         loop={loop}
+        playsInline
         onClick={togglePlay}
         onPlay={() => setIsPlaying(true)}
         onPause={() => setIsPlaying(false)}
       />
 
-      {title && (
-        <div className="absolute top-6 left-1/2 -translate-x-1/2 z-20 px-6 py-2.5 rounded-full bg-black/40 backdrop-blur-xl border border-white/10 flex items-center justify-center pointer-events-none">
-          <span className="text-[#EFEFEF] font-medium text-sm tracking-wide whitespace-nowrap drop-shadow-md">
-            {title}
-          </span>
-        </div>
-      )}
+      {/* TOP HEADER: Centered Project Title Pill & Close Button */}
+      <div className="absolute top-5 inset-x-5 z-30 flex items-center justify-between pointer-events-none">
+        <div className="w-10" />
 
+        {/* Centered Title Pill */}
+        {title && (
+          <div className="pointer-events-auto px-6 py-2 rounded-full bg-black/50 backdrop-blur-xl border border-white/10 shadow-lg flex items-center justify-center">
+            <span className="text-[#EFEFEF] font-medium text-sm tracking-wide whitespace-nowrap">
+              {title}
+            </span>
+          </div>
+        )}
+
+        {/* Close Button */}
+        {onClose ? (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onClose();
+            }}
+            className="pointer-events-auto h-10 w-10 rounded-full bg-black/50 backdrop-blur-xl border border-white/10 flex items-center justify-center text-[#EFEFEF] hover:bg-white/20 transition-all cursor-pointer focus:outline-none"
+            aria-label="Close video player"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        ) : (
+          <div className="w-10" />
+        )}
+      </div>
+
+      {/* OVERLAID BOTTOM CONTROLS (Screenshot Style) */}
       <AnimatePresence>
         {showControls && (
           <motion.div
-            className="absolute inset-0 z-10 pointer-events-none flex flex-col justify-end"
+            className="absolute inset-0 z-20 pointer-events-none flex flex-col justify-end"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.4 }}
+            transition={{ duration: 0.3 }}
           >
-            {/* Dark gradient behind controls for visibility */}
-            <div className="absolute bottom-0 left-0 right-0 h-1/2 bg-gradient-to-t from-black/80 via-black/30 to-transparent pointer-events-none" />
-            
-            <div className="relative z-20 px-8 pb-8 pointer-events-auto">
-              <div className="flex items-center gap-4 mb-6">
-                <span className="text-[#EFEFEF] text-sm font-medium tabular-nums drop-shadow-md">
+            {/* Bottom dark vignette gradient */}
+            <div className="absolute bottom-0 inset-x-0 h-48 bg-gradient-to-t from-black/90 via-black/45 to-transparent pointer-events-none" />
+
+            <div className="relative z-30 px-6 sm:px-8 pb-6 sm:pb-8 pointer-events-auto">
+              {/* Timeline Row */}
+              <div className="flex items-center gap-3 sm:gap-4 mb-4">
+                <span className="text-[#EFEFEF] text-xs sm:text-sm font-medium tabular-nums drop-shadow">
                   {formatTime(currentTime)}
                 </span>
                 <CustomSlider
@@ -171,42 +234,110 @@ export const VideoPlayer = ({
                   onChange={handleSeek}
                   className="flex-1"
                 />
-                <span className="text-[#EFEFEF] text-sm font-medium tabular-nums drop-shadow-md">
-                  -{formatTime(duration - currentTime)}
+                <span className="text-[#EFEFEF] text-xs sm:text-sm font-medium tabular-nums drop-shadow">
+                  -{formatTime(Math.max((duration || 0) - currentTime, 0))}
                 </span>
               </div>
 
-              <div className="flex items-center justify-center gap-6">
+              {/* 3 Circular Action Buttons Row */}
+              <div className="flex items-center justify-center gap-5 sm:gap-7">
+                {/* Skip Backward 10s */}
                 <button
-                  onClick={() => handleSeek(Math.max(0, progress - (10 / duration) * 100))}
-                  className="h-14 w-14 rounded-full bg-black/40 backdrop-blur-xl border border-white/10 flex items-center justify-center text-[#EFEFEF] hover:bg-black/60 transition-colors focus:outline-none"
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    skipTime(-10);
+                  }}
+                  className="h-12 w-12 sm:h-14 sm:w-14 rounded-full bg-black/45 backdrop-blur-xl border border-white/10 flex items-center justify-center text-[#EFEFEF] hover:bg-black/70 hover:scale-105 active:scale-95 transition-all cursor-pointer focus:outline-none"
+                  aria-label="Skip backward 10 seconds"
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="19 20 9 12 19 4 19 20"></polygon><line x1="5" y1="19" x2="5" y2="5"></line></svg>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="22"
+                    height="22"
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
+                    stroke="currentColor"
+                    strokeWidth="1"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <polygon points="19 20 9 12 19 4 19 20"></polygon>
+                    <line x1="5" y1="19" x2="5" y2="5"></line>
+                  </svg>
                 </button>
-                
+
+                {/* Play / Pause Toggle */}
                 <button
+                  type="button"
                   onClick={togglePlay}
-                  className="h-14 w-14 rounded-full bg-black/40 backdrop-blur-xl border border-white/10 flex items-center justify-center text-[#EFEFEF] hover:bg-black/60 transition-colors focus:outline-none"
+                  className="h-14 w-14 sm:h-16 sm:w-16 rounded-full bg-black/55 backdrop-blur-xl border border-white/15 flex items-center justify-center text-[#EFEFEF] hover:bg-black/80 hover:scale-105 active:scale-95 transition-all cursor-pointer focus:outline-none"
+                  aria-label={isPlaying ? "Pause" : "Play"}
                 >
                   {isPlaying ? (
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="26"
+                      height="26"
+                      viewBox="0 0 24 24"
+                      fill="currentColor"
+                      stroke="currentColor"
+                      strokeWidth="1"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <rect x="6" y="4" width="4" height="16"></rect>
+                      <rect x="14" y="4" width="4" height="16"></rect>
+                    </svg>
                   ) : (
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="26"
+                      height="26"
+                      viewBox="0 0 24 24"
+                      fill="currentColor"
+                      stroke="currentColor"
+                      strokeWidth="1"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      className="ml-1"
+                    >
+                      <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                    </svg>
                   )}
                 </button>
 
+                {/* Skip Forward 10s */}
                 <button
-                  onClick={() => handleSeek(Math.min(100, progress + (10 / duration) * 100))}
-                  className="h-14 w-14 rounded-full bg-black/40 backdrop-blur-xl border border-white/10 flex items-center justify-center text-[#EFEFEF] hover:bg-black/60 transition-colors focus:outline-none"
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    skipTime(10);
+                  }}
+                  className="h-12 w-12 sm:h-14 sm:w-14 rounded-full bg-black/45 backdrop-blur-xl border border-white/10 flex items-center justify-center text-[#EFEFEF] hover:bg-black/70 hover:scale-105 active:scale-95 transition-all cursor-pointer focus:outline-none"
+                  aria-label="Skip forward 10 seconds"
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="5 4 15 12 5 20 5 4"></polygon><line x1="19" y1="5" x2="19" y2="19"></line></svg>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="22"
+                    height="22"
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
+                    stroke="currentColor"
+                    strokeWidth="1"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <polygon points="5 4 15 12 5 20 5 4"></polygon>
+                    <line x1="19" y1="5" x2="19" y2="19"></line>
+                  </svg>
                 </button>
               </div>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
-    </motion.div>
+    </div>
   );
 };
 

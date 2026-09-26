@@ -37,10 +37,9 @@ import carpet3 from "@/assets/product/objects/product-objects-27.jpg";
 export const Route = createFileRoute("/about")({
   head: () =>
     pageHead({
-      title:
-        "About Siavash Akbari — Photographer, Graphic Designer & Content Creator in Isfahan | درباره سیاوش اکبری",
+      title: "About — Siavash Akbari",
       description:
-        "Meet Siavash Akbari — photographer, graphic designer, videographer, and social media content creator based in Isfahan, Iran. Commercial photography, branding, visual identity, and video production. درباره سیاوش اکبری، عکاس و طراح گرافیک در اصفهان.",
+        "Meet Siavash Akbari — designer, photographer, and art director from Esfahan. A decade of multidisciplinary work across photography, branding, and creative direction.",
       path: "/about",
       type: "profile",
     }),
@@ -519,8 +518,6 @@ const CREATIVE_SKILLS: Skill[] = [
   { name: { en: "Photography", fa: "عکاسی" }, levelOutOf10: 10 },
   { name: { en: "Videography", fa: "فیلم‌برداری" }, levelOutOf10: 8 },
   { name: { en: "Graphic Design", fa: "طراحی گرافیک" }, levelOutOf10: 8 },
-  { name: { en: "Content Creation", fa: "تولید محتوا" }, levelOutOf10: 9 },
-  { name: { en: "Social Media Content", fa: "محتوای شبکه‌های اجتماعی" }, levelOutOf10: 8 },
   { name: { en: "Art Direction", fa: "کارگردانی هنری" }, levelOutOf10: 7 },
   { name: { en: "Product Design", fa: "طراحی محصول" }, levelOutOf10: 7 },
 ];

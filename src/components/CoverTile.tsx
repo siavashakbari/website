@@ -21,16 +21,27 @@ export function CoverTile({ to, params, label, image, ariaLabel }: CoverTileProp
       className="group relative isolate block aspect-[3/4] cursor-pointer overflow-hidden rounded-[3px] no-underline [clip-path:inset(0_round_3px)]"
     >
       {image ? (
-        <img
-          src={image}
-          alt={label}
-          width={480}
-          height={640}
-          loading="lazy"
-          decoding="async"
-          draggable={false}
-          className="h-full w-full rounded-[3px] object-cover object-center transition-[filter] duration-500 ease-out group-hover:brightness-[0.45]"
-        />
+        image.endsWith(".mp4") ? (
+          <video
+            src={image}
+            muted
+            loop
+            playsInline
+            autoPlay
+            className="h-full w-full rounded-[3px] object-cover object-center transition-[filter] duration-500 ease-out group-hover:brightness-[0.45]"
+          />
+        ) : (
+          <img
+            src={image}
+            alt={label}
+            width={480}
+            height={640}
+            loading="lazy"
+            decoding="async"
+            draggable={false}
+            className="h-full w-full rounded-[3px] object-cover object-center transition-[filter] duration-500 ease-out group-hover:brightness-[0.45]"
+          />
+        )
       ) : (
         <div className="flex h-full w-full items-center justify-center rounded-[3px] bg-[#0F0F0F] transition-[filter] duration-500 ease-out group-hover:brightness-[0.45]">
           <span className="text-xs font-semibold uppercase tracking-widest text-[#EFEFEF]/40">

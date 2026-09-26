@@ -182,10 +182,9 @@ function BehanceIcon({ className }: { className?: string }) {
 export const Route = createFileRoute("/contact")({
   head: () =>
     pageHead({
-      title:
-        "Contact Siavash Akbari — Photography, Design & Video in Isfahan | ارتباط با سیاوش اکبری",
+      title: "Contact — Siavash Akbari",
       description:
-        "Get in touch with Siavash Akbari for commercial photography, graphic design, videography, and social media content creation projects in Isfahan, Iran. ارتباط جهت سفارش پروژه‌های عکاسی تبلیغاتی و صنعتی، هویت بصری، ساخت تیزر و تولید محتوا در اصفهان و ایران.",
+        "Commission photography, graphic design, or product design with Siavash Akbari in Esfahan, Iran. Email, phone, Instagram, and Behance.",
       path: "/contact",
     }),
   component: Contact,

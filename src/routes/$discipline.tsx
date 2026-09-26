@@ -1,5 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { createFileRoute, notFound, rootRouteId } from "@tanstack/react-router";
+import { createPortal } from "react-dom";
+import { Play } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
 import { ExpandableCard, ExpandableCardGrid } from "@/components/ui/expandable-card";
 import { GalleryLoadProvider } from "@/components/AdaptiveThumb";
 import { BackToTop } from "@/components/BackToTop";
@@ -7,6 +10,7 @@ import { CoverTile } from "@/components/CoverTile";
 import { DISCIPLINES } from "@/data/disciplines";
 import { projects, type Project } from "@/data/projects";
 import { pageHead } from "@/lib/seo";
+import { VideoPlayer } from "@/components/ui/video-player";
 
 interface DisciplinePhoto {
   key: string;
@@ -97,41 +101,6 @@ function useIsDesktop() {
   return isDesktop;
 }
 
-const DISCIPLINE_SEO_MAP: Record<string, { titleFa: string; descFa: string }> = {
-  "fashion-photography": {
-    titleFa: "عکاسی مد و فشن در اصفهان",
-    descFa: "خدمات تخصصی عکاسی فشن، مدلینگ و پوشاک در اصفهان و سراسر ایران.",
-  },
-  "food-photography": {
-    titleFa: "عکاسی غذا، رستوران و کافه در اصفهان",
-    descFa: "عکاسی حرفه‌ای غذا، منو و تبلیغات رستوران در اصفهان و ایران.",
-  },
-  "portrait-photography": {
-    titleFa: "عکاسی پرتره و چهره در اصفهان",
-    descFa: "عکاسی پرتره هنری، تجاری و شخصی در اصفهان توسط سیاوش اکبری.",
-  },
-  "product-photography": {
-    titleFa: "عکاسی صنعتی، محصول و کاتالوگ در اصفهان",
-    descFa: "عکاسی صنعتی، تبلیغاتی و محصول برای برندها و تولیدکنندگان در اصفهان و ایران.",
-  },
-  "visual-identity": {
-    titleFa: "طراحی هویت بصری و لوگو در اصفهان",
-    descFa: "طراحی هویت بصری جامع، لوگو و سیستم برندینگ در اصفهان و سراسر کشور.",
-  },
-  "book-covers": {
-    titleFa: "طراحی جلد کتاب و تایپوگرافی در اصفهان",
-    descFa: "طراحی تخصصی جلد کتاب و صفحه‌آرایی برای ناشران در اصفهان و ایران.",
-  },
-  posters: {
-    titleFa: "طراحی پوستر و گرافیک دیزاین در اصفهان",
-    descFa: "طراحی پوسترهای فرهنگی، هنری و تبلیغاتی در اصفهان.",
-  },
-  videos: {
-    titleFa: "فیلمبرداری، تیزر تبلیغاتی و تولید محتوا در اصفهان",
-    descFa: "خدمات فیلمبرداری، ساخت تیزر تبلیغاتی، تصویربرداری و تولید محتوای ویدیویی در اصفهان و ایران.",
-  },
-};
-
 export const Route = createFileRoute("/$discipline")({
   loader: ({ params }) => {
     const discipline = DISCIPLINES.find((d) => d.slug === params.discipline);
@@ -184,14 +153,9 @@ export const Route = createFileRoute("/$discipline")({
       loaderData?.discipline.blurb ??
       `${label} work by Siavash Akbari.`;
     const slug = loaderData?.discipline.slug ?? "";
-    const seoExtra = DISCIPLINE_SEO_MAP[slug] ?? {
-      titleFa: `${label} در اصفهان`,
-      descFa: `خدمات حرفه‌ای ${label} در اصفهان و ایران توسط سیاوش اکبری.`,
-    };
-
     return pageHead({
-      title: `${label} in Isfahan — Siavash Akbari | ${seoExtra.titleFa}`,
-      description: `${blurb} ${seoExtra.descFa} Portfolio by Siavash Akbari based in Isfahan, Iran.`,
+      title: `${label} — Siavash Akbari`,
+      description: `${blurb} Browse the ${label.toLowerCase()} portfolio of Siavash Akbari.`,
       path: slug ? `/${slug}` : "/",
     });
   },
@@ -214,7 +178,6 @@ function PhotoMasonry({ items }: { items: DisciplinePhoto[] }) {
             cardId={item.key}
             index={index}
             title={item.imageName}
-            projectName={item.title}
             src={item.src}
             classNameExpanded="[&_h4]:font-medium [&_h4]:text-[#0F0F0F] dark:[&_h4]:text-[#EFEFEF]"
           >
@@ -228,6 +191,120 @@ function PhotoMasonry({ items }: { items: DisciplinePhoto[] }) {
         ))}
       </ExpandableCardGrid>
     </GalleryLoadProvider>
+  );
+}
+
+function VideoGallery({ items }: { items: DisciplinePhoto[] }) {
+  const [activeVideo, setActiveVideo] = useState<DisciplinePhoto | null>(null);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!activeVideo) return;
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setActiveVideo(null);
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.body.style.overflow = prevOverflow;
+      window.removeEventListener("keydown", onKeyDown);
+    };
+  }, [activeVideo]);
+
+  return (
+    <div className="w-full px-[13px] sm:px-[20px]">
+      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        {items.map((item) => (
+          <div
+            key={item.key}
+            onClick={() => setActiveVideo(item)}
+            className="group relative aspect-[3/4] sm:aspect-[4/5] cursor-pointer overflow-hidden rounded-[20px] bg-[#141414] transition-all duration-300 hover:scale-[1.015] hover:shadow-2xl border border-white/5"
+          >
+            {/* Ambient video thumbnail preview */}
+            <video
+              src={item.src}
+              muted
+              loop
+              playsInline
+              preload="metadata"
+              className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+              onMouseEnter={(e) => e.currentTarget.play().catch(() => {})}
+              onMouseLeave={(e) => {
+                e.currentTarget.pause();
+                e.currentTarget.currentTime = 0;
+              }}
+            />
+
+            {/* Gradient overlay */}
+            <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-black/10 transition-opacity duration-300 group-hover:from-black/90" />
+
+            {/* Centered Play Button Hint on hover */}
+            <div className="pointer-events-none absolute inset-0 flex items-center justify-center opacity-85 transition-all duration-300 group-hover:opacity-100 group-hover:scale-110">
+              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-black/45 backdrop-blur-xl border border-white/15 text-[#EFEFEF] shadow-lg">
+                <Play className="h-6 w-6 fill-current ml-0.5" />
+              </div>
+            </div>
+
+            {/* Bottom Title Bar */}
+            <div className="pointer-events-none absolute inset-x-0 bottom-0 p-5 md:p-6 flex items-end justify-between">
+              <div>
+                <h3 className="font-display text-xl font-medium text-[#EFEFEF] tracking-wide">
+                  {item.title}
+                </h3>
+                <p className="mt-1 text-xs text-[#EFEFEF]/50">
+                  {item.year || "2026"}
+                </p>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* STANDALONE POPUP MODAL VIDEO PLAYER (Isolated from photo expandable cards) */}
+      {mounted &&
+        createPortal(
+          <AnimatePresence>
+            {activeVideo && (
+              <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6 md:p-10">
+                {/* Backdrop */}
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.25 }}
+                  className="absolute inset-0 bg-black/85 backdrop-blur-2xl cursor-pointer"
+                  onClick={() => setActiveVideo(null)}
+                />
+
+                {/* Centered Rounded Player Window (Design from user screenshot) */}
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.92, y: 15 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.92, y: 15 }}
+                  transition={{ type: "spring", stiffness: 350, damping: 28 }}
+                  className="relative z-10 w-full max-w-[540px] aspect-[4/5] sm:aspect-square max-h-[90vh] rounded-[34px] overflow-hidden bg-black shadow-[0_25px_60px_-15px_rgba(0,0,0,0.95)] border border-white/10"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <VideoPlayer
+                    src={activeVideo.src}
+                    title={activeVideo.title}
+                    autoPlay
+                    loop
+                    onClose={() => setActiveVideo(null)}
+                    className="w-full h-full"
+                  />
+                </motion.div>
+              </div>
+            )}
+          </AnimatePresence>,
+          document.body
+        )}
+    </div>
   );
 }
 
@@ -272,6 +349,8 @@ function DisciplinePage() {
             ))}
           </div>
         </div>
+      ) : discipline.slug === "videos" ? (
+        <VideoGallery items={items} />
       ) : (
         <PhotoMasonry items={items} />
       )}
