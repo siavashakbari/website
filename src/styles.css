@@ -397,3 +397,31 @@
   font-weight: 100 !important;
   opacity: 0.5;
 }
+
+/* Farsi typography enforcement: Every Persian text and form control must use Peyda font */
+[lang="fa"],
+[lang="fa"] *,
+[dir="rtl"],
+[dir="rtl"] *,
+.font-farsi,
+.font-farsi * {
+  font-family: var(--font-farsi) !important;
+}
+
+[lang="fa"] input,
+[lang="fa"] textarea,
+[lang="fa"] select,
+[lang="fa"] button,
+[dir="rtl"] input,
+[dir="rtl"] textarea,
+[dir="rtl"] select,
+[dir="rtl"] button {
+  font-family: var(--font-farsi) !important;
+}
+
+[lang="fa"] input::placeholder,
+[lang="fa"] textarea::placeholder,
+[dir="rtl"] input::placeholder,
+[dir="rtl"] textarea::placeholder {
+  font-family: var(--font-farsi) !important;
+}
