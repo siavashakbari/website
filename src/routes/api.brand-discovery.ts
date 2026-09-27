@@ -6,7 +6,12 @@ export const Route = createFileRoute("/api/brand-discovery")({
       POST: async ({ request }) => {
         try {
           const body = await request.json();
-          const { brandName, contactInfo, selections, pdfBase64, chosenImages } = body;
+          const {
+            formData,
+            selections,
+            pdfBase64,
+            chosenImages,
+          } = body;
 
           // Check for Telegram environment variables
           const botToken =
@@ -30,17 +35,42 @@ export const Route = createFileRoute("/api/brand-discovery")({
             );
           }
 
-          // 1. Format clean Q&A Telegram summary message
-          let message = `📋 *Visual Identity Form Submission*\n\n`;
-          message += `🏷️ *Brand Name:* ${brandName || "Not provided"}\n`;
-          if (contactInfo) {
-            message += `👤 *Contact / Notes:* ${contactInfo}\n`;
-          }
-          message += `\n*Question & Answer Choices:*\n`;
+          // 1. Format clean detailed summary for Telegram
+          const brandFa = formData?.brandNameFa || "-";
+          const brandEn = formData?.brandNameEn || "-";
+          const primaryLang = formData?.primaryLanguage || "-";
 
+          let message = `📋 *فرم هویت بصری و طراحی لوگو*\n`;
+          message += `*Visual Identity Form Submission*\n\n`;
+
+          message += `*بخش ۱: اطلاعات پایه و هویت برند*\n`;
+          message += `• نام فارسی: ${brandFa}\n`;
+          message += `• English Name: ${brandEn}\n`;
+          message += `• زبان اولویت: ${primaryLang}\n`;
+          if (formData?.slogan) message += `• شعار برند: ${formData.slogan}\n`;
+          if (formData?.activity) message += `• حوزه فعالیت: ${formData.activity}\n`;
+          if (formData?.nameHistory) message += `• تاریخچه نام: ${formData.nameHistory}\n`;
+
+          message += `\n*بخش ۲: مخاطبان هدف و بازار*\n`;
+          if (formData?.targetAudience) message += `• مخاطبان اصلی: ${formData.targetAudience}\n`;
+          if (formData?.competitors) message += `• رقبا: ${formData.competitors}\n`;
+
+          message += `\n*بخش ۳: سبک بصری و شخصیت برند*\n`;
+          if (formData?.brandAttributes) message += `• صفات برند: ${formData.brandAttributes}\n`;
+          if (formData?.favoriteForms) message += `• فرم‌های مورد علاقه نشان: ${formData.favoriteForms}\n`;
+
+          message += `\n*بخش ۴: کاربردها و الزامات فنی*\n`;
+          if (formData?.layoutPreference) message += `• چیدمان دوزبانه: ${formData.layoutPreference}\n`;
+          if (formData?.mainApplications) message += `• کاربردهای اصلی: ${formData.mainApplications}\n`;
+          if (formData?.scalability) message += `• مقیاس‌پذیری: ${formData.scalability}\n`;
+
+          message += `\n*بخش ۵: خط قرمزها و سلایق خاص*\n`;
+          if (formData?.forbiddenElements) message += `• المان‌های ممنوعه: ${formData.forbiddenElements}\n`;
+
+          message += `\n*نمونه‌های الهام‌بخش (Moodboard):*\n`;
           if (Array.isArray(selections)) {
             selections.forEach((s: any, idx: number) => {
-              message += `*Q${idx + 1}:* Option ${s.choice}\n`;
+              message += `• جفت ${idx + 1}: گزینه ${s.choice} (Option ${s.choice})\n`;
             });
           }
 
@@ -56,10 +86,8 @@ export const Route = createFileRoute("/api/brand-discovery")({
             }),
           });
 
-          // 2. Send low-quality chosen logo photos to Telegram as a media group / photos
+          // 2. Send low-quality chosen logo photos to Telegram
           if (Array.isArray(chosenImages) && chosenImages.length > 0) {
-            // We can send each chosen photo or as a media group
-            // Send photos with captions
             for (let i = 0; i < chosenImages.length; i++) {
               const imgItem = chosenImages[i];
               if (!imgItem || !imgItem.base64) continue;
@@ -76,21 +104,21 @@ export const Route = createFileRoute("/api/brand-discovery")({
                 photoData.append("chat_id", chatId);
                 photoData.append(
                   "caption",
-                  `Q${i + 1} Selected Aesthetic: Option ${imgItem.choice}`
+                  `جفت ${i + 1} / Pair ${i + 1} — انتخابی: Option ${imgItem.choice}`
                 );
-                photoData.append("photo", photoBlob, `q${i + 1}-option-${imgItem.choice}.jpg`);
+                photoData.append("photo", photoBlob, `pair-${i + 1}-option-${imgItem.choice}.jpg`);
 
                 await fetch(photoDocUrl, {
                   method: "POST",
                   body: photoData,
                 });
               } catch (photoErr) {
-                console.error(`Failed to send photo for Q${i + 1}:`, photoErr);
+                console.error(`Failed to send photo for pair ${i + 1}:`, photoErr);
               }
             }
           }
 
-          // 3. Send PDF Document
+          // 3. Send PDF Document to Telegram
           if (pdfBase64) {
             const docUrl = `https://api.telegram.org/bot${botToken}/sendDocument`;
             const binaryString = atob(pdfBase64);
@@ -99,21 +127,20 @@ export const Route = createFileRoute("/api/brand-discovery")({
               bytes[i] = binaryString.charCodeAt(i);
             }
             const blob = new Blob([bytes], { type: "application/pdf" });
-            const formData = new FormData();
-            formData.append("chat_id", chatId);
-            formData.append(
+            const formDataDoc = new FormData();
+            formDataDoc.append("chat_id", chatId);
+            formDataDoc.append(
               "caption",
-              `📄 Visual Identity Form — ${brandName || "Brand"}`
+              `📄 گزارش فرم هویت بصری — ${brandFa || brandEn || "Brand"}`
             );
-            formData.append(
-              "document",
-              blob,
-              `${(brandName || "visual-identity").toLowerCase().replace(/[^a-z0-9]+/g, "-")}-form.pdf`
-            );
+            const safeName = (brandEn || brandFa || "visual-identity")
+              .toLowerCase()
+              .replace(/[^a-z0-9]+/g, "-");
+            formDataDoc.append("document", blob, `${safeName || "visual-identity"}-brief.pdf`);
 
             await fetch(docUrl, {
               method: "POST",
-              body: formData,
+              body: formDataDoc,
             });
           }
 
