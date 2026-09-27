@@ -12,12 +12,14 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as DisciplineRouteImport } from './routes/$discipline'
 import { Route as AboutRouteImport } from './routes/about'
+import { Route as BrandDiscoveryRouteImport } from './routes/brand-discovery'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as GraphicDesignRouteImport } from './routes/graphic-design'
 import { Route as PhotographyRouteImport } from './routes/photography'
 import { Route as ProductDesignRouteImport } from './routes/product-design'
 import { Route as RobotsDottxtRouteImport } from './routes/robots[.]txt'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
+import { Route as ApiBrandDiscoveryRouteImport } from './routes/api.brand-discovery'
 import { Route as ProjectsProjectIdRouteImport } from './routes/projects.$projectId'
 
 const IndexRoute = IndexRouteImport.update({
@@ -33,6 +35,11 @@ const DisciplineRoute = DisciplineRouteImport.update({
 const AboutRoute = AboutRouteImport.update({
   id: '/about',
   path: '/about',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BrandDiscoveryRoute = BrandDiscoveryRouteImport.update({
+  id: '/brand-discovery',
+  path: '/brand-discovery',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ContactRoute = ContactRouteImport.update({
@@ -65,6 +72,11 @@ const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   path: '/sitemap.xml',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiBrandDiscoveryRoute = ApiBrandDiscoveryRouteImport.update({
+  id: '/api/brand-discovery',
+  path: '/api/brand-discovery',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ProjectsProjectIdRoute = ProjectsProjectIdRouteImport.update({
   id: '/projects/$projectId',
   path: '/projects/$projectId',
@@ -75,24 +87,28 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/$discipline': typeof DisciplineRoute
   '/about': typeof AboutRoute
+  '/brand-discovery': typeof BrandDiscoveryRoute
   '/contact': typeof ContactRoute
   '/graphic-design': typeof GraphicDesignRoute
   '/photography': typeof PhotographyRoute
   '/product-design': typeof ProductDesignRoute
   '/robots.txt': typeof RobotsDottxtRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/api/brand-discovery': typeof ApiBrandDiscoveryRoute
   '/projects/$projectId': typeof ProjectsProjectIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/$discipline': typeof DisciplineRoute
   '/about': typeof AboutRoute
+  '/brand-discovery': typeof BrandDiscoveryRoute
   '/contact': typeof ContactRoute
   '/graphic-design': typeof GraphicDesignRoute
   '/photography': typeof PhotographyRoute
   '/product-design': typeof ProductDesignRoute
   '/robots.txt': typeof RobotsDottxtRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/api/brand-discovery': typeof ApiBrandDiscoveryRoute
   '/projects/$projectId': typeof ProjectsProjectIdRoute
 }
 export interface FileRoutesById {
@@ -100,12 +116,14 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/$discipline': typeof DisciplineRoute
   '/about': typeof AboutRoute
+  '/brand-discovery': typeof BrandDiscoveryRoute
   '/contact': typeof ContactRoute
   '/graphic-design': typeof GraphicDesignRoute
   '/photography': typeof PhotographyRoute
   '/product-design': typeof ProductDesignRoute
   '/robots.txt': typeof RobotsDottxtRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/api/brand-discovery': typeof ApiBrandDiscoveryRoute
   '/projects/$projectId': typeof ProjectsProjectIdRoute
 }
 export interface FileRouteTypes {
@@ -114,36 +132,42 @@ export interface FileRouteTypes {
     | '/'
     | '/$discipline'
     | '/about'
+    | '/brand-discovery'
     | '/contact'
     | '/graphic-design'
     | '/photography'
     | '/product-design'
     | '/robots.txt'
     | '/sitemap.xml'
+    | '/api/brand-discovery'
     | '/projects/$projectId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/$discipline'
     | '/about'
+    | '/brand-discovery'
     | '/contact'
     | '/graphic-design'
     | '/photography'
     | '/product-design'
     | '/robots.txt'
     | '/sitemap.xml'
+    | '/api/brand-discovery'
     | '/projects/$projectId'
   id:
     | '__root__'
     | '/'
     | '/$discipline'
     | '/about'
+    | '/brand-discovery'
     | '/contact'
     | '/graphic-design'
     | '/photography'
     | '/product-design'
     | '/robots.txt'
     | '/sitemap.xml'
+    | '/api/brand-discovery'
     | '/projects/$projectId'
   fileRoutesById: FileRoutesById
 }
@@ -151,12 +175,14 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   DisciplineRoute: typeof DisciplineRoute
   AboutRoute: typeof AboutRoute
+  BrandDiscoveryRoute: typeof BrandDiscoveryRoute
   ContactRoute: typeof ContactRoute
   GraphicDesignRoute: typeof GraphicDesignRoute
   PhotographyRoute: typeof PhotographyRoute
   ProductDesignRoute: typeof ProductDesignRoute
   RobotsDottxtRoute: typeof RobotsDottxtRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
+  ApiBrandDiscoveryRoute: typeof ApiBrandDiscoveryRoute
   ProjectsProjectIdRoute: typeof ProjectsProjectIdRoute
 }
 
@@ -181,6 +207,13 @@ declare module '@tanstack/react-router' {
       path: '/about'
       fullPath: '/about'
       preLoaderRoute: typeof AboutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/brand-discovery': {
+      id: '/brand-discovery'
+      path: '/brand-discovery'
+      fullPath: '/brand-discovery'
+      preLoaderRoute: typeof BrandDiscoveryRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/contact': {
@@ -225,6 +258,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SitemapDotxmlRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/brand-discovery': {
+      id: '/api/brand-discovery'
+      path: '/api/brand-discovery'
+      fullPath: '/api/brand-discovery'
+      preLoaderRoute: typeof ApiBrandDiscoveryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/projects/$projectId': {
       id: '/projects/$projectId'
       path: '/projects/$projectId'
@@ -239,12 +279,14 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   DisciplineRoute: DisciplineRoute,
   AboutRoute: AboutRoute,
+  BrandDiscoveryRoute: BrandDiscoveryRoute,
   ContactRoute: ContactRoute,
   GraphicDesignRoute: GraphicDesignRoute,
   PhotographyRoute: PhotographyRoute,
   ProductDesignRoute: ProductDesignRoute,
   RobotsDottxtRoute: RobotsDottxtRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
+  ApiBrandDiscoveryRoute: ApiBrandDiscoveryRoute,
   ProjectsProjectIdRoute: ProjectsProjectIdRoute,
 }
 export const routeTree = rootRouteImport

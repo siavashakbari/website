@@ -28,6 +28,7 @@ const staticPages = [
   { path: "/product-design", changefreq: "weekly", priority: "0.9" },
   { path: "/about", changefreq: "monthly", priority: "0.8" },
   { path: "/contact", changefreq: "monthly", priority: "0.8" },
+  { path: "/brand-discovery", changefreq: "monthly", priority: "0.8" },
 ];
 
 const disciplinePages = disciplineSlugs.map((slug) => ({
