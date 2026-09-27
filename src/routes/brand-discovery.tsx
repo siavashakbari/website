@@ -7,77 +7,29 @@ import {
   Check,
   RotateCcw,
   Download,
-  Sparkles,
   CheckCircle2,
 } from "lucide-react";
 import { jsPDF } from "jspdf";
 import { pageHead } from "@/lib/seo";
 
-// 40 Curated Moodboard Images for 5x8 Grid (Multiple selection up to 15)
-import { MOODBOARD_GRID_IMAGES } from "@/data/moodboard-images";
-
-// Visual identity placeholders for Pick One (Section 3)
-import shekarchianLogo from "@/assets/graphic-design/shekarchian/graphic-design-shekarchian-01.jpg";
-import dodarehLogo from "@/assets/graphic-design/dodareh/graphic-design-dodareh-02.jpg";
-import polarityLogo from "@/assets/graphic-design/polarity/graphic-design-polarity-01.jpg";
-import echoSupplementsLogo from "@/assets/graphic-design/echo-supplements/graphic-design-echo-supplements-01.jpg";
-import femiqLogo from "@/assets/graphic-design/femiq/graphic-design-femiq-08.jpg";
-import ahuraLogo from "@/assets/graphic-design/ahura-cctv/graphic-design-ahura-cctv-03.jpg";
-import goatsLogo from "@/assets/graphic-design/goats/graphic-design-goats-01.jpg";
-import nozadLogo from "@/assets/graphic-design/nozad-publication/graphic-design-nozad-publication-01.jpg";
-import zenLogo from "@/assets/graphic-design/zen/graphic-design-zen-01.jpg";
-import artemisLogo from "@/assets/graphic-design/artemis/graphic-design-artemis-01.jpg";
+// Visual identity curated assets: 9 coupled pairs & 40 moodboard items
+import {
+  COUPLED_LOGO_PAIRS,
+  MOODBOARD_GRID_IMAGES,
+} from "@/data/visual-identity-assets";
 
 export const Route = createFileRoute("/brand-discovery")({
   head: () =>
     pageHead({
-      title: "Visual Identity Form — Siavash Akbari",
+      title: "فرم طراحی هویت دیداری — Siavash Akbari",
       description:
-        "Comprehensive visual identity questionnaire and bilingual logo discovery form by Siavash Akbari.",
+        "فرم جامع طراحی هویت دیداری و لوگو دیزاین توسط سیاوش اکبری استودیو.",
       path: "/brand-discovery",
     }),
   component: BrandDiscoveryPage,
 });
 
 type Lang = "en" | "fa";
-
-interface LogoOption {
-  image: string;
-}
-
-interface QuestionPair {
-  questionNumber: number;
-  optionA: LogoOption;
-  optionB: LogoOption;
-}
-
-const QUESTIONS: QuestionPair[] = [
-  {
-    questionNumber: 1,
-    optionA: { image: polarityLogo },
-    optionB: { image: shekarchianLogo },
-  },
-  {
-    questionNumber: 2,
-    optionA: { image: femiqLogo },
-    optionB: { image: nozadLogo },
-  },
-  {
-    questionNumber: 3,
-    optionA: { image: dodarehLogo },
-    optionB: { image: ahuraLogo },
-  },
-  {
-    questionNumber: 4,
-    optionA: { image: zenLogo },
-    optionB: { image: echoSupplementsLogo },
-  },
-  {
-    questionNumber: 5,
-    optionA: { image: goatsLogo },
-    optionB: { image: artemisLogo },
-  },
-];
 
 // Helper to convert images to low-quality downscaled base64 for PDF and Telegram
 async function getLowQualityBase64(imageSrc: string): Promise<string> {
@@ -127,7 +79,7 @@ function renderWhiteLogoDataUrl(): Promise<string> {
         <path d="M165.76,70.64h-42.46l-6.73,17.52h-14.5L136.99,1.16h14.96l34.92,87h-14.5l-6.61-17.52ZM161.47,59.51l-16.94-44.66-17.05,44.66h33.99Z" />
         <path d="M260.76,1.16l-34.92,87h-14.96L175.97,1.16h14.96l27.49,71.57L245.8,1.16h14.96Z" />
         <path d="M313.55,70.64h-42.46l-6.73,17.52h-14.5L284.78,1.16h14.96l34.92,87h-14.5l-6.61-17.52ZM309.25,59.51l-16.94-44.66-17.05,44.66h33.99Z" />
-        <path d="M354.32,84.68c-6.07-3.09-10.77-7.19-14.09-12.3l9.63-9.63c1.78,4.25,4.93,7.64,9.45,10.15,4.52,2.51,9.57,3.77,15.14,3.77,5.03,0,9.03-.97,12.01-2.9,2.98-1.93,4.5-4.87,4.58-8.82,0-2.47-.5-4.68-1.51-6.61-1.01-1.93-2.63-3.65-4.87-5.16-2.24-1.51-4.31-2.69-6.21-3.54s-4.54-1.93-7.95-3.25c-2.47-.93-4.23-1.6-5.28-2.03s-2.67-1.14-4.87-2.15c-2.2-1.01-3.83-1.88-4.87-2.61-1.04-.73-2.34-1.74-3.89-3.02-1.55-1.28-2.67-2.53-3.36-3.77s-1.33-2.73-1.91-4.47c-.58-1.74-.87-3.58-.87-5.51,0-7.04,2.61-12.6,7.83-16.7s11.85-6.15,19.89-6.15c13.84,0,24.4,4.21,31.67,12.64l-8.93,8.93c-4.49-6.81-11.95-10.21-22.39-10.21-4.33,0-7.83.91-10.5,2.73-2.67,1.82-4,4.39-4,7.71,0,1.39.35,2.73,1.04,4,.7,1.28,1.51,2.34,2.44,3.19s2.3,1.78,4.12,2.78,3.38,1.78,4.7,2.32c1.31.54,3.17,1.31,5.57,2.32,3.48,1.39,6.13,2.49,7.95,3.31s4.2,2.09,7.13,3.83c2.94,1.74,5.16,3.46,6.67,5.16,1.51,1.7,2.86,3.91,4.06,6.61,1.2,2.71,1.8,5.68,1.8,8.93,0,8.35-2.8,14.62-8.41,18.79-5.61,4.18-12.97,6.26-22.1,6.26-7.04,0-13.59-1.55-19.66-4.64Z" />
+        <path d="M354.32,84.68c-6.07-3.09-10.77-7.19-14.09-12.3l9.63-9.63c1.78,4.25,4.93,7.64,9.45,10.15,4.52,2.51,9.57,3.77,15.14,3.77,5.03,0,9.03-.97,12.01-2.9,2.98-1.93,4.5-4.87,4.58-8.82,0-2.47-.5-4.68-1.51-6.61-1-1.93-2.63-3.65-4.87-5.16-2.24-1.51-4.31-2.69-6.21-3.54s-4.54-1.93-7.95-3.25c-2.47-.93-4.23-1.6-5.28-2.03s-2.67-1.14-4.87-2.15c-2.2-1.01-3.83-1.88-4.87-2.61-1.04-.73-2.34-1.74-3.89-3.02-1.55-1.28-2.67-2.53-3.36-3.77s-1.33-2.73-1.91-4.47c-.58-1.74-.87-3.58-.87-5.51,0-7.04,2.61-12.6,7.83-16.7s11.85-6.15,19.89-6.15c13.84,0,24.4,4.21,31.67,12.64l-8.93,8.93c-4.49-6.81-11.95-10.21-22.39-10.21-4.33,0-7.83.91-10.5,2.73-2.67,1.82-4,4.39-4,7.71,0,1.39.35,2.73,1.04,4,.7,1.28,1.51,2.34,2.44,3.19s2.3,1.78,4.12,2.78,3.38,1.78,4.7,2.32c1.31.54,3.17,1.31,5.57,2.32,3.48,1.39,6.13,2.49,7.95,3.31s4.2,2.09,7.13,3.83c2.94,1.74,5.16,3.46,6.67,5.16,1.51,1.7,2.86,3.91,4.06,6.61,1.2,2.71,1.8,5.68,1.8,8.93,0,8.35-2.8,14.62-8.41,18.79-5.61,4.18-12.97,6.26-22.1,6.26-7.04,0-13.59-1.55-19.66-4.64Z" />
         <path d="M487.89,1.16v87h-13.34v-37.58h-42.69v37.58h-13.34V1.16h13.34v37.58h42.69V1.16h13.34Z" />
         <path d="M561.9,69.25h-46.75l-7.31,18.91h-8.58L534.18,1.16h8.7l34.92,87h-8.58l-7.31-18.91ZM559.23,62.52l-20.76-53.13-20.65,53.13h41.41Z" />
         <path d="M646.23,90.48l-48.02-47.56v45.24h-7.89V1.16h7.89v37.47L635.44,1.16h10.21l-39.44,39.32,40.02,39.56v10.44Z" />
@@ -169,12 +121,15 @@ const actionBtnClass =
 const activeActionBtnClass =
   "inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-full border border-transparent bg-secondary px-6 text-sm font-medium text-secondary-foreground shadow-[0_0_8px_color-mix(in_oklab,var(--secondary)_42%,transparent),0_0_17px_color-mix(in_oklab,var(--secondary)_24%,transparent),0_0_25px_color-mix(in_oklab,var(--secondary)_12%,transparent)] transition-all duration-300 cursor-pointer";
 
-// Input & Textarea Pill and Fillet styles
+// Input, Select & Textarea Pill and Fillet styles
 const inputPillClass =
-  "w-full h-12 rounded-full border border-foreground/15 bg-background/60 px-5 text-sm font-normal text-foreground focus:border-secondary focus:outline-none transition-all form-input-pill";
+  "w-full h-12 rounded-full border border-foreground/15 bg-background/60 px-5 text-sm font-normal text-foreground placeholder:text-foreground/35 placeholder:font-thin focus:border-secondary focus:outline-none transition-all";
+
+const selectPillClass =
+  "w-full h-12 rounded-full border border-foreground/15 bg-background/60 px-5 text-sm font-normal text-foreground focus:border-secondary focus:outline-none transition-all appearance-none cursor-pointer";
 
 const textareaPillClass =
-  "w-full rounded-3xl border border-foreground/15 bg-background/60 p-4 text-sm font-normal text-foreground focus:border-secondary focus:outline-none transition-all form-textarea-pill";
+  "w-full rounded-3xl border border-foreground/15 bg-background/60 p-4 text-sm font-normal text-foreground placeholder:text-foreground/35 placeholder:font-thin focus:border-secondary focus:outline-none transition-all";
 
 function LanguageSwitch({
   lang,
@@ -240,6 +195,9 @@ export function BrandDiscoveryPage() {
     slogan: "",
     activity: "",
     nameHistory: "",
+    // Mascot option
+    wantMascot: false,
+    mascotDescription: "",
     // Section 2
     targetAudience: "",
     competitors: "",
@@ -252,18 +210,23 @@ export function BrandDiscoveryPage() {
     scalability: "",
     // Section 5
     forbiddenElements: "",
+    // Section 6: Additional notes
+    additionalNotes: "",
   });
 
   // Section 2: Moodboard Multiple Selection (40 images, max 15)
   const [selectedMoodboardIndices, setSelectedMoodboardIndices] = useState<number[]>([]);
 
-  // Section 3: Pick One Pairs
+  // Section 3: Pick One Pairs (9 coupled pairs)
   const [currentPairIndex, setCurrentPairIndex] = useState(0);
   const [selections, setSelections] = useState<
     {
-      questionNumber: number;
+      pairId: number;
+      folderCategory: string;
       choice: "A" | "B";
       imageSrc: string;
+      chosenBrand: string;
+      chosenFeeling: string;
     }[]
   >([]);
 
@@ -275,8 +238,13 @@ export function BrandDiscoveryPage() {
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    const { name, value, type } = e.target;
+    if (type === "checkbox") {
+      const checked = (e.target as HTMLInputElement).checked;
+      setFormData((prev) => ({ ...prev, [name]: checked }));
+    } else {
+      setFormData((prev) => ({ ...prev, [name]: value }));
+    }
   };
 
   // Section 1 submit -> go to Section 2 (Moodboard)
@@ -309,18 +277,21 @@ export function BrandDiscoveryPage() {
 
   // Section 3 choice selection
   const handleSelectChoice = (choice: "A" | "B") => {
-    const q = QUESTIONS[currentPairIndex];
-    const chosenImage = choice === "A" ? q.optionA.image : q.optionB.image;
+    const pair = COUPLED_LOGO_PAIRS[currentPairIndex];
+    const chosenOption = choice === "A" ? pair.optionA : pair.optionB;
 
     const updated = [...selections];
     updated[currentPairIndex] = {
-      questionNumber: q.questionNumber,
+      pairId: pair.id,
+      folderCategory: pair.folderCategory,
       choice,
-      imageSrc: chosenImage,
+      imageSrc: chosenOption.image,
+      chosenBrand: chosenOption.brand,
+      chosenFeeling: chosenOption.feeling,
     };
     setSelections(updated);
 
-    if (currentPairIndex < QUESTIONS.length - 1) {
+    if (currentPairIndex < COUPLED_LOGO_PAIRS.length - 1) {
       setCurrentPairIndex((prev) => prev + 1);
     } else {
       setStep("summary");
@@ -346,8 +317,10 @@ export function BrandDiscoveryPage() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  // Generate pure Q&A PDF report with Moodboard Selections & Pick-One Preferred Aesthetics
-  const generatePdf = async (): Promise<{ doc: jsPDF; base64: string }> => {
+  // Generate PDF:
+  // isAdmin = false -> User PDF (Hides feelings/vibes, only mentions brand names)
+  // isAdmin = true -> Admin PDF (Sent to Telegram, reveals feelings and strategic rationale)
+  const generatePdf = async (isAdmin: boolean): Promise<{ doc: jsPDF; base64: string }> => {
     const doc = new jsPDF({
       orientation: "portrait",
       unit: "mm",
@@ -360,11 +333,11 @@ export function BrandDiscoveryPage() {
     doc.setFillColor(primaryColor[0], primaryColor[1], primaryColor[2]);
     doc.rect(0, 0, 210, 42, "F");
 
-    // White Logo at the top of the report
+    // White Logo spanning full width (180mm width with 15mm margins, strictly proportional ~9.85:1 -> height 18.28mm)
     try {
       const whiteLogo = await renderWhiteLogoDataUrl();
       if (whiteLogo) {
-        doc.addImage(whiteLogo, "PNG", 20, 8, 48, 4.9);
+        doc.addImage(whiteLogo, "PNG", 15, 7, 180, 18.28);
       }
     } catch (logoErr) {
       console.error("Could not render logo for PDF", logoErr);
@@ -373,29 +346,32 @@ export function BrandDiscoveryPage() {
     // Under it: VISUAL IDENTITY FORM (all caps)
     doc.setTextColor(255, 255, 255);
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(14);
-    doc.text("VISUAL IDENTITY FORM", 20, 24);
+    doc.setFontSize(13);
+    doc.text("VISUAL IDENTITY FORM", 15, 30);
 
     // Under it: Siavash Akbari
-    doc.setFontSize(9);
+    doc.setFontSize(8.5);
     doc.setFont("helvetica", "normal");
     doc.setTextColor(200, 200, 200);
-    doc.text("Siavash Akbari", 20, 32);
+    doc.text(
+      isAdmin ? "Siavash Akbari — Studio Internal Brief" : "Siavash Akbari",
+      15,
+      36
+    );
 
     let currentY = 52;
 
     const addSectionTitle = (title: string) => {
-      // Check page break if close to bottom
       if (currentY > 260) {
         doc.addPage();
         currentY = 20;
       }
       doc.setFillColor(242, 242, 242);
-      doc.rect(20, currentY - 4, 170, 7, "F");
+      doc.rect(15, currentY - 4, 180, 7, "F");
       doc.setFont("helvetica", "bold");
       doc.setFontSize(10);
       doc.setTextColor(15, 15, 15);
-      doc.text(title, 22, currentY + 1);
+      doc.text(title, 18, currentY + 1);
       currentY += 9;
     };
 
@@ -408,12 +384,12 @@ export function BrandDiscoveryPage() {
       doc.setFont("helvetica", "bold");
       doc.setFontSize(9);
       doc.setTextColor(50, 50, 50);
-      doc.text(`${label}:`, 22, currentY);
+      doc.text(`${label}:`, 18, currentY);
 
       doc.setFont("helvetica", "normal");
       doc.setTextColor(80, 80, 80);
-      const lines = doc.splitTextToSize(value, 120);
-      doc.text(lines, 70, currentY);
+      const lines = doc.splitTextToSize(value, 125);
+      doc.text(lines, 68, currentY);
       currentY += Math.max(lines.length * 4.5, 6);
     };
 
@@ -425,6 +401,12 @@ export function BrandDiscoveryPage() {
     addField("Slogan / Tagline", formData.slogan);
     addField("Field of Activity", formData.activity);
     addField("Name History / Story", formData.nameHistory);
+    if (formData.wantMascot) {
+      addField("Mascot Requested", "Yes");
+      if (formData.mascotDescription) {
+        addField("Mascot Description", formData.mascotDescription);
+      }
+    }
     currentY += 2;
 
     addSectionTitle("TARGET AUDIENCE & MARKET");
@@ -445,6 +427,9 @@ export function BrandDiscoveryPage() {
 
     addSectionTitle("SPECIAL PREFERENCES & FORBIDDEN ELEMENTS");
     addField("Forbidden Elements", formData.forbiddenElements);
+    if (formData.additionalNotes) {
+      addField("Additional Notes", formData.additionalNotes);
+    }
     currentY += 4;
 
     // SECTION 2: MOODBOARD SELECTIONS
@@ -456,18 +441,18 @@ export function BrandDiscoveryPage() {
       addSectionTitle(`SECTION 2: MOODBOARD SELECTIONS (${selectedMoodboardIndices.length} SELECTED)`);
       currentY += 2;
 
-      const mbWidth = 24;
-      const mbHeight = 24;
+      const mbWidth = 25;
+      const mbHeight = 25;
       const mbGap = 5;
-      let mbX = 22;
+      let mbX = 18;
 
       for (let i = 0; i < selectedMoodboardIndices.length; i++) {
         const itemIdx = selectedMoodboardIndices[i];
         const item = MOODBOARD_GRID_IMAGES[itemIdx];
         if (!item) continue;
 
-        if (mbX + mbWidth > 192) {
-          mbX = 22;
+        if (mbX + mbWidth > 195) {
+          mbX = 18;
           currentY += mbHeight + 4;
           if (currentY > 260) {
             doc.addPage();
@@ -490,24 +475,24 @@ export function BrandDiscoveryPage() {
 
     // SECTION 3: PICK ONE / PREFERRED AESTHETICS
     if (selections.length > 0) {
-      if (currentY > 230) {
+      if (currentY > 220) {
         doc.addPage();
         currentY = 20;
       }
-      addSectionTitle("SECTION 3: PREFERRED AESTHETICS (PICK ONE CHOICES)");
+      addSectionTitle("SECTION 3: PREFERRED AESTHETICS (COUPLED LOGO SELECTIONS)");
       currentY += 2;
 
-      const imgWidth = 28;
-      const imgHeight = 28;
+      const imgWidth = 30;
+      const imgHeight = 30;
       const gap = 6;
-      let xOffset = 22;
+      let xOffset = 18;
 
       for (let i = 0; i < selections.length; i++) {
         const s = selections[i];
-        if (xOffset + imgWidth > 192) {
-          xOffset = 22;
-          currentY += imgHeight + 8;
-          if (currentY > 260) {
+        if (xOffset + imgWidth > 195) {
+          xOffset = 18;
+          currentY += imgHeight + 9;
+          if (currentY > 255) {
             doc.addPage();
             currentY = 20;
           }
@@ -517,10 +502,17 @@ export function BrandDiscoveryPage() {
           const base64Data = await getLowQualityBase64(s.imageSrc);
           if (base64Data) {
             doc.addImage(base64Data, "JPEG", xOffset, currentY, imgWidth, imgHeight);
-            doc.setFontSize(8);
+            doc.setFontSize(7.5);
             doc.setFont("helvetica", "bold");
             doc.setTextColor(50, 50, 50);
-            doc.text(`Pair ${s.questionNumber}: Option ${s.choice}`, xOffset + 1, currentY + imgHeight + 4);
+
+            // User PDF: only brand name
+            // Admin PDF: brand name + strategic feeling
+            const labelText = isAdmin
+              ? `Pair ${s.pairId}: ${s.chosenBrand} (${s.chosenFeeling})`
+              : `Pair ${s.pairId}: ${s.chosenBrand}`;
+
+            doc.text(labelText, xOffset, currentY + imgHeight + 4);
           }
         } catch (e) {
           console.error(e);
@@ -536,7 +528,7 @@ export function BrandDiscoveryPage() {
       doc.setFont("helvetica", "normal");
       doc.setFontSize(8);
       doc.setTextColor(140, 140, 140);
-      doc.text("siavashakbari.ir", 20, 285);
+      doc.text("siavashakbari.ir", 15, 288);
     }
 
     const pdfOutput = doc.output("arraybuffer");
@@ -550,6 +542,12 @@ export function BrandDiscoveryPage() {
     return { doc, base64 };
   };
 
+  // Helper to format date string YYYY-MM-DD
+  const getDateString = () => {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  };
+
   // Automatic submission to Telegram silently upon reaching summary
   useEffect(() => {
     if (step !== "summary" || submittedRef.current) return;
@@ -557,13 +555,21 @@ export function BrandDiscoveryPage() {
 
     async function submitAutomatically() {
       try {
-        // 1. Prepare low-quality base64 for chosen Pick One logos
-        const chosenImages: { questionNumber: number; choice: string; base64: string }[] = [];
+        // 1. Prepare low-quality base64 for chosen Pick One logos (with brand & feeling)
+        const chosenImages: {
+          pairId: number;
+          choice: string;
+          brand: string;
+          feeling: string;
+          base64: string;
+        }[] = [];
         for (const s of selections) {
           const b64 = await getLowQualityBase64(s.imageSrc);
           chosenImages.push({
-            questionNumber: s.questionNumber,
+            pairId: s.pairId,
             choice: s.choice,
+            brand: s.chosenBrand,
+            feeling: s.chosenFeeling,
             base64: b64,
           });
         }
@@ -578,10 +584,11 @@ export function BrandDiscoveryPage() {
           }
         }
 
-        // 3. Generate PDF with complete 3-section brief
-        const { base64: pdfBase64 } = await generatePdf();
+        // 3. Generate both User and Admin PDFs
+        const { base64: adminPdfBase64 } = await generatePdf(true);
+        const { base64: userPdfBase64 } = await generatePdf(false);
 
-        // 4. Dispatch to API route
+        // 4. Dispatch to API route silently
         await fetch("/api/brand-discovery", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -591,23 +598,24 @@ export function BrandDiscoveryPage() {
             moodboardImages,
             selections,
             chosenImages,
-            pdfBase64,
+            adminPdfBase64,
+            userPdfBase64,
           }),
         });
       } catch (err) {
-        console.error("Auto submit failed:", err);
+        console.error("Auto submit to Telegram failed:", err);
       }
     }
 
     submitAutomatically();
   }, [step]);
 
+  // Download User PDF with naming format: Name of brand-Date-Visual Identity Brief.pdf
   const handleDownloadPdf = async () => {
-    const { doc } = await generatePdf();
-    const cleanName = (formData.brandNameEn || formData.brandNameFa || "brand")
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, "-");
-    doc.save(`${cleanName}-visual-identity-brief.pdf`);
+    const { doc } = await generatePdf(false);
+    const brandName = (formData.brandNameEn || formData.brandNameFa || "Brand").trim();
+    const dateStr = getDateString();
+    doc.save(`${brandName}-${dateStr}-Visual Identity Brief.pdf`);
   };
 
   return (
@@ -618,24 +626,19 @@ export function BrandDiscoveryPage() {
       lang={lang}
       dir={isFa ? "rtl" : "ltr"}
     >
-      {/* Top Header with Language Switch */}
+      {/* Top Header with Language Switch (No icon next to title) */}
       <div className="mb-8 flex items-center justify-between border-b border-foreground/10 pb-6">
-        <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-full border border-secondary/40 bg-secondary/10 text-secondary">
-            <Sparkles className="h-5 w-5" />
-          </div>
-          <div>
-            <h1
-              className={`text-xl font-medium tracking-tight text-foreground md:text-2xl ${
-                isFa ? "font-farsi font-bold" : "font-display"
-              }`}
-            >
-              {isFa ? "فرم جامع هویت بصری و طراحی لوگو" : "Visual Identity & Logo Brief"}
-            </h1>
-            <p className={`text-xs text-secondary ${isFa ? "font-farsi font-normal" : ""}`}>
-              {isFa ? "استودیو طراحی سیاوش اکبری" : "Siavash Akbari Design Studio"}
-            </p>
-          </div>
+        <div>
+          <h1
+            className={`text-xl font-bold tracking-tight text-foreground md:text-2xl ${
+              isFa ? "font-farsi font-bold" : "font-display"
+            }`}
+          >
+            {isFa ? "فرم طراحی هویت دیداری" : "Visual Identity Brief"}
+          </h1>
+          <p className={`text-xs text-secondary mt-0.5 ${isFa ? "font-farsi font-normal" : ""}`}>
+            {isFa ? "استودیو طراحی سیاوش اکبری" : "Siavash Akbari Design Studio"}
+          </p>
         </div>
 
         <LanguageSwitch
@@ -661,8 +664,8 @@ export function BrandDiscoveryPage() {
             </div>
             <p className="text-xs leading-relaxed text-muted-foreground">
               {isFa
-                ? "لطفاً این پرسشنامه را با دقت تکمیل کنید. پاسخ‌های شما جهت‌گیری استراتژیک، سبک بصری و ساختار طراحی هویت برند شما را پایه‌ریزی می‌کند."
-                : "Please complete this brief with care. Your inputs form the strategic foundation and visual direction for your brand identity."}
+                ? "لطفاً این پرسشنامه را با دقت تکمیل کنید. پاسخ‌های شما جهت‌گیری استراتژیک، سبک و ساختار طراحی هویت دیداری برند شما را پایه‌ریزی می‌کند."
+                : "Please complete this brief with care. Your inputs form the strategic foundation and visual direction for your visual identity."}
             </p>
           </div>
 
@@ -712,7 +715,7 @@ export function BrandDiscoveryPage() {
                     name="primaryLanguage"
                     value={formData.primaryLanguage}
                     onChange={handleInputChange}
-                    className={inputPillClass}
+                    className={selectPillClass}
                   >
                     <option value="فارسی (Persian)">{isFa ? "فارسی (Persian)" : "Persian"}</option>
                     <option value="انگلیسی (English)">{isFa ? "انگلیسی (English)" : "English"}</option>
@@ -732,6 +735,66 @@ export function BrandDiscoveryPage() {
                     placeholder={isFa ? "آیا شعاری برای قرارگیری کنار لوگو دارید؟" : "Tagline to accompany the logo"}
                     className={inputPillClass}
                   />
+                </div>
+
+                {/* Mascot Option Toggle */}
+                <div className="md:col-span-2 rounded-2xl border border-foreground/10 bg-foreground/[0.02] p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <span className="text-sm font-semibold text-foreground">
+                        {isFa ? "آیا مایل به طراحی مسکات (کاراکتر برند) هستید؟" : "Want a Mascot?"}
+                      </span>
+                      <p className="text-xs text-muted-foreground mt-0.5">
+                        {isFa ? "طراحی کاراکتر یا شخصیت اختصاصی برای هویت دیداری" : "Design a dedicated mascot character for your brand"}
+                      </p>
+                    </div>
+
+                    <button
+                      type="button"
+                      role="switch"
+                      aria-checked={formData.wantMascot}
+                      onClick={() =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          wantMascot: !prev.wantMascot,
+                        }))
+                      }
+                      className={`relative inline-flex h-7 w-12 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                        formData.wantMascot ? "bg-secondary" : "bg-foreground/20"
+                      }`}
+                    >
+                      <span
+                        className={`pointer-events-none inline-block h-6 w-6 transform rounded-full bg-background shadow-lg ring-0 transition duration-200 ease-in-out ${
+                          formData.wantMascot
+                            ? isFa
+                              ? "-translate-x-5"
+                              : "translate-x-5"
+                            : "translate-x-0"
+                        }`}
+                      />
+                    </button>
+                  </div>
+
+                  {formData.wantMascot && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: "auto" }}
+                      exit={{ opacity: 0, height: 0 }}
+                      className="mt-4 pt-3 border-t border-foreground/10"
+                    >
+                      <label className="block text-xs font-normal tracking-wide text-foreground/80 mb-2">
+                        {isFa ? "توضیحات مسکات" : "Describe your mascot"}
+                      </label>
+                      <textarea
+                        rows={2}
+                        name="mascotDescription"
+                        value={formData.mascotDescription}
+                        onChange={handleInputChange}
+                        placeholder={isFa ? "کاراکتر مد نظرتان را شرح دهید (مثلاً خرس مهربان، ربات آینده‌نگر، پرنده بازیگوش...)" : "Describe your mascot"}
+                        className={textareaPillClass}
+                      />
+                    </motion.div>
+                  )}
                 </div>
 
                 <div className="md:col-span-2">
@@ -910,6 +973,27 @@ export function BrandDiscoveryPage() {
               </div>
             </div>
 
+            {/* PART 6: Anything I missed? */}
+            <div className="rounded-3xl border border-foreground/15 bg-background p-6 md:p-8">
+              <h2 className="mb-6 flex items-center gap-2 text-lg font-bold text-secondary">
+                <span>{isFa ? "موردی هست که از قلم افتاده باشد؟" : "anything I missed ?"}</span>
+              </h2>
+
+              <div>
+                <label className="block text-xs font-normal tracking-wide text-foreground/80 mb-2">
+                  {isFa ? "نکات تکمیلی و توضیحات بیشتر" : "Additional thoughts or requirements"}
+                </label>
+                <textarea
+                  rows={3}
+                  name="additionalNotes"
+                  value={formData.additionalNotes}
+                  onChange={handleInputChange}
+                  placeholder={isFa ? "اگر نکته دیگری لازم می‌دانید اضافه کنید..." : "add more if you think is neccecary"}
+                  className={textareaPillClass}
+                />
+              </div>
+            </div>
+
             {/* Next Step Button */}
             <div className="flex justify-end">
               <button
@@ -937,7 +1021,7 @@ export function BrandDiscoveryPage() {
           {/* Section banner */}
           <div className="mb-6 rounded-3xl border border-secondary/30 bg-secondary/5 p-6 text-center">
             <div className="flex items-center justify-between text-xs font-semibold uppercase tracking-wider text-secondary mb-2">
-              <span>{isFa ? "بخش دوم از سه بخش: مودبورد بصری" : "Section 2 of 3: Visual Moodboard"}</span>
+              <span>{isFa ? "بخش دوم از سه بخش: مودبورد دیداری" : "Section 2 of 3: Visual Moodboard"}</span>
               <span>2 / 3</span>
             </div>
             <h3 className={`text-xl font-bold text-foreground ${isFa ? "font-farsi" : "font-display"}`}>
@@ -1035,19 +1119,21 @@ export function BrandDiscoveryPage() {
           exit={{ opacity: 0, y: -15 }}
           className="flex w-full flex-col"
         >
-          {/* Section banner */}
-          <div className="mb-6 rounded-3xl border border-secondary/30 bg-secondary/5 p-6 text-center">
-            <div className="flex items-center justify-between text-xs font-semibold uppercase tracking-wider text-secondary mb-2">
-              <span>{isFa ? "بخش سوم از سه بخش: ترجیحات زیبایی‌شناسی" : "Section 3 of 3: Preferred Aesthetics"}</span>
-              <span>3 / 3</span>
-            </div>
-            <h3 className={`text-xl font-bold text-foreground ${isFa ? "font-farsi" : "font-display"}`}>
-              {isFa ? "انتخاب بین دو گزینه (Pick One)" : "Pick One Between Two Options"}
-            </h3>
-            <p className="mt-2 text-xs text-muted-foreground max-w-xl mx-auto">
+          {/* Prominent Guidance Banner: Explains it's about the feeling & style, not the logo/color itself */}
+          <div className="mb-6 rounded-3xl border border-secondary/40 bg-secondary/10 p-5 text-center shadow-[0_0_20px_color-mix(in_oklab,var(--secondary)_12%,transparent)]">
+            <h3
+              className={`text-lg font-bold text-foreground md:text-xl ${
+                isFa ? "font-farsi font-bold" : "font-display"
+              }`}
+            >
               {isFa
-                ? "در هر جفت، گزینه‌ای را که احساس می‌کنید به هویت و استایل مد نظرتان نزدیک‌تر است انتخاب کنید."
-                : "Between each pair, choose the option that feels closer to your envisioned brand character."}
+                ? "توجه: انتخاب شما بر اساس حس، انرژی و سبک کلی است؛ نه لزوماً خود شکل یا رنگ لوگو!"
+                : "Important: Choose based on the overall feeling, mood, and style—not the exact logo symbol or color!"}
+            </h3>
+            <p className="mt-2 text-xs leading-relaxed text-muted-foreground max-w-2xl mx-auto">
+              {isFa
+                ? "در هر مرحله دو اثر با حس‌های متفاوت به شما نمایش داده می‌شود. لطفاً گزینه‌ای را انتخاب کنید که حال‌وهوا و کاراکتر آن به روح برند مورد نظرتان نزدیک‌تر است."
+                : "Between each pair, select the option whose atmosphere, personality, and tone best align with the spirit of your brand."}
             </p>
           </div>
 
@@ -1055,7 +1141,9 @@ export function BrandDiscoveryPage() {
           <div className="mb-6 flex flex-col gap-2">
             <div className="flex items-center justify-between text-xs uppercase tracking-widest font-semibold">
               <span className="text-secondary">
-                {isFa ? `جفت ${currentPairIndex + 1} از ${QUESTIONS.length}` : `Pair ${currentPairIndex + 1} of ${QUESTIONS.length}`}
+                {isFa
+                  ? `جفت ${currentPairIndex + 1} از ${COUPLED_LOGO_PAIRS.length}`
+                  : `Pair ${currentPairIndex + 1} of ${COUPLED_LOGO_PAIRS.length}`}
               </span>
               <span className="text-foreground/60">
                 {isFa ? "گزینه الف یا گزینه ب را انتخاب کنید" : "Select Option A or Option B"}
@@ -1065,37 +1153,37 @@ export function BrandDiscoveryPage() {
               <div
                 className="h-full bg-secondary transition-all duration-300"
                 style={{
-                  width: `${((currentPairIndex + 1) / QUESTIONS.length) * 100}%`,
+                  width: `${((currentPairIndex + 1) / COUPLED_LOGO_PAIRS.length) * 100}%`,
                 }}
               />
             </div>
           </div>
 
-          {/* Options Grid: Option A vs Option B */}
+          {/* Options Grid: Option A vs Option B (Bigger cards on desktop, balanced on mobile) */}
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
             {/* Option A */}
             <div
               onClick={() => handleSelectChoice("A")}
-              className="group relative flex cursor-pointer flex-col items-center rounded-3xl border border-foreground/15 bg-background p-6 text-center transition-all duration-300 hover:border-secondary hover:shadow-[0_0_20px_color-mix(in_oklab,var(--secondary)_18%,transparent)]"
+              className="group relative flex cursor-pointer flex-col items-center rounded-3xl border border-foreground/15 bg-background p-6 md:p-8 text-center transition-all duration-300 hover:border-secondary hover:shadow-[0_0_25px_color-mix(in_oklab,var(--secondary)_20%,transparent)]"
             >
-              <div className="mb-4 rounded-full border border-foreground/10 bg-foreground/5 px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-foreground/80">
+              <div className="mb-4 rounded-full border border-foreground/10 bg-foreground/5 px-5 py-1.5 text-xs font-semibold uppercase tracking-wider text-foreground/80">
                 {isFa ? "گزینه الف (Option A)" : "Option A"}
               </div>
 
-              <div className="my-2 flex h-60 w-full items-center justify-center overflow-hidden rounded-2xl border border-foreground/10 bg-foreground/[0.02]">
+              <div className="my-2 flex h-64 md:h-80 w-full items-center justify-center overflow-hidden rounded-2xl border border-foreground/10 bg-foreground/[0.02]">
                 <img
-                  src={QUESTIONS[currentPairIndex].optionA.image}
-                  alt="Option A"
-                  className="max-h-full max-w-full object-contain p-4 transition-transform duration-500 group-hover:scale-105"
+                  src={COUPLED_LOGO_PAIRS[currentPairIndex].optionA.image}
+                  alt={COUPLED_LOGO_PAIRS[currentPairIndex].optionA.brand}
+                  className="max-h-full max-w-full object-contain p-4 md:p-6 transition-transform duration-500 group-hover:scale-105"
                 />
               </div>
 
-              <div className="mt-5 w-full">
+              <div className="mt-6 w-full">
                 <button
                   type="button"
-                  className="w-full h-11 rounded-full border border-[#EFEFEF] bg-transparent text-sm font-medium text-[#EFEFEF] transition-all duration-300 group-hover:border-transparent group-hover:bg-secondary group-hover:text-secondary-foreground"
+                  className="w-full h-12 rounded-full border border-[#EFEFEF] bg-transparent text-sm font-medium text-[#EFEFEF] transition-all duration-300 group-hover:border-transparent group-hover:bg-secondary group-hover:text-secondary-foreground"
                 >
-                  {isFa ? "انتخاب گزینه الف" : "Choose Option A"}
+                  {isFa ? "انتخاب این سبک (گزینه الف)" : "Select This Style (Option A)"}
                 </button>
               </div>
             </div>
@@ -1103,26 +1191,26 @@ export function BrandDiscoveryPage() {
             {/* Option B */}
             <div
               onClick={() => handleSelectChoice("B")}
-              className="group relative flex cursor-pointer flex-col items-center rounded-3xl border border-foreground/15 bg-background p-6 text-center transition-all duration-300 hover:border-secondary hover:shadow-[0_0_20px_color-mix(in_oklab,var(--secondary)_18%,transparent)]"
+              className="group relative flex cursor-pointer flex-col items-center rounded-3xl border border-foreground/15 bg-background p-6 md:p-8 text-center transition-all duration-300 hover:border-secondary hover:shadow-[0_0_25px_color-mix(in_oklab,var(--secondary)_20%,transparent)]"
             >
-              <div className="mb-4 rounded-full border border-foreground/10 bg-foreground/5 px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-foreground/80">
+              <div className="mb-4 rounded-full border border-foreground/10 bg-foreground/5 px-5 py-1.5 text-xs font-semibold uppercase tracking-wider text-foreground/80">
                 {isFa ? "گزینه ب (Option B)" : "Option B"}
               </div>
 
-              <div className="my-2 flex h-60 w-full items-center justify-center overflow-hidden rounded-2xl border border-foreground/10 bg-foreground/[0.02]">
+              <div className="my-2 flex h-64 md:h-80 w-full items-center justify-center overflow-hidden rounded-2xl border border-foreground/10 bg-foreground/[0.02]">
                 <img
-                  src={QUESTIONS[currentPairIndex].optionB.image}
-                  alt="Option B"
-                  className="max-h-full max-w-full object-contain p-4 transition-transform duration-500 group-hover:scale-105"
+                  src={COUPLED_LOGO_PAIRS[currentPairIndex].optionB.image}
+                  alt={COUPLED_LOGO_PAIRS[currentPairIndex].optionB.brand}
+                  className="max-h-full max-w-full object-contain p-4 md:p-6 transition-transform duration-500 group-hover:scale-105"
                 />
               </div>
 
-              <div className="mt-5 w-full">
+              <div className="mt-6 w-full">
                 <button
                   type="button"
-                  className="w-full h-11 rounded-full border border-[#EFEFEF] bg-transparent text-sm font-medium text-[#EFEFEF] transition-all duration-300 group-hover:border-transparent group-hover:bg-secondary group-hover:text-secondary-foreground"
+                  className="w-full h-12 rounded-full border border-[#EFEFEF] bg-transparent text-sm font-medium text-[#EFEFEF] transition-all duration-300 group-hover:border-transparent group-hover:bg-secondary group-hover:text-secondary-foreground"
                 >
-                  {isFa ? "انتخاب گزینه ب" : "Choose Option B"}
+                  {isFa ? "انتخاب این سبک (گزینه ب)" : "Select This Style (Option B)"}
                 </button>
               </div>
             </div>
@@ -1152,7 +1240,7 @@ export function BrandDiscoveryPage() {
               <Check className="h-7 w-7" />
             </div>
             <p className="text-xs font-semibold uppercase tracking-[0.25em] text-secondary">
-              {isFa ? "تکمیل موفقیت‌آمیز" : "Submission Complete"}
+              {isFa ? "فرم با موفقیت ثبت شد" : "Form Completed"}
             </p>
             <h2
               className={`mt-2 text-3xl font-medium tracking-tight text-foreground md:text-4xl ${
@@ -1161,11 +1249,19 @@ export function BrandDiscoveryPage() {
             >
               {formData.brandNameFa || formData.brandNameEn}
             </h2>
-            <p className="mt-2 text-sm text-muted-foreground">
-              {isFa
-                ? "اطلاعات فرم، انتخاب‌های مودبورد و گزینه‌های زیبایی‌شناسی شما با موفقیت ثبت شدند."
-                : "Your questionnaire brief, moodboard selections, and aesthetic preferences have been recorded."}
-            </p>
+
+            {/* Prompt for next steps via WhatsApp / Telegram */}
+            <div className="mt-4 rounded-3xl border border-secondary/30 bg-secondary/5 p-6 max-w-xl mx-auto text-center">
+              <p
+                className={`text-sm leading-relaxed text-foreground ${
+                  isFa ? "font-farsi font-medium" : ""
+                }`}
+              >
+                {isFa
+                  ? "با تشکر از تکمیل این فرم، اکنون فایل PDF خلاصه را دانلود کرده و آن را در تلگرام یا واتس‌اپ برای من ارسال کنید تا پروژه شما را دقیق‌تر بررسی و گفتگو نماییم."
+                  : "Thank you for filling the form, now you should download the PDF and send it via Telegram or WhatsApp to me so we can further discuss your project."}
+              </p>
+            </div>
           </div>
 
           <div className="flex flex-col gap-6 rounded-3xl border border-foreground/15 bg-background p-6 md:p-8">
@@ -1197,27 +1293,27 @@ export function BrandDiscoveryPage() {
               </div>
             )}
 
-            {/* Pick One Choices */}
+            {/* Pick One Choices (User views only brand names) */}
             {selections.length > 0 && (
               <div className="border-t border-foreground/10 pt-6">
                 <h3 className={`mb-3 text-base font-bold text-foreground ${isFa ? "font-farsi" : "font-display"}`}>
-                  {isFa ? "گزینه‌های انتخابی مقایسه‌ای (Preferred Aesthetics)" : "Your Selected Aesthetics (Pick One)"}
+                  {isFa ? "گزینه‌های انتخابی شما (Preferred Aesthetics)" : "Your Selected Aesthetics (Pick One)"}
                 </h3>
-                <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
+                <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-5">
                   {selections.map((s) => (
                     <div
-                      key={s.questionNumber}
+                      key={s.pairId}
                       className="flex flex-col items-center rounded-2xl border border-foreground/10 bg-foreground/[0.02] p-2"
                     >
                       <div className="flex h-20 w-full items-center justify-center overflow-hidden">
                         <img
                           src={s.imageSrc}
-                          alt={`Option ${s.choice}`}
+                          alt={s.chosenBrand}
                           className="max-h-full max-w-full object-contain"
                         />
                       </div>
                       <span className="mt-1 text-[11px] font-medium text-foreground/70">
-                        {isFa ? `جفت ${s.questionNumber}: گزینه ${s.choice}` : `Pair ${s.questionNumber}: Option ${s.choice}`}
+                        {isFa ? `جفت ${s.pairId}: ${s.chosenBrand}` : `Pair ${s.pairId}: ${s.chosenBrand}`}
                       </span>
                     </div>
                   ))}

@@ -8,11 +8,13 @@ export const Route = createFileRoute("/api/brand-discovery")({
           const body = await request.json();
           const {
             formData,
-            selections,
-            pdfBase64,
-            chosenImages,
-            moodboardImages,
             selectedMoodboardIndices,
+            moodboardImages,
+            selections,
+            chosenImages,
+            adminPdfBase64,
+            userPdfBase64,
+            pdfBase64,
           } = body;
 
           // Check for Telegram environment variables
@@ -37,12 +39,12 @@ export const Route = createFileRoute("/api/brand-discovery")({
             );
           }
 
-          // 1. Format clean detailed summary for Telegram
+          // 1. Format clean detailed summary for Telegram (including ALL feelings)
           const brandFa = formData?.brandNameFa || "-";
           const brandEn = formData?.brandNameEn || "-";
           const primaryLang = formData?.primaryLanguage || "-";
 
-          let message = `📋 *فرم هویت بصری و طراحی لوگو*\n`;
+          let message = `📋 *فرم طراحی هویت دیداری و لوگو*\n`;
           message += `*Visual Identity Form Submission*\n\n`;
 
           message += `*بخش ۱: اطلاعات پایه و هویت برند*\n`;
@@ -52,6 +54,12 @@ export const Route = createFileRoute("/api/brand-discovery")({
           if (formData?.slogan) message += `• شعار برند: ${formData.slogan}\n`;
           if (formData?.activity) message += `• حوزه فعالیت: ${formData.activity}\n`;
           if (formData?.nameHistory) message += `• تاریخچه نام: ${formData.nameHistory}\n`;
+
+          // Mascot
+          message += `• درخواست مسکات: ${formData?.wantMascot ? "بله (Yes)" : "خیر (No)"}\n`;
+          if (formData?.wantMascot && formData?.mascotDescription) {
+            message += `• توضیحات مسکات: ${formData.mascotDescription}\n`;
+          }
 
           message += `\n*بخش ۲: مخاطبان هدف و بازار*\n`;
           if (formData?.targetAudience) message += `• مخاطبان اصلی: ${formData.targetAudience}\n`;
@@ -69,18 +77,22 @@ export const Route = createFileRoute("/api/brand-discovery")({
           message += `\n*بخش ۵: خط قرمزها و سلایق خاص*\n`;
           if (formData?.forbiddenElements) message += `• المان‌های ممنوعه: ${formData.forbiddenElements}\n`;
 
-          message += `\n*بخش ۲: گالری مودبورد (Moodboard Gallery - انتخاب چندتایی)*\n`;
+          if (formData?.additionalNotes) {
+            message += `\n*بخش ۶: نکته جامانده یا توضیحات تکمیلی:*\n`;
+            message += `• ${formData.additionalNotes}\n`;
+          }
+
+          message += `\n*بخش ۲ فرم: تصاویر انتخابی مودبورد (Moodboard):*\n`;
           if (Array.isArray(selectedMoodboardIndices) && selectedMoodboardIndices.length > 0) {
-            message += `• تعداد تصاویر انتخابی مودبورد: ${selectedMoodboardIndices.length} مورد\n`;
-            message += `• شماره تصاویر انتخابی: ${selectedMoodboardIndices.map((n: number) => `#${n + 1}`).join(", ")}\n`;
+            message += `• تعداد تصاویر انتخابی: ${selectedMoodboardIndices.length} مورد (#${selectedMoodboardIndices.map((n: number) => n + 1).join(", #")})\n`;
           } else {
             message += `• موردی انتخاب نشده است.\n`;
           }
 
-          message += `\n*بخش ۳: انتخاب جفتی (Pick One / Preferred Aesthetics):*\n`;
-          if (Array.isArray(selections)) {
-            selections.forEach((s: any, idx: number) => {
-              message += `• جفت ${idx + 1}: گزینه ${s.choice} (Option ${s.choice})\n`;
+          message += `\n*بخش ۳ فرم: حس و استایل انتخابی جفت‌ها (Feelings & Preferences):*\n`;
+          if (Array.isArray(selections) && selections.length > 0) {
+            selections.forEach((s: any) => {
+              message += `• جفت ${s.pairId} (${s.folderCategory}): گزینه ${s.choice} [برند: ${s.chosenBrand}] -> *حس انتخابی: ${s.chosenFeeling}*\n`;
             });
           }
 
@@ -96,13 +108,12 @@ export const Route = createFileRoute("/api/brand-discovery")({
             }),
           });
 
-          // Helper to send a batch of photos as sendMediaGroup (max 10 per call)
+          // Helper to send photos in batches of max 10 via sendMediaGroup
           const sendPhotoBatch = async (
-            items: { base64: string; label: string }[],
+            items: { base64: string; caption: string }[],
             albumTitle: string
           ) => {
             if (!items.length) return;
-            // Split into chunks of max 10
             for (let chunkIdx = 0; chunkIdx < items.length; chunkIdx += 10) {
               const chunk = items.slice(chunkIdx, chunkIdx + 10);
               try {
@@ -130,8 +141,8 @@ export const Route = createFileRoute("/api/brand-discovery")({
                     media: `attach://${attachKey}`,
                     caption:
                       i === 0
-                        ? `${albumTitle} (${chunkIdx + 1} - ${chunkIdx + chunk.length})`
-                        : item.label,
+                        ? `${albumTitle} (عکس ${chunkIdx + 1} تا ${chunkIdx + chunk.length})`
+                        : item.caption,
                   });
                 }
 
@@ -153,27 +164,28 @@ export const Route = createFileRoute("/api/brand-discovery")({
             await sendPhotoBatch(
               moodboardImages.map((img: any, idx: number) => ({
                 base64: img.base64,
-                label: `مودبورد تصویر شماره ${img.index !== undefined ? img.index + 1 : idx + 1}`,
+                caption: `تصویر مودبورد #${img.index !== undefined ? img.index + 1 : idx + 1}`,
               })),
-              `🎨 تصاویر انتخابی مودبورد — ${brandFa || brandEn}`
+              `🎨 تصاویر انتخابی مودبورد هویت دیداری — ${brandFa || brandEn}`
             );
           }
 
-          // 3. Send Pick-One Comparison Photos
+          // 3. Send Pick-One Coupled Logo Photos (with Brand & Feeling description!)
           if (Array.isArray(chosenImages) && chosenImages.length > 0) {
             await sendPhotoBatch(
               chosenImages.map((img: any) => ({
                 base64: img.base64,
-                label: `جفت ${img.questionNumber}: گزینه ${img.choice}`,
+                caption: `جفت ${img.pairId}: گزینه ${img.choice} (${img.brand}) — حس: ${img.feeling}`,
               })),
-              `⚖️ گزینه‌های انتخابی مقایسه‌ای — ${brandFa || brandEn}`
+              `⚖️ گزینه‌های انتخابی جفت لوگوها (Pick One) — ${brandFa || brandEn}`
             );
           }
 
-          // 4. Send PDF Document to Telegram
-          if (pdfBase64) {
+          // 4. Send Admin PDF Document to Telegram (Includes strategic feelings)
+          const targetPdf = adminPdfBase64 || pdfBase64;
+          if (targetPdf) {
             const docUrl = `https://api.telegram.org/bot${botToken}/sendDocument`;
-            const binaryString = atob(pdfBase64);
+            const binaryString = atob(targetPdf);
             const bytes = new Uint8Array(binaryString.length);
             for (let i = 0; i < binaryString.length; i++) {
               bytes[i] = binaryString.charCodeAt(i);
@@ -183,12 +195,15 @@ export const Route = createFileRoute("/api/brand-discovery")({
             formDataDoc.append("chat_id", chatId);
             formDataDoc.append(
               "caption",
-              `📄 گزارش فرم هویت بصری — ${brandFa || brandEn || "Brand"}`
+              `📄 گزارش تحلیل جامع هویت دیداری (مخصوص استودیو با احساسات و جزئیات) — ${brandFa || brandEn || "Brand"}`
             );
-            const safeName = (brandEn || brandFa || "visual-identity")
-              .toLowerCase()
-              .replace(/[^a-z0-9]+/g, "-");
-            formDataDoc.append("document", blob, `${safeName || "visual-identity"}-brief.pdf`);
+
+            const brandClean = (brandEn || brandFa || "Brand").trim().replace(/[^a-zA-Z0-9_\u0600-\u06FF]+/g, "-");
+            const d = new Date();
+            const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+            const pdfFileName = `${brandClean}-${dateStr}-Visual Identity Brief (Studio).pdf`;
+
+            formDataDoc.append("document", blob, pdfFileName);
 
             await fetch(docUrl, {
               method: "POST",
