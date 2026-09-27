@@ -120,22 +120,22 @@ function renderWhiteLogoDataUrl(): Promise<string> {
   });
 }
 
-// Button styles matching the portfolio design system
+// Button styles matching the portfolio design system (full-width on mobile to avoid overflow, centered)
 const actionBtnClass =
-  "inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-full border border-[#EFEFEF] bg-transparent px-6 text-sm font-medium text-[#EFEFEF] shadow-none transition-[background-color,border-color,color,box-shadow] duration-300 ease-out hover:border-transparent hover:bg-secondary hover:text-secondary-foreground hover:shadow-[0_0_8px_color-mix(in_oklab,var(--secondary)_42%,transparent),0_0_17px_color-mix(in_oklab,var(--secondary)_24%,transparent),0_0_25px_color-mix(in_oklab,var(--secondary)_12%,transparent)] disabled:opacity-30 disabled:pointer-events-none cursor-pointer";
+  "inline-flex h-12 w-full sm:w-auto shrink-0 items-center justify-center gap-2 rounded-full border border-[#EFEFEF] bg-transparent px-7 text-sm font-medium text-[#EFEFEF] shadow-none transition-[background-color,border-color,color,box-shadow] duration-300 ease-out hover:border-transparent hover:bg-secondary hover:text-secondary-foreground hover:shadow-[0_0_8px_color-mix(in_oklab,var(--secondary)_42%,transparent),0_0_17px_color-mix(in_oklab,var(--secondary)_24%,transparent),0_0_25px_color-mix(in_oklab,var(--secondary)_12%,transparent)] disabled:opacity-30 disabled:pointer-events-none cursor-pointer";
 
 const activeActionBtnClass =
-  "inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-full border border-transparent bg-secondary px-6 text-sm font-medium text-secondary-foreground shadow-[0_0_8px_color-mix(in_oklab,var(--secondary)_42%,transparent),0_0_17px_color-mix(in_oklab,var(--secondary)_24%,transparent),0_0_25px_color-mix(in_oklab,var(--secondary)_12%,transparent)] transition-all duration-300 cursor-pointer";
+  "inline-flex h-12 w-full sm:w-auto shrink-0 items-center justify-center gap-2 rounded-full border border-transparent bg-secondary px-7 text-sm font-medium text-secondary-foreground shadow-[0_0_8px_color-mix(in_oklab,var(--secondary)_42%,transparent),0_0_17px_color-mix(in_oklab,var(--secondary)_24%,transparent),0_0_25px_color-mix(in_oklab,var(--secondary)_12%,transparent)] transition-all duration-300 cursor-pointer";
 
-// Input, Select & Textarea Pill and Fillet styles
+// Input, Select & Textarea Pill and Fillet styles (16px base font on mobile to prevent iOS auto-zoom)
 const inputPillClass =
-  "w-full h-12 rounded-full border border-foreground/15 bg-background/60 px-5 text-sm font-normal text-foreground placeholder:text-foreground/35 placeholder:font-thin focus:border-secondary focus:outline-none transition-all";
+  "w-full h-12 rounded-full border border-foreground/15 bg-background/60 px-5 text-base md:text-sm font-normal text-foreground placeholder:text-foreground/35 placeholder:font-thin focus:border-secondary focus:outline-none transition-all";
 
 const selectPillClass =
-  "w-full h-12 rounded-full border border-foreground/15 bg-background/60 px-5 text-sm font-normal text-foreground focus:border-secondary focus:outline-none transition-all appearance-none cursor-pointer";
+  "w-full h-12 rounded-full border border-foreground/15 bg-background/60 px-5 text-base md:text-sm font-normal text-foreground focus:border-secondary focus:outline-none transition-all appearance-none cursor-pointer";
 
 const textareaPillClass =
-  "w-full rounded-3xl border border-foreground/15 bg-background/60 p-4 text-sm font-normal text-foreground placeholder:text-foreground/35 placeholder:font-thin focus:border-secondary focus:outline-none transition-all";
+  "w-full rounded-3xl border border-foreground/15 bg-background/60 p-4 text-base md:text-sm font-normal text-foreground placeholder:text-foreground/35 placeholder:font-thin focus:border-secondary focus:outline-none transition-all";
 
 function LanguageSwitch({
   lang,
@@ -240,6 +240,15 @@ export function BrandDiscoveryPage() {
   const [step, setStep] = useState<"form" | "moodboard" | "pickone" | "summary">("form");
 
   const submittedRef = useRef(false);
+  const formTopRef = useRef<HTMLDivElement>(null);
+
+  // Auto scroll to top on step transition or pair change
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+    if (formTopRef.current) {
+      formTopRef.current.scrollIntoView({ behavior: "instant", block: "start" });
+    }
+  }, [step, currentPairIndex]);
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
@@ -668,6 +677,7 @@ export function BrandDiscoveryPage() {
 
   return (
     <div
+      ref={formTopRef}
       className={`mx-auto flex min-h-[calc(100dvh-3.5rem)] w-full max-w-4xl flex-col justify-center px-4 py-12 md:px-8 ${
         isFa ? "font-farsi" : ""
       }`}
@@ -1043,7 +1053,7 @@ export function BrandDiscoveryPage() {
             </div>
 
             {/* Next Step Button */}
-            <div className="flex justify-end">
+            <div className="flex w-full items-center justify-center sm:justify-end">
               <button
                 type="submit"
                 disabled={!formData.brandNameFa.trim() && !formData.brandNameEn.trim()}
@@ -1134,13 +1144,12 @@ export function BrandDiscoveryPage() {
             })}
           </div>
 
-          {/* Navigation Controls */}
-          <div className="mt-10 flex items-center justify-between border-t border-foreground/10 pt-6">
+          {/* Navigation Controls: Stacked vertically & centered on mobile, side-by-side on desktop */}
+          <div className="mt-10 flex flex-col-reverse sm:flex-row items-center justify-center sm:justify-between gap-3.5 w-full border-t border-foreground/10 pt-6">
             <button
               type="button"
               onClick={() => {
                 setStep("form");
-                window.scrollTo({ top: 0, behavior: "smooth" });
               }}
               className={actionBtnClass}
             >
@@ -1209,31 +1218,31 @@ export function BrandDiscoveryPage() {
             </div>
           </div>
 
-          {/* Options Grid: Option A vs Option B (Bigger cards on desktop, balanced on mobile) */}
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+          {/* Options Grid: Option A vs Option B (Side-by-side on phones so both fit on screen simultaneously, spacious on desktop) */}
+          <div className="grid grid-cols-2 gap-2.5 sm:gap-4 md:gap-6">
             {/* Option A */}
             <div
               onClick={() => handleSelectChoice("A")}
-              className="group relative flex cursor-pointer flex-col items-center rounded-3xl border border-foreground/15 bg-background p-6 md:p-8 text-center transition-all duration-300 hover:border-secondary hover:shadow-[0_0_25px_color-mix(in_oklab,var(--secondary)_20%,transparent)]"
+              className="group relative flex cursor-pointer flex-col items-center rounded-2xl md:rounded-3xl border border-foreground/15 bg-background p-3 sm:p-5 md:p-8 text-center transition-all duration-300 hover:border-secondary hover:shadow-[0_0_25px_color-mix(in_oklab,var(--secondary)_20%,transparent)]"
             >
-              <div className="mb-4 rounded-full border border-foreground/10 bg-foreground/5 px-5 py-1.5 text-xs font-semibold uppercase tracking-wider text-foreground/80">
-                {isFa ? "گزینه الف (Option A)" : "Option A"}
+              <div className="mb-2 sm:mb-4 rounded-full border border-foreground/10 bg-foreground/5 px-2.5 sm:px-5 py-1 text-[11px] sm:text-xs font-semibold uppercase tracking-wider text-foreground/80">
+                {isFa ? "گزینه الف (A)" : "Option A"}
               </div>
 
-              <div className="my-2 flex h-64 md:h-80 w-full items-center justify-center overflow-hidden rounded-2xl border border-foreground/10 bg-foreground/[0.02]">
+              <div className="my-1 sm:my-2 flex h-28 sm:h-48 md:h-80 w-full items-center justify-center overflow-hidden rounded-xl md:rounded-2xl border border-foreground/10 bg-foreground/[0.02]">
                 <img
                   src={COUPLED_LOGO_PAIRS[currentPairIndex].optionA.image}
                   alt={COUPLED_LOGO_PAIRS[currentPairIndex].optionA.brand}
-                  className="max-h-full max-w-full object-contain p-4 md:p-6 transition-transform duration-500 group-hover:scale-105"
+                  className="max-h-full max-w-full object-contain p-2 sm:p-4 md:p-6 transition-transform duration-500 group-hover:scale-105"
                 />
               </div>
 
-              <div className="mt-6 w-full">
+              <div className="mt-2 sm:mt-4 md:mt-6 w-full">
                 <button
                   type="button"
-                  className="w-full h-12 rounded-full border border-[#EFEFEF] bg-transparent text-sm font-medium text-[#EFEFEF] transition-all duration-300 group-hover:border-transparent group-hover:bg-secondary group-hover:text-secondary-foreground"
+                  className="w-full h-9 sm:h-11 md:h-12 px-2 sm:px-4 rounded-full border border-[#EFEFEF] bg-transparent text-xs sm:text-sm font-medium text-[#EFEFEF] transition-all duration-300 group-hover:border-transparent group-hover:bg-secondary group-hover:text-secondary-foreground"
                 >
-                  {isFa ? "انتخاب این سبک (گزینه الف)" : "Select This Style (Option A)"}
+                  {isFa ? "انتخاب این سبک" : "Select Style"}
                 </button>
               </div>
             </div>
@@ -1241,33 +1250,33 @@ export function BrandDiscoveryPage() {
             {/* Option B */}
             <div
               onClick={() => handleSelectChoice("B")}
-              className="group relative flex cursor-pointer flex-col items-center rounded-3xl border border-foreground/15 bg-background p-6 md:p-8 text-center transition-all duration-300 hover:border-secondary hover:shadow-[0_0_25px_color-mix(in_oklab,var(--secondary)_20%,transparent)]"
+              className="group relative flex cursor-pointer flex-col items-center rounded-2xl md:rounded-3xl border border-foreground/15 bg-background p-3 sm:p-5 md:p-8 text-center transition-all duration-300 hover:border-secondary hover:shadow-[0_0_25px_color-mix(in_oklab,var(--secondary)_20%,transparent)]"
             >
-              <div className="mb-4 rounded-full border border-foreground/10 bg-foreground/5 px-5 py-1.5 text-xs font-semibold uppercase tracking-wider text-foreground/80">
-                {isFa ? "گزینه ب (Option B)" : "Option B"}
+              <div className="mb-2 sm:mb-4 rounded-full border border-foreground/10 bg-foreground/5 px-2.5 sm:px-5 py-1 text-[11px] sm:text-xs font-semibold uppercase tracking-wider text-foreground/80">
+                {isFa ? "گزینه ب (B)" : "Option B"}
               </div>
 
-              <div className="my-2 flex h-64 md:h-80 w-full items-center justify-center overflow-hidden rounded-2xl border border-foreground/10 bg-foreground/[0.02]">
+              <div className="my-1 sm:my-2 flex h-28 sm:h-48 md:h-80 w-full items-center justify-center overflow-hidden rounded-xl md:rounded-2xl border border-foreground/10 bg-foreground/[0.02]">
                 <img
                   src={COUPLED_LOGO_PAIRS[currentPairIndex].optionB.image}
                   alt={COUPLED_LOGO_PAIRS[currentPairIndex].optionB.brand}
-                  className="max-h-full max-w-full object-contain p-4 md:p-6 transition-transform duration-500 group-hover:scale-105"
+                  className="max-h-full max-w-full object-contain p-2 sm:p-4 md:p-6 transition-transform duration-500 group-hover:scale-105"
                 />
               </div>
 
-              <div className="mt-6 w-full">
+              <div className="mt-2 sm:mt-4 md:mt-6 w-full">
                 <button
                   type="button"
-                  className="w-full h-12 rounded-full border border-[#EFEFEF] bg-transparent text-sm font-medium text-[#EFEFEF] transition-all duration-300 group-hover:border-transparent group-hover:bg-secondary group-hover:text-secondary-foreground"
+                  className="w-full h-9 sm:h-11 md:h-12 px-2 sm:px-4 rounded-full border border-[#EFEFEF] bg-transparent text-xs sm:text-sm font-medium text-[#EFEFEF] transition-all duration-300 group-hover:border-transparent group-hover:bg-secondary group-hover:text-secondary-foreground"
                 >
-                  {isFa ? "انتخاب این سبک (گزینه ب)" : "Select This Style (Option B)"}
+                  {isFa ? "انتخاب این سبک" : "Select Style"}
                 </button>
               </div>
             </div>
           </div>
 
-          {/* Navigation Controls */}
-          <div className="mt-8 flex items-center justify-between">
+          {/* Navigation Controls: Centered on mobile */}
+          <div className="mt-8 flex w-full items-center justify-center sm:justify-start">
             <button type="button" onClick={handlePrevPickOne} className={actionBtnClass}>
               {isFa ? <ArrowRight className="h-4 w-4" /> : <ArrowLeft className="h-4 w-4" />}
               <span>{isFa ? "مرحله قبل: مودبورد" : "Back: Moodboard"}</span>
@@ -1371,8 +1380,8 @@ export function BrandDiscoveryPage() {
               </div>
             )}
 
-            {/* Actions */}
-            <div className="mt-4 flex flex-wrap items-center justify-between gap-4 border-t border-foreground/10 pt-6">
+            {/* Actions: Centered and stacked on mobile, spaced on desktop */}
+            <div className="mt-4 flex flex-col sm:flex-row items-center justify-center sm:justify-between gap-4 border-t border-foreground/10 pt-6 w-full">
               <button
                 type="button"
                 onClick={handleDownloadPdf}
@@ -1385,7 +1394,7 @@ export function BrandDiscoveryPage() {
               <button
                 type="button"
                 onClick={handleReset}
-                className="flex items-center gap-1.5 text-xs text-foreground/50 hover:text-foreground transition-colors cursor-pointer"
+                className="flex items-center justify-center gap-1.5 text-xs text-foreground/50 hover:text-foreground transition-colors cursor-pointer py-2"
               >
                 <RotateCcw className="h-3.5 w-3.5" />
                 <span>{isFa ? "تکمیل مجدد فرم" : "Start New Form"}</span>
