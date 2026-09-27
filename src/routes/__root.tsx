@@ -229,7 +229,7 @@ function Header() {
             </Link>
             <WorksDropdown active={worksActive} />
             <Link to="/brand-discovery" style={navFont} className={navLinkClass}>
-              Brand Discovery
+              Visual Identity Form
             </Link>
             <Link to="/about" style={navFont} className={navLinkClass}>
               About
@@ -359,7 +359,7 @@ function MobileNav() {
               onClick={() => setOpen(false)}
               className="font-display text-2xl font-normal text-foreground transition-transform hover:scale-105 data-[status=active]:font-bold data-[status=active]:text-secondary"
             >
-              Brand Discovery
+              Visual Identity Form
             </Link>
 
             <Link

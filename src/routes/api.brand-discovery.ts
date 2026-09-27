@@ -6,7 +6,7 @@ export const Route = createFileRoute("/api/brand-discovery")({
       POST: async ({ request }) => {
         try {
           const body = await request.json();
-          const { brandName, contactInfo, archetypeTitle, archetypeDesc, selections, pdfBase64 } = body;
+          const { brandName, contactInfo, selections, pdfBase64, chosenImages } = body;
 
           // Check for Telegram environment variables
           const botToken =
@@ -30,23 +30,21 @@ export const Route = createFileRoute("/api/brand-discovery")({
             );
           }
 
-          // Format Telegram message
-          let message = `🎯 *New Brand Discovery Submission*\n\n`;
+          // 1. Format clean Q&A Telegram summary message
+          let message = `📋 *Visual Identity Form Submission*\n\n`;
           message += `🏷️ *Brand Name:* ${brandName || "Not provided"}\n`;
           if (contactInfo) {
             message += `👤 *Contact / Notes:* ${contactInfo}\n`;
           }
-          message += `✨ *Vibe Archetype:* ${archetypeTitle}\n`;
-          message += `📝 *Summary:* ${archetypeDesc}\n\n`;
-          message += `📊 *Stylistic Choices:*\n`;
+          message += `\n*Question & Answer Choices:*\n`;
 
           if (Array.isArray(selections)) {
             selections.forEach((s: any, idx: number) => {
-              message += `${idx + 1}. *${s.dimension}:* Option ${s.choice} (${s.selectedOption})\n`;
+              message += `*Q${idx + 1}:* Option ${s.choice}\n`;
             });
           }
 
-          // 1. Send Text message to Telegram
+          // Send Text message to Telegram
           const textUrl = `https://api.telegram.org/bot${botToken}/sendMessage`;
           await fetch(textUrl, {
             method: "POST",
@@ -58,11 +56,43 @@ export const Route = createFileRoute("/api/brand-discovery")({
             }),
           });
 
-          // 2. If PDF base64 is provided, send as document
+          // 2. Send low-quality chosen logo photos to Telegram as a media group / photos
+          if (Array.isArray(chosenImages) && chosenImages.length > 0) {
+            // We can send each chosen photo or as a media group
+            // Send photos with captions
+            for (let i = 0; i < chosenImages.length; i++) {
+              const imgItem = chosenImages[i];
+              if (!imgItem || !imgItem.base64) continue;
+
+              try {
+                const photoDocUrl = `https://api.telegram.org/bot${botToken}/sendPhoto`;
+                const binaryString = atob(imgItem.base64.split(",")[1] || imgItem.base64);
+                const bytes = new Uint8Array(binaryString.length);
+                for (let j = 0; j < binaryString.length; j++) {
+                  bytes[j] = binaryString.charCodeAt(j);
+                }
+                const photoBlob = new Blob([bytes], { type: "image/jpeg" });
+                const photoData = new FormData();
+                photoData.append("chat_id", chatId);
+                photoData.append(
+                  "caption",
+                  `Q${i + 1} Selected Aesthetic: Option ${imgItem.choice}`
+                );
+                photoData.append("photo", photoBlob, `q${i + 1}-option-${imgItem.choice}.jpg`);
+
+                await fetch(photoDocUrl, {
+                  method: "POST",
+                  body: photoData,
+                });
+              } catch (photoErr) {
+                console.error(`Failed to send photo for Q${i + 1}:`, photoErr);
+              }
+            }
+          }
+
+          // 3. Send PDF Document
           if (pdfBase64) {
             const docUrl = `https://api.telegram.org/bot${botToken}/sendDocument`;
-            
-            // Convert base64 to binary byte array for FormData
             const binaryString = atob(pdfBase64);
             const bytes = new Uint8Array(binaryString.length);
             for (let i = 0; i < binaryString.length; i++) {
@@ -73,12 +103,12 @@ export const Route = createFileRoute("/api/brand-discovery")({
             formData.append("chat_id", chatId);
             formData.append(
               "caption",
-              `📄 Brand Vibe Discovery Report — ${brandName || "Brand"}`
+              `📄 Visual Identity Form — ${brandName || "Brand"}`
             );
             formData.append(
               "document",
               blob,
-              `${(brandName || "brand-vibe").toLowerCase().replace(/[^a-z0-9]+/g, "-")}-discovery-report.pdf`
+              `${(brandName || "visual-identity").toLowerCase().replace(/[^a-z0-9]+/g, "-")}-form.pdf`
             );
 
             await fetch(docUrl, {
