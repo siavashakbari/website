@@ -120,16 +120,6 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         { rel: "icon", href: "/favicon.svg", type: "image/svg+xml" },
         { rel: "apple-touch-icon", href: "/favicon.svg" },
         { rel: "manifest", href: "/site.webmanifest" },
-        { rel: "preconnect", href: "https://fonts.googleapis.com" },
-        {
-          rel: "preconnect",
-          href: "https://fonts.gstatic.com",
-          crossOrigin: "anonymous",
-        },
-        {
-          rel: "stylesheet",
-          href: "https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,900&display=swap",
-        },
         {
           rel: "preload",
           href: satoshiMedium,

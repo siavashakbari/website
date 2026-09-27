@@ -90,4 +90,8 @@ export default defineConfig({
     }),
     viteReact(),
   ],
+  build: {
+    chunkSizeWarningLimit: 1000,
+    cssMinify: true,
+  },
 });
