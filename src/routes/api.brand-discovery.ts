@@ -86,35 +86,49 @@ export const Route = createFileRoute("/api/brand-discovery")({
             }),
           });
 
-          // 2. Send low-quality chosen logo photos to Telegram
+          // 2. Send grouped photos (sendMediaGroup) to Telegram (up to 10 photos in 1 message)
           if (Array.isArray(chosenImages) && chosenImages.length > 0) {
-            for (let i = 0; i < chosenImages.length; i++) {
-              const imgItem = chosenImages[i];
-              if (!imgItem || !imgItem.base64) continue;
+            try {
+              const mediaGroupUrl = `https://api.telegram.org/bot${botToken}/sendMediaGroup`;
+              const formMedia = new FormData();
+              formMedia.append("chat_id", chatId);
 
-              try {
-                const photoDocUrl = `https://api.telegram.org/bot${botToken}/sendPhoto`;
+              const mediaArray: any[] = [];
+
+              for (let i = 0; i < chosenImages.length; i++) {
+                const imgItem = chosenImages[i];
+                if (!imgItem || !imgItem.base64) continue;
+
+                const attachKey = `photo_${i}`;
                 const binaryString = atob(imgItem.base64.split(",")[1] || imgItem.base64);
                 const bytes = new Uint8Array(binaryString.length);
                 for (let j = 0; j < binaryString.length; j++) {
                   bytes[j] = binaryString.charCodeAt(j);
                 }
                 const photoBlob = new Blob([bytes], { type: "image/jpeg" });
-                const photoData = new FormData();
-                photoData.append("chat_id", chatId);
-                photoData.append(
-                  "caption",
-                  `جفت ${i + 1} / Pair ${i + 1} — انتخابی: Option ${imgItem.choice}`
-                );
-                photoData.append("photo", photoBlob, `pair-${i + 1}-option-${imgItem.choice}.jpg`);
 
-                await fetch(photoDocUrl, {
-                  method: "POST",
-                  body: photoData,
+                formMedia.append(attachKey, photoBlob, `${attachKey}.jpg`);
+
+                mediaArray.push({
+                  type: "photo",
+                  media: `attach://${attachKey}`,
+                  caption:
+                    i === 0
+                      ? `Preferred Aesthetics — جفت ۱ تا ${chosenImages.length}`
+                      : `جفت ${i + 1}: Option ${imgItem.choice}`,
                 });
-              } catch (photoErr) {
-                console.error(`Failed to send photo for pair ${i + 1}:`, photoErr);
               }
+
+              if (mediaArray.length > 0) {
+                formMedia.append("media", JSON.stringify(mediaArray));
+
+                await fetch(mediaGroupUrl, {
+                  method: "POST",
+                  body: formMedia,
+                });
+              }
+            } catch (mediaErr) {
+              console.error("Failed to send grouped media to Telegram:", mediaErr);
             }
           }
 
