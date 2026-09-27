@@ -19,15 +19,10 @@ import coupled_8_B from "@/assets/visual-identity/coupled-logos/Metamask-3DFille
 import coupled_9_A from "@/assets/visual-identity/coupled-logos/Webflow-Sanserif.png";
 import coupled_9_B from "@/assets/visual-identity/coupled-logos/Wordpress-Serif.png";
 
-// Imports for 40 Moodboard Images
-import mbImg_1 from "@/assets/visual-identity/moodboard/mb_01.png";
-import mbImg_2 from "@/assets/visual-identity/moodboard/mb_02.png";
-import mbImg_3 from "@/assets/visual-identity/moodboard/mb_03.jpg";
-import mbImg_4 from "@/assets/visual-identity/moodboard/mb_04.jpg";
+// Imports for 35 Curated Moodboard Images (Excluded 5 cropped items: #1, #2, #3, #4, #8)
 import mbImg_5 from "@/assets/visual-identity/moodboard/mb_05.jpg";
 import mbImg_6 from "@/assets/visual-identity/moodboard/mb_06.jpg";
 import mbImg_7 from "@/assets/visual-identity/moodboard/mb_07.jpg";
-import mbImg_8 from "@/assets/visual-identity/moodboard/mb_08.png";
 import mbImg_9 from "@/assets/visual-identity/moodboard/mb_09.png";
 import mbImg_10 from "@/assets/visual-identity/moodboard/mb_10.png";
 import mbImg_11 from "@/assets/visual-identity/moodboard/mb_11.png";
@@ -229,45 +224,41 @@ export interface MoodboardItem {
   originalName: string;
 }
 
+// 35 clean uncropped logos (5 cropped logos removed: Metro Goldwyn Mayer, Disney, Prada, black IBM, Joji)
 export const MOODBOARD_GRID_IMAGES: MoodboardItem[] = [
-  { id: 1, image: mbImg_1, originalName: "IMG_5372.PNG" },
-  { id: 2, image: mbImg_2, originalName: "IMG_5373.PNG" },
-  { id: 3, image: mbImg_3, originalName: "IMG_5375.JPG" },
-  { id: 4, image: mbImg_4, originalName: "IMG_5379.JPG" },
-  { id: 5, image: mbImg_5, originalName: "IMG_5384.HEIC" },
-  { id: 6, image: mbImg_6, originalName: "IMG_5386.HEIC" },
-  { id: 7, image: mbImg_7, originalName: "IMG_5390.HEIC" },
-  { id: 8, image: mbImg_8, originalName: "Screenshot 2026-02-25 152519.png" },
-  { id: 9, image: mbImg_9, originalName: "Screenshot 2026-09-27 133146.png" },
-  { id: 10, image: mbImg_10, originalName: "Screenshot 2026-09-27 133936.png" },
-  { id: 11, image: mbImg_11, originalName: "Screenshot 2026-09-27 133945.png" },
-  { id: 12, image: mbImg_12, originalName: "Screenshot 2026-09-27 133954.png" },
-  { id: 13, image: mbImg_13, originalName: "Screenshot 2026-09-27 134004.png" },
-  { id: 14, image: mbImg_14, originalName: "Screenshot 2026-09-27 134008.png" },
-  { id: 15, image: mbImg_15, originalName: "Screenshot 2026-09-27 134015.png" },
-  { id: 16, image: mbImg_16, originalName: "Screenshot 2026-09-27 134037.png" },
-  { id: 17, image: mbImg_17, originalName: "Screenshot 2026-09-27 134119.png" },
-  { id: 18, image: mbImg_18, originalName: "Screenshot 2026-09-27 143131.png" },
-  { id: 19, image: mbImg_19, originalName: "Screenshot 2026-09-27 143137.png" },
-  { id: 20, image: mbImg_20, originalName: "Screenshot 2026-09-27 143157.png" },
-  { id: 21, image: mbImg_21, originalName: "Screenshot 2026-09-27 143211.png" },
-  { id: 22, image: mbImg_22, originalName: "Screenshot 2026-09-27 143219.png" },
-  { id: 23, image: mbImg_23, originalName: "Screenshot 2026-09-27 143242.png" },
-  { id: 24, image: mbImg_24, originalName: "Screenshot 2026-09-27 143259.png" },
-  { id: 25, image: mbImg_25, originalName: "Screenshot 2026-09-27 143306.png" },
-  { id: 26, image: mbImg_26, originalName: "Screenshot 2026-09-27 143314.png" },
-  { id: 27, image: mbImg_27, originalName: "Screenshot 2026-09-27 143335.png" },
-  { id: 28, image: mbImg_28, originalName: "Screenshot 2026-09-27 143357.png" },
-  { id: 29, image: mbImg_29, originalName: "Screenshot 2026-09-27 143450.png" },
-  { id: 30, image: mbImg_30, originalName: "Screenshot 2026-09-27 143515.png" },
-  { id: 31, image: mbImg_31, originalName: "Screenshot 2026-09-27 145522.png" },
-  { id: 32, image: mbImg_32, originalName: "Screenshot 2026-09-27 150220.png" },
-  { id: 33, image: mbImg_33, originalName: "Screenshot 2026-09-27 150238.png" },
-  { id: 34, image: mbImg_34, originalName: "Screenshot 2026-09-27 150425.png" },
-  { id: 35, image: mbImg_35, originalName: "Screenshot 2026-09-27 150434.png" },
-  { id: 36, image: mbImg_36, originalName: "Screenshot 2026-09-27 150446.png" },
-  { id: 37, image: mbImg_37, originalName: "Screenshot 2026-09-27 150527.png" },
-  { id: 38, image: mbImg_38, originalName: "Screenshot 2026-09-27 150538.png" },
-  { id: 39, image: mbImg_39, originalName: "Screenshot 2026-09-27 150559.png" },
-  { id: 40, image: mbImg_40, originalName: "Screenshot 2026-09-27 150705.png" },
+  { id: 1, image: mbImg_5, originalName: "IMG_5384.HEIC" },
+  { id: 2, image: mbImg_6, originalName: "IMG_5386.HEIC" },
+  { id: 3, image: mbImg_7, originalName: "IMG_5390.HEIC" },
+  { id: 4, image: mbImg_9, originalName: "Screenshot 2026-09-27 133146.png" },
+  { id: 5, image: mbImg_10, originalName: "Screenshot 2026-09-27 133936.png" },
+  { id: 6, image: mbImg_11, originalName: "Screenshot 2026-09-27 133945.png" },
+  { id: 7, image: mbImg_12, originalName: "Screenshot 2026-09-27 133954.png" },
+  { id: 8, image: mbImg_13, originalName: "Screenshot 2026-09-27 134004.png" },
+  { id: 9, image: mbImg_14, originalName: "Screenshot 2026-09-27 134008.png" },
+  { id: 10, image: mbImg_15, originalName: "Screenshot 2026-09-27 134015.png" },
+  { id: 11, image: mbImg_16, originalName: "Screenshot 2026-09-27 134037.png" },
+  { id: 12, image: mbImg_17, originalName: "Screenshot 2026-09-27 134119.png" },
+  { id: 13, image: mbImg_18, originalName: "Screenshot 2026-09-27 143131.png" },
+  { id: 14, image: mbImg_19, originalName: "Screenshot 2026-09-27 143137.png" },
+  { id: 15, image: mbImg_20, originalName: "Screenshot 2026-09-27 143157.png" },
+  { id: 16, image: mbImg_21, originalName: "Screenshot 2026-09-27 143211.png" },
+  { id: 17, image: mbImg_22, originalName: "Screenshot 2026-09-27 143219.png" },
+  { id: 18, image: mbImg_23, originalName: "Screenshot 2026-09-27 143242.png" },
+  { id: 19, image: mbImg_24, originalName: "Screenshot 2026-09-27 143259.png" },
+  { id: 20, image: mbImg_25, originalName: "Screenshot 2026-09-27 143306.png" },
+  { id: 21, image: mbImg_26, originalName: "Screenshot 2026-09-27 143314.png" },
+  { id: 22, image: mbImg_27, originalName: "Screenshot 2026-09-27 143335.png" },
+  { id: 23, image: mbImg_28, originalName: "Screenshot 2026-09-27 143357.png" },
+  { id: 24, image: mbImg_29, originalName: "Screenshot 2026-09-27 143450.png" },
+  { id: 25, image: mbImg_30, originalName: "Screenshot 2026-09-27 143515.png" },
+  { id: 26, image: mbImg_31, originalName: "Screenshot 2026-09-27 145522.png" },
+  { id: 27, image: mbImg_32, originalName: "Screenshot 2026-09-27 150220.png" },
+  { id: 28, image: mbImg_33, originalName: "Screenshot 2026-09-27 150238.png" },
+  { id: 29, image: mbImg_34, originalName: "Screenshot 2026-09-27 150425.png" },
+  { id: 30, image: mbImg_35, originalName: "Screenshot 2026-09-27 150434.png" },
+  { id: 31, image: mbImg_36, originalName: "Screenshot 2026-09-27 150446.png" },
+  { id: 32, image: mbImg_37, originalName: "Screenshot 2026-09-27 150527.png" },
+  { id: 33, image: mbImg_38, originalName: "Screenshot 2026-09-27 150538.png" },
+  { id: 34, image: mbImg_39, originalName: "Screenshot 2026-09-27 150559.png" },
+  { id: 35, image: mbImg_40, originalName: "Screenshot 2026-09-27 150705.png" },
 ];

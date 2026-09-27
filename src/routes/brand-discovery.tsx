@@ -12,11 +12,17 @@ import {
 import { jsPDF } from "jspdf";
 import { pageHead } from "@/lib/seo";
 
-// Visual identity curated assets: 9 coupled pairs & 40 moodboard items
+// Visual identity curated assets: 9 coupled pairs & 35 moodboard items
 import {
   COUPLED_LOGO_PAIRS,
   MOODBOARD_GRID_IMAGES,
 } from "@/data/visual-identity-assets";
+import { PEYDA_BASE64 } from "@/assets/fonts/peyda/peyda-base64";
+
+// Helper to detect RTL characters (Farsi / Arabic)
+function hasRTL(text: string): boolean {
+  return /[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]/.test(text);
+}
 
 export const Route = createFileRoute("/brand-discovery")({
   head: () =>
@@ -327,6 +333,15 @@ export function BrandDiscoveryPage() {
       format: "a4",
     });
 
+    // Register Peyda font into jsPDF VFS for genuine Farsi/Persian support
+    try {
+      doc.addFileToVFS("Peyda-Regular.ttf", PEYDA_BASE64);
+      doc.addFont("Peyda-Regular.ttf", "Peyda", "normal");
+      doc.setLanguage("fa");
+    } catch (fontErr) {
+      console.error("Could not register Peyda font in jsPDF", fontErr);
+    }
+
     const primaryColor = [15, 15, 15]; // #0F0F0F
 
     // Header bar (Height 42mm)
@@ -381,16 +396,39 @@ export function BrandDiscoveryPage() {
         doc.addPage();
         currentY = 20;
       }
+
+      // Print English Label on the left
       doc.setFont("helvetica", "bold");
       doc.setFontSize(9);
       doc.setTextColor(50, 50, 50);
       doc.text(`${label}:`, 18, currentY);
 
-      doc.setFont("helvetica", "normal");
-      doc.setTextColor(80, 80, 80);
-      const lines = doc.splitTextToSize(value, 125);
-      doc.text(lines, 68, currentY);
-      currentY += Math.max(lines.length * 4.5, 6);
+      // Print Value: use Peyda font and processArabic if Farsi/Arabic characters are detected
+      const isPersian = hasRTL(value);
+      if (isPersian) {
+        doc.setFont("Peyda", "normal");
+        doc.setFontSize(9);
+        doc.setTextColor(60, 60, 60);
+
+        try {
+          const shaped = doc.processArabic(value);
+          const lines = doc.splitTextToSize(shaped, 125);
+          for (let i = 0; i < lines.length; i++) {
+            doc.text(lines[i], 195, currentY + i * 4.8, { align: "right" });
+          }
+          currentY += Math.max(lines.length * 4.8, 6);
+        } catch {
+          doc.text(value, 195, currentY, { align: "right" });
+          currentY += 6;
+        }
+      } else {
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(9);
+        doc.setTextColor(80, 80, 80);
+        const lines = doc.splitTextToSize(value, 125);
+        doc.text(lines, 68, currentY);
+        currentY += Math.max(lines.length * 4.5, 6);
+      }
     };
 
     // SECTION 1: QUESTIONNAIRE
@@ -473,52 +511,62 @@ export function BrandDiscoveryPage() {
       currentY += mbHeight + 6;
     }
 
-    // SECTION 3: PICK ONE / PREFERRED AESTHETICS
+    // SECTION 3: PICK ONE / PREFERRED AESTHETICS (Exactly 3 Columns)
     if (selections.length > 0) {
-      if (currentY > 220) {
+      if (currentY > 200) {
         doc.addPage();
         currentY = 20;
       }
       addSectionTitle("SECTION 3: PREFERRED AESTHETICS (COUPLED LOGO SELECTIONS)");
       currentY += 2;
 
-      const imgWidth = 30;
-      const imgHeight = 30;
-      const gap = 6;
-      let xOffset = 18;
+      // 3 columns layout: 180mm content width / 3 cols = 54mm width each + 9mm gap
+      const colWidth = 54;
+      const colGap = 9;
+      const imgHeight = 44;
+      const cardHeight = imgHeight + 10;
+      const startX = 15;
 
       for (let i = 0; i < selections.length; i++) {
-        const s = selections[i];
-        if (xOffset + imgWidth > 195) {
-          xOffset = 18;
-          currentY += imgHeight + 9;
-          if (currentY > 255) {
+        const colIndex = i % 3;
+        if (colIndex === 0 && i > 0) {
+          currentY += cardHeight + 4;
+          if (currentY > 240) {
             doc.addPage();
             currentY = 20;
           }
         }
 
+        const s = selections[i];
+        const xOffset = startX + colIndex * (colWidth + colGap);
+
         try {
           const base64Data = await getLowQualityBase64(s.imageSrc);
           if (base64Data) {
-            doc.addImage(base64Data, "JPEG", xOffset, currentY, imgWidth, imgHeight);
-            doc.setFontSize(7.5);
-            doc.setFont("helvetica", "bold");
-            doc.setTextColor(50, 50, 50);
+            // Draw neat border frame for each aesthetic card
+            doc.setDrawColor(230, 230, 230);
+            doc.setFillColor(252, 252, 252);
+            doc.roundedRect(xOffset, currentY, colWidth, cardHeight, 2, 2, "FD");
 
-            // User PDF: only brand name
-            // Admin PDF: brand name + strategic feeling
+            // Embed image within card
+            doc.addImage(base64Data, "JPEG", xOffset + 3, currentY + 3, colWidth - 6, imgHeight - 6);
+
+            // Label text below image
+            doc.setFontSize(8);
+            doc.setFont("helvetica", "bold");
+            doc.setTextColor(40, 40, 40);
+
             const labelText = isAdmin
               ? `Pair ${s.pairId}: ${s.chosenBrand} (${s.chosenFeeling})`
               : `Pair ${s.pairId}: ${s.chosenBrand}`;
 
-            doc.text(labelText, xOffset, currentY + imgHeight + 4);
+            doc.text(labelText, xOffset + colWidth / 2, currentY + imgHeight + 5, { align: "center" });
           }
         } catch (e) {
           console.error(e);
         }
-        xOffset += imgWidth + gap;
       }
+      currentY += cardHeight + 8;
     }
 
     // Footer on all pages
@@ -1043,8 +1091,8 @@ export function BrandDiscoveryPage() {
             </div>
           </div>
 
-          {/* 5 columns x 8 rows Grid (40 images) */}
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+          {/* 4 columns Grid (35 images) */}
+          <div className="grid grid-cols-2 gap-3.5 sm:grid-cols-3 md:grid-cols-4">
             {MOODBOARD_GRID_IMAGES.map((item, idx) => {
               const isSelected = selectedMoodboardIndices.includes(idx);
               const isLimitReached = selectedMoodboardIndices.length >= 15 && !isSelected;
@@ -1061,12 +1109,14 @@ export function BrandDiscoveryPage() {
                       : "border-foreground/15 bg-background hover:border-secondary/60 hover:shadow-lg"
                   }`}
                 >
-                  <img
-                    src={item.image}
-                    alt={item.title}
-                    className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                    loading="lazy"
-                  />
+                  <div className="flex h-full w-full items-center justify-center p-3.5">
+                    <img
+                      src={item.image}
+                      alt={item.originalName}
+                      className="max-h-full max-w-full object-contain transition-transform duration-500 group-hover:scale-105"
+                      loading="lazy"
+                    />
+                  </div>
 
                   {/* Corner Checkmark Badge */}
                   {isSelected && (
@@ -1299,20 +1349,20 @@ export function BrandDiscoveryPage() {
                 <h3 className={`mb-3 text-base font-bold text-foreground ${isFa ? "font-farsi" : "font-display"}`}>
                   {isFa ? "گزینه‌های انتخابی شما (Preferred Aesthetics)" : "Your Selected Aesthetics (Pick One)"}
                 </h3>
-                <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-5">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
                   {selections.map((s) => (
                     <div
                       key={s.pairId}
-                      className="flex flex-col items-center rounded-2xl border border-foreground/10 bg-foreground/[0.02] p-2"
+                      className="flex flex-col items-center rounded-2xl border border-foreground/10 bg-foreground/[0.02] p-4"
                     >
-                      <div className="flex h-20 w-full items-center justify-center overflow-hidden">
+                      <div className="flex h-28 w-full items-center justify-center overflow-hidden">
                         <img
                           src={s.imageSrc}
                           alt={s.chosenBrand}
                           className="max-h-full max-w-full object-contain"
                         />
                       </div>
-                      <span className="mt-1 text-[11px] font-medium text-foreground/70">
+                      <span className="mt-2 text-xs font-semibold text-foreground/80">
                         {isFa ? `جفت ${s.pairId}: ${s.chosenBrand}` : `Pair ${s.pairId}: ${s.chosenBrand}`}
                       </span>
                     </div>
