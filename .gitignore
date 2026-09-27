@@ -40,3 +40,4 @@ dist-ssr
 originals-hq/
 .recover-hq/
 
+.vercel/
