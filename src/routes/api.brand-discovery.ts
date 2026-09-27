@@ -39,79 +39,78 @@ export const Route = createFileRoute("/api/brand-discovery")({
             );
           }
 
-          // 1. Format clean detailed summary for Telegram (including ALL feelings)
-          const brandFa = formData?.brandNameFa || "-";
-          const brandEn = formData?.brandNameEn || "-";
-          const primaryLang = formData?.primaryLanguage || "-";
+          // ==========================================
+          // MESSAGE 1: Comprehensive Questionnaire
+          // ==========================================
+          const brandFa = formData?.brandNameFa?.trim() || "مشخص نشده";
+          const brandEn = formData?.brandNameEn?.trim() || "مشخص نشده";
+          const primaryLang = formData?.primaryLanguage?.trim() || "مشخص نشده";
+          const slogan = formData?.slogan?.trim() || "ندارد";
+          const activity = formData?.activity?.trim() || "مشخص نشده";
+          const nameHistory = formData?.nameHistory?.trim() || "مشخص نشده";
 
-          let message = `📋 *فرم طراحی هویت دیداری و لوگو*\n`;
-          message += `*Visual Identity Form Submission*\n\n`;
-
-          message += `*بخش ۱: اطلاعات پایه و هویت برند*\n`;
-          message += `• نام فارسی: ${brandFa}\n`;
-          message += `• English Name: ${brandEn}\n`;
-          message += `• زبان اولویت: ${primaryLang}\n`;
-          if (formData?.slogan) message += `• شعار برند: ${formData.slogan}\n`;
-          if (formData?.activity) message += `• حوزه فعالیت: ${formData.activity}\n`;
-          if (formData?.nameHistory) message += `• تاریخچه نام: ${formData.nameHistory}\n`;
-
-          // Mascot
-          message += `• درخواست مسکات: ${formData?.wantMascot ? "بله (Yes)" : "خیر (No)"}\n`;
-          if (formData?.wantMascot && formData?.mascotDescription) {
-            message += `• توضیحات مسکات: ${formData.mascotDescription}\n`;
+          let mascotAnswer = "خیر";
+          if (formData?.wantMascot) {
+            mascotAnswer = formData?.mascotDescription?.trim()
+              ? `بله — ${formData.mascotDescription.trim()}`
+              : "بله";
           }
 
-          message += `\n*بخش ۲: مخاطبان هدف و بازار*\n`;
-          if (formData?.targetAudience) message += `• مخاطبان اصلی: ${formData.targetAudience}\n`;
-          if (formData?.competitors) message += `• رقبا: ${formData.competitors}\n`;
+          const targetAudience = formData?.targetAudience?.trim() || "مشخص نشده";
+          const competitors = formData?.competitors?.trim() || "مشخص نشده";
+          const brandAttributes = formData?.brandAttributes?.trim() || "مشخص نشده";
+          const favoriteForms = formData?.favoriteForms?.trim() || "مشخص نشده";
+          const layoutPreference = formData?.layoutPreference?.trim() || "مشخص نشده";
+          const mainApplications = formData?.mainApplications?.trim() || "مشخص نشده";
+          const scalability = formData?.scalability?.trim() || "مشخص نشده";
+          const forbiddenElements = formData?.forbiddenElements?.trim() || "موردی ذکر نشده است";
+          const additionalNotes = formData?.additionalNotes?.trim() || "موردی ذکر نشده است";
 
-          message += `\n*بخش ۳: سبک بصری و شخصیت برند*\n`;
-          if (formData?.brandAttributes) message += `• صفات برند: ${formData.brandAttributes}\n`;
-          if (formData?.favoriteForms) message += `• فرم‌های مورد علاقه نشان: ${formData.favoriteForms}\n`;
+          let message1 = `Section 1 : Comprehensive Questionnaire\n\n`;
 
-          message += `\n*بخش ۴: کاربردها و الزامات فنی*\n`;
-          if (formData?.layoutPreference) message += `• چیدمان دوزبانه: ${formData.layoutPreference}\n`;
-          if (formData?.mainApplications) message += `• کاربردهای اصلی: ${formData.mainApplications}\n`;
-          if (formData?.scalability) message += `• مقیاس‌پذیری: ${formData.scalability}\n`;
+          message1 += `Basic Information & Brand Identity\n`;
+          message1 += `[ نام برند به زبان فارسی ] = [ ${brandFa} ]\n`;
+          message1 += `[ نام برند به زبان انگلیسی ] = [ ${brandEn} ]\n`;
+          message1 += `[ اولویت با کدام زبان است؟ ] = [ ${primaryLang} ]\n`;
+          message1 += `[ شعار برند (Slogan / Tagline) ] = [ ${slogan} ]\n`;
+          message1 += `[ حوزه فعالیت و معرفی کوتاه ] = [ ${activity} ]\n`;
+          message1 += `[ تاریخچه‌ی نام ] = [ ${nameHistory} ]\n`;
+          message1 += `[ طراحی مسکات (کاراکتر برند) ] = [ ${mascotAnswer} ]\n\n`;
 
-          message += `\n*بخش ۵: خط قرمزها و سلایق خاص*\n`;
-          if (formData?.forbiddenElements) message += `• المان‌های ممنوعه: ${formData.forbiddenElements}\n`;
+          message1 += `Target Audience & Market\n`;
+          message1 += `[ مخاطبان اصلی چه کسانی هستند؟ ] = [ ${targetAudience} ]\n`;
+          message1 += `[ بررسی رقبا ] = [ ${competitors} ]\n\n`;
 
-          if (formData?.additionalNotes) {
-            message += `\n*بخش ۶: نکته جامانده یا توضیحات تکمیلی:*\n`;
-            message += `• ${formData.additionalNotes}\n`;
-          }
+          message1 += `Visual Style & Brand Personality\n`;
+          message1 += `[ صفات برند ] = [ ${brandAttributes} ]\n`;
+          message1 += `[ فرم‌های مورد علاقه برای نشان ] = [ ${favoriteForms} ]\n\n`;
 
-          message += `\n*بخش ۲ فرم: تصاویر انتخابی مودبورد (Moodboard):*\n`;
-          if (Array.isArray(selectedMoodboardIndices) && selectedMoodboardIndices.length > 0) {
-            message += `• تعداد تصاویر انتخابی: ${selectedMoodboardIndices.length} مورد (#${selectedMoodboardIndices.map((n: number) => n + 1).join(", #")})\n`;
-          } else {
-            message += `• موردی انتخاب نشده است.\n`;
-          }
+          message1 += `Technical Requirements & Applications\n`;
+          message1 += `[ نحوه چیدمان دو‌زبان ] = [ ${layoutPreference} ]\n`;
+          message1 += `[ کاربردهای اصلی لوگو ] = [ ${mainApplications} ]\n`;
+          message1 += `[ مقیاس‌پذیری ] = [ ${scalability} ]\n\n`;
 
-          message += `\n*بخش ۳ فرم: حس و استایل انتخابی جفت‌ها (Feelings & Preferences):*\n`;
-          if (Array.isArray(selections) && selections.length > 0) {
-            selections.forEach((s: any) => {
-              message += `• جفت ${s.pairId} (${s.folderCategory}): گزینه ${s.choice} [برند: ${s.chosenBrand}] -> *حس انتخابی: ${s.chosenFeeling}*\n`;
-            });
-          }
+          message1 += `Forbidden Elements & Boundaries\n`;
+          message1 += `[ المان‌های ممنوعه و خط قرمزها ] = [ ${forbiddenElements} ]\n\n`;
 
-          // Send Text message to Telegram
+          message1 += `Anything I missed ?\n`;
+          message1 += `[ نکته جامانده یا توضیحات تکمیلی ] = [ ${additionalNotes} ]`;
+
+          // Send Message 1
           const textUrl = `https://api.telegram.org/bot${botToken}/sendMessage`;
           await fetch(textUrl, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               chat_id: chatId,
-              text: message,
-              parse_mode: "Markdown",
+              text: message1,
             }),
           });
 
           // Helper to send photos in batches of max 10 via sendMediaGroup
           const sendPhotoBatch = async (
-            items: { base64: string; caption: string }[],
-            albumTitle: string
+            items: { base64: string; caption?: string }[],
+            albumCaption: string
           ) => {
             if (!items.length) return;
             for (let chunkIdx = 0; chunkIdx < items.length; chunkIdx += 10) {
@@ -139,10 +138,7 @@ export const Route = createFileRoute("/api/brand-discovery")({
                   mediaArray.push({
                     type: "photo",
                     media: `attach://${attachKey}`,
-                    caption:
-                      i === 0
-                        ? `${albumTitle} (عکس ${chunkIdx + 1} تا ${chunkIdx + chunk.length})`
-                        : item.caption,
+                    caption: i === 0 ? albumCaption : undefined,
                   });
                 }
 
@@ -159,27 +155,70 @@ export const Route = createFileRoute("/api/brand-discovery")({
             }
           };
 
-          // 2. Send Moodboard Selected Photos
+          // ==========================================
+          // MESSAGE 2: Grouped Moodboard Selected Images
+          // ==========================================
           if (Array.isArray(moodboardImages) && moodboardImages.length > 0) {
             await sendPhotoBatch(
-              moodboardImages.map((img: any, idx: number) => ({
+              moodboardImages.map((img: any) => ({
                 base64: img.base64,
-                caption: `تصویر مودبورد #${img.index !== undefined ? img.index + 1 : idx + 1}`,
               })),
-              `🎨 تصاویر انتخابی مودبورد هویت دیداری — ${brandFa || brandEn}`
+              "Moodboard Sellected Images"
             );
+          } else {
+            // If user did not select any moodboard images
+            await fetch(textUrl, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                chat_id: chatId,
+                text: "Moodboard Sellected Images\n(هیچ تصویری انتخاب نشده است)",
+              }),
+            });
           }
 
-          // 3. Send Pick-One Coupled Logo Photos (with Brand & Feeling description!)
-          if (Array.isArray(chosenImages) && chosenImages.length > 0) {
-            await sendPhotoBatch(
-              chosenImages.map((img: any) => ({
-                base64: img.base64,
-                caption: `جفت ${img.pairId}: گزینه ${img.choice} (${img.brand}) — حس: ${img.feeling}`,
-              })),
-              `⚖️ گزینه‌های انتخابی جفت لوگوها (Pick One) — ${brandFa || brandEn}`
-            );
-          }
+          // ==========================================
+          // MESSAGE 3: Coupled Logos Preferences
+          // Output: "<محور فارسی> ← <حس انتخابی>  (رفرنس: <برند>)"
+          // If empty/skipped, write "مشخص نشده"
+          // ==========================================
+          const PAIR_CATEGORIES: { id: number; faName: string }[] = [
+            { id: 1, faName: "جسور و سنگین / سبک و آزاد (BoldHeavy vs LightFree)" },
+            { id: 2, faName: "پرجزئیات / مینیمال و ساده (Detailed vs Minimal)" },
+            { id: 3, faName: "تایپوگرافی پرکار / تایپوگرافی تمیز (DetailedType vs SimpleType)" },
+            { id: 4, faName: "فونت دست‌نویس و نرم / فونت تیز و برنده (Handwritten vs Sharp)" },
+            { id: 5, faName: "فونت مدرن و معاصر / فونت اصیل و سنتی (Modern vs Old)" },
+            { id: 6, faName: "فونت لطیف و منحنی / فونت زاویه‌دار و نوک‌تیز (Softy vs Pointy)" },
+            { id: 7, faName: "تخت دو‌بعدی / سه‌بعدی سایه‌دار (Flat vs Shaded3D)" },
+            { id: 8, faName: "خطی و کانتور / سه‌بعدی و توپر (Line vs 3DFilled)" },
+            { id: 9, faName: "سنس‌سریف مدرن / سریف کلاسیک (Sanserif vs Serif)" },
+          ];
+
+          let message3 = `Section 3 : Coupled Logos Preferences (Aesthetics & Feelings)\n\n`;
+
+          PAIR_CATEGORIES.forEach((pairCat) => {
+            const foundChoice = Array.isArray(selections)
+              ? selections.find((s: any) => s.pairId === pairCat.id)
+              : null;
+
+            if (foundChoice && foundChoice.chosenFeeling) {
+              const brand = foundChoice.chosenBrand || "مشخص نشده";
+              const feeling = foundChoice.chosenFeeling || "مشخص نشده";
+              message3 += `${pairCat.faName} ← ${feeling}  (رفرنس: ${brand})\n\n`;
+            } else {
+              message3 += `${pairCat.faName} ← مشخص نشده\n\n`;
+            }
+          });
+
+          // Send Message 3
+          await fetch(textUrl, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              chat_id: chatId,
+              text: message3.trim(),
+            }),
+          });
 
           // 4. Send Admin PDF Document to Telegram (Includes strategic feelings)
           const targetPdf = adminPdfBase64 || pdfBase64;
