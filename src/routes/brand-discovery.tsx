@@ -7,13 +7,16 @@ import {
   Check,
   RotateCcw,
   Download,
-  Loader2,
   Sparkles,
+  CheckCircle2,
 } from "lucide-react";
 import { jsPDF } from "jspdf";
 import { pageHead } from "@/lib/seo";
 
-// Visual identity placeholders
+// 40 Curated Moodboard Images for 5x8 Grid (Multiple selection up to 15)
+import { MOODBOARD_GRID_IMAGES } from "@/data/moodboard-images";
+
+// Visual identity placeholders for Pick One (Section 3)
 import shekarchianLogo from "@/assets/graphic-design/shekarchian/graphic-design-shekarchian-01.jpg";
 import dodarehLogo from "@/assets/graphic-design/dodareh/graphic-design-dodareh-02.jpg";
 import polarityLogo from "@/assets/graphic-design/polarity/graphic-design-polarity-01.jpg";
@@ -76,7 +79,7 @@ const QUESTIONS: QuestionPair[] = [
   },
 ];
 
-// Helper to convert images to low-quality downscaled base64
+// Helper to convert images to low-quality downscaled base64 for PDF and Telegram
 async function getLowQualityBase64(imageSrc: string): Promise<string> {
   return new Promise((resolve) => {
     const img = new Image();
@@ -124,7 +127,7 @@ function renderWhiteLogoDataUrl(): Promise<string> {
         <path d="M165.76,70.64h-42.46l-6.73,17.52h-14.5L136.99,1.16h14.96l34.92,87h-14.5l-6.61-17.52ZM161.47,59.51l-16.94-44.66-17.05,44.66h33.99Z" />
         <path d="M260.76,1.16l-34.92,87h-14.96L175.97,1.16h14.96l27.49,71.57L245.8,1.16h14.96Z" />
         <path d="M313.55,70.64h-42.46l-6.73,17.52h-14.5L284.78,1.16h14.96l34.92,87h-14.5l-6.61-17.52ZM309.25,59.51l-16.94-44.66-17.05,44.66h33.99Z" />
-        <path d="M354.32,84.68c-6.07-3.09-10.77-7.19-14.09-12.3l9.63-9.63c1.78,4.25,4.93,7.64,9.45,10.15,4.52,2.51,9.57,3.77,15.14,3.77,5.03,0,9.03-.97,12.01-2.9,2.98-1.93,4.5-4.87,4.58-8.82,0-2.47-.5-4.68-1.51-6.61-1-1.93-2.63-3.65-4.87-5.16-2.24-1.51-4.31-2.69-6.21-3.54s-4.54-1.93-7.95-3.25c-2.47-.93-4.23-1.6-5.28-2.03s-2.67-1.14-4.87-2.15c-2.2-1.01-3.83-1.88-4.87-2.61-1.04-.73-2.34-1.74-3.89-3.02-1.55-1.28-2.67-2.53-3.36-3.77s-1.33-2.73-1.91-4.47c-.58-1.74-.87-3.58-.87-5.51,0-7.04,2.61-12.6,7.83-16.7s11.85-6.15,19.89-6.15c13.84,0,24.4,4.21,31.67,12.64l-8.93,8.93c-4.49-6.81-11.95-10.21-22.39-10.21-4.33,0-7.83.91-10.5,2.73-2.67,1.82-4,4.39-4,7.71,0,1.39.35,2.73,1.04,4,.7,1.28,1.51,2.34,2.44,3.19s2.3,1.78,4.12,2.78,3.38,1.78,4.7,2.32c1.31.54,3.17,1.31,5.57,2.32,3.48,1.39,6.13,2.49,7.95,3.31s4.2,2.09,7.13,3.83c2.94,1.74,5.16,3.46,6.67,5.16,1.51,1.7,2.86,3.91,4.06,6.61,1.2,2.71,1.8,5.68,1.8,8.93,0,8.35-2.8,14.62-8.41,18.79-5.61,4.18-12.97,6.26-22.1,6.26-7.04,0-13.59-1.55-19.66-4.64Z" />
+        <path d="M354.32,84.68c-6.07-3.09-10.77-7.19-14.09-12.3l9.63-9.63c1.78,4.25,4.93,7.64,9.45,10.15,4.52,2.51,9.57,3.77,15.14,3.77,5.03,0,9.03-.97,12.01-2.9,2.98-1.93,4.5-4.87,4.58-8.82,0-2.47-.5-4.68-1.51-6.61-1.01-1.93-2.63-3.65-4.87-5.16-2.24-1.51-4.31-2.69-6.21-3.54s-4.54-1.93-7.95-3.25c-2.47-.93-4.23-1.6-5.28-2.03s-2.67-1.14-4.87-2.15c-2.2-1.01-3.83-1.88-4.87-2.61-1.04-.73-2.34-1.74-3.89-3.02-1.55-1.28-2.67-2.53-3.36-3.77s-1.33-2.73-1.91-4.47c-.58-1.74-.87-3.58-.87-5.51,0-7.04,2.61-12.6,7.83-16.7s11.85-6.15,19.89-6.15c13.84,0,24.4,4.21,31.67,12.64l-8.93,8.93c-4.49-6.81-11.95-10.21-22.39-10.21-4.33,0-7.83.91-10.5,2.73-2.67,1.82-4,4.39-4,7.71,0,1.39.35,2.73,1.04,4,.7,1.28,1.51,2.34,2.44,3.19s2.3,1.78,4.12,2.78,3.38,1.78,4.7,2.32c1.31.54,3.17,1.31,5.57,2.32,3.48,1.39,6.13,2.49,7.95,3.31s4.2,2.09,7.13,3.83c2.94,1.74,5.16,3.46,6.67,5.16,1.51,1.7,2.86,3.91,4.06,6.61,1.2,2.71,1.8,5.68,1.8,8.93,0,8.35-2.8,14.62-8.41,18.79-5.61,4.18-12.97,6.26-22.1,6.26-7.04,0-13.59-1.55-19.66-4.64Z" />
         <path d="M487.89,1.16v87h-13.34v-37.58h-42.69v37.58h-13.34V1.16h13.34v37.58h42.69V1.16h13.34Z" />
         <path d="M561.9,69.25h-46.75l-7.31,18.91h-8.58L534.18,1.16h8.7l34.92,87h-8.58l-7.31-18.91ZM559.23,62.52l-20.76-53.13-20.65,53.13h41.41Z" />
         <path d="M646.23,90.48l-48.02-47.56v45.24h-7.89V1.16h7.89v37.47L635.44,1.16h10.21l-39.44,39.32,40.02,39.56v10.44Z" />
@@ -165,6 +168,13 @@ const actionBtnClass =
 
 const activeActionBtnClass =
   "inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-full border border-transparent bg-secondary px-6 text-sm font-medium text-secondary-foreground shadow-[0_0_8px_color-mix(in_oklab,var(--secondary)_42%,transparent),0_0_17px_color-mix(in_oklab,var(--secondary)_24%,transparent),0_0_25px_color-mix(in_oklab,var(--secondary)_12%,transparent)] transition-all duration-300 cursor-pointer";
+
+// Input & Textarea Pill and Fillet styles
+const inputPillClass =
+  "w-full h-12 rounded-full border border-foreground/15 bg-background/60 px-5 text-sm font-normal text-foreground focus:border-secondary focus:outline-none transition-all form-input-pill";
+
+const textareaPillClass =
+  "w-full rounded-3xl border border-foreground/15 bg-background/60 p-4 text-sm font-normal text-foreground focus:border-secondary focus:outline-none transition-all form-textarea-pill";
 
 function LanguageSwitch({
   lang,
@@ -221,7 +231,7 @@ export function BrandDiscoveryPage() {
   const [lang, setLang] = useState<Lang>("fa");
   const isFa = lang === "fa";
 
-  // Section 1 to 5 Form Data
+  // Section 1: Questionnaire Form Data
   const [formData, setFormData] = useState({
     // Section 1
     brandNameFa: "",
@@ -244,8 +254,10 @@ export function BrandDiscoveryPage() {
     forbiddenElements: "",
   });
 
-  // Flow steps: "form" -> "moodboard" -> "summary"
-  const [step, setStep] = useState<"form" | "moodboard" | "summary">("form");
+  // Section 2: Moodboard Multiple Selection (40 images, max 15)
+  const [selectedMoodboardIndices, setSelectedMoodboardIndices] = useState<number[]>([]);
+
+  // Section 3: Pick One Pairs
   const [currentPairIndex, setCurrentPairIndex] = useState(0);
   const [selections, setSelections] = useState<
     {
@@ -255,26 +267,47 @@ export function BrandDiscoveryPage() {
     }[]
   >([]);
 
-  // Submission state
-  const [isSubmittingToTelegram, setIsSubmittingToTelegram] = useState(false);
-  const [telegramStatus, setTelegramStatus] = useState<"pending" | "sent" | "failed">("pending");
+  // Flow steps: "form" -> "moodboard" -> "pickone" -> "summary"
+  const [step, setStep] = useState<"form" | "moodboard" | "pickone" | "summary">("form");
+
   const submittedRef = useRef(false);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+  ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  // Section 1 submit -> go to Section 2 (Moodboard)
   const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.brandNameFa.trim() && !formData.brandNameEn.trim()) return;
     setStep("moodboard");
-    setCurrentPairIndex(0);
-    setSelections([]);
-    submittedRef.current = false;
-    setTelegramStatus("pending");
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
+  // Toggle moodboard item (up to 15)
+  const handleToggleMoodboardItem = (index: number) => {
+    setSelectedMoodboardIndices((prev) => {
+      if (prev.includes(index)) {
+        return prev.filter((i) => i !== index);
+      }
+      if (prev.length >= 15) {
+        return prev;
+      }
+      return [...prev, index];
+    });
+  };
+
+  // Section 2 continue -> go to Section 3 (Pick One)
+  const handleContinueToPickOne = () => {
+    setStep("pickone");
+    setCurrentPairIndex(0);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  // Section 3 choice selection
   const handleSelectChoice = (choice: "A" | "B") => {
     const q = QUESTIONS[currentPairIndex];
     const chosenImage = choice === "A" ? q.optionA.image : q.optionB.image;
@@ -291,26 +324,29 @@ export function BrandDiscoveryPage() {
       setCurrentPairIndex((prev) => prev + 1);
     } else {
       setStep("summary");
+      window.scrollTo({ top: 0, behavior: "smooth" });
     }
   };
 
-  const handlePrevMoodboard = () => {
+  const handlePrevPickOne = () => {
     if (currentPairIndex > 0) {
       setCurrentPairIndex((prev) => prev - 1);
     } else {
-      setStep("form");
+      setStep("moodboard");
+      window.scrollTo({ top: 0, behavior: "smooth" });
     }
   };
 
   const handleReset = () => {
     setStep("form");
+    setSelectedMoodboardIndices([]);
     setCurrentPairIndex(0);
     setSelections([]);
     submittedRef.current = false;
-    setTelegramStatus("pending");
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  // Generate pure Q&A PDF report with Preferred Aesthetics
+  // Generate pure Q&A PDF report with Moodboard Selections & Pick-One Preferred Aesthetics
   const generatePdf = async (): Promise<{ doc: jsPDF; base64: string }> => {
     const doc = new jsPDF({
       orientation: "portrait",
@@ -328,7 +364,6 @@ export function BrandDiscoveryPage() {
     try {
       const whiteLogo = await renderWhiteLogoDataUrl();
       if (whiteLogo) {
-        // Logo viewBox is 890.99 x 90.48 (aspect ratio ~ 9.85 : 1)
         doc.addImage(whiteLogo, "PNG", 20, 8, 48, 4.9);
       }
     } catch (logoErr) {
@@ -350,6 +385,11 @@ export function BrandDiscoveryPage() {
     let currentY = 52;
 
     const addSectionTitle = (title: string) => {
+      // Check page break if close to bottom
+      if (currentY > 260) {
+        doc.addPage();
+        currentY = 20;
+      }
       doc.setFillColor(242, 242, 242);
       doc.rect(20, currentY - 4, 170, 7, "F");
       doc.setFont("helvetica", "bold");
@@ -361,6 +401,10 @@ export function BrandDiscoveryPage() {
 
     const addField = (label: string, value: string) => {
       if (!value) return;
+      if (currentY > 265) {
+        doc.addPage();
+        currentY = 20;
+      }
       doc.setFont("helvetica", "bold");
       doc.setFontSize(9);
       doc.setTextColor(50, 50, 50);
@@ -373,7 +417,7 @@ export function BrandDiscoveryPage() {
       currentY += Math.max(lines.length * 4.5, 6);
     };
 
-    // Section 1
+    // SECTION 1: QUESTIONNAIRE
     addSectionTitle("SECTION 1: BRAND IDENTITY & BASIC INFORMATION");
     addField("Brand Name (Persian)", formData.brandNameFa);
     addField("Brand Name (English)", formData.brandNameEn);
@@ -383,61 +427,117 @@ export function BrandDiscoveryPage() {
     addField("Name History / Story", formData.nameHistory);
     currentY += 2;
 
-    // Section 2
-    addSectionTitle("SECTION 2: TARGET AUDIENCE & MARKET");
+    addSectionTitle("TARGET AUDIENCE & MARKET");
     addField("Target Audience", formData.targetAudience);
     addField("Main Competitors", formData.competitors);
     currentY += 2;
 
-    // Section 3
-    addSectionTitle("SECTION 3: VISUAL STYLE & BRAND PERSONALITY");
+    addSectionTitle("VISUAL STYLE & BRAND PERSONALITY");
     addField("Brand Attributes", formData.brandAttributes);
     addField("Preferred Forms / Shapes", formData.favoriteForms);
     currentY += 2;
 
-    // Section 4
-    addSectionTitle("SECTION 4: TECHNICAL REQUIREMENTS & APPLICATIONS");
+    addSectionTitle("TECHNICAL REQUIREMENTS & APPLICATIONS");
     addField("Bilingual Layout", formData.layoutPreference);
     addField("Main Applications", formData.mainApplications);
     addField("Scalability", formData.scalability);
     currentY += 2;
 
-    // Section 5
-    addSectionTitle("SECTION 5: SPECIAL PREFERENCES & FORBIDDEN ELEMENTS");
+    addSectionTitle("SPECIAL PREFERENCES & FORBIDDEN ELEMENTS");
     addField("Forbidden Elements", formData.forbiddenElements);
     currentY += 4;
 
-    // Preferred Aesthetics (Moodboard Choices)
-    addSectionTitle("PREFERRED AESTHETICS (MOODBOARD CHOICES)");
-    currentY += 2;
-
-    const imgWidth = 28;
-    const imgHeight = 28;
-    const gap = 6;
-    let xOffset = 22;
-
-    for (let i = 0; i < selections.length; i++) {
-      const s = selections[i];
-      try {
-        const base64Data = await getLowQualityBase64(s.imageSrc);
-        if (base64Data) {
-          doc.addImage(base64Data, "JPEG", xOffset, currentY, imgWidth, imgHeight);
-          doc.setFontSize(8);
-          doc.setFont("helvetica", "bold");
-          doc.setTextColor(50, 50, 50);
-          doc.text(`Pair ${s.questionNumber}: Option ${s.choice}`, xOffset + 1, currentY + imgHeight + 4);
-        }
-      } catch (e) {
-        console.error(e);
+    // SECTION 2: MOODBOARD SELECTIONS
+    if (selectedMoodboardIndices.length > 0) {
+      if (currentY > 230) {
+        doc.addPage();
+        currentY = 20;
       }
-      xOffset += imgWidth + gap;
+      addSectionTitle(`SECTION 2: MOODBOARD SELECTIONS (${selectedMoodboardIndices.length} SELECTED)`);
+      currentY += 2;
+
+      const mbWidth = 24;
+      const mbHeight = 24;
+      const mbGap = 5;
+      let mbX = 22;
+
+      for (let i = 0; i < selectedMoodboardIndices.length; i++) {
+        const itemIdx = selectedMoodboardIndices[i];
+        const item = MOODBOARD_GRID_IMAGES[itemIdx];
+        if (!item) continue;
+
+        if (mbX + mbWidth > 192) {
+          mbX = 22;
+          currentY += mbHeight + 4;
+          if (currentY > 260) {
+            doc.addPage();
+            currentY = 20;
+          }
+        }
+
+        try {
+          const b64 = await getLowQualityBase64(item.image);
+          if (b64) {
+            doc.addImage(b64, "JPEG", mbX, currentY, mbWidth, mbHeight);
+          }
+        } catch (e) {
+          console.error(e);
+        }
+        mbX += mbWidth + mbGap;
+      }
+      currentY += mbHeight + 6;
     }
 
-    // Footer: on the bottom of page it will write "siavashakbari.ir"
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(8);
-    doc.setTextColor(140, 140, 140);
-    doc.text("siavashakbari.ir", 20, 285);
+    // SECTION 3: PICK ONE / PREFERRED AESTHETICS
+    if (selections.length > 0) {
+      if (currentY > 230) {
+        doc.addPage();
+        currentY = 20;
+      }
+      addSectionTitle("SECTION 3: PREFERRED AESTHETICS (PICK ONE CHOICES)");
+      currentY += 2;
+
+      const imgWidth = 28;
+      const imgHeight = 28;
+      const gap = 6;
+      let xOffset = 22;
+
+      for (let i = 0; i < selections.length; i++) {
+        const s = selections[i];
+        if (xOffset + imgWidth > 192) {
+          xOffset = 22;
+          currentY += imgHeight + 8;
+          if (currentY > 260) {
+            doc.addPage();
+            currentY = 20;
+          }
+        }
+
+        try {
+          const base64Data = await getLowQualityBase64(s.imageSrc);
+          if (base64Data) {
+            doc.addImage(base64Data, "JPEG", xOffset, currentY, imgWidth, imgHeight);
+            doc.setFontSize(8);
+            doc.setFont("helvetica", "bold");
+            doc.setTextColor(50, 50, 50);
+            doc.text(`Pair ${s.questionNumber}: Option ${s.choice}`, xOffset + 1, currentY + imgHeight + 4);
+          }
+        } catch (e) {
+          console.error(e);
+        }
+        xOffset += imgWidth + gap;
+      }
+    }
+
+    // Footer on all pages
+    const pageCount = (doc as any).internal.getNumberOfPages();
+    for (let p = 1; p <= pageCount; p++) {
+      doc.setPage(p);
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(8);
+      doc.setTextColor(140, 140, 140);
+      doc.text("siavashakbari.ir", 20, 285);
+    }
 
     const pdfOutput = doc.output("arraybuffer");
     let binary = "";
@@ -450,15 +550,14 @@ export function BrandDiscoveryPage() {
     return { doc, base64 };
   };
 
-  // Automatic submission to Telegram on completing moodboard
+  // Automatic submission to Telegram silently upon reaching summary
   useEffect(() => {
     if (step !== "summary" || submittedRef.current) return;
     submittedRef.current = true;
 
     async function submitAutomatically() {
-      setIsSubmittingToTelegram(true);
       try {
-        // 1. Prepare low-quality base64 for each chosen logo
+        // 1. Prepare low-quality base64 for chosen Pick One logos
         const chosenImages: { questionNumber: number; choice: string; base64: string }[] = [];
         for (const s of selections) {
           const b64 = await getLowQualityBase64(s.imageSrc);
@@ -469,32 +568,34 @@ export function BrandDiscoveryPage() {
           });
         }
 
-        // 2. Generate PDF with pure Q&A and Preferred Aesthetics
+        // 2. Prepare low-quality base64 for selected Moodboard images
+        const moodboardImages: { index: number; base64: string }[] = [];
+        for (const idx of selectedMoodboardIndices) {
+          const item = MOODBOARD_GRID_IMAGES[idx];
+          if (item) {
+            const b64 = await getLowQualityBase64(item.image);
+            moodboardImages.push({ index: idx, base64: b64 });
+          }
+        }
+
+        // 3. Generate PDF with complete 3-section brief
         const { base64: pdfBase64 } = await generatePdf();
 
-        // 3. Dispatch to API route
-        const res = await fetch("/api/brand-discovery", {
+        // 4. Dispatch to API route
+        await fetch("/api/brand-discovery", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             formData,
+            selectedMoodboardIndices,
+            moodboardImages,
             selections,
-            pdfBase64,
             chosenImages,
+            pdfBase64,
           }),
         });
-
-        const data = await res.json();
-        if (res.ok && data.success) {
-          setTelegramStatus("sent");
-        } else {
-          setTelegramStatus("failed");
-        }
       } catch (err) {
         console.error("Auto submit failed:", err);
-        setTelegramStatus("failed");
-      } finally {
-        setIsSubmittingToTelegram(false);
       }
     }
 
@@ -511,7 +612,9 @@ export function BrandDiscoveryPage() {
 
   return (
     <div
-      className="mx-auto flex min-h-[calc(100dvh-3.5rem)] w-full max-w-4xl flex-col justify-center px-4 py-12 md:px-8"
+      className={`mx-auto flex min-h-[calc(100dvh-3.5rem)] w-full max-w-4xl flex-col justify-center px-4 py-12 md:px-8 ${
+        isFa ? "font-farsi" : ""
+      }`}
       lang={lang}
       dir={isFa ? "rtl" : "ltr"}
     >
@@ -522,10 +625,14 @@ export function BrandDiscoveryPage() {
             <Sparkles className="h-5 w-5" />
           </div>
           <div>
-            <h1 className="font-display text-xl font-medium tracking-tight text-foreground md:text-2xl">
+            <h1
+              className={`text-xl font-medium tracking-tight text-foreground md:text-2xl ${
+                isFa ? "font-farsi font-bold" : "font-display"
+              }`}
+            >
               {isFa ? "فرم جامع هویت بصری و طراحی لوگو" : "Visual Identity & Logo Brief"}
             </h1>
-            <p className="text-xs text-secondary">
+            <p className={`text-xs text-secondary ${isFa ? "font-farsi font-normal" : ""}`}>
               {isFa ? "استودیو طراحی سیاوش اکبری" : "Siavash Akbari Design Studio"}
             </p>
           </div>
@@ -538,7 +645,7 @@ export function BrandDiscoveryPage() {
         />
       </div>
 
-      {/* STEP 1: DETAILED 5-SECTION QUESTIONNAIRE */}
+      {/* SECTION 1: DETAILED QUESTIONNAIRE */}
       {step === "form" && (
         <motion.div
           key="form"
@@ -547,22 +654,28 @@ export function BrandDiscoveryPage() {
           exit={{ opacity: 0, y: -15 }}
           className="flex w-full flex-col"
         >
-          <p className="mb-8 text-sm leading-relaxed text-muted-foreground">
-            {isFa
-              ? "لطفاً این پرسشنامه را با دقت تکمیل کنید. پاسخ‌های شما جهت‌گیری دقیق استراتژیک، سبک بصری و ساختار طراحی نشان برند شما را مشخص می‌کند."
-              : "Please fill out this questionnaire carefully. Your answers establish the strategic direction, visual language, and structural identity of your brand."}
-          </p>
+          <div className="mb-8 rounded-3xl border border-secondary/20 bg-secondary/5 p-5">
+            <div className="flex items-center justify-between text-xs font-semibold uppercase tracking-wider text-secondary mb-1">
+              <span>{isFa ? "بخش اول از سه بخش: پرسشنامه تحلیلی" : "Section 1 of 3: Comprehensive Questionnaire"}</span>
+              <span>1 / 3</span>
+            </div>
+            <p className="text-xs leading-relaxed text-muted-foreground">
+              {isFa
+                ? "لطفاً این پرسشنامه را با دقت تکمیل کنید. پاسخ‌های شما جهت‌گیری استراتژیک، سبک بصری و ساختار طراحی هویت برند شما را پایه‌ریزی می‌کند."
+                : "Please complete this brief with care. Your inputs form the strategic foundation and visual direction for your brand identity."}
+            </p>
+          </div>
 
           <form onSubmit={handleFormSubmit} className="flex flex-col gap-10">
-            {/* SECTION 1 */}
-            <div className="rounded-2xl border border-foreground/15 bg-background p-6 md:p-8">
-              <h2 className="mb-6 flex items-center gap-2 font-display text-lg font-semibold text-secondary">
-                <span>{isFa ? "بخش اول: اطلاعات پایه و هویت برند" : "Section 1: Basic Information & Brand Identity"}</span>
+            {/* PART 1 */}
+            <div className="rounded-3xl border border-foreground/15 bg-background p-6 md:p-8">
+              <h2 className="mb-6 flex items-center gap-2 text-lg font-bold text-secondary">
+                <span>{isFa ? "اطلاعات پایه و هویت برند" : "Basic Information & Brand Identity"}</span>
               </h2>
 
-              <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+              <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                 <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wider text-foreground/80 mb-2">
+                  <label className="block text-xs font-normal tracking-wide text-foreground/80 mb-2">
                     {isFa ? "نام برند به زبان فارسی (املای دقیق و رسمی) *" : "Brand Name in Persian (Exact spelling) *"}
                   </label>
                   <input
@@ -572,12 +685,12 @@ export function BrandDiscoveryPage() {
                     value={formData.brandNameFa}
                     onChange={handleInputChange}
                     placeholder={isFa ? "مثال: شکرچیان، پژواک..." : "e.g. Shekarchian"}
-                    className="w-full rounded-xl border border-foreground/15 bg-background/60 px-4 py-3 text-sm text-foreground focus:border-secondary focus:outline-none"
+                    className={inputPillClass}
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wider text-foreground/80 mb-2">
+                  <label className="block text-xs font-normal tracking-wide text-foreground/80 mb-2">
                     {isFa ? "نام برند به زبان انگلیسی (املای رسمی برای بخش دوزبانه) *" : "Brand Name in English (Exact official spelling) *"}
                   </label>
                   <input
@@ -587,19 +700,19 @@ export function BrandDiscoveryPage() {
                     value={formData.brandNameEn}
                     onChange={handleInputChange}
                     placeholder="e.g. Shekarchian, Echo..."
-                    className="w-full rounded-xl border border-foreground/15 bg-background/60 px-4 py-3 text-sm text-foreground focus:border-secondary focus:outline-none"
+                    className={inputPillClass}
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wider text-foreground/80 mb-2">
+                  <label className="block text-xs font-normal tracking-wide text-foreground/80 mb-2">
                     {isFa ? "اولویت با کدام زبان است؟" : "Primary Language Priority"}
                   </label>
                   <select
                     name="primaryLanguage"
                     value={formData.primaryLanguage}
                     onChange={handleInputChange}
-                    className="w-full rounded-xl border border-foreground/15 bg-background/60 px-4 py-3 text-sm text-foreground focus:border-secondary focus:outline-none"
+                    className={inputPillClass}
                   >
                     <option value="فارسی (Persian)">{isFa ? "فارسی (Persian)" : "Persian"}</option>
                     <option value="انگلیسی (English)">{isFa ? "انگلیسی (English)" : "English"}</option>
@@ -608,7 +721,7 @@ export function BrandDiscoveryPage() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wider text-foreground/80 mb-2">
+                  <label className="block text-xs font-normal tracking-wide text-foreground/80 mb-2">
                     {isFa ? "شعار برند (Slogan / Tagline)" : "Brand Slogan / Tagline"}
                   </label>
                   <input
@@ -616,13 +729,13 @@ export function BrandDiscoveryPage() {
                     name="slogan"
                     value={formData.slogan}
                     onChange={handleInputChange}
-                    placeholder={isFa ? "آیا شعاری برای قرارگیری کنار لوگو دارید؟" : "Tagline to accompany the logo (both languages)"}
-                    className="w-full rounded-xl border border-foreground/15 bg-background/60 px-4 py-3 text-sm text-foreground focus:border-secondary focus:outline-none"
+                    placeholder={isFa ? "آیا شعاری برای قرارگیری کنار لوگو دارید؟" : "Tagline to accompany the logo"}
+                    className={inputPillClass}
                   />
                 </div>
 
                 <div className="md:col-span-2">
-                  <label className="block text-xs font-semibold uppercase tracking-wider text-foreground/80 mb-2">
+                  <label className="block text-xs font-normal tracking-wide text-foreground/80 mb-2">
                     {isFa ? "حوزه فعالیت و معرفی کوتاه" : "Field of Activity & Brief Description"}
                   </label>
                   <textarea
@@ -631,12 +744,12 @@ export function BrandDiscoveryPage() {
                     value={formData.activity}
                     onChange={handleInputChange}
                     placeholder={isFa ? "کسب‌وکار شما دقیقاً چه کالا یا خدماتی ارائه می‌دهد؟" : "What exact products or services does your business offer?"}
-                    className="w-full rounded-xl border border-foreground/15 bg-background/60 px-4 py-3 text-sm text-foreground focus:border-secondary focus:outline-none"
+                    className={textareaPillClass}
                   />
                 </div>
 
                 <div className="md:col-span-2">
-                  <label className="block text-xs font-semibold uppercase tracking-wider text-foreground/80 mb-2">
+                  <label className="block text-xs font-normal tracking-wide text-foreground/80 mb-2">
                     {isFa ? "تاریخچه‌ی نام برند" : "Name History & Story"}
                   </label>
                   <textarea
@@ -645,21 +758,21 @@ export function BrandDiscoveryPage() {
                     value={formData.nameHistory}
                     onChange={handleInputChange}
                     placeholder={isFa ? "چه داستانی یا مفهومی پشت این نام نهفته است؟" : "What is the story or concept behind the brand name?"}
-                    className="w-full rounded-xl border border-foreground/15 bg-background/60 px-4 py-3 text-sm text-foreground focus:border-secondary focus:outline-none"
+                    className={textareaPillClass}
                   />
                 </div>
               </div>
             </div>
 
-            {/* SECTION 2 */}
-            <div className="rounded-2xl border border-foreground/15 bg-background p-6 md:p-8">
-              <h2 className="mb-6 flex items-center gap-2 font-display text-lg font-semibold text-secondary">
-                <span>{isFa ? "بخش دوم: مخاطبان هدف و بازار" : "Section 2: Target Audience & Market"}</span>
+            {/* PART 2 */}
+            <div className="rounded-3xl border border-foreground/15 bg-background p-6 md:p-8">
+              <h2 className="mb-6 flex items-center gap-2 text-lg font-bold text-secondary">
+                <span>{isFa ? "مخاطبان هدف و بازار" : "Target Audience & Market"}</span>
               </h2>
 
-              <div className="flex flex-col gap-5">
+              <div className="flex flex-col gap-6">
                 <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wider text-foreground/80 mb-2">
+                  <label className="block text-xs font-normal tracking-wide text-foreground/80 mb-2">
                     {isFa ? "مخاطبان اصلی چه کسانی هستند؟" : "Who are your primary target audiences?"}
                   </label>
                   <textarea
@@ -668,12 +781,12 @@ export function BrandDiscoveryPage() {
                     value={formData.targetAudience}
                     onChange={handleInputChange}
                     placeholder={isFa ? "سن، جنسیت، سطح درآمد، موقعیت جغرافیایی و سبک زندگی آنها" : "Age, gender, income level, geographic location, lifestyle..."}
-                    className="w-full rounded-xl border border-foreground/15 bg-background/60 px-4 py-3 text-sm text-foreground focus:border-secondary focus:outline-none"
+                    className={textareaPillClass}
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wider text-foreground/80 mb-2">
+                  <label className="block text-xs font-normal tracking-wide text-foreground/80 mb-2">
                     {isFa ? "بررسی رقبا" : "Competitor Analysis"}
                   </label>
                   <textarea
@@ -682,21 +795,21 @@ export function BrandDiscoveryPage() {
                     value={formData.competitors}
                     onChange={handleInputChange}
                     placeholder={isFa ? "۳ رقیب اصلی شما چه کسانی هستند و به نظر شما نقطه قوت و ضعف لوگوی آنها چیست؟" : "Name 3 main competitors and what you consider strengths/weaknesses of their logos"}
-                    className="w-full rounded-xl border border-foreground/15 bg-background/60 px-4 py-3 text-sm text-foreground focus:border-secondary focus:outline-none"
+                    className={textareaPillClass}
                   />
                 </div>
               </div>
             </div>
 
-            {/* SECTION 3 */}
-            <div className="rounded-2xl border border-foreground/15 bg-background p-6 md:p-8">
-              <h2 className="mb-6 flex items-center gap-2 font-display text-lg font-semibold text-secondary">
-                <span>{isFa ? "بخش سوم: سبک بصری و شخصیت برند" : "Section 3: Visual Style & Brand Personality"}</span>
+            {/* PART 3 */}
+            <div className="rounded-3xl border border-foreground/15 bg-background p-6 md:p-8">
+              <h2 className="mb-6 flex items-center gap-2 text-lg font-bold text-secondary">
+                <span>{isFa ? "سبک بصری و شخصیت برند" : "Visual Style & Brand Personality"}</span>
               </h2>
 
-              <div className="flex flex-col gap-5">
+              <div className="flex flex-col gap-6">
                 <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wider text-foreground/80 mb-2">
+                  <label className="block text-xs font-normal tracking-wide text-foreground/80 mb-2">
                     {isFa ? "صفات برند" : "Brand Attributes"}
                   </label>
                   <input
@@ -705,12 +818,12 @@ export function BrandDiscoveryPage() {
                     value={formData.brandAttributes}
                     onChange={handleInputChange}
                     placeholder={isFa ? "مثلاً: جدی، صمیمی، لوکس، پرانرژی، قابل اعتماد، مینیمال، مدرن یا سنتی" : "e.g. Serious, warm, luxury, energetic, trustworthy, minimal, modern, heritage"}
-                    className="w-full rounded-xl border border-foreground/15 bg-background/60 px-4 py-3 text-sm text-foreground focus:border-secondary focus:outline-none"
+                    className={inputPillClass}
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wider text-foreground/80 mb-2">
+                  <label className="block text-xs font-normal tracking-wide text-foreground/80 mb-2">
                     {isFa ? "فرم‌های مورد علاقه برای نشان" : "Preferred Shapes & Forms for the Mark"}
                   </label>
                   <textarea
@@ -719,21 +832,21 @@ export function BrandDiscoveryPage() {
                     value={formData.favoriteForms}
                     onChange={handleInputChange}
                     placeholder={isFa ? "لطفاً با دقت مثال بزنید (چه دقیق مثل درخت، پرنده، انسان، ساختمان یا کلی مثل دایره، پنج‌ضلعی، لوزی...)" : "Specific motifs (tree, bird, building, human figure...) or abstract geometry (circle, pentagon, diamond...)"}
-                    className="w-full rounded-xl border border-foreground/15 bg-background/60 px-4 py-3 text-sm text-foreground focus:border-secondary focus:outline-none"
+                    className={textareaPillClass}
                   />
                 </div>
               </div>
             </div>
 
-            {/* SECTION 4 */}
-            <div className="rounded-2xl border border-foreground/15 bg-background p-6 md:p-8">
-              <h2 className="mb-6 flex items-center gap-2 font-display text-lg font-semibold text-secondary">
-                <span>{isFa ? "بخش چهارم: کاربردها و الزامات فنی (مخصوص لوگوی دوزبانه)" : "Section 4: Technical Requirements & Applications (Bilingual)"}</span>
+            {/* PART 4 */}
+            <div className="rounded-3xl border border-foreground/15 bg-background p-6 md:p-8">
+              <h2 className="mb-6 flex items-center gap-2 text-lg font-bold text-secondary">
+                <span>{isFa ? "کاربردها و الزامات فنی (مخصوص لوگوی دوزبانه)" : "Technical Requirements & Applications (Bilingual)"}</span>
               </h2>
 
-              <div className="flex flex-col gap-5">
+              <div className="flex flex-col gap-6">
                 <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wider text-foreground/80 mb-2">
+                  <label className="block text-xs font-normal tracking-wide text-foreground/80 mb-2">
                     {isFa ? "نحوه چیدمان دوزبان" : "Bilingual Layout Preference"}
                   </label>
                   <input
@@ -742,12 +855,12 @@ export function BrandDiscoveryPage() {
                     value={formData.layoutPreference}
                     onChange={handleInputChange}
                     placeholder={isFa ? "مثلاً: متن فارسی در بالا/راست و انگلیسی در پایین/چپ، یا استفاده از نسخه‌های مجزا" : "e.g. Persian on top/right, English below/left, or dedicated standalone versions"}
-                    className="w-full rounded-xl border border-foreground/15 bg-background/60 px-4 py-3 text-sm text-foreground focus:border-secondary focus:outline-none"
+                    className={inputPillClass}
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wider text-foreground/80 mb-2">
+                  <label className="block text-xs font-normal tracking-wide text-foreground/80 mb-2">
                     {isFa ? "کاربردهای اصلی لوگو" : "Primary Applications"}
                   </label>
                   <input
@@ -756,12 +869,12 @@ export function BrandDiscoveryPage() {
                     value={formData.mainApplications}
                     onChange={handleInputChange}
                     placeholder={isFa ? "شبکه‌های اجتماعی، وبسایت، تابلو سردر، بسته‌بندی محصول، کارت ویزیت و اوراق اداری..." : "Social media, website, physical signage, packaging, stationery, apparel..."}
-                    className="w-full rounded-xl border border-foreground/15 bg-background/60 px-4 py-3 text-sm text-foreground focus:border-secondary focus:outline-none"
+                    className={inputPillClass}
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wider text-foreground/80 mb-2">
+                  <label className="block text-xs font-normal tracking-wide text-foreground/80 mb-2">
                     {isFa ? "مقیاس‌پذیری" : "Scalability & Micro-sizes"}
                   </label>
                   <input
@@ -770,20 +883,20 @@ export function BrandDiscoveryPage() {
                     value={formData.scalability}
                     onChange={handleInputChange}
                     placeholder={isFa ? "آیا لوگو قرار است روی المان‌های بسیار کوچک (آیکون اپ یا خودکار) یا ابعاد بزرگ چاپ شود؟" : "Will it be used in micro sizes (app icon, pen engraving) or huge formats (facades, billboards)?"}
-                    className="w-full rounded-xl border border-foreground/15 bg-background/60 px-4 py-3 text-sm text-foreground focus:border-secondary focus:outline-none"
+                    className={inputPillClass}
                   />
                 </div>
               </div>
             </div>
 
-            {/* SECTION 5 */}
-            <div className="rounded-2xl border border-foreground/15 bg-background p-6 md:p-8">
-              <h2 className="mb-6 flex items-center gap-2 font-display text-lg font-semibold text-secondary">
-                <span>{isFa ? "بخش پنجم: خط قرمزها و سلایق خاص" : "Section 5: Forbidden Elements & Boundaries"}</span>
+            {/* PART 5 */}
+            <div className="rounded-3xl border border-foreground/15 bg-background p-6 md:p-8">
+              <h2 className="mb-6 flex items-center gap-2 text-lg font-bold text-secondary">
+                <span>{isFa ? "خط قرمزها و سلایق خاص" : "Forbidden Elements & Boundaries"}</span>
               </h2>
 
               <div>
-                <label className="block text-xs font-semibold uppercase tracking-wider text-foreground/80 mb-2">
+                <label className="block text-xs font-normal tracking-wide text-foreground/80 mb-2">
                   {isFa ? "المان‌های ممنوعه" : "Forbidden Elements"}
                 </label>
                 <textarea
@@ -792,7 +905,7 @@ export function BrandDiscoveryPage() {
                   value={formData.forbiddenElements}
                   onChange={handleInputChange}
                   placeholder={isFa ? "چه طرح، نماد، رنگ یا ایده‌ای است که به هیچ عنوان نباید در لوگوی شما استفاده شود؟" : "What symbols, ideas, concepts or colors must NOT appear in your logo under any circumstances?"}
-                  className="w-full rounded-xl border border-foreground/15 bg-background/60 px-4 py-3 text-sm text-foreground focus:border-secondary focus:outline-none"
+                  className={textareaPillClass}
                 />
               </div>
             </div>
@@ -804,7 +917,7 @@ export function BrandDiscoveryPage() {
                 disabled={!formData.brandNameFa.trim() && !formData.brandNameEn.trim()}
                 className={activeActionBtnClass}
               >
-                <span>{isFa ? "ادامه به بخش نمونه‌های الهام‌بخش (Moodboard)" : "Continue to Moodboard Selection"}</span>
+                <span>{isFa ? "ادامه به بخش مودبورد (Moodboard)" : "Continue to Moodboard"}</span>
                 {isFa ? <ArrowLeft className="h-4 w-4" /> : <ArrowRight className="h-4 w-4" />}
               </button>
             </div>
@@ -812,7 +925,7 @@ export function BrandDiscoveryPage() {
         </motion.div>
       )}
 
-      {/* STEP 2: MOODBOARD 2-LOGO SELECTIONS */}
+      {/* SECTION 2: MOODBOARD MULTI-SELECT (40 images - 5 columns x 8 rows) */}
       {step === "moodboard" && (
         <motion.div
           key="moodboard"
@@ -822,13 +935,118 @@ export function BrandDiscoveryPage() {
           className="flex w-full flex-col"
         >
           {/* Section banner */}
-          <div className="mb-6 rounded-2xl border border-secondary/30 bg-secondary/5 p-4 text-center">
-            <h3 className="font-display text-base font-semibold text-secondary">
-              {isFa ? "نمونه‌های الهام‌بخش (Moodboard)" : "Inspirational Pairs (Moodboard)"}
+          <div className="mb-6 rounded-3xl border border-secondary/30 bg-secondary/5 p-6 text-center">
+            <div className="flex items-center justify-between text-xs font-semibold uppercase tracking-wider text-secondary mb-2">
+              <span>{isFa ? "بخش دوم از سه بخش: مودبورد بصری" : "Section 2 of 3: Visual Moodboard"}</span>
+              <span>2 / 3</span>
+            </div>
+            <h3 className={`text-xl font-bold text-foreground ${isFa ? "font-farsi" : "font-display"}`}>
+              {isFa ? "انتخاب نمونه‌های مودبورد" : "Select Your Moodboard Aesthetics"}
             </h3>
-            <p className="mt-1 text-xs text-muted-foreground">
+            <p className="mt-2 text-xs leading-relaxed text-muted-foreground max-w-xl mx-auto">
               {isFa
-                ? "در ادامه چند جفت لوگو قرار داده شده است. لطفاً در هر جفت، گزینه‌ای را که احساس می‌کنید به هویت مد نظرتان نزدیک‌تر است انتخاب کنید."
+                ? "از میان تصاویر زیر، نمونه‌هایی که حس، لحن و فرم آن‌ها را به برند خود نزدیک‌تر می‌بینید لمس کنید. حداکثر می‌توانید ۱۵ مورد را انتخاب نمایید."
+                : "Select the visual directions that align with your brand's essence and personality. You can select up to 15 images."}
+            </p>
+
+            {/* Counter pill */}
+            <div className="mt-4 inline-flex items-center gap-2 rounded-full border border-secondary/40 bg-secondary/10 px-4 py-1.5 text-xs font-semibold text-secondary">
+              <span>
+                {isFa
+                  ? `${selectedMoodboardIndices.length} از ۱۵ تصویر انتخاب شده`
+                  : `${selectedMoodboardIndices.length} of 15 selected`}
+              </span>
+            </div>
+          </div>
+
+          {/* 5 columns x 8 rows Grid (40 images) */}
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+            {MOODBOARD_GRID_IMAGES.map((item, idx) => {
+              const isSelected = selectedMoodboardIndices.includes(idx);
+              const isLimitReached = selectedMoodboardIndices.length >= 15 && !isSelected;
+
+              return (
+                <div
+                  key={item.id}
+                  onClick={() => !isLimitReached && handleToggleMoodboardItem(idx)}
+                  className={`group relative flex aspect-square cursor-pointer flex-col items-center justify-center overflow-hidden rounded-3xl border transition-all duration-300 ${
+                    isSelected
+                      ? "border-secondary ring-2 ring-secondary/50 shadow-[0_0_20px_color-mix(in_oklab,var(--secondary)_25%,transparent)] bg-secondary/5 scale-[0.98]"
+                      : isLimitReached
+                      ? "border-foreground/10 opacity-40 cursor-not-allowed"
+                      : "border-foreground/15 bg-background hover:border-secondary/60 hover:shadow-lg"
+                  }`}
+                >
+                  <img
+                    src={item.image}
+                    alt={item.title}
+                    className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    loading="lazy"
+                  />
+
+                  {/* Corner Checkmark Badge */}
+                  {isSelected && (
+                    <div className="absolute top-2.5 right-2.5 z-10 flex h-7 w-7 items-center justify-center rounded-full bg-secondary text-secondary-foreground shadow-md">
+                      <CheckCircle2 className="h-5 w-5 fill-secondary text-secondary-foreground" />
+                    </div>
+                  )}
+
+                  {/* Number indicator */}
+                  <div className="absolute bottom-2 left-2 z-10 rounded-full bg-background/80 backdrop-blur-sm px-2 py-0.5 text-[10px] font-medium text-foreground/70">
+                    #{idx + 1}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Navigation Controls */}
+          <div className="mt-10 flex items-center justify-between border-t border-foreground/10 pt-6">
+            <button
+              type="button"
+              onClick={() => {
+                setStep("form");
+                window.scrollTo({ top: 0, behavior: "smooth" });
+              }}
+              className={actionBtnClass}
+            >
+              {isFa ? <ArrowRight className="h-4 w-4" /> : <ArrowLeft className="h-4 w-4" />}
+              <span>{isFa ? "مرحله قبل: پرسشنامه" : "Back: Questionnaire"}</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={handleContinueToPickOne}
+              className={activeActionBtnClass}
+            >
+              <span>{isFa ? "ادامه به انتخاب جفتی (Pick One)" : "Continue to Pick One"}</span>
+              {isFa ? <ArrowLeft className="h-4 w-4" /> : <ArrowRight className="h-4 w-4" />}
+            </button>
+          </div>
+        </motion.div>
+      )}
+
+      {/* SECTION 3: PICK ONE (Between 2 Options) */}
+      {step === "pickone" && (
+        <motion.div
+          key="pickone"
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -15 }}
+          className="flex w-full flex-col"
+        >
+          {/* Section banner */}
+          <div className="mb-6 rounded-3xl border border-secondary/30 bg-secondary/5 p-6 text-center">
+            <div className="flex items-center justify-between text-xs font-semibold uppercase tracking-wider text-secondary mb-2">
+              <span>{isFa ? "بخش سوم از سه بخش: ترجیحات زیبایی‌شناسی" : "Section 3 of 3: Preferred Aesthetics"}</span>
+              <span>3 / 3</span>
+            </div>
+            <h3 className={`text-xl font-bold text-foreground ${isFa ? "font-farsi" : "font-display"}`}>
+              {isFa ? "انتخاب بین دو گزینه (Pick One)" : "Pick One Between Two Options"}
+            </h3>
+            <p className="mt-2 text-xs text-muted-foreground max-w-xl mx-auto">
+              {isFa
+                ? "در هر جفت، گزینه‌ای را که احساس می‌کنید به هویت و استایل مد نظرتان نزدیک‌تر است انتخاب کنید."
                 : "Between each pair, choose the option that feels closer to your envisioned brand character."}
             </p>
           </div>
@@ -858,13 +1076,13 @@ export function BrandDiscoveryPage() {
             {/* Option A */}
             <div
               onClick={() => handleSelectChoice("A")}
-              className="group relative flex cursor-pointer flex-col items-center rounded-2xl border border-foreground/15 bg-background p-6 text-center transition-all duration-300 hover:border-secondary hover:shadow-[0_0_20px_color-mix(in_oklab,var(--secondary)_18%,transparent)]"
+              className="group relative flex cursor-pointer flex-col items-center rounded-3xl border border-foreground/15 bg-background p-6 text-center transition-all duration-300 hover:border-secondary hover:shadow-[0_0_20px_color-mix(in_oklab,var(--secondary)_18%,transparent)]"
             >
               <div className="mb-4 rounded-full border border-foreground/10 bg-foreground/5 px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-foreground/80">
                 {isFa ? "گزینه الف (Option A)" : "Option A"}
               </div>
 
-              <div className="my-2 flex h-60 w-full items-center justify-center overflow-hidden rounded-xl border border-foreground/10 bg-foreground/[0.02]">
+              <div className="my-2 flex h-60 w-full items-center justify-center overflow-hidden rounded-2xl border border-foreground/10 bg-foreground/[0.02]">
                 <img
                   src={QUESTIONS[currentPairIndex].optionA.image}
                   alt="Option A"
@@ -885,13 +1103,13 @@ export function BrandDiscoveryPage() {
             {/* Option B */}
             <div
               onClick={() => handleSelectChoice("B")}
-              className="group relative flex cursor-pointer flex-col items-center rounded-2xl border border-foreground/15 bg-background p-6 text-center transition-all duration-300 hover:border-secondary hover:shadow-[0_0_20px_color-mix(in_oklab,var(--secondary)_18%,transparent)]"
+              className="group relative flex cursor-pointer flex-col items-center rounded-3xl border border-foreground/15 bg-background p-6 text-center transition-all duration-300 hover:border-secondary hover:shadow-[0_0_20px_color-mix(in_oklab,var(--secondary)_18%,transparent)]"
             >
               <div className="mb-4 rounded-full border border-foreground/10 bg-foreground/5 px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-foreground/80">
                 {isFa ? "گزینه ب (Option B)" : "Option B"}
               </div>
 
-              <div className="my-2 flex h-60 w-full items-center justify-center overflow-hidden rounded-xl border border-foreground/10 bg-foreground/[0.02]">
+              <div className="my-2 flex h-60 w-full items-center justify-center overflow-hidden rounded-2xl border border-foreground/10 bg-foreground/[0.02]">
                 <img
                   src={QUESTIONS[currentPairIndex].optionB.image}
                   alt="Option B"
@@ -912,15 +1130,15 @@ export function BrandDiscoveryPage() {
 
           {/* Navigation Controls */}
           <div className="mt-8 flex items-center justify-between">
-            <button type="button" onClick={handlePrevMoodboard} className={actionBtnClass}>
+            <button type="button" onClick={handlePrevPickOne} className={actionBtnClass}>
               {isFa ? <ArrowRight className="h-4 w-4" /> : <ArrowLeft className="h-4 w-4" />}
-              <span>{isFa ? "مرحله قبل" : "Back"}</span>
+              <span>{isFa ? "مرحله قبل: مودبورد" : "Back: Moodboard"}</span>
             </button>
           </div>
         </motion.div>
       )}
 
-      {/* STEP 3: SUMMARY & AUTOMATED SUBMISSION */}
+      {/* SUMMARY */}
       {step === "summary" && (
         <motion.div
           key="summary"
@@ -930,50 +1148,85 @@ export function BrandDiscoveryPage() {
           className="flex w-full flex-col"
         >
           <div className="mb-8 text-center">
-            <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full border border-secondary/40 bg-secondary/10 text-secondary">
-              <Check className="h-6 w-6" />
+            <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full border border-secondary/40 bg-secondary/10 text-secondary">
+              <Check className="h-7 w-7" />
             </div>
             <p className="text-xs font-semibold uppercase tracking-[0.25em] text-secondary">
-              {isFa ? "تکمیل پرسشنامه" : "Submission Complete"}
+              {isFa ? "تکمیل موفقیت‌آمیز" : "Submission Complete"}
             </p>
-            <h2 className="mt-2 font-display text-3xl font-medium tracking-tight text-foreground md:text-4xl">
+            <h2
+              className={`mt-2 text-3xl font-medium tracking-tight text-foreground md:text-4xl ${
+                isFa ? "font-farsi font-bold" : "font-display"
+              }`}
+            >
               {formData.brandNameFa || formData.brandNameEn}
             </h2>
             <p className="mt-2 text-sm text-muted-foreground">
               {isFa
-                ? "پاسخ‌ها و گزینه‌های انتخابی شما با موفقیت ثبت شدند."
-                : "Your brief and visual preferences have been recorded."}
+                ? "اطلاعات فرم، انتخاب‌های مودبورد و گزینه‌های زیبایی‌شناسی شما با موفقیت ثبت شدند."
+                : "Your questionnaire brief, moodboard selections, and aesthetic preferences have been recorded."}
             </p>
           </div>
 
-          <div className="rounded-2xl border border-foreground/15 bg-background p-6 md:p-8">
-            <h3 className="mb-4 font-display text-lg font-medium text-foreground">
-              {isFa ? "نمونه‌های انتخابی شما (Preferred Aesthetics)" : "Your Selected Aesthetics (Preferred Aesthetics)"}
-            </h3>
-
-            {/* Preferred Aesthetics Thumbnails */}
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
-              {selections.map((s) => (
-                <div
-                  key={s.questionNumber}
-                  className="flex flex-col items-center rounded-xl border border-foreground/10 bg-foreground/[0.02] p-2"
-                >
-                  <div className="flex h-20 w-full items-center justify-center overflow-hidden">
-                    <img
-                      src={s.imageSrc}
-                      alt={`Option ${s.choice}`}
-                      className="max-h-full max-w-full object-contain"
-                    />
-                  </div>
-                  <span className="mt-1 text-[11px] font-medium text-foreground/70">
-                    {isFa ? `جفت ${s.questionNumber}: گزینه ${s.choice}` : `Pair ${s.questionNumber}: Option ${s.choice}`}
-                  </span>
+          <div className="flex flex-col gap-6 rounded-3xl border border-foreground/15 bg-background p-6 md:p-8">
+            {/* Moodboard Selections */}
+            {selectedMoodboardIndices.length > 0 && (
+              <div>
+                <h3 className={`mb-3 text-base font-bold text-foreground ${isFa ? "font-farsi" : "font-display"}`}>
+                  {isFa
+                    ? `تصاویر انتخابی شما در مودبورد (${selectedMoodboardIndices.length} مورد)`
+                    : `Your Selected Moodboard Images (${selectedMoodboardIndices.length})`}
+                </h3>
+                <div className="grid grid-cols-3 gap-2.5 sm:grid-cols-5 md:grid-cols-6">
+                  {selectedMoodboardIndices.map((idx) => {
+                    const item = MOODBOARD_GRID_IMAGES[idx];
+                    if (!item) return null;
+                    return (
+                      <div
+                        key={item.id}
+                        className="relative aspect-square overflow-hidden rounded-2xl border border-secondary/30 bg-foreground/[0.02]"
+                      >
+                        <img src={item.image} alt={item.title} className="h-full w-full object-cover" />
+                        <div className="absolute top-1.5 right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-secondary text-secondary-foreground text-[8px] font-bold">
+                          ✓
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
-              ))}
-            </div>
+              </div>
+            )}
+
+            {/* Pick One Choices */}
+            {selections.length > 0 && (
+              <div className="border-t border-foreground/10 pt-6">
+                <h3 className={`mb-3 text-base font-bold text-foreground ${isFa ? "font-farsi" : "font-display"}`}>
+                  {isFa ? "گزینه‌های انتخابی مقایسه‌ای (Preferred Aesthetics)" : "Your Selected Aesthetics (Pick One)"}
+                </h3>
+                <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
+                  {selections.map((s) => (
+                    <div
+                      key={s.questionNumber}
+                      className="flex flex-col items-center rounded-2xl border border-foreground/10 bg-foreground/[0.02] p-2"
+                    >
+                      <div className="flex h-20 w-full items-center justify-center overflow-hidden">
+                        <img
+                          src={s.imageSrc}
+                          alt={`Option ${s.choice}`}
+                          className="max-h-full max-w-full object-contain"
+                        />
+                      </div>
+                      <span className="mt-1 text-[11px] font-medium text-foreground/70">
+                        {isFa ? `جفت ${s.questionNumber}: گزینه ${s.choice}` : `Pair ${s.questionNumber}: Option ${s.choice}`}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Actions */}
-            <div className="mt-8 flex flex-wrap items-center justify-between gap-4 border-t border-foreground/10 pt-6">
+            <div className="mt-4 flex flex-wrap items-center justify-between gap-4 border-t border-foreground/10 pt-6">
               <button
                 type="button"
                 onClick={handleDownloadPdf}

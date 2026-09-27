@@ -27,20 +27,43 @@
   font-display: swap;
 }
 
-/* Peyda — Farsi (contact page); only weights actually used */
+/* Peyda — Farsi (about, contact, visual identity); weights used across the site */
 @font-face {
   font-family: "Peyda";
-  src: url("./assets/fonts/peyda/peyda-medium.woff2") format("woff2");
+  src: url("./assets/fonts/peyda/peyda-thin.ttf") format("truetype");
+  font-weight: 100;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Peyda";
+  src: url("./assets/fonts/peyda/peyda-regular.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Peyda";
+  src: url("./assets/fonts/peyda/peyda-medium.woff2") format("woff2"),
+       url("./assets/fonts/peyda/peyda-medium.ttf") format("truetype");
   font-weight: 500;
   font-style: normal;
   font-display: optional;
 }
 @font-face {
   font-family: "Peyda";
-  src: url("./assets/fonts/peyda/peyda-semibold.woff2") format("woff2");
+  src: url("./assets/fonts/peyda/peyda-semibold.woff2") format("woff2"),
+       url("./assets/fonts/peyda/peyda-semibold.ttf") format("truetype");
   font-weight: 600;
   font-style: normal;
   font-display: optional;
+}
+@font-face {
+  font-family: "Peyda";
+  src: url("./assets/fonts/peyda/peyda-bold.ttf") format("truetype");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
 }
 
 /*
@@ -366,4 +389,11 @@
     inset 0 1px 2px color-mix(in srgb, #efefef 40%, transparent),
     inset 0 -1px 1px color-mix(in srgb, #0f0f0f 4%, transparent),
     0 6px 16px color-mix(in srgb, #0f0f0f 6%, transparent);
+}
+
+/* Questionnaire placeholder styling: thin weight (100) */
+.form-input-pill::placeholder,
+.form-textarea-pill::placeholder {
+  font-weight: 100 !important;
+  opacity: 0.5;
 }

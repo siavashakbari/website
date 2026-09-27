@@ -11,6 +11,8 @@ export const Route = createFileRoute("/api/brand-discovery")({
             selections,
             pdfBase64,
             chosenImages,
+            moodboardImages,
+            selectedMoodboardIndices,
           } = body;
 
           // Check for Telegram environment variables
@@ -67,7 +69,15 @@ export const Route = createFileRoute("/api/brand-discovery")({
           message += `\n*بخش ۵: خط قرمزها و سلایق خاص*\n`;
           if (formData?.forbiddenElements) message += `• المان‌های ممنوعه: ${formData.forbiddenElements}\n`;
 
-          message += `\n*نمونه‌های الهام‌بخش (Moodboard):*\n`;
+          message += `\n*بخش ۲: گالری مودبورد (Moodboard Gallery - انتخاب چندتایی)*\n`;
+          if (Array.isArray(selectedMoodboardIndices) && selectedMoodboardIndices.length > 0) {
+            message += `• تعداد تصاویر انتخابی مودبورد: ${selectedMoodboardIndices.length} مورد\n`;
+            message += `• شماره تصاویر انتخابی: ${selectedMoodboardIndices.map((n: number) => `#${n + 1}`).join(", ")}\n`;
+          } else {
+            message += `• موردی انتخاب نشده است.\n`;
+          }
+
+          message += `\n*بخش ۳: انتخاب جفتی (Pick One / Preferred Aesthetics):*\n`;
           if (Array.isArray(selections)) {
             selections.forEach((s: any, idx: number) => {
               message += `• جفت ${idx + 1}: گزینه ${s.choice} (Option ${s.choice})\n`;
@@ -86,53 +96,81 @@ export const Route = createFileRoute("/api/brand-discovery")({
             }),
           });
 
-          // 2. Send grouped photos (sendMediaGroup) to Telegram (up to 10 photos in 1 message)
-          if (Array.isArray(chosenImages) && chosenImages.length > 0) {
-            try {
-              const mediaGroupUrl = `https://api.telegram.org/bot${botToken}/sendMediaGroup`;
-              const formMedia = new FormData();
-              formMedia.append("chat_id", chatId);
+          // Helper to send a batch of photos as sendMediaGroup (max 10 per call)
+          const sendPhotoBatch = async (
+            items: { base64: string; label: string }[],
+            albumTitle: string
+          ) => {
+            if (!items.length) return;
+            // Split into chunks of max 10
+            for (let chunkIdx = 0; chunkIdx < items.length; chunkIdx += 10) {
+              const chunk = items.slice(chunkIdx, chunkIdx + 10);
+              try {
+                const mediaGroupUrl = `https://api.telegram.org/bot${botToken}/sendMediaGroup`;
+                const formMedia = new FormData();
+                formMedia.append("chat_id", chatId);
+                const mediaArray: any[] = [];
 
-              const mediaArray: any[] = [];
+                for (let i = 0; i < chunk.length; i++) {
+                  const item = chunk[i];
+                  if (!item || !item.base64) continue;
 
-              for (let i = 0; i < chosenImages.length; i++) {
-                const imgItem = chosenImages[i];
-                if (!imgItem || !imgItem.base64) continue;
+                  const attachKey = `photo_${chunkIdx + i}`;
+                  const binaryString = atob(item.base64.split(",")[1] || item.base64);
+                  const bytes = new Uint8Array(binaryString.length);
+                  for (let j = 0; j < binaryString.length; j++) {
+                    bytes[j] = binaryString.charCodeAt(j);
+                  }
+                  const photoBlob = new Blob([bytes], { type: "image/jpeg" });
 
-                const attachKey = `photo_${i}`;
-                const binaryString = atob(imgItem.base64.split(",")[1] || imgItem.base64);
-                const bytes = new Uint8Array(binaryString.length);
-                for (let j = 0; j < binaryString.length; j++) {
-                  bytes[j] = binaryString.charCodeAt(j);
+                  formMedia.append(attachKey, photoBlob, `${attachKey}.jpg`);
+
+                  mediaArray.push({
+                    type: "photo",
+                    media: `attach://${attachKey}`,
+                    caption:
+                      i === 0
+                        ? `${albumTitle} (${chunkIdx + 1} - ${chunkIdx + chunk.length})`
+                        : item.label,
+                  });
                 }
-                const photoBlob = new Blob([bytes], { type: "image/jpeg" });
 
-                formMedia.append(attachKey, photoBlob, `${attachKey}.jpg`);
-
-                mediaArray.push({
-                  type: "photo",
-                  media: `attach://${attachKey}`,
-                  caption:
-                    i === 0
-                      ? `Preferred Aesthetics — جفت ۱ تا ${chosenImages.length}`
-                      : `جفت ${i + 1}: Option ${imgItem.choice}`,
-                });
+                if (mediaArray.length > 0) {
+                  formMedia.append("media", JSON.stringify(mediaArray));
+                  await fetch(mediaGroupUrl, {
+                    method: "POST",
+                    body: formMedia,
+                  });
+                }
+              } catch (mediaErr) {
+                console.error("Failed to send photo batch to Telegram:", mediaErr);
               }
-
-              if (mediaArray.length > 0) {
-                formMedia.append("media", JSON.stringify(mediaArray));
-
-                await fetch(mediaGroupUrl, {
-                  method: "POST",
-                  body: formMedia,
-                });
-              }
-            } catch (mediaErr) {
-              console.error("Failed to send grouped media to Telegram:", mediaErr);
             }
+          };
+
+          // 2. Send Moodboard Selected Photos
+          if (Array.isArray(moodboardImages) && moodboardImages.length > 0) {
+            await sendPhotoBatch(
+              moodboardImages.map((img: any, idx: number) => ({
+                base64: img.base64,
+                label: `مودبورد تصویر شماره ${img.index !== undefined ? img.index + 1 : idx + 1}`,
+              })),
+              `🎨 تصاویر انتخابی مودبورد — ${brandFa || brandEn}`
+            );
           }
 
-          // 3. Send PDF Document to Telegram
+          // 3. Send Pick-One Comparison Photos
+          if (Array.isArray(chosenImages) && chosenImages.length > 0) {
+            await sendPhotoBatch(
+              chosenImages.map((img: any) => ({
+                base64: img.base64,
+                label: `جفت ${img.questionNumber}: گزینه ${img.choice}`,
+              })),
+              `⚖️ گزینه‌های انتخابی مقایسه‌ای — ${brandFa || brandEn}`
+            );
+          }
+
+          // 4. Send PDF Document to Telegram
           if (pdfBase64) {
             const docUrl = `https://api.telegram.org/bot${botToken}/sendDocument`;
             const binaryString = atob(pdfBase64);
