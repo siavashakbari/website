@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import type {} from "@tanstack/react-start";
 import { DISCIPLINES } from "@/data/disciplines";
 import { projects } from "@/data/projects";
+import { BLOG_POSTS } from "@/data/blog-posts";
 import { getSiteUrl } from "@/lib/seo";
 
 interface SitemapEntry {
@@ -14,6 +15,7 @@ interface SitemapEntry {
 function buildEntries(): SitemapEntry[] {
   const staticPages: SitemapEntry[] = [
     { path: "/", changefreq: "weekly", priority: "1.0" },
+    { path: "/blog", changefreq: "weekly", priority: "0.9" },
     { path: "/photography", changefreq: "weekly", priority: "0.9" },
     { path: "/graphic-design", changefreq: "weekly", priority: "0.9" },
     { path: "/product-design", changefreq: "weekly", priority: "0.9" },
@@ -35,7 +37,14 @@ function buildEntries(): SitemapEntry[] {
     lastmod: p.year ? `${p.year}-01-01` : undefined,
   }));
 
-  return [...staticPages, ...disciplinePages, ...projectPages];
+  const blogPages: SitemapEntry[] = BLOG_POSTS.map((p) => ({
+    path: `/blog/${p.slug}`,
+    changefreq: "monthly" as const,
+    priority: "0.8",
+    lastmod: p.publishedAt,
+  }));
+
+  return [...staticPages, ...disciplinePages, ...projectPages, ...blogPages];
 }
 
 export const Route = createFileRoute("/sitemap.xml")({
