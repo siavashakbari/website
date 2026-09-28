@@ -12,6 +12,7 @@ import {
   AtSign,
   FileText,
 } from "lucide-react";
+import { CustomDatePicker } from "@/components/CustomDatePicker";
 
 export interface ContactFormValues {
   name: string;
@@ -315,13 +316,11 @@ export function ContactForm() {
                       تاریخ پیشنهادی جلسه
                     </span>
                   </label>
-                  <input
-                    id="contact-date"
-                    type="date"
-                    min={todayISO}
+                  <CustomDatePicker
                     value={formData.preferredDate}
-                    onChange={(e) => setFormData({ ...formData, preferredDate: e.target.value })}
-                    className="h-12 w-full rounded-full border border-foreground/15 bg-background/60 px-5 text-sm font-normal text-foreground outline-none transition-all [color-scheme:dark] hover:border-foreground/30 focus:border-secondary"
+                    onChange={(val) => setFormData({ ...formData, preferredDate: val })}
+                    minDate={todayISO}
+                    placeholder="Select preferred date... / انتخاب تاریخ جلسه"
                   />
                 </div>
 

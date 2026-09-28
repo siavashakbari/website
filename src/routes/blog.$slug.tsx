@@ -86,7 +86,10 @@ export const Route = createFileRoute("/blog/$slug")({
         image: post.coverImage,
         type: "article",
       }),
-      scripts: [jsonLdScript(blogPostingSchema), jsonLdScript(breadcrumbSchema)],
+      scripts: [
+        jsonLdScript(blogPostingSchema),
+        jsonLdScript(breadcrumbSchema),
+      ],
     };
   },
   component: BlogPostDetailPage,
@@ -238,7 +241,11 @@ function BlogPostDetailPage() {
       <div className="px-6 md:px-12 lg:px-20">
         <div className="mx-auto max-w-5xl overflow-hidden rounded-2xl border border-foreground/15 shadow-[0_20px_50px_rgba(0,0,0,0.6)]">
           <div className="relative aspect-[16/9] w-full bg-foreground/5 sm:aspect-[21/9]">
-            <img src={post.coverImage} alt={post.title} className="h-full w-full object-cover" />
+            <img
+              src={post.coverImage}
+              alt={post.title}
+              className="h-full w-full object-cover"
+            />
             <div className="absolute inset-0 bg-gradient-to-t from-background/40 via-transparent to-transparent" />
           </div>
         </div>
@@ -257,8 +264,8 @@ function BlogPostDetailPage() {
           </div>
 
           <p className="mt-2 text-xs leading-relaxed text-foreground/60">
-            Engineered for rapid human comprehension and direct generative engine citation (Google
-            AI Overviews, Perplexity, Claude & ChatGPT).
+            Engineered for rapid human comprehension and direct generative engine citation
+            (Google AI Overviews, Perplexity, Claude & ChatGPT).
           </p>
 
           <ul className="mt-5 space-y-3">
@@ -291,7 +298,9 @@ function BlogPostDetailPage() {
                     href={`#section-${idx}`}
                     className="inline-flex items-center gap-2 text-xs tracking-wider text-foreground/70 transition-colors hover:text-secondary"
                   >
-                    <span className="font-mono text-[10px] text-foreground/40">0{idx + 1}.</span>
+                    <span className="font-mono text-[10px] text-foreground/40">
+                      0{idx + 1}.
+                    </span>
                     <span>{section.heading}</span>
                   </a>
                 </li>
@@ -391,7 +400,9 @@ function BlogPostDetailPage() {
               <h3 className="mt-1 font-display text-xl font-normal text-foreground">
                 {post.author.name}
               </h3>
-              <p className="mt-2 text-xs leading-relaxed text-foreground/60">{post.author.bio}</p>
+              <p className="mt-2 text-xs leading-relaxed text-foreground/60">
+                {post.author.bio}
+              </p>
               <div className="mt-4 flex items-center gap-4 text-xs">
                 <Link to="/about" className="text-secondary hover:underline">
                   About Siavash →
@@ -479,3 +490,4 @@ function BlogPostDetailPage() {
     </div>
   );
 }
+

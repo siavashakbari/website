@@ -7,7 +7,13 @@ import {
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
-import { lazy, Suspense, useEffect, useState, type ReactNode } from "react";
+import {
+  lazy,
+  Suspense,
+  useEffect,
+  useState,
+  type ReactNode,
+} from "react";
 import { ChevronDown } from "lucide-react";
 
 import appCss from "../styles.css?url";
@@ -52,19 +58,19 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
         <p className="mt-2 text-sm text-muted-foreground">
           Something went wrong on our end. You can try refreshing or head back home.
         </p>
-        <div className="mt-6 flex flex-wrap justify-center gap-3">
+        <div className="mt-6 flex flex-wrap justify-center gap-2">
           <button
             onClick={() => {
               router.invalidate();
               reset();
             }}
-            className="inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-full border border-transparent bg-secondary px-6 text-sm font-medium text-secondary-foreground shadow-[0_0_8px_color-mix(in_oklab,var(--secondary)_42%,transparent),0_0_17px_color-mix(in_oklab,var(--secondary)_24%,transparent),0_0_25px_color-mix(in_oklab,var(--secondary)_12%,transparent)] transition-all duration-300 hover:shadow-[0_0_12px_color-mix(in_oklab,var(--secondary)_60%,transparent)] cursor-pointer"
+            className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
           >
             Try again
           </button>
           <a
             href="/"
-            className="inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-full border border-[#EFEFEF] bg-transparent px-6 text-sm font-medium text-[#EFEFEF] shadow-none transition-[background-color,border-color,color,box-shadow] duration-300 ease-out hover:border-transparent hover:bg-secondary hover:text-secondary-foreground hover:shadow-[0_0_8px_color-mix(in_oklab,var(--secondary)_42%,transparent),0_0_17px_color-mix(in_oklab,var(--secondary)_24%,transparent),0_0_25px_color-mix(in_oklab,var(--secondary)_12%,transparent)] cursor-pointer"
+            className="inline-flex items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent"
           >
             Go home
           </a>
@@ -175,11 +181,7 @@ function WorksDropdown({ active }: { active: boolean }) {
         className="z-[210] min-w-[14rem] rounded-none border-foreground/10 bg-background p-1 shadow-none"
       >
         {DISCIPLINES.map((discipline) => (
-          <DropdownMenuItem
-            key={discipline.slug}
-            asChild
-            className="rounded-none p-0 focus:bg-foreground/5"
-          >
+          <DropdownMenuItem key={discipline.slug} asChild className="rounded-none p-0 focus:bg-foreground/5">
             <Link
               to="/$discipline"
               params={{ discipline: discipline.slug }}
@@ -211,16 +213,13 @@ function Header() {
           >
             <Logo className="block h-[1.05rem] w-auto" />
           </Link>
-          <nav className="hidden h-full items-center gap-8 lg:gap-10 xl:gap-12 md:flex">
+          <nav className="hidden h-full items-center gap-12 md:flex">
             <Link to="/" style={navFont} className={navLinkClass}>
               Home
             </Link>
             <WorksDropdown active={worksActive} />
             <Link to="/brand-discovery" style={navFont} className={navLinkClass}>
               Visual Identity Form
-            </Link>
-            <Link to="/blog" style={navFont} className={navLinkClass}>
-              Blog
             </Link>
             <Link to="/about" style={navFont} className={navLinkClass}>
               About
@@ -241,12 +240,7 @@ function Header() {
 function MenuIcon({ className }: { className?: string }) {
   return (
     <svg className={className} viewBox="0 0 24 24" fill="none" aria-hidden>
-      <path
-        d="M4 7h16M4 12h16M4 17h16"
-        stroke="currentColor"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-      />
+      <path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
     </svg>
   );
 }
@@ -254,12 +248,7 @@ function MenuIcon({ className }: { className?: string }) {
 function CloseIcon({ className }: { className?: string }) {
   return (
     <svg className={className} viewBox="0 0 24 24" fill="none" aria-hidden>
-      <path
-        d="M6 6l12 12M18 6L6 18"
-        stroke="currentColor"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-      />
+      <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
     </svg>
   );
 }
@@ -364,14 +353,6 @@ function MobileNav() {
             </Link>
 
             <Link
-              to="/blog"
-              onClick={() => setOpen(false)}
-              className="font-display text-2xl font-normal text-foreground transition-transform hover:scale-105 data-[status=active]:font-bold data-[status=active]:text-secondary"
-            >
-              Blog
-            </Link>
-
-            <Link
               to="/about"
               onClick={() => setOpen(false)}
               className="font-display text-2xl font-normal text-foreground transition-transform hover:scale-105 data-[status=active]:font-bold data-[status=active]:text-secondary"
@@ -429,7 +410,8 @@ function RootComponent() {
   const router = useRouter();
   const pathname = router.state.location.pathname;
   const isProjectPage = pathname.startsWith("/projects/");
-  const isSideScrollDiscipline = pathname === "/book-covers" || pathname === "/posters";
+  const isSideScrollDiscipline =
+    pathname === "/book-covers" || pathname === "/posters";
   const [isDesktop, setIsDesktop] = useState(false);
 
   useEffect(() => {
@@ -465,7 +447,11 @@ function RootComponent() {
     const isEditable = (target: EventTarget | null) => {
       if (!(target instanceof HTMLElement)) return false;
       const tag = target.tagName;
-      return tag === "INPUT" || tag === "TEXTAREA" || target.isContentEditable;
+      return (
+        tag === "INPUT" ||
+        tag === "TEXTAREA" ||
+        target.isContentEditable
+      );
     };
 
     const block = (e: Event) => {
@@ -514,7 +500,9 @@ function RootComponent() {
       >
         <Header />
         <main
-          className={`flex-1 ${lockProjectScroll ? "flex min-h-0 flex-col overflow-hidden" : ""}`}
+          className={`flex-1 ${
+            lockProjectScroll ? "flex min-h-0 flex-col overflow-hidden" : ""
+          }`}
         >
           <Outlet />
         </main>
