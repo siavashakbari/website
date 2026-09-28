@@ -2,7 +2,11 @@ import fs from "node:fs";
 import path from "node:path";
 
 const projectsFile = fs.readFileSync(path.join(process.cwd(), "src/data/projects.ts"), "utf8");
-const disciplinesFile = fs.readFileSync(path.join(process.cwd(), "src/data/disciplines.ts"), "utf8");
+const disciplinesFile = fs.readFileSync(
+  path.join(process.cwd(), "src/data/disciplines.ts"),
+  "utf8",
+);
+const blogPostsFile = fs.readFileSync(path.join(process.cwd(), "src/data/blog-posts.ts"), "utf8");
 
 // Extract project IDs and years
 const projectMatches = [];
@@ -19,6 +23,13 @@ while ((match = discRegex.exec(disciplinesFile)) !== null) {
   disciplineSlugs.push(match[1]);
 }
 
+// Extract blog post slugs and published dates
+const blogPosts = [];
+const blogRegex = /slug:\s*["']([^"']+)["'][\s\S]*?publishedAt:\s*["']([^"']+)["']/g;
+while ((match = blogRegex.exec(blogPostsFile)) !== null) {
+  blogPosts.push({ slug: match[1], publishedAt: match[2] });
+}
+
 const baseUrl = "https://www.siavashakbari.ir";
 
 const staticPages = [
@@ -26,6 +37,7 @@ const staticPages = [
   { path: "/photography", changefreq: "weekly", priority: "0.9" },
   { path: "/graphic-design", changefreq: "weekly", priority: "0.9" },
   { path: "/product-design", changefreq: "weekly", priority: "0.9" },
+  { path: "/blog", changefreq: "daily", priority: "0.9" },
   { path: "/about", changefreq: "monthly", priority: "0.8" },
   { path: "/contact", changefreq: "monthly", priority: "0.8" },
   { path: "/brand-discovery", changefreq: "monthly", priority: "0.8" },
@@ -44,7 +56,14 @@ const projectPages = projectMatches.map((p) => ({
   lastmod: p.year ? `${p.year}-01-01` : undefined,
 }));
 
-const allEntries = [...staticPages, ...disciplinePages, ...projectPages];
+const blogPages = blogPosts.map((p) => ({
+  path: `/blog/${p.slug}`,
+  changefreq: "monthly",
+  priority: "0.8",
+  lastmod: p.publishedAt,
+}));
+
+const allEntries = [...staticPages, ...disciplinePages, ...projectPages, ...blogPages];
 
 const urls = allEntries.map((e) => {
   const loc = `${baseUrl}${e.path === "/" ? "/" : e.path}`;
