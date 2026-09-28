@@ -1,19 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import {
-  ArrowRight,
-  Calendar,
-  Clock,
-  Sparkles,
-  Search,
-  BookOpen,
-} from "lucide-react";
-import {
-  BLOG_POSTS,
-  BLOG_CATEGORIES,
-  type BlogCategory,
-} from "@/data/blog-posts";
+import { ArrowRight, Calendar, Clock, Sparkles, Search, BookOpen } from "lucide-react";
+import { BLOG_POSTS, BLOG_CATEGORIES, type BlogCategory } from "@/data/blog-posts";
 import { pageHead, jsonLdScript, getSiteUrl } from "@/lib/seo";
 import { BackToTop } from "@/components/BackToTop";
 
@@ -65,8 +54,7 @@ function BlogIndexPage() {
 
   const filteredPosts = useMemo(() => {
     return BLOG_POSTS.filter((post) => {
-      const matchesCategory =
-        selectedCategory === "all" || post.category === selectedCategory;
+      const matchesCategory = selectedCategory === "all" || post.category === selectedCategory;
       const matchesSearch =
         searchQuery.trim() === "" ||
         post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -97,7 +85,8 @@ function BlogIndexPage() {
           </h1>
 
           <p className="mt-6 max-w-2xl text-base font-normal leading-relaxed text-foreground/60 md:text-lg">
-            Personal essays on brand durability, negative space in photography, and official announcements from Siavash Akbari Studio.
+            Personal essays on brand durability, negative space in photography, and official
+            announcements from Siavash Akbari Studio.
           </p>
 
           {/* Search bar & Category filter pills */}
@@ -204,7 +193,7 @@ function BlogIndexPage() {
                     {featuredPost.tags.slice(0, 3).map((tag) => (
                       <span
                         key={tag}
-                        className="rounded-md border border-foreground/10 bg-foreground/5 px-2.5 py-1 text-[11px] text-foreground/60"
+                        className="rounded-full border border-foreground/10 bg-foreground/5 px-3 py-1 text-[11px] text-foreground/60"
                       >
                         #{tag}
                       </span>
@@ -248,7 +237,7 @@ function BlogIndexPage() {
                 setSelectedCategory("all");
                 setSearchQuery("");
               }}
-              className="mt-6 rounded-full border border-secondary/40 bg-secondary/10 px-5 py-2 text-xs uppercase tracking-wider text-secondary transition-colors hover:bg-secondary hover:text-secondary-foreground"
+              className="mt-6 inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-full border border-[#EFEFEF] bg-transparent px-6 text-sm font-medium text-[#EFEFEF] shadow-none transition-[background-color,border-color,color,box-shadow] duration-300 ease-out hover:border-transparent hover:bg-secondary hover:text-secondary-foreground hover:shadow-[0_0_8px_color-mix(in_oklab,var(--secondary)_42%,transparent),0_0_17px_color-mix(in_oklab,var(--secondary)_24%,transparent),0_0_25px_color-mix(in_oklab,var(--secondary)_12%,transparent)] cursor-pointer"
             >
               Reset Filters
             </button>
@@ -280,7 +269,7 @@ function BlogIndexPage() {
                         loading="lazy"
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-transparent to-transparent opacity-50" />
-                      
+
                       {/* Category Badge with Micro-Dot Glow */}
                       <div className="absolute top-3 left-3 inline-flex items-center gap-1.5 rounded-full border border-foreground/10 bg-background/85 px-2.5 py-0.5 text-[10px] font-medium tracking-widest uppercase text-foreground backdrop-blur-md">
                         <span className="h-1.5 w-1.5 rounded-full bg-secondary shadow-[0_0_6px_#3febcc]" />
@@ -317,10 +306,7 @@ function BlogIndexPage() {
                       <div className="mt-5 flex items-center justify-between border-t border-foreground/10 pt-4">
                         <div className="flex flex-wrap gap-1.5">
                           {post.tags.slice(0, 2).map((t) => (
-                            <span
-                              key={t}
-                              className="text-[10px] tracking-wider text-foreground/40"
-                            >
+                            <span key={t} className="text-[10px] tracking-wider text-foreground/40">
                               #{t}
                             </span>
                           ))}
@@ -344,4 +330,3 @@ function BlogIndexPage() {
     </div>
   );
 }
-

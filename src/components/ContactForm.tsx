@@ -181,7 +181,7 @@ export function ContactForm() {
               <button
                 type="button"
                 onClick={resetForm}
-                className="mt-8 inline-flex h-11 items-center justify-center rounded-xl border border-white/20 bg-white/5 px-6 text-sm font-medium text-[#EFEFEF] transition-all hover:border-secondary hover:bg-secondary/10 hover:text-secondary"
+                className="mt-8 inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-full border border-[#EFEFEF] bg-transparent px-6 text-sm font-medium text-[#EFEFEF] shadow-none transition-[background-color,border-color,color,box-shadow] duration-300 ease-out hover:border-transparent hover:bg-secondary hover:text-secondary-foreground hover:shadow-[0_0_8px_color-mix(in_oklab,var(--secondary)_42%,transparent),0_0_17px_color-mix(in_oklab,var(--secondary)_24%,transparent),0_0_25px_color-mix(in_oklab,var(--secondary)_12%,transparent)] cursor-pointer"
               >
                 Send Another Request · ارسال پیام دیگر
               </button>
@@ -212,14 +212,14 @@ export function ContactForm() {
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                     onBlur={() => handleBlur("name")}
                     placeholder="e.g. Elena Rostami"
-                    className={`w-full rounded-xl border bg-white/[0.03] px-4 py-3.5 text-sm text-[#EFEFEF] placeholder:text-[#EFEFEF]/25 outline-none transition-all ${
+                    className={`h-12 w-full rounded-full border bg-background/60 px-5 text-sm font-normal text-foreground placeholder:text-foreground/35 placeholder:font-thin focus:border-secondary focus:outline-none transition-all ${
                       touched.name && !isNameValid
-                        ? "border-red-500/60 focus:border-red-500 focus:ring-1 focus:ring-red-500"
-                        : "border-white/15 focus:border-secondary focus:ring-1 focus:ring-secondary"
+                        ? "border-red-500/60 focus:border-red-500"
+                        : "border-foreground/15 hover:border-foreground/30 focus:border-secondary"
                     }`}
                   />
                   {touched.name && !isNameValid && (
-                    <p className="text-xs text-red-400">Please provide your full name.</p>
+                    <p className="px-2 text-xs text-red-400">Please provide your full name.</p>
                   )}
                 </div>
 
@@ -245,21 +245,21 @@ export function ContactForm() {
                     onChange={(e) => setFormData({ ...formData, contact: e.target.value })}
                     onBlur={() => handleBlur("contact")}
                     placeholder="user@domain.com or @telegram or +98 9..."
-                    className={`w-full rounded-xl border bg-white/[0.03] px-4 py-3.5 text-sm text-[#EFEFEF] placeholder:text-[#EFEFEF]/25 outline-none transition-all ${
+                    className={`h-12 w-full rounded-full border bg-background/60 px-5 text-sm font-normal text-foreground placeholder:text-foreground/35 placeholder:font-thin focus:border-secondary focus:outline-none transition-all ${
                       touched.contact && !isContactValid
-                        ? "border-red-500/60 focus:border-red-500 focus:ring-1 focus:ring-red-500"
-                        : "border-white/15 focus:border-secondary focus:ring-1 focus:ring-secondary"
+                        ? "border-red-500/60 focus:border-red-500"
+                        : "border-foreground/15 hover:border-foreground/30 focus:border-secondary"
                     }`}
                   />
                   {touched.contact && !isContactValid && (
-                    <p className="text-xs text-red-400">
+                    <p className="px-2 text-xs text-red-400">
                       Please provide an email, phone number, or Telegram handle.
                     </p>
                   )}
                 </div>
               </div>
 
-              {/* Row 2: Topic Selection Chips */}
+              {/* Row 2: Topic Selection Chips (Pill Shaped) */}
               <div className="space-y-3">
                 <div className="flex items-center justify-between text-xs font-semibold uppercase tracking-wider text-[#EFEFEF]/80">
                   <span>Topic / Service of Discussion *</span>
@@ -268,7 +268,7 @@ export function ContactForm() {
                   </span>
                 </div>
 
-                <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-6">
+                <div className="flex flex-wrap items-center gap-2.5">
                   {TOPICS.map((topic) => {
                     const isSelected = formData.topic === topic.id;
                     return (
@@ -276,26 +276,22 @@ export function ContactForm() {
                         key={topic.id}
                         type="button"
                         onClick={() => setFormData({ ...formData, topic: topic.id })}
-                        className={`group relative flex flex-col items-center justify-center rounded-xl p-3 text-center transition-all ${
+                        className={`group relative inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-xs font-medium transition-all duration-300 cursor-pointer ${
                           isSelected
-                            ? "border border-secondary bg-secondary text-background shadow-[0_0_15px_rgba(63,235,204,0.35)]"
-                            : "border border-white/15 bg-white/[0.02] text-[#EFEFEF]/80 hover:border-white/30 hover:bg-white/[0.05]"
+                            ? "border border-transparent bg-secondary text-secondary-foreground shadow-[0_0_8px_color-mix(in_oklab,var(--secondary)_42%,transparent),0_0_17px_color-mix(in_oklab,var(--secondary)_24%,transparent),0_0_25px_color-mix(in_oklab,var(--secondary)_12%,transparent)]"
+                            : "border border-[#EFEFEF]/20 bg-transparent text-[#EFEFEF]/80 hover:border-transparent hover:bg-secondary hover:text-secondary-foreground hover:shadow-[0_0_8px_color-mix(in_oklab,var(--secondary)_42%,transparent),0_0_17px_color-mix(in_oklab,var(--secondary)_24%,transparent)]"
                         }`}
                       >
-                        <span
-                          className={`text-xs font-medium tracking-tight ${
-                            isSelected ? "font-bold text-background" : "text-[#EFEFEF]"
-                          }`}
-                        >
-                          {topic.labelEn}
-                        </span>
+                        <span>{topic.labelEn}</span>
                         <span
                           dir="rtl"
-                          className={`mt-0.5 font-farsi text-[0.72rem] ${
-                            isSelected ? "font-semibold text-background/90" : "text-[#EFEFEF]/50"
+                          className={`font-farsi text-[0.72rem] transition-colors ${
+                            isSelected
+                              ? "text-secondary-foreground/90 font-semibold"
+                              : "text-[#EFEFEF]/50 group-hover:text-secondary-foreground/80"
                           }`}
                         >
-                          {topic.labelFa}
+                          · {topic.labelFa}
                         </span>
                       </button>
                     );
@@ -325,7 +321,7 @@ export function ContactForm() {
                     min={todayISO}
                     value={formData.preferredDate}
                     onChange={(e) => setFormData({ ...formData, preferredDate: e.target.value })}
-                    className="w-full rounded-xl border border-white/15 bg-white/[0.03] px-4 py-3.5 text-sm text-[#EFEFEF] outline-none transition-all [color-scheme:dark] focus:border-secondary focus:ring-1 focus:ring-secondary"
+                    className="h-12 w-full rounded-full border border-foreground/15 bg-background/60 px-5 text-sm font-normal text-foreground outline-none transition-all [color-scheme:dark] hover:border-foreground/30 focus:border-secondary"
                   />
                 </div>
 
@@ -341,34 +337,34 @@ export function ContactForm() {
                     </span>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-3 pt-0.5">
+                  <div className="flex flex-wrap gap-2.5 pt-0.5">
                     <button
                       type="button"
                       onClick={() => setFormData({ ...formData, timeSlot: "morning" })}
-                      className={`flex flex-col items-center justify-center rounded-xl p-3 text-center transition-all ${
+                      className={`inline-flex flex-1 items-center justify-center gap-2 rounded-full px-5 py-2.5 text-xs font-medium transition-all duration-300 cursor-pointer ${
                         formData.timeSlot === "morning"
-                          ? "border border-secondary bg-secondary/15 text-secondary shadow-[0_0_12px_rgba(63,235,204,0.2)]"
-                          : "border border-white/15 bg-white/[0.02] text-[#EFEFEF]/70 hover:border-white/30"
+                          ? "border border-transparent bg-secondary text-secondary-foreground shadow-[0_0_8px_color-mix(in_oklab,var(--secondary)_42%,transparent),0_0_17px_color-mix(in_oklab,var(--secondary)_24%,transparent),0_0_25px_color-mix(in_oklab,var(--secondary)_12%,transparent)]"
+                          : "border border-[#EFEFEF]/20 bg-transparent text-[#EFEFEF]/80 hover:border-transparent hover:bg-secondary hover:text-secondary-foreground hover:shadow-[0_0_8px_color-mix(in_oklab,var(--secondary)_42%,transparent)]"
                       }`}
                     >
-                      <span className="text-xs font-medium">Morning (10:00 – 14:00)</span>
-                      <span dir="rtl" className="font-farsi text-[0.7rem] text-[#EFEFEF]/50">
-                        صبح: ۱۰:۰۰ تا ۱۴:۰۰
+                      <span>Morning (10:00 – 14:00)</span>
+                      <span dir="rtl" className="font-farsi text-[0.72rem] opacity-75">
+                        · صبح: ۱۰ تا ۱۴
                       </span>
                     </button>
 
                     <button
                       type="button"
                       onClick={() => setFormData({ ...formData, timeSlot: "afternoon" })}
-                      className={`flex flex-col items-center justify-center rounded-xl p-3 text-center transition-all ${
+                      className={`inline-flex flex-1 items-center justify-center gap-2 rounded-full px-5 py-2.5 text-xs font-medium transition-all duration-300 cursor-pointer ${
                         formData.timeSlot === "afternoon"
-                          ? "border border-secondary bg-secondary/15 text-secondary shadow-[0_0_12px_rgba(63,235,204,0.2)]"
-                          : "border border-white/15 bg-white/[0.02] text-[#EFEFEF]/70 hover:border-white/30"
+                          ? "border border-transparent bg-secondary text-secondary-foreground shadow-[0_0_8px_color-mix(in_oklab,var(--secondary)_42%,transparent),0_0_17px_color-mix(in_oklab,var(--secondary)_24%,transparent),0_0_25px_color-mix(in_oklab,var(--secondary)_12%,transparent)]"
+                          : "border border-[#EFEFEF]/20 bg-transparent text-[#EFEFEF]/80 hover:border-transparent hover:bg-secondary hover:text-secondary-foreground hover:shadow-[0_0_8px_color-mix(in_oklab,var(--secondary)_42%,transparent)]"
                       }`}
                     >
-                      <span className="text-xs font-medium">Afternoon (15:00 – 19:00)</span>
-                      <span dir="rtl" className="font-farsi text-[0.7rem] text-[#EFEFEF]/50">
-                        عصر: ۱۵:۰۰ تا ۱۹:۰۰
+                      <span>Afternoon (15:00 – 19:00)</span>
+                      <span dir="rtl" className="font-farsi text-[0.72rem] opacity-75">
+                        · عصر: ۱۵ تا ۱۹
                       </span>
                     </button>
                   </div>
@@ -393,18 +389,18 @@ export function ContactForm() {
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   onBlur={() => handleBlur("description")}
                   placeholder="Tell us about your brand, scope of work, timeline, and goals... / اهداف، دامنه کار و چشم‌انداز مدنظر خود را توضیح دهید..."
-                  className={`w-full resize-none rounded-xl border bg-white/[0.03] p-4 text-sm leading-relaxed text-[#EFEFEF] placeholder:text-[#EFEFEF]/25 outline-none transition-all ${
+                  className={`w-full resize-none rounded-3xl border bg-background/60 p-5 text-sm font-normal leading-relaxed text-foreground placeholder:text-foreground/35 placeholder:font-thin focus:border-secondary focus:outline-none transition-all ${
                     touched.description && !isDescriptionValid
-                      ? "border-red-500/60 focus:border-red-500 focus:ring-1 focus:ring-red-500"
-                      : "border-white/15 focus:border-secondary focus:ring-1 focus:ring-secondary"
+                      ? "border-red-500/60 focus:border-red-500"
+                      : "border-foreground/15 hover:border-foreground/30 focus:border-secondary"
                   }`}
                 />
-                <div className="flex items-center justify-between text-[0.75rem] text-[#EFEFEF]/40">
+                <div className="flex items-center justify-between px-2 text-[0.75rem] text-[#EFEFEF]/40">
                   <span>Minimum 10 characters</span>
                   <span>{formData.description.trim().length} chars</span>
                 </div>
                 {touched.description && !isDescriptionValid && (
-                  <p className="text-xs text-red-400">
+                  <p className="px-2 text-xs text-red-400">
                     Please provide at least 10 characters explaining your project.
                   </p>
                 )}
@@ -412,28 +408,28 @@ export function ContactForm() {
 
               {/* Error Banner */}
               {errorMessage && (
-                <div className="flex items-center gap-2 rounded-xl border border-red-500/30 bg-red-500/10 p-3.5 text-xs text-red-300">
+                <div className="flex items-center gap-2 rounded-full border border-red-500/30 bg-red-500/10 px-5 py-3 text-xs text-red-300">
                   <AlertCircle className="h-4 w-4 shrink-0 text-red-400" />
                   <span>{errorMessage}</span>
                 </div>
               )}
 
-              {/* Submit CTA */}
-              <div className="pt-2">
+              {/* Submit CTA — Pill Shaped with "Submit" label and Visual Identity Form glow */}
+              <div className="pt-2 flex justify-center">
                 <button
                   type="submit"
                   disabled={status === "submitting"}
-                  className="group relative flex h-14 w-full items-center justify-center gap-3 overflow-hidden rounded-xl bg-secondary px-8 font-display text-sm font-bold uppercase tracking-wider text-background shadow-[0_0_20px_rgba(63,235,204,0.3)] transition-all hover:shadow-[0_0_30px_rgba(63,235,204,0.5)] disabled:cursor-not-allowed disabled:opacity-70"
+                  className="group relative inline-flex h-12 w-full sm:w-auto min-w-[220px] items-center justify-center gap-2 rounded-full border border-transparent bg-secondary px-8 text-sm font-medium text-secondary-foreground shadow-[0_0_8px_color-mix(in_oklab,var(--secondary)_42%,transparent),0_0_17px_color-mix(in_oklab,var(--secondary)_24%,transparent),0_0_25px_color-mix(in_oklab,var(--secondary)_12%,transparent)] transition-all duration-300 ease-out hover:shadow-[0_0_12px_color-mix(in_oklab,var(--secondary)_55%,transparent),0_0_24px_color-mix(in_oklab,var(--secondary)_30%,transparent),0_0_36px_color-mix(in_oklab,var(--secondary)_16%,transparent)] disabled:opacity-40 disabled:pointer-events-none cursor-pointer"
                 >
                   {status === "submitting" ? (
                     <>
-                      <Loader2 className="h-5 w-5 animate-spin" />
-                      <span>Transmitting to Studio Channel...</span>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      <span>Submitting...</span>
                     </>
                   ) : (
                     <>
-                      <span>Transmit Consultation Request</span>
-                      <Send className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                      <span>Submit</span>
+                      <Send className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
                     </>
                   )}
                 </button>
