@@ -2,15 +2,20 @@ import { useEffect, useRef } from "react";
 
 const SIZE_PX = 24;
 
-const VELOCITY_FULL = 28;
-const VELOCITY_DECAY = 0.14;
-const MORPH_EASE = 0.2;
+/** Velocity threshold where maximum aerodynamic elongation is reached */
+const VELOCITY_FULL = 36;
+/** Fast velocity decay (0.36 = 36% decay per 16.6ms frame) so momentum doesn't linger */
+const VELOCITY_DECAY = 0.36;
+/** Snappy morph interpolation (0.45) so shape reacts instantly and resets immediately on stop */
+const MORPH_EASE = 0.45;
+/** Position tracking ease (0.65) so the cursor tightly tracks the pointer without sluggish delay */
+const POSITION_EASE = 0.65;
 
 /** Distance from button center where magnetism begins */
 const MAGNET_RANGE = 110;
 /** Inside this distance from center, cursor locks onto the button */
 const MAGNET_STICK = 36;
-const MAGNET_EASE = 0.28;
+const MAGNET_EASE = 0.35;
 
 function smoothstep(t: number) {
   const x = Math.max(0, Math.min(1, t));
@@ -56,8 +61,11 @@ export function InvertCursor() {
     const onMove = (e: MouseEvent) => {
       targetX = e.clientX;
       targetY = e.clientY;
-      impulseX += e.clientX - lastMouseX;
-      impulseY += e.clientY - lastMouseY;
+      const dx = e.clientX - lastMouseX;
+      const dy = e.clientY - lastMouseY;
+      // Clamp single-event impulse to prevent wild spikes on window boundary crossing
+      impulseX += Math.max(-75, Math.min(75, dx));
+      impulseY += Math.max(-75, Math.min(75, dy));
       lastMouseX = e.clientX;
       lastMouseY = e.clientY;
       if (!visible) {
@@ -65,17 +73,37 @@ export function InvertCursor() {
         el.style.opacity = "1";
       }
     };
+
     const onLeave = () => {
       visible = false;
       el.style.opacity = "0";
+      velX = 0;
+      velY = 0;
+      morphX = 0;
+      morphY = 0;
+      impulseX = 0;
+      impulseY = 0;
     };
-    const onEnter = () => {
+
+    const onEnter = (e: MouseEvent) => {
       visible = true;
       el.style.opacity = "1";
+      targetX = e.clientX;
+      targetY = e.clientY;
+      lastMouseX = e.clientX;
+      lastMouseY = e.clientY;
+      currentX = e.clientX;
+      currentY = e.clientY;
+      impulseX = 0;
+      impulseY = 0;
+      velX = 0;
+      velY = 0;
+      morphX = 0;
+      morphY = 0;
     };
 
     const onWheel = (e: WheelEvent) => {
-      impulseY += e.deltaY * 0.35;
+      impulseY += Math.max(-40, Math.min(40, e.deltaY * 0.25));
       lastWheelAt = performance.now();
     };
 
@@ -85,7 +113,8 @@ export function InvertCursor() {
         return;
       }
       const y = window.scrollY;
-      impulseY += (y - lastScrollY) * 0.5;
+      const dy = y - lastScrollY;
+      impulseY += Math.max(-40, Math.min(40, dy * 0.35));
       lastScrollY = y;
     };
 
@@ -107,17 +136,15 @@ export function InvertCursor() {
       for (let i = 0; i < cachedMagnets.length; i++) {
         const node = cachedMagnets[i];
         if (!node || !node.isConnected) continue;
-
-        // Skip invisible/offscreen elements quickly without getBoundingClientRect
         if (node.offsetParent === null) continue;
 
         const rect = node.getBoundingClientRect();
         if (rect.width < 2 || rect.height < 2) continue;
-        
+
         const cx = rect.left + rect.width / 2;
         const cy = rect.top + rect.height / 2;
         const dist = Math.hypot(x - cx, y - cy);
-        
+
         if (dist > MAGNET_RANGE) continue;
         const r = Math.min(rect.width, rect.height) / 2;
         if (!best || dist < best.dist) best = { cx, cy, dist, r };
@@ -133,13 +160,13 @@ export function InvertCursor() {
 
     const tick = (now: number) => {
       // Calculate delta time relative to ideal 60fps (16.67ms)
-      const dtMs = Math.min(now - lastTime, 50); // cap to prevent explosion if tab was hidden
+      const dtMs = Math.min(now - lastTime, 40);
       lastTime = now;
       const dtRatio = dtMs / 16.67;
 
       frame += 1;
-      // Check magnet only every 8 frames (~120ms) to leave main thread completely free for page loading
-      if (frame % 8 === 0) {
+      // Check magnet every 10 frames to keep main thread completely light
+      if (frame % 10 === 0) {
         magnetCache = visible ? findMagnet(targetX, targetY) : null;
       }
 
@@ -155,9 +182,7 @@ export function InvertCursor() {
           aimX = magnet.cx;
           aimY = magnet.cy;
         } else {
-          wantMagnet = smoothstep(
-            1 - (magnet.dist - MAGNET_STICK) / (MAGNET_RANGE - MAGNET_STICK),
-          );
+          wantMagnet = smoothstep(1 - (magnet.dist - MAGNET_STICK) / (MAGNET_RANGE - MAGNET_STICK));
           const pull = wantMagnet * wantMagnet;
           aimX = targetX + (magnet.cx - targetX) * pull;
           aimY = targetY + (magnet.cy - targetY) * pull;
@@ -167,11 +192,13 @@ export function InvertCursor() {
       magnetStrength += (wantMagnet - magnetStrength) * Math.min(1, MAGNET_EASE * dtRatio);
       if (magnetStrength < 0.001) magnetStrength = 0;
 
-      const baseEase = magnetStrength > 0.5 ? 0.45 : 0.3;
-      const effectiveEase = 1 - Math.pow(1 - baseEase, Math.max(0.2, dtRatio));
+      // Snappy and direct position ease (0.65 by default, 0.5 when magnetic)
+      const baseEase = magnetStrength > 0.5 ? 0.5 : POSITION_EASE;
+      const effectiveEase = 1 - Math.pow(1 - baseEase, Math.max(0.1, dtRatio));
       currentX += (aimX - currentX) * effectiveEase;
       currentY += (aimY - currentY) * effectiveEase;
 
+      // Fast velocity processing with high decay rate to eliminate tail lag
       velX += impulseX;
       velY += impulseY;
       impulseX = 0;
@@ -180,51 +207,56 @@ export function InvertCursor() {
       velX *= decayFactor;
       velY *= decayFactor;
 
-      // Kill stretch while stuck so it sits clean on the button
+      // Suppress morphing while magnetically locked onto a button
       const morphDamp = 1 - magnetStrength;
       const targetMorphX = Math.max(-1, Math.min(1, (velX / VELOCITY_FULL) * morphDamp));
       const targetMorphY = Math.max(-1, Math.min(1, (velY / VELOCITY_FULL) * morphDamp));
-      const morphEase = 1 - Math.pow(1 - MORPH_EASE, Math.max(0.2, dtRatio));
+
+      // Snappy morph ease (0.45) catches speed immediately and returns to 0 on stop
+      const morphEase = 1 - Math.pow(1 - MORPH_EASE, Math.max(0.1, dtRatio));
       morphX += (targetMorphX - morphX) * morphEase;
       morphY += (targetMorphY - morphY) * morphEase;
-      if (Math.abs(morphX) < 0.001) morphX = 0;
-      if (Math.abs(morphY) < 0.001) morphY = 0;
+
+      // Threshold cut-off to instantly settle back to perfect circle
+      if (Math.abs(morphX) < 0.005) morphX = 0;
+      if (Math.abs(morphY) < 0.005) morphY = 0;
 
       const intensity = Math.min(1, Math.hypot(morphX, morphY));
 
-      if (intensity >= 0.02) {
+      // Immediately orient rotation angle with current directional velocity
+      if (intensity >= 0.03) {
         lastAngle = Math.atan2(morphY, morphX);
       }
 
-      const stretch = 1 + intensity * 0.85;
+      // Aerodynamic elongation: stretch along travel vector, squish across width
+      const stretch = 1 + intensity * 0.72;
       const squish = 1 - intensity * 0.22;
 
       let radius = "50%";
-      if (intensity >= 0.02) {
-        const wide = 60 + intensity * 12;
-        const narrow = 40 - intensity * 14;
-        // Local +X = movement direction after rotate.
-        // Swapped ends: narrower on the trailing side (−X).
+      if (intensity >= 0.03) {
+        const wide = 58 + intensity * 12;
+        const narrow = 42 - intensity * 12;
+        // Sleek aerodynamic profile: rounder at front (+X), narrower at tail (-X)
         radius = `${wide}% ${narrow}% ${narrow}% ${wide}% / 50% 50% 50% 50%`;
       }
 
       const angleDeg = (lastAngle * 180) / Math.PI;
 
-      // Grow to button radius − 2px when stuck
+      // Button magnet expansion
       const stuckSize = Math.max(SIZE_PX, lastButtonRadius * 2 - 4);
       const drawSize = SIZE_PX + (stuckSize - SIZE_PX) * magnetStrength * magnetStrength;
       const drawScale = drawSize / SIZE_PX;
-      const half = SIZE_PX / 2; // Keep base size for translation offset
+      const half = SIZE_PX / 2;
 
-      // Apply all scaling and morphing purely via transform to prevent paint/layout thrashing
       const finalStretch = stretch * drawScale;
       const finalSquish = squish * drawScale;
 
       el.style.transform = `translate3d(${currentX - half}px, ${currentY - half}px, 0)`;
       shape.style.transform =
-        intensity < 0.02 && magnetStrength < 0.001
+        intensity < 0.03 && magnetStrength < 0.001
           ? `scale(${drawScale})`
           : `rotate(${angleDeg}deg) scale(${finalStretch}, ${finalSquish})`;
+
       if (radius !== lastRadius) {
         shape.style.borderRadius = radius;
         lastRadius = radius;
