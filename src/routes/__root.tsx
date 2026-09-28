@@ -417,9 +417,7 @@ function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const router = useRouter();
   const pathname = router.state.location.pathname;
-  const isProjectPage =
-    pathname.startsWith("/projects/") ||
-    (pathname.startsWith("/visual-identity/") && pathname !== "/visual-identity");
+  const isProjectPage = pathname.startsWith("/projects/");
   const isSideScrollDiscipline = pathname === "/book-covers" || pathname === "/posters";
   const [isDesktop, setIsDesktop] = useState(false);
 

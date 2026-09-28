@@ -99,16 +99,18 @@ export function AdaptiveThumb({
 }: AdaptiveThumbProps) {
   const gallery = useGalleryLoad();
   const meta = useMemo(() => metaFromSrc(src), [src]);
+  const [naturalRatio, setNaturalRatio] = useState<number | null>(null);
 
+  const effectiveRatio = naturalRatio ?? meta.ratio;
   const rank = gallery ? gallery.rankOf(index) : index;
 
   useEffect(() => {
-    onRatio?.(meta.ratio);
-  }, [src, meta.ratio, onRatio]);
+    onRatio?.(effectiveRatio);
+  }, [effectiveRatio, onRatio]);
 
   const boxStyle: CSSProperties = {
     ...style,
-    aspectRatio: style?.aspectRatio ?? String(meta.ratio),
+    aspectRatio: style?.aspectRatio ?? String(effectiveRatio),
     backgroundColor: meta.color,
   };
 
@@ -120,7 +122,9 @@ export function AdaptiveThumb({
     const vid = videoRef.current;
     if (vid && vid.readyState >= 1) { // HAVE_METADATA
       if (vid.videoWidth > 0 && vid.videoHeight > 0) {
-        onRatio?.(vid.videoWidth / vid.videoHeight);
+        const r = vid.videoWidth / vid.videoHeight;
+        setNaturalRatio(r);
+        onRatio?.(r);
       }
     }
   }, [src, onRatio]);
@@ -136,11 +140,12 @@ export function AdaptiveThumb({
           loop
           playsInline
           className={cn(className, "object-cover")}
-          style={style}
           onLoadedMetadata={(e) => {
             const vid = e.currentTarget;
             if (vid.videoWidth > 0 && vid.videoHeight > 0) {
-              onRatio?.(vid.videoWidth / vid.videoHeight);
+              const r = vid.videoWidth / vid.videoHeight;
+              setNaturalRatio(r);
+              onRatio?.(r);
             }
           }}
         />
@@ -157,11 +162,12 @@ export function AdaptiveThumb({
           onLoad={(e) => {
             const img = e.currentTarget;
             if (img.naturalWidth > 0 && img.naturalHeight > 0) {
-              onRatio?.(img.naturalWidth / img.naturalHeight);
+              const r = img.naturalWidth / img.naturalHeight;
+              setNaturalRatio(r);
+              onRatio?.(r);
             }
           }}
           className={className}
-          style={style}
         />
       )}
     </div>

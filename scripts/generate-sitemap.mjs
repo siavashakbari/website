@@ -2,11 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 
 const projectsFile = fs.readFileSync(path.join(process.cwd(), "src/data/projects.ts"), "utf8");
-const disciplinesFile = fs.readFileSync(
-  path.join(process.cwd(), "src/data/disciplines.ts"),
-  "utf8",
-);
-const blogPostsFile = fs.readFileSync(path.join(process.cwd(), "src/data/blog-posts.ts"), "utf8");
+const disciplinesFile = fs.readFileSync(path.join(process.cwd(), "src/data/disciplines.ts"), "utf8");
 
 // Extract project IDs and years
 const projectMatches = [];
@@ -23,13 +19,6 @@ while ((match = discRegex.exec(disciplinesFile)) !== null) {
   disciplineSlugs.push(match[1]);
 }
 
-// Extract blog post slugs and published dates
-const blogPosts = [];
-const blogRegex = /slug:\s*["']([^"']+)["'][\s\S]*?publishedAt:\s*["']([^"']+)["']/g;
-while ((match = blogRegex.exec(blogPostsFile)) !== null) {
-  blogPosts.push({ slug: match[1], publishedAt: match[2] });
-}
-
 const baseUrl = "https://www.siavashakbari.ir";
 
 const staticPages = [
@@ -37,7 +26,6 @@ const staticPages = [
   { path: "/photography", changefreq: "weekly", priority: "0.9" },
   { path: "/graphic-design", changefreq: "weekly", priority: "0.9" },
   { path: "/product-design", changefreq: "weekly", priority: "0.9" },
-  { path: "/blog", changefreq: "daily", priority: "0.9" },
   { path: "/about", changefreq: "monthly", priority: "0.8" },
   { path: "/contact", changefreq: "monthly", priority: "0.8" },
   { path: "/brand-discovery", changefreq: "monthly", priority: "0.8" },
@@ -49,44 +37,14 @@ const disciplinePages = disciplineSlugs.map((slug) => ({
   priority: "0.85",
 }));
 
-const visualIdentityIds = [
-  "shekarchian",
-  "dodareh",
-  "ahura-cctv",
-  "femiq",
-  "polarity",
-  "echo-supplements",
-  "goats-coffee",
-  "nozad-publication",
-  "on-swipe",
-  "zen-studio",
-  "artemis",
-  "cichon",
-  "farshid-rahimi",
-  "maanaar",
-  "mamrezz",
-  "snow-snack",
-  "zeee-products",
-  "awli",
-];
-
-const visualIdentityPages = projectMatches
-  .filter((p) => visualIdentityIds.includes(p.id))
-  .map((p) => ({
-    path: `/visual-identity/${p.id}`,
-    changefreq: "monthly",
-    priority: "0.85",
-    lastmod: p.year ? `${p.year}-01-01` : undefined,
-  }));
-
-const blogPages = blogPosts.map((p) => ({
-  path: `/blog/${p.slug}`,
+const projectPages = projectMatches.map((p) => ({
+  path: `/projects/${p.id}`,
   changefreq: "monthly",
-  priority: "0.8",
-  lastmod: p.publishedAt,
+  priority: "0.7",
+  lastmod: p.year ? `${p.year}-01-01` : undefined,
 }));
 
-const allEntries = [...staticPages, ...disciplinePages, ...visualIdentityPages, ...blogPages];
+const allEntries = [...staticPages, ...disciplinePages, ...projectPages];
 
 const urls = allEntries.map((e) => {
   const loc = `${baseUrl}${e.path === "/" ? "/" : e.path}`;
