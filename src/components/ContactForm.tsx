@@ -6,7 +6,6 @@ import {
   Clock,
   Loader2,
   Send,
-  Sparkles,
   AlertCircle,
   User,
   AtSign,
@@ -122,7 +121,7 @@ export function ContactForm() {
   };
 
   return (
-    <div className="relative w-full overflow-hidden rounded-2xl border border-white/10 bg-[#0F0F0F]/90 p-6 shadow-2xl backdrop-blur-2xl sm:p-8 md:p-10 lg:p-12">
+    <div className="relative w-full overflow-hidden rounded-2xl border border-white/10 bg-[#0F0F0F]/90 p-7 shadow-2xl backdrop-blur-2xl sm:p-10 md:p-12 lg:p-14">
       {/* Decorative ambient gradient backdrop */}
       <div
         aria-hidden
@@ -135,23 +134,17 @@ export function ContactForm() {
 
       <div className="relative z-10">
         {/* Form Header */}
-        <div className="mb-8 flex flex-col items-start justify-between gap-4 border-b border-white/10 pb-6 md:flex-row md:items-center">
-          <div>
-            <div className="inline-flex items-center gap-2 rounded-full border border-secondary/30 bg-secondary/10 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-secondary">
-              <Sparkles className="h-3 w-3" />
-              <span>Consultation Booking · رزرو مشاوره</span>
-            </div>
-            <h2 className="mt-3 font-display text-2xl font-bold tracking-tight text-[#EFEFEF] sm:text-3xl">
-              Initiate a Project
-            </h2>
-          </div>
-          <p className="max-w-xs text-xs leading-relaxed text-[#EFEFEF]/60 md:text-right">
-            Direct dispatch to studio channel. We respond within 24–48 hours.
-            <br />
-            <span className="font-farsi text-[#EFEFEF]/50">
-              ارسال مستقیم به کانال خصوصی استودیو؛ پاسخ حداکثر ظرف ۴۸ ساعت.
-            </span>
-          </p>
+        <div className="mb-8 flex flex-row items-center justify-between gap-4 border-b border-white/10 pb-6">
+          <h2 className="font-display text-2xl font-bold tracking-tight text-[#EFEFEF] sm:text-3xl">
+            Consultation Booking
+          </h2>
+          <span
+            lang="fa"
+            dir="rtl"
+            className="font-farsi text-xl font-bold text-secondary sm:text-2xl"
+          >
+            رزرو مشاوره
+          </span>
         </div>
 
         <AnimatePresence mode="wait">
@@ -188,7 +181,7 @@ export function ContactForm() {
               </button>
             </motion.div>
           ) : (
-            <form onSubmit={handleSubmit} className="space-y-7" noValidate>
+            <form onSubmit={handleSubmit} className="space-y-8 sm:space-y-9" noValidate>
               {/* Row 1: Name and Contact Info */}
               <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                 {/* Full Name */}
@@ -213,7 +206,7 @@ export function ContactForm() {
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                     onBlur={() => handleBlur("name")}
                     placeholder="e.g. Elena Rostami"
-                    className={`h-12 w-full rounded-full border bg-background/60 px-5 text-sm font-normal text-foreground placeholder:text-foreground/35 placeholder:font-thin focus:border-secondary focus:outline-none transition-all ${
+                    className={`h-14 w-full rounded-full border bg-background/60 px-6 text-sm font-normal text-foreground placeholder:text-foreground/35 placeholder:font-thin focus:border-secondary focus:outline-none transition-all ${
                       touched.name && !isNameValid
                         ? "border-red-500/60 focus:border-red-500"
                         : "border-foreground/15 hover:border-foreground/30 focus:border-secondary"
@@ -246,7 +239,7 @@ export function ContactForm() {
                     onChange={(e) => setFormData({ ...formData, contact: e.target.value })}
                     onBlur={() => handleBlur("contact")}
                     placeholder="user@domain.com or @telegram or +98 9..."
-                    className={`h-12 w-full rounded-full border bg-background/60 px-5 text-sm font-normal text-foreground placeholder:text-foreground/35 placeholder:font-thin focus:border-secondary focus:outline-none transition-all ${
+                    className={`h-14 w-full rounded-full border bg-background/60 px-6 text-sm font-normal text-foreground placeholder:text-foreground/35 placeholder:font-thin focus:border-secondary focus:outline-none transition-all ${
                       touched.contact && !isContactValid
                         ? "border-red-500/60 focus:border-red-500"
                         : "border-foreground/15 hover:border-foreground/30 focus:border-secondary"
@@ -260,16 +253,16 @@ export function ContactForm() {
                 </div>
               </div>
 
-              {/* Row 2: Topic Selection Chips (Pill Shaped) */}
+              {/* Row 2: Topic Selection Chips (2 rows of 3 buttons) */}
               <div className="space-y-3">
                 <div className="flex items-center justify-between text-xs font-semibold uppercase tracking-wider text-[#EFEFEF]/80">
                   <span>Topic / Service of Discussion *</span>
-                  <span className="font-farsi text-[0.8rem] font-normal normal-case text-[#EFEFEF]/60">
+                  <span className="font-farsi text-[0.85rem] font-normal normal-case text-[#EFEFEF]/60">
                     زمینه پروژه یا مشاوره
                   </span>
                 </div>
 
-                <div className="flex flex-wrap items-center gap-2.5">
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 sm:gap-3.5">
                   {TOPICS.map((topic) => {
                     const isSelected = formData.topic === topic.id;
                     return (
@@ -277,22 +270,22 @@ export function ContactForm() {
                         key={topic.id}
                         type="button"
                         onClick={() => setFormData({ ...formData, topic: topic.id })}
-                        className={`group relative inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-xs font-medium transition-all duration-300 cursor-pointer ${
+                        className={`group relative inline-flex h-14 w-full items-center justify-center gap-2.5 rounded-full px-4 text-sm font-medium transition-all duration-300 cursor-pointer ${
                           isSelected
                             ? "border border-transparent bg-secondary text-secondary-foreground shadow-[0_0_8px_color-mix(in_oklab,var(--secondary)_42%,transparent),0_0_17px_color-mix(in_oklab,var(--secondary)_24%,transparent),0_0_25px_color-mix(in_oklab,var(--secondary)_12%,transparent)]"
                             : "border border-[#EFEFEF]/20 bg-transparent text-[#EFEFEF]/80 hover:border-transparent hover:bg-secondary hover:text-secondary-foreground hover:shadow-[0_0_8px_color-mix(in_oklab,var(--secondary)_42%,transparent),0_0_17px_color-mix(in_oklab,var(--secondary)_24%,transparent)]"
                         }`}
                       >
-                        <span>{topic.labelEn}</span>
+                        <span className="leading-none">{topic.labelEn}</span>
                         <span
                           dir="rtl"
-                          className={`font-farsi text-[0.72rem] transition-colors ${
+                          className={`font-farsi text-sm font-bold leading-none translate-y-[1.5px] transition-colors ${
                             isSelected
-                              ? "text-secondary-foreground/90 font-semibold"
-                              : "text-[#EFEFEF]/50 group-hover:text-secondary-foreground/80"
+                              ? "text-secondary-foreground"
+                              : "text-[#EFEFEF]/60 group-hover:text-secondary-foreground"
                           }`}
                         >
-                          · {topic.labelFa}
+                          {topic.labelFa}
                         </span>
                       </button>
                     );
@@ -336,34 +329,48 @@ export function ContactForm() {
                     </span>
                   </div>
 
-                  <div className="flex flex-wrap gap-2.5 pt-0.5">
+                  <div className="flex flex-col sm:flex-row gap-3 pt-0.5">
                     <button
                       type="button"
                       onClick={() => setFormData({ ...formData, timeSlot: "morning" })}
-                      className={`inline-flex flex-1 items-center justify-center gap-2 rounded-full px-5 py-2.5 text-xs font-medium transition-all duration-300 cursor-pointer ${
+                      className={`inline-flex h-14 flex-1 items-center justify-center gap-2.5 rounded-full px-4 text-xs sm:text-sm font-medium transition-all duration-300 cursor-pointer ${
                         formData.timeSlot === "morning"
                           ? "border border-transparent bg-secondary text-secondary-foreground shadow-[0_0_8px_color-mix(in_oklab,var(--secondary)_42%,transparent),0_0_17px_color-mix(in_oklab,var(--secondary)_24%,transparent),0_0_25px_color-mix(in_oklab,var(--secondary)_12%,transparent)]"
                           : "border border-[#EFEFEF]/20 bg-transparent text-[#EFEFEF]/80 hover:border-transparent hover:bg-secondary hover:text-secondary-foreground hover:shadow-[0_0_8px_color-mix(in_oklab,var(--secondary)_42%,transparent)]"
                       }`}
                     >
-                      <span>Morning (10:00 – 14:00)</span>
-                      <span dir="rtl" className="font-farsi text-[0.72rem] opacity-75">
-                        · صبح: ۱۰ تا ۱۴
+                      <span className="leading-none">Morning (9:00 – 12:00)</span>
+                      <span
+                        dir="rtl"
+                        className={`font-farsi text-sm font-bold leading-none translate-y-[1.5px] transition-colors ${
+                          formData.timeSlot === "morning"
+                            ? "text-secondary-foreground"
+                            : "text-[#EFEFEF]/60 group-hover:text-secondary-foreground"
+                        }`}
+                      >
+                        صبح: ۹ تا ۱۲
                       </span>
                     </button>
 
                     <button
                       type="button"
                       onClick={() => setFormData({ ...formData, timeSlot: "afternoon" })}
-                      className={`inline-flex flex-1 items-center justify-center gap-2 rounded-full px-5 py-2.5 text-xs font-medium transition-all duration-300 cursor-pointer ${
+                      className={`inline-flex h-14 flex-1 items-center justify-center gap-2.5 rounded-full px-4 text-xs sm:text-sm font-medium transition-all duration-300 cursor-pointer ${
                         formData.timeSlot === "afternoon"
                           ? "border border-transparent bg-secondary text-secondary-foreground shadow-[0_0_8px_color-mix(in_oklab,var(--secondary)_42%,transparent),0_0_17px_color-mix(in_oklab,var(--secondary)_24%,transparent),0_0_25px_color-mix(in_oklab,var(--secondary)_12%,transparent)]"
                           : "border border-[#EFEFEF]/20 bg-transparent text-[#EFEFEF]/80 hover:border-transparent hover:bg-secondary hover:text-secondary-foreground hover:shadow-[0_0_8px_color-mix(in_oklab,var(--secondary)_42%,transparent)]"
                       }`}
                     >
-                      <span>Afternoon (15:00 – 19:00)</span>
-                      <span dir="rtl" className="font-farsi text-[0.72rem] opacity-75">
-                        · عصر: ۱۵ تا ۱۹
+                      <span className="leading-none">Afternoon (17:00 – 19:00)</span>
+                      <span
+                        dir="rtl"
+                        className={`font-farsi text-sm font-bold leading-none translate-y-[1.5px] transition-colors ${
+                          formData.timeSlot === "afternoon"
+                            ? "text-secondary-foreground"
+                            : "text-[#EFEFEF]/60 group-hover:text-secondary-foreground"
+                        }`}
+                      >
+                        عصر: ۱۷ تا ۱۹
                       </span>
                     </button>
                   </div>
@@ -377,18 +384,18 @@ export function ContactForm() {
                     <FileText className="h-3.5 w-3.5 text-secondary" />
                     Project Description / Inquiries *
                   </span>
-                  <span className="font-farsi text-[0.8rem] font-normal normal-case text-[#EFEFEF]/60">
+                  <span className="font-farsi text-[0.85rem] font-normal normal-case text-[#EFEFEF]/60">
                     شرح پروژه و نیازمندی‌ها
                   </span>
                 </div>
                 <textarea
                   required
-                  rows={4}
+                  rows={5}
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   onBlur={() => handleBlur("description")}
                   placeholder="Tell us about your brand, scope of work, timeline, and goals... / اهداف، دامنه کار و چشم‌انداز مدنظر خود را توضیح دهید..."
-                  className={`w-full resize-none rounded-3xl border bg-background/60 p-5 text-sm font-normal leading-relaxed text-foreground placeholder:text-foreground/35 placeholder:font-thin focus:border-secondary focus:outline-none transition-all ${
+                  className={`min-h-[160px] w-full resize-none rounded-3xl border bg-background/60 p-5 sm:p-6 text-sm font-normal leading-relaxed text-foreground placeholder:text-foreground/35 placeholder:font-thin focus:border-secondary focus:outline-none transition-all ${
                     touched.description && !isDescriptionValid
                       ? "border-red-500/60 focus:border-red-500"
                       : "border-foreground/15 hover:border-foreground/30 focus:border-secondary"
@@ -418,7 +425,7 @@ export function ContactForm() {
                 <button
                   type="submit"
                   disabled={status === "submitting"}
-                  className="group relative inline-flex h-12 w-full sm:w-auto min-w-[220px] items-center justify-center gap-2 rounded-full border border-transparent bg-secondary px-8 text-sm font-medium text-secondary-foreground shadow-[0_0_8px_color-mix(in_oklab,var(--secondary)_42%,transparent),0_0_17px_color-mix(in_oklab,var(--secondary)_24%,transparent),0_0_25px_color-mix(in_oklab,var(--secondary)_12%,transparent)] transition-all duration-300 ease-out hover:shadow-[0_0_12px_color-mix(in_oklab,var(--secondary)_55%,transparent),0_0_24px_color-mix(in_oklab,var(--secondary)_30%,transparent),0_0_36px_color-mix(in_oklab,var(--secondary)_16%,transparent)] disabled:opacity-40 disabled:pointer-events-none cursor-pointer"
+                  className="group relative inline-flex h-14 sm:h-16 w-full sm:w-auto min-w-[240px] items-center justify-center gap-3 rounded-full border border-transparent bg-secondary px-10 text-base font-semibold text-secondary-foreground shadow-[0_0_8px_color-mix(in_oklab,var(--secondary)_42%,transparent),0_0_17px_color-mix(in_oklab,var(--secondary)_24%,transparent),0_0_25px_color-mix(in_oklab,var(--secondary)_12%,transparent)] transition-all duration-300 ease-out hover:shadow-[0_0_12px_color-mix(in_oklab,var(--secondary)_55%,transparent),0_0_24px_color-mix(in_oklab,var(--secondary)_30%,transparent),0_0_36px_color-mix(in_oklab,var(--secondary)_16%,transparent)] disabled:opacity-40 disabled:pointer-events-none cursor-pointer"
                 >
                   {status === "submitting" ? (
                     <>

@@ -160,7 +160,7 @@ export function CustomDatePicker({
         onClick={() => setIsOpen((prev) => !prev)}
         aria-haspopup="dialog"
         aria-expanded={isOpen}
-        className={`group flex h-12 w-full items-center justify-between rounded-full border bg-background/60 px-5 text-sm font-normal text-foreground transition-all duration-300 cursor-pointer ${
+        className={`group flex h-14 w-full items-center justify-between rounded-full border bg-background/60 px-5 text-sm font-normal text-foreground transition-all duration-300 cursor-pointer ${
           isOpen
             ? "border-secondary shadow-[0_0_10px_color-mix(in_oklab,var(--secondary)_30%,transparent)]"
             : "border-foreground/15 hover:border-foreground/30 focus:border-secondary focus:outline-none"

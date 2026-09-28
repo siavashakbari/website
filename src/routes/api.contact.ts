@@ -71,9 +71,9 @@ export const Route = createFileRoute("/api/contact")({
           // Format time slot label
           const timeSlotLabel =
             timeSlot === "morning"
-              ? "Morning (صبح — ۱۰:۰۰ تا ۱۴:۰۰)"
+              ? "Morning (صبح — ۹:۰۰ تا ۱۲:۰۰)"
               : timeSlot === "afternoon"
-                ? "Afternoon / Evening (عصر — ۱۵:۰۰ تا ۱۹:۰۰)"
+                ? "Afternoon / Evening (عصر — ۱۷:۰۰ تا ۱۹:۰۰)"
                 : timeSlot || "Not specified / تعیین نشده";
 
           const submittedAt = new Date().toLocaleString("fa-IR", {

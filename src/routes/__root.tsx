@@ -7,13 +7,7 @@ import {
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
-import {
-  lazy,
-  Suspense,
-  useEffect,
-  useState,
-  type ReactNode,
-} from "react";
+import { lazy, Suspense, useEffect, useState, type ReactNode } from "react";
 import { ChevronDown } from "lucide-react";
 
 import appCss from "../styles.css?url";
@@ -181,7 +175,11 @@ function WorksDropdown({ active }: { active: boolean }) {
         className="z-[210] min-w-[14rem] rounded-none border-foreground/10 bg-background p-1 shadow-none"
       >
         {DISCIPLINES.map((discipline) => (
-          <DropdownMenuItem key={discipline.slug} asChild className="rounded-none p-0 focus:bg-foreground/5">
+          <DropdownMenuItem
+            key={discipline.slug}
+            asChild
+            className="rounded-none p-0 focus:bg-foreground/5"
+          >
             <Link
               to="/$discipline"
               params={{ discipline: discipline.slug }}
@@ -240,7 +238,12 @@ function Header() {
 function MenuIcon({ className }: { className?: string }) {
   return (
     <svg className={className} viewBox="0 0 24 24" fill="none" aria-hidden>
-      <path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      <path
+        d="M4 7h16M4 12h16M4 17h16"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
     </svg>
   );
 }
@@ -248,7 +251,12 @@ function MenuIcon({ className }: { className?: string }) {
 function CloseIcon({ className }: { className?: string }) {
   return (
     <svg className={className} viewBox="0 0 24 24" fill="none" aria-hidden>
-      <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      <path
+        d="M6 6l12 12M18 6L6 18"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
     </svg>
   );
 }
@@ -410,8 +418,7 @@ function RootComponent() {
   const router = useRouter();
   const pathname = router.state.location.pathname;
   const isProjectPage = pathname.startsWith("/projects/");
-  const isSideScrollDiscipline =
-    pathname === "/book-covers" || pathname === "/posters";
+  const isSideScrollDiscipline = pathname === "/book-covers" || pathname === "/posters";
   const [isDesktop, setIsDesktop] = useState(false);
 
   useEffect(() => {
@@ -425,10 +432,7 @@ function RootComponent() {
   // Lock page scroll only for desktop side-scroll project pages.
   const lockProjectScroll = isProjectPage && isDesktop;
   const hideFooter =
-    isProjectPage ||
-    pathname === "/about" ||
-    pathname === "/contact" ||
-    (isSideScrollDiscipline && isDesktop);
+    isProjectPage || pathname === "/about" || (isSideScrollDiscipline && isDesktop);
 
   useEffect(() => {
     if (!lockProjectScroll) return;
@@ -447,11 +451,7 @@ function RootComponent() {
     const isEditable = (target: EventTarget | null) => {
       if (!(target instanceof HTMLElement)) return false;
       const tag = target.tagName;
-      return (
-        tag === "INPUT" ||
-        tag === "TEXTAREA" ||
-        target.isContentEditable
-      );
+      return tag === "INPUT" || tag === "TEXTAREA" || target.isContentEditable;
     };
 
     const block = (e: Event) => {
@@ -500,9 +500,7 @@ function RootComponent() {
       >
         <Header />
         <main
-          className={`flex-1 ${
-            lockProjectScroll ? "flex min-h-0 flex-col overflow-hidden" : ""
-          }`}
+          className={`flex-1 ${lockProjectScroll ? "flex min-h-0 flex-col overflow-hidden" : ""}`}
         >
           <Outlet />
         </main>
