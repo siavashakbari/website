@@ -49,12 +49,35 @@ const disciplinePages = disciplineSlugs.map((slug) => ({
   priority: "0.85",
 }));
 
-const projectPages = projectMatches.map((p) => ({
-  path: `/projects/${p.id}`,
-  changefreq: "monthly",
-  priority: "0.7",
-  lastmod: p.year ? `${p.year}-01-01` : undefined,
-}));
+const visualIdentityIds = [
+  "shekarchian",
+  "dodareh",
+  "ahura-cctv",
+  "femiq",
+  "polarity",
+  "echo-supplements",
+  "goats-coffee",
+  "nozad-publication",
+  "on-swipe",
+  "zen-studio",
+  "artemis",
+  "cichon",
+  "farshid-rahimi",
+  "maanaar",
+  "mamrezz",
+  "snow-snack",
+  "zeee-products",
+  "awli",
+];
+
+const visualIdentityPages = projectMatches
+  .filter((p) => visualIdentityIds.includes(p.id))
+  .map((p) => ({
+    path: `/visual-identity/${p.id}`,
+    changefreq: "monthly",
+    priority: "0.85",
+    lastmod: p.year ? `${p.year}-01-01` : undefined,
+  }));
 
 const blogPages = blogPosts.map((p) => ({
   path: `/blog/${p.slug}`,
@@ -63,7 +86,7 @@ const blogPages = blogPosts.map((p) => ({
   lastmod: p.publishedAt,
 }));
 
-const allEntries = [...staticPages, ...disciplinePages, ...projectPages, ...blogPages];
+const allEntries = [...staticPages, ...disciplinePages, ...visualIdentityPages, ...blogPages];
 
 const urls = allEntries.map((e) => {
   const loc = `${baseUrl}${e.path === "/" ? "/" : e.path}`;

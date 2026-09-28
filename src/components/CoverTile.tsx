@@ -7,6 +7,7 @@ type CoverTileProps = {
 } & (
   | { to: "/$discipline"; params: { discipline: string } }
   | { to: "/projects/$projectId"; params: { projectId: string } }
+  | { to: "/visual-identity/$projectId"; params: { projectId: string } }
 );
 
 /**

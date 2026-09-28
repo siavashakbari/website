@@ -30,10 +30,16 @@ function buildEntries(): SitemapEntry[] {
     priority: "0.85",
   }));
 
-  const projectPages: SitemapEntry[] = projects.map((p) => ({
-    path: `/projects/${p.id}`,
+  const visualIdentityProjects = projects.filter(
+    (p) =>
+      p.discipline === "graphic-design" &&
+      p.category.toLowerCase().includes("visual identity")
+  );
+
+  const visualIdentityPages: SitemapEntry[] = visualIdentityProjects.map((p) => ({
+    path: `/visual-identity/${p.id}`,
     changefreq: "monthly" as const,
-    priority: "0.7",
+    priority: "0.85",
     lastmod: p.year ? `${p.year}-01-01` : undefined,
   }));
 
@@ -44,7 +50,7 @@ function buildEntries(): SitemapEntry[] {
     lastmod: post.publishedAt,
   }));
 
-  return [...staticPages, ...disciplinePages, ...projectPages, ...blogPages];
+  return [...staticPages, ...disciplinePages, ...visualIdentityPages, ...blogPages];
 }
 
 export const Route = createFileRoute("/sitemap.xml")({

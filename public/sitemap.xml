@@ -81,190 +81,112 @@
     <priority>0.85</priority>
   </url>
   <url>
-    <loc>https://www.siavashakbari.ir/projects/photography</loc>
+    <loc>https://www.siavashakbari.ir/visual-identity/shekarchian</loc>
     <lastmod>2026-01-01</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
+    <priority>0.85</priority>
   </url>
   <url>
-    <loc>https://www.siavashakbari.ir/projects/shekarchian</loc>
+    <loc>https://www.siavashakbari.ir/visual-identity/dodareh</loc>
+    <lastmod>2025-01-01</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.85</priority>
+  </url>
+  <url>
+    <loc>https://www.siavashakbari.ir/visual-identity/ahura-cctv</loc>
+    <lastmod>2025-01-01</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.85</priority>
+  </url>
+  <url>
+    <loc>https://www.siavashakbari.ir/visual-identity/femiq</loc>
+    <lastmod>2025-01-01</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.85</priority>
+  </url>
+  <url>
+    <loc>https://www.siavashakbari.ir/visual-identity/polarity</loc>
+    <lastmod>2025-01-01</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.85</priority>
+  </url>
+  <url>
+    <loc>https://www.siavashakbari.ir/visual-identity/echo-supplements</loc>
+    <lastmod>2025-01-01</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.85</priority>
+  </url>
+  <url>
+    <loc>https://www.siavashakbari.ir/visual-identity/goats-coffee</loc>
+    <lastmod>2025-01-01</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.85</priority>
+  </url>
+  <url>
+    <loc>https://www.siavashakbari.ir/visual-identity/nozad-publication</loc>
+    <lastmod>2025-01-01</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.85</priority>
+  </url>
+  <url>
+    <loc>https://www.siavashakbari.ir/visual-identity/on-swipe</loc>
     <lastmod>2026-01-01</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
+    <priority>0.85</priority>
   </url>
   <url>
-    <loc>https://www.siavashakbari.ir/projects/dodareh</loc>
+    <loc>https://www.siavashakbari.ir/visual-identity/zen-studio</loc>
     <lastmod>2025-01-01</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
+    <priority>0.85</priority>
   </url>
   <url>
-    <loc>https://www.siavashakbari.ir/projects/ahura-cctv</loc>
-    <lastmod>2025-01-01</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.siavashakbari.ir/projects/femiq</loc>
-    <lastmod>2025-01-01</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.siavashakbari.ir/projects/polarity</loc>
-    <lastmod>2025-01-01</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.siavashakbari.ir/projects/echo-supplements</loc>
-    <lastmod>2025-01-01</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.siavashakbari.ir/projects/goats-coffee</loc>
-    <lastmod>2025-01-01</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.siavashakbari.ir/projects/nozad-publication</loc>
-    <lastmod>2025-01-01</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.siavashakbari.ir/projects/on-swipe</loc>
-    <lastmod>2026-01-01</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.siavashakbari.ir/projects/zen-studio</loc>
-    <lastmod>2025-01-01</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.siavashakbari.ir/projects/artemis</loc>
+    <loc>https://www.siavashakbari.ir/visual-identity/artemis</loc>
     <lastmod>2019-01-01</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
+    <priority>0.85</priority>
   </url>
   <url>
-    <loc>https://www.siavashakbari.ir/projects/cichon</loc>
+    <loc>https://www.siavashakbari.ir/visual-identity/cichon</loc>
     <lastmod>2024-01-01</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
+    <priority>0.85</priority>
   </url>
   <url>
-    <loc>https://www.siavashakbari.ir/projects/farshid-rahimi</loc>
+    <loc>https://www.siavashakbari.ir/visual-identity/farshid-rahimi</loc>
     <lastmod>2019-01-01</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
+    <priority>0.85</priority>
   </url>
   <url>
-    <loc>https://www.siavashakbari.ir/projects/maanaar</loc>
+    <loc>https://www.siavashakbari.ir/visual-identity/maanaar</loc>
     <lastmod>2025-01-01</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
+    <priority>0.85</priority>
   </url>
   <url>
-    <loc>https://www.siavashakbari.ir/projects/mamrezz</loc>
+    <loc>https://www.siavashakbari.ir/visual-identity/mamrezz</loc>
     <lastmod>2023-01-01</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
+    <priority>0.85</priority>
   </url>
   <url>
-    <loc>https://www.siavashakbari.ir/projects/snow-snack</loc>
+    <loc>https://www.siavashakbari.ir/visual-identity/snow-snack</loc>
     <lastmod>2020-01-01</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
+    <priority>0.85</priority>
   </url>
   <url>
-    <loc>https://www.siavashakbari.ir/projects/zeee-products</loc>
+    <loc>https://www.siavashakbari.ir/visual-identity/zeee-products</loc>
     <lastmod>2025-01-01</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
+    <priority>0.85</priority>
   </url>
   <url>
-    <loc>https://www.siavashakbari.ir/projects/awli</loc>
+    <loc>https://www.siavashakbari.ir/visual-identity/awli</loc>
     <lastmod>2021-01-01</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.siavashakbari.ir/projects/book-covers</loc>
-    <lastmod>2025-01-01</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.siavashakbari.ir/projects/posters</loc>
-    <lastmod>2025-01-01</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.siavashakbari.ir/projects/gastronomie</loc>
-    <lastmod>2024-01-01</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.siavashakbari.ir/projects/cuisine</loc>
-    <lastmod>2024-01-01</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.siavashakbari.ir/projects/tasting</loc>
-    <lastmod>2024-01-01</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.siavashakbari.ir/projects/atlasi</loc>
-    <lastmod>2024-01-01</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.siavashakbari.ir/projects/zeeen</loc>
-    <lastmod>2019-01-01</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.siavashakbari.ir/projects/sepidar</loc>
-    <lastmod>2020-01-01</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.siavashakbari.ir/projects/calligraphy</loc>
-    <lastmod>2024-01-01</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.siavashakbari.ir/projects/photos</loc>
-    <lastmod>2024-01-01</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.siavashakbari.ir/projects/gaze</loc>
-    <lastmod>2024-01-01</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.siavashakbari.ir/projects/objects</loc>
-    <lastmod>2024-01-01</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
+    <priority>0.85</priority>
   </url>
   <url>
     <loc>https://www.siavashakbari.ir/blog/crafting-enduring-visual-identities</loc>

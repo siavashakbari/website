@@ -20,16 +20,45 @@ export function ProjectCard({ project, index = 0, aspectRatio }: ProjectCardProp
     />
   );
 
+  const isVisualIdentity =
+    project.discipline === "graphic-design" &&
+    project.category.toLowerCase().includes("visual identity");
+
+  const cat = project.category.toLowerCase();
+  let linkProps: any = {
+    to: "/visual-identity/$projectId",
+    params: { projectId: project.id },
+  };
+
+  if (!isVisualIdentity) {
+    if (cat.includes("fashion")) {
+      linkProps = { to: "/$discipline", params: { discipline: "fashion-photography" } };
+    } else if (cat.includes("food")) {
+      linkProps = { to: "/$discipline", params: { discipline: "food-photography" } };
+    } else if (cat.includes("portrait")) {
+      linkProps = { to: "/$discipline", params: { discipline: "portrait-photography" } };
+    } else if (cat.includes("product")) {
+      linkProps = { to: "/$discipline", params: { discipline: "product-photography" } };
+    } else if (cat.includes("book cover")) {
+      linkProps = { to: "/$discipline", params: { discipline: "book-covers" } };
+    } else if (cat.includes("poster")) {
+      linkProps = { to: "/$discipline", params: { discipline: "posters" } };
+    } else if (project.discipline === "video" || cat.includes("video")) {
+      linkProps = { to: "/$discipline", params: { discipline: "videos" } };
+    }
+  }
+
   return (
     <Link
-      to="/projects/$projectId"
-      params={{ projectId: project.id }}
+      {...linkProps}
       className="group block"
       aria-label={`View ${project.title}`}
     >
       <div className="relative overflow-hidden bg-card">
-      {aspectRatio ? (
-          <div className="w-full" style={{ aspectRatio }}>{image}</div>
+        {aspectRatio ? (
+          <div className="w-full" style={{ aspectRatio }}>
+            {image}
+          </div>
         ) : (
           image
         )}

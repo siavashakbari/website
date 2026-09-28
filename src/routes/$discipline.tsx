@@ -361,7 +361,7 @@ function DisciplinePage() {
             {projectCards.map((project) => (
               <CoverTile
                 key={project.id}
-                to="/projects/$projectId"
+                to="/visual-identity/$projectId"
                 params={{ projectId: project.id }}
                 label={project.title}
                 image={project.image}

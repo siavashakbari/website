@@ -29,6 +29,7 @@ import { Route as ApiContactRouteImport } from './routes/api.contact'
 import { Route as BlogIndexRouteImport } from './routes/blog.index'
 import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
 import { Route as ProjectsProjectIdRouteImport } from './routes/projects.$projectId'
+import { Route as VisualIdentityProjectIdRouteImport } from './routes/visual-identity.$projectId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -130,6 +131,11 @@ const ProjectsProjectIdRoute = ProjectsProjectIdRouteImport.update({
   path: '/projects/$projectId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const VisualIdentityProjectIdRoute = VisualIdentityProjectIdRouteImport.update({
+  id: '/visual-identity/$projectId',
+  path: '/visual-identity/$projectId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -150,6 +156,7 @@ export interface FileRoutesByFullPath {
   '/api/contact': typeof ApiContactRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/projects/$projectId': typeof ProjectsProjectIdRoute
+  '/visual-identity/$projectId': typeof VisualIdentityProjectIdRoute
   '/admin/': typeof AdminIndexRoute
   '/blog/': typeof BlogIndexRoute
 }
@@ -171,6 +178,7 @@ export interface FileRoutesByTo {
   '/api/contact': typeof ApiContactRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/projects/$projectId': typeof ProjectsProjectIdRoute
+  '/visual-identity/$projectId': typeof VisualIdentityProjectIdRoute
   '/admin': typeof AdminIndexRoute
   '/blog': typeof BlogIndexRoute
 }
@@ -194,6 +202,7 @@ export interface FileRoutesById {
   '/api/contact': typeof ApiContactRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/projects/$projectId': typeof ProjectsProjectIdRoute
+  '/visual-identity/$projectId': typeof VisualIdentityProjectIdRoute
   '/admin/': typeof AdminIndexRoute
   '/blog/': typeof BlogIndexRoute
 }
@@ -218,6 +227,7 @@ export interface FileRouteTypes {
     | '/api/contact'
     | '/blog/$slug'
     | '/projects/$projectId'
+    | '/visual-identity/$projectId'
     | '/admin/'
     | '/blog/'
   fileRoutesByTo: FileRoutesByTo
@@ -239,6 +249,7 @@ export interface FileRouteTypes {
     | '/api/contact'
     | '/blog/$slug'
     | '/projects/$projectId'
+    | '/visual-identity/$projectId'
     | '/admin'
     | '/blog'
   id:
@@ -261,6 +272,7 @@ export interface FileRouteTypes {
     | '/api/contact'
     | '/blog/$slug'
     | '/projects/$projectId'
+    | '/visual-identity/$projectId'
     | '/admin/'
     | '/blog/'
   fileRoutesById: FileRoutesById
@@ -281,6 +293,7 @@ export interface RootRouteChildren {
   ApiContactRoute: typeof ApiContactRoute
   BlogSlugRoute: typeof BlogSlugRoute
   ProjectsProjectIdRoute: typeof ProjectsProjectIdRoute
+  VisualIdentityProjectIdRoute: typeof VisualIdentityProjectIdRoute
   BlogIndexRoute: typeof BlogIndexRoute
 }
 
@@ -426,6 +439,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProjectsProjectIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/visual-identity/$projectId': {
+      id: '/visual-identity/$projectId'
+      path: '/visual-identity/$projectId'
+      fullPath: '/visual-identity/$projectId'
+      preLoaderRoute: typeof VisualIdentityProjectIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -461,6 +481,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiContactRoute: ApiContactRoute,
   BlogSlugRoute: BlogSlugRoute,
   ProjectsProjectIdRoute: ProjectsProjectIdRoute,
+  VisualIdentityProjectIdRoute: VisualIdentityProjectIdRoute,
   BlogIndexRoute: BlogIndexRoute,
 }
 export const routeTree = rootRouteImport

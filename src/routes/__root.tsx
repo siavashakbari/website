@@ -219,9 +219,6 @@ function Header() {
             <Link to="/brand-discovery" style={navFont} className={navLinkClass}>
               Visual Identity Form
             </Link>
-            <Link to="/blog" style={navFont} className={navLinkClass}>
-              Blog
-            </Link>
             <Link to="/about" style={navFont} className={navLinkClass}>
               About
             </Link>
@@ -364,14 +361,6 @@ function MobileNav() {
             </Link>
 
             <Link
-              to="/blog"
-              onClick={() => setOpen(false)}
-              className="font-display text-2xl font-normal text-foreground transition-transform hover:scale-105 data-[status=active]:font-bold data-[status=active]:text-secondary"
-            >
-              Blog
-            </Link>
-
-            <Link
               to="/about"
               onClick={() => setOpen(false)}
               className="font-display text-2xl font-normal text-foreground transition-transform hover:scale-105 data-[status=active]:font-bold data-[status=active]:text-secondary"
@@ -392,12 +381,8 @@ function MobileNav() {
   );
 }
 
-/** Custom cursor only — keep it out of the first paint path and completely disabled on admin pages. */
+/** Custom cursor only — keep it out of the first paint path. */
 function DeferredCursor() {
-  const router = useRouter();
-  const pathname = router.state.location.pathname;
-  if (pathname.startsWith("/admin")) return null;
-
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
@@ -432,7 +417,9 @@ function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const router = useRouter();
   const pathname = router.state.location.pathname;
-  const isProjectPage = pathname.startsWith("/projects/");
+  const isProjectPage =
+    pathname.startsWith("/projects/") ||
+    (pathname.startsWith("/visual-identity/") && pathname !== "/visual-identity");
   const isSideScrollDiscipline = pathname === "/book-covers" || pathname === "/posters";
   const [isDesktop, setIsDesktop] = useState(false);
 
@@ -448,12 +435,6 @@ function RootComponent() {
   const lockProjectScroll = isProjectPage && isDesktop && !isAdminPage;
   const hideFooter =
     isAdminPage || isProjectPage || pathname === "/about" || (isSideScrollDiscipline && isDesktop);
-
-  useEffect(() => {
-    if (isAdminPage) {
-      document.documentElement.classList.remove("invert-cursor-active");
-    }
-  }, [isAdminPage]);
 
   useEffect(() => {
     if (!lockProjectScroll) return;
@@ -515,9 +496,8 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      {!isAdminPage && <DeferredCursor />}
+      <DeferredCursor />
       <div
-        data-admin-root={isAdminPage ? "true" : undefined}
         className={`flex flex-col bg-background ${
           lockProjectScroll ? "h-dvh overflow-hidden overscroll-none" : "min-h-screen"
         }`}
