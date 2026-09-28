@@ -103,7 +103,7 @@ function useIsDesktop() {
   return isDesktop;
 }
 
-export const Route = createFileRoute("/$discipline")({
+export const Route = createFileRoute("/$discipline/")({
   loader: ({ params }) => {
     const discipline = DISCIPLINES.find((d) => d.slug === params.discipline);
     if (!discipline) throw notFound({ routeId: rootRouteId });

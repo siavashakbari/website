@@ -60,6 +60,14 @@ export interface StudioBlogItem {
   contentMarkdown: string;
   published: boolean;
   featured?: boolean;
+  tags?: string[];
+  author?: {
+    name: string;
+    role: string;
+    roleFa?: string;
+    avatar: string;
+    bio?: string;
+  };
   seoDescription?: string;
   aiSummary?: string;
 }

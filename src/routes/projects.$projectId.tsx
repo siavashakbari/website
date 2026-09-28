@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { createFileRoute, Link, notFound, rootRouteId } from "@tanstack/react-router";
+import { createFileRoute, Link, notFound, redirect, rootRouteId } from "@tanstack/react-router";
 import { ArrowLeft } from "lucide-react";
 import { DISCIPLINES } from "@/data/disciplines";
 import { projects } from "@/data/projects";
@@ -31,6 +31,33 @@ export const Route = createFileRoute("/projects/$projectId")({
   loader: ({ params }) => {
     const project = projects.find((p) => p.id === params.projectId);
     if (!project) throw notFound({ routeId: rootRouteId });
+
+    // Visual Identity projects redirect to /visual-identity/:projectId
+    if (
+      project.discipline === "graphic-design" &&
+      project.category.toLowerCase().includes("visual identity")
+    ) {
+      throw redirect({
+        to: "/visual-identity/$projectId",
+        params: { projectId: project.id },
+      });
+    }
+
+    // Photography projects have no dedicated project case study; redirect to discipline gallery
+    const cat = project.category.toLowerCase();
+    if (cat.includes("fashion")) {
+      throw redirect({ to: "/$discipline", params: { discipline: "fashion-photography" } });
+    }
+    if (cat.includes("food")) {
+      throw redirect({ to: "/$discipline", params: { discipline: "food-photography" } });
+    }
+    if (cat.includes("portrait")) {
+      throw redirect({ to: "/$discipline", params: { discipline: "portrait-photography" } });
+    }
+    if (cat.includes("product")) {
+      throw redirect({ to: "/$discipline", params: { discipline: "product-photography" } });
+    }
+
     return { project };
   },
   head: ({ loaderData }) => {

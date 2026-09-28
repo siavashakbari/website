@@ -3,17 +3,65 @@ import { createFileRoute, notFound, rootRouteId, useRouter } from "@tanstack/rea
 import { ArrowLeft } from "lucide-react";
 import { DISCIPLINES } from "@/data/disciplines";
 import { getPhotoItemByCode } from "@/lib/studio-store";
-import { getPhotoByCode } from "@/data/photo-inventory";
+import { getPhotoByCode, getPhotoByStem, PHOTO_INVENTORY, type PhotoInventoryItem } from "@/data/photo-inventory";
 import { resolveInventoryImage } from "@/lib/inventory-assets";
 import { pageHead } from "@/lib/seo";
+import { projects } from "@/data/projects";
 
 export const Route = createFileRoute("/$discipline/$photoId")({
   loader: ({ params }) => {
     const discipline = DISCIPLINES.find((d) => d.slug === params.discipline);
     if (!discipline) throw notFound({ routeId: rootRouteId });
 
-    // Lookup photo by code (e.g. SA-PORT-PHO-04)
-    const photo = getPhotoItemByCode(params.photoId) || getPhotoByCode(params.photoId);
+    // 1. Primary lookup: by exact code in studio store or PHOTO_INVENTORY
+    let photo: PhotoInventoryItem | undefined =
+      getPhotoItemByCode(params.photoId) || getPhotoByCode(params.photoId);
+
+    // 2. Fallback: by stem
+    if (!photo) {
+      photo = getPhotoByStem(params.photoId);
+    }
+
+    // 3. Fallback: case-insensitive code or filename search in inventory
+    if (!photo) {
+      const q = params.photoId.toLowerCase();
+      photo = PHOTO_INVENTORY.find(
+        (i) =>
+          i.code.toLowerCase() === q ||
+          i.imgSrc.toLowerCase().includes(q)
+      );
+    }
+
+    // 4. Fallback: if it was a project-based code like "gastronomie-01"
+    if (!photo) {
+      const match = params.photoId.match(/^(.*)-(\d+)$/);
+      if (match) {
+        const [, projId, idxStr] = match;
+        const proj = projects.find((p) => p.id === projId);
+        if (proj) {
+          const idx = parseInt(idxStr, 10) - 1;
+          const gallery = proj.gallery ?? [proj.image];
+          const src = gallery[idx] || proj.image;
+          const stem = src.split("/").pop()?.replace(/\.[^.]+$/, "") || "";
+          photo = getPhotoByStem(stem) || {
+            code: params.photoId.toUpperCase(),
+            project: proj.title,
+            discipline: discipline.label,
+            disciplineSlug: discipline.slug,
+            imgSrc: src,
+            subdiscipline: proj.subDiscipline || proj.category || "",
+            model: Array.isArray(proj.models) ? proj.models.join(", ") : (proj.models || ""),
+            client: proj.client || "",
+            makeupArtist: proj.makeupArtist || "",
+            assistant: proj.assistant || "",
+            date: proj.year || "2024",
+            keywords: `${proj.title}, ${discipline.label}, Siavash Akbari`,
+            caption: proj.caption || proj.description || "",
+          };
+        }
+      }
+    }
+
     if (!photo) {
       throw notFound({ routeId: rootRouteId });
     }
@@ -58,9 +106,8 @@ function DedicatedPhotoPage() {
   const { discipline, photo, resolvedImage } = Route.useLoaderData();
   const router = useRouter();
 
-  // Clicking anywhere navigates back to the gallery and restores scroll position
-  const handlePageClick = () => {
-    if (window.history.length > 1) {
+  const handleGoBack = () => {
+    if (typeof window !== "undefined" && window.history.length > 1) {
       window.history.back();
     } else {
       router.navigate({ to: "/$discipline", params: { discipline: discipline.slug } });
@@ -68,18 +115,17 @@ function DedicatedPhotoPage() {
   };
 
   return (
-    <div
-      onClick={handlePageClick}
-      className="min-h-screen w-full bg-[#0F0F0F] text-[#EFEFEF] cursor-pointer select-none pb-24 pt-8 md:pt-12 px-6 md:px-16 lg:px-24 transition-colors"
-      title="Click anywhere to return to gallery"
-    >
+    <div className="min-h-screen w-full bg-[#0F0F0F] text-[#EFEFEF] pb-24 pt-6 md:pt-10 px-6 md:px-16 lg:px-24">
       <div className="mx-auto max-w-6xl">
         {/* Back navigation pill indicator */}
         <div className="mb-8 flex items-center justify-between border-b border-white/10 pb-4">
-          <div className="inline-flex items-center gap-2 text-xs font-mono tracking-widest text-[#2CE3C0] uppercase">
+          <button
+            onClick={handleGoBack}
+            className="inline-flex items-center gap-2 text-xs font-mono tracking-widest text-[#2CE3C0] hover:text-white uppercase transition-colors px-3 py-1.5 rounded-full border border-[#2CE3C0]/30 hover:border-white bg-[#2CE3C0]/10 hover:bg-white/10 cursor-pointer"
+          >
             <ArrowLeft className="w-3.5 h-3.5" />
-            <span>Click anywhere to go back</span>
-          </div>
+            <span>Back to {discipline.label}</span>
+          </button>
           <div className="text-xs font-mono text-neutral-400">
             {discipline.label} · {photo.code}
           </div>

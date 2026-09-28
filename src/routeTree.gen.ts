@@ -10,7 +10,6 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as DisciplineRouteImport } from './routes/$discipline'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as BrandDiscoveryRouteImport } from './routes/brand-discovery'
@@ -20,6 +19,7 @@ import { Route as PhotographyRouteImport } from './routes/photography'
 import { Route as ProductDesignRouteImport } from './routes/product-design'
 import { Route as RobotsDottxtRouteImport } from './routes/robots[.]txt'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
+import { Route as DisciplineIndexRouteImport } from './routes/$discipline.index'
 import { Route as DisciplinePhotoIdRouteImport } from './routes/$discipline.$photoId'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as AdminBlogRouteImport } from './routes/admin.blog'
@@ -35,11 +35,6 @@ import { Route as VisualIdentityProjectIdRouteImport } from './routes/visual-ide
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DisciplineRoute = DisciplineRouteImport.update({
-  id: '/$discipline',
-  path: '/$discipline',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AboutRoute = AboutRouteImport.update({
@@ -87,10 +82,15 @@ const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   path: '/sitemap.xml',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DisciplineIndexRoute = DisciplineIndexRouteImport.update({
+  id: '/$discipline/',
+  path: '/$discipline/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DisciplinePhotoIdRoute = DisciplinePhotoIdRouteImport.update({
-  id: '/$photoId',
-  path: '/$photoId',
-  getParentRoute: () => DisciplineRoute,
+  id: '/$discipline/$photoId',
+  path: '/$discipline/$photoId',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const AdminIndexRoute = AdminIndexRouteImport.update({
   id: '/',
@@ -145,7 +145,6 @@ const VisualIdentityProjectIdRoute = VisualIdentityProjectIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/$discipline': typeof DisciplineRouteWithChildren
   '/about': typeof AboutRoute
   '/admin': typeof AdminRouteWithChildren
   '/brand-discovery': typeof BrandDiscoveryRoute
@@ -164,12 +163,12 @@ export interface FileRoutesByFullPath {
   '/blog/$slug': typeof BlogSlugRoute
   '/projects/$projectId': typeof ProjectsProjectIdRoute
   '/visual-identity/$projectId': typeof VisualIdentityProjectIdRoute
+  '/$discipline/': typeof DisciplineIndexRoute
   '/admin/': typeof AdminIndexRoute
   '/blog/': typeof BlogIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/$discipline': typeof DisciplineRouteWithChildren
   '/about': typeof AboutRoute
   '/brand-discovery': typeof BrandDiscoveryRoute
   '/contact': typeof ContactRoute
@@ -187,13 +186,13 @@ export interface FileRoutesByTo {
   '/blog/$slug': typeof BlogSlugRoute
   '/projects/$projectId': typeof ProjectsProjectIdRoute
   '/visual-identity/$projectId': typeof VisualIdentityProjectIdRoute
+  '/$discipline': typeof DisciplineIndexRoute
   '/admin': typeof AdminIndexRoute
   '/blog': typeof BlogIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/$discipline': typeof DisciplineRouteWithChildren
   '/about': typeof AboutRoute
   '/admin': typeof AdminRouteWithChildren
   '/brand-discovery': typeof BrandDiscoveryRoute
@@ -212,6 +211,7 @@ export interface FileRoutesById {
   '/blog/$slug': typeof BlogSlugRoute
   '/projects/$projectId': typeof ProjectsProjectIdRoute
   '/visual-identity/$projectId': typeof VisualIdentityProjectIdRoute
+  '/$discipline/': typeof DisciplineIndexRoute
   '/admin/': typeof AdminIndexRoute
   '/blog/': typeof BlogIndexRoute
 }
@@ -219,7 +219,6 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/$discipline'
     | '/about'
     | '/admin'
     | '/brand-discovery'
@@ -238,12 +237,12 @@ export interface FileRouteTypes {
     | '/blog/$slug'
     | '/projects/$projectId'
     | '/visual-identity/$projectId'
+    | '/$discipline/'
     | '/admin/'
     | '/blog/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/$discipline'
     | '/about'
     | '/brand-discovery'
     | '/contact'
@@ -261,12 +260,12 @@ export interface FileRouteTypes {
     | '/blog/$slug'
     | '/projects/$projectId'
     | '/visual-identity/$projectId'
+    | '/$discipline'
     | '/admin'
     | '/blog'
   id:
     | '__root__'
     | '/'
-    | '/$discipline'
     | '/about'
     | '/admin'
     | '/brand-discovery'
@@ -285,13 +284,13 @@ export interface FileRouteTypes {
     | '/blog/$slug'
     | '/projects/$projectId'
     | '/visual-identity/$projectId'
+    | '/$discipline/'
     | '/admin/'
     | '/blog/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  DisciplineRoute: typeof DisciplineRouteWithChildren
   AboutRoute: typeof AboutRoute
   AdminRoute: typeof AdminRouteWithChildren
   BrandDiscoveryRoute: typeof BrandDiscoveryRoute
@@ -301,11 +300,13 @@ export interface RootRouteChildren {
   ProductDesignRoute: typeof ProductDesignRoute
   RobotsDottxtRoute: typeof RobotsDottxtRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
+  DisciplinePhotoIdRoute: typeof DisciplinePhotoIdRoute
   ApiBrandDiscoveryRoute: typeof ApiBrandDiscoveryRoute
   ApiContactRoute: typeof ApiContactRoute
   BlogSlugRoute: typeof BlogSlugRoute
   ProjectsProjectIdRoute: typeof ProjectsProjectIdRoute
   VisualIdentityProjectIdRoute: typeof VisualIdentityProjectIdRoute
+  DisciplineIndexRoute: typeof DisciplineIndexRoute
   BlogIndexRoute: typeof BlogIndexRoute
 }
 
@@ -316,13 +317,6 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/$discipline': {
-      id: '/$discipline'
-      path: '/$discipline'
-      fullPath: '/$discipline'
-      preLoaderRoute: typeof DisciplineRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/about': {
@@ -388,12 +382,19 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SitemapDotxmlRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/$discipline/': {
+      id: '/$discipline/'
+      path: '/$discipline'
+      fullPath: '/$discipline/'
+      preLoaderRoute: typeof DisciplineIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/$discipline/$photoId': {
       id: '/$discipline/$photoId'
-      path: '/$photoId'
+      path: '/$discipline/$photoId'
       fullPath: '/$discipline/$photoId'
       preLoaderRoute: typeof DisciplinePhotoIdRouteImport
-      parentRoute: typeof DisciplineRoute
+      parentRoute: typeof rootRouteImport
     }
     '/admin/': {
       id: '/admin/'
@@ -468,18 +469,6 @@ declare module '@tanstack/react-router' {
   }
 }
 
-interface DisciplineRouteChildren {
-  DisciplinePhotoIdRoute: typeof DisciplinePhotoIdRoute
-}
-
-const DisciplineRouteChildren: DisciplineRouteChildren = {
-  DisciplinePhotoIdRoute: DisciplinePhotoIdRoute,
-}
-
-const DisciplineRouteWithChildren = DisciplineRoute._addFileChildren(
-  DisciplineRouteChildren,
-)
-
 interface AdminRouteChildren {
   AdminBlogRoute: typeof AdminBlogRoute
   AdminInvoicesRoute: typeof AdminInvoicesRoute
@@ -498,7 +487,6 @@ const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  DisciplineRoute: DisciplineRouteWithChildren,
   AboutRoute: AboutRoute,
   AdminRoute: AdminRouteWithChildren,
   BrandDiscoveryRoute: BrandDiscoveryRoute,
@@ -508,11 +496,13 @@ const rootRouteChildren: RootRouteChildren = {
   ProductDesignRoute: ProductDesignRoute,
   RobotsDottxtRoute: RobotsDottxtRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
+  DisciplinePhotoIdRoute: DisciplinePhotoIdRoute,
   ApiBrandDiscoveryRoute: ApiBrandDiscoveryRoute,
   ApiContactRoute: ApiContactRoute,
   BlogSlugRoute: BlogSlugRoute,
   ProjectsProjectIdRoute: ProjectsProjectIdRoute,
   VisualIdentityProjectIdRoute: VisualIdentityProjectIdRoute,
+  DisciplineIndexRoute: DisciplineIndexRoute,
   BlogIndexRoute: BlogIndexRoute,
 }
 export const routeTree = rootRouteImport

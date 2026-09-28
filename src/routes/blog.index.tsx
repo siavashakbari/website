@@ -1,8 +1,9 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { ArrowRight, Calendar, Clock, Sparkles, Search, BookOpen } from "lucide-react";
 import { BLOG_POSTS, BLOG_CATEGORIES, type BlogCategory } from "@/data/blog-posts";
+import { getMergedBlogPosts } from "@/lib/studio-store";
 import { pageHead, jsonLdScript, getSiteUrl } from "@/lib/seo";
 import { BackToTop } from "@/components/BackToTop";
 
@@ -51,22 +52,29 @@ export const Route = createFileRoute("/blog/")({
 function BlogIndexPage() {
   const [selectedCategory, setSelectedCategory] = useState<BlogCategory | "all">("all");
   const [searchQuery, setSearchQuery] = useState("");
+  const [posts, setPosts] = useState(() => getMergedBlogPosts());
+
+  useEffect(() => {
+    setPosts(getMergedBlogPosts());
+  }, []);
 
   const filteredPosts = useMemo(() => {
-    return BLOG_POSTS.filter((post) => {
+    return posts.filter((post) => {
+      if (post.published === false) return false;
       const matchesCategory = selectedCategory === "all" || post.category === selectedCategory;
       const matchesSearch =
         searchQuery.trim() === "" ||
         post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         post.excerpt.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        post.tags.some((t) => t.toLowerCase().includes(searchQuery.toLowerCase()));
+        (post.titleFa && post.titleFa.includes(searchQuery)) ||
+        (post.excerptFa && post.excerptFa.includes(searchQuery));
       return matchesCategory && matchesSearch;
     });
-  }, [selectedCategory, searchQuery]);
+  }, [posts, selectedCategory, searchQuery]);
 
   const featuredPost = useMemo(() => {
-    return BLOG_POSTS.find((p) => p.featured) || BLOG_POSTS[0];
-  }, []);
+    return posts.find((p) => p.featured && p.published !== false) || posts.find((p) => p.published !== false) || posts[0];
+  }, [posts]);
 
   return (
     <div className="relative min-h-screen bg-background text-foreground">
@@ -189,16 +197,18 @@ function BlogIndexPage() {
                     {featuredPost.excerpt}
                   </p>
 
-                  <div className="mt-6 flex flex-wrap items-center gap-2">
-                    {featuredPost.tags.slice(0, 3).map((tag) => (
-                      <span
-                        key={tag}
-                        className="rounded-full border border-foreground/10 bg-foreground/5 px-3 py-1 text-[11px] text-foreground/60"
-                      >
-                        #{tag}
-                      </span>
-                    ))}
-                  </div>
+                  {featuredPost.tags && featuredPost.tags.length > 0 && (
+                    <div className="mt-6 flex flex-wrap items-center gap-2">
+                      {featuredPost.tags.slice(0, 3).map((tag: string) => (
+                        <span
+                          key={tag}
+                          className="rounded-full border border-foreground/10 bg-foreground/5 px-3 py-1 text-[11px] text-foreground/60"
+                        >
+                          #{tag}
+                        </span>
+                      ))}
+                    </div>
+                  )}
 
                   <div className="mt-8 inline-flex items-center gap-2 text-xs font-medium tracking-widest uppercase text-secondary">
                     <span>Read Full Story</span>
@@ -305,11 +315,12 @@ function BlogIndexPage() {
                       {/* Tags & Action Footer */}
                       <div className="mt-5 flex items-center justify-between border-t border-foreground/10 pt-4">
                         <div className="flex flex-wrap gap-1.5">
-                          {post.tags.slice(0, 2).map((t) => (
-                            <span key={t} className="text-[10px] tracking-wider text-foreground/40">
-                              #{t}
-                            </span>
-                          ))}
+                          {post.tags &&
+                            post.tags.slice(0, 2).map((t: string) => (
+                              <span key={t} className="text-[10px] tracking-wider text-foreground/40">
+                                #{t}
+                              </span>
+                            ))}
                         </div>
 
                         <div className="flex items-center gap-1 text-[11px] font-medium tracking-widest uppercase text-secondary opacity-80 transition-all group-hover:opacity-100 group-hover:translate-x-0.5">
