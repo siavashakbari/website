@@ -2,6 +2,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { Instagram, Mail, MapPin, Phone } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { pageHead } from "@/lib/seo";
+import { ContactForm } from "@/components/ContactForm";
+import { BackToTop } from "@/components/BackToTop";
 
 const contactBtnClass =
   "inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-full border border-[#EFEFEF] bg-transparent px-5 text-sm font-medium text-[#EFEFEF] shadow-none transition-[background-color,border-color,color,box-shadow] duration-300 ease-out hover:border-transparent hover:bg-secondary hover:text-secondary-foreground hover:shadow-[0_0_8px_color-mix(in_oklab,var(--secondary)_42%,transparent),0_0_17px_color-mix(in_oklab,var(--secondary)_24%,transparent),0_0_25px_color-mix(in_oklab,var(--secondary)_12%,transparent)]";
@@ -11,15 +13,13 @@ const HEADLINES = [
     text: "بیایید چیزی ماندگار خلق کنیم.",
     lang: "fa",
     dir: "rtl",
-    className:
-      "font-farsi text-[clamp(1.85rem,3.4vw,3.75rem)] font-medium leading-[1.25]",
+    className: "font-farsi text-[clamp(1.85rem,3.4vw,3.75rem)] font-medium leading-[1.25]",
   },
   {
     text: "Let's build something lasting.",
     lang: "en",
     dir: "ltr",
-    className:
-      "font-display text-[clamp(1.6rem,2.9vw,3.15rem)] font-medium leading-[1.15]",
+    className: "font-display text-[clamp(1.6rem,2.9vw,3.15rem)] font-medium leading-[1.15]",
   },
 ] as const;
 
@@ -118,21 +118,13 @@ function TypewriterHeadline() {
   if (reduceMotion) {
     return (
       <h1 className="relative mx-auto flex min-h-[clamp(2.4rem,5vw,4.5rem)] w-full items-center justify-center text-center text-foreground">
-        <span
-          lang={HEADLINES[0].lang}
-          dir={HEADLINES[0].dir}
-          className={HEADLINES[0].className}
-        >
+        <span lang={HEADLINES[0].lang} dir={HEADLINES[0].dir} className={HEADLINES[0].className}>
           {HEADLINES[0].text}
         </span>
         <span className="mx-3 text-secondary" aria-hidden>
           /
         </span>
-        <span
-          lang={HEADLINES[1].lang}
-          dir={HEADLINES[1].dir}
-          className={HEADLINES[1].className}
-        >
+        <span lang={HEADLINES[1].lang} dir={HEADLINES[1].dir} className={HEADLINES[1].className}>
           {HEADLINES[1].text}
         </span>
       </h1>
@@ -143,10 +135,7 @@ function TypewriterHeadline() {
 
   return (
     <h1 className="relative mx-auto flex min-h-[clamp(2.4rem,5vw,4.5rem)] w-full items-center justify-center text-foreground">
-      <span
-        aria-hidden
-        className={`invisible whitespace-nowrap ${HEADLINES[0].className}`}
-      >
+      <span aria-hidden className={`invisible whitespace-nowrap ${HEADLINES[0].className}`}>
         {HEADLINES[0].text}
       </span>
       <span
@@ -192,7 +181,7 @@ export const Route = createFileRoute("/contact")({
 
 function Contact() {
   return (
-    <div className="flex min-h-[calc(100dvh-3.5rem)] w-full items-center justify-center px-6 py-12 md:px-10 lg:px-14">
+    <div className="flex min-h-[calc(100dvh-3.5rem)] w-full items-start justify-center px-6 py-12 md:px-10 lg:px-14">
       <div className="mx-auto flex w-full max-w-[96rem] flex-col">
         <h1 className="sr-only">Contact Siavash Akbari</h1>
         {/* Eyebrow — centered */}
@@ -227,9 +216,9 @@ function Contact() {
 
           <div className="w-full md:w-[min(100%,42%)]" lang="fa" dir="rtl">
             <p className="ml-auto max-w-xl text-right font-farsi text-base leading-relaxed text-secondary md:text-[1.15rem]">
-              اگر برای ساخت یک برند، طراحی یک تجربه‌ی دیجیتال یا همکاری روی یک ایده‌ی ارزشمند به دنبال
-              همراه هستید، خوشحال می‌شوم درباره‌ی پروژه‌تان بشنوم. جزئیات را برایم ارسال کنید؛ حداکثر تا
-              دو روز کاری پاسخ خواهم داد.
+              اگر برای ساخت یک برند، طراحی یک تجربه‌ی دیجیتال یا همکاری روی یک ایده‌ی ارزشمند به
+              دنبال همراه هستید، خوشحال می‌شوم درباره‌ی پروژه‌تان بشنوم. جزئیات را برایم ارسال کنید؛
+              حداکثر تا دو روز کاری پاسخ خواهم داد.
             </p>
           </div>
         </div>
@@ -276,6 +265,16 @@ function Contact() {
             Instagram
           </a>
         </div>
+
+        {/* Interactive Consultation Booking Form */}
+        <section
+          aria-label="Consultation booking form"
+          className="mx-auto mt-16 w-full max-w-4xl sm:mt-20 md:mt-24"
+        >
+          <ContactForm />
+        </section>
+
+        <BackToTop />
       </div>
     </div>
   );

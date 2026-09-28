@@ -20,6 +20,7 @@ import { Route as ProductDesignRouteImport } from './routes/product-design'
 import { Route as RobotsDottxtRouteImport } from './routes/robots[.]txt'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as ApiBrandDiscoveryRouteImport } from './routes/api.brand-discovery'
+import { Route as ApiContactRouteImport } from './routes/api.contact'
 import { Route as BlogIndexRouteImport } from './routes/blog.index'
 import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
 import { Route as ProjectsProjectIdRouteImport } from './routes/projects.$projectId'
@@ -79,6 +80,11 @@ const ApiBrandDiscoveryRoute = ApiBrandDiscoveryRouteImport.update({
   path: '/api/brand-discovery',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiContactRoute = ApiContactRouteImport.update({
+  id: '/api/contact',
+  path: '/api/contact',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const BlogIndexRoute = BlogIndexRouteImport.update({
   id: '/blog/',
   path: '/blog/',
@@ -107,6 +113,7 @@ export interface FileRoutesByFullPath {
   '/robots.txt': typeof RobotsDottxtRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/api/brand-discovery': typeof ApiBrandDiscoveryRoute
+  '/api/contact': typeof ApiContactRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/projects/$projectId': typeof ProjectsProjectIdRoute
   '/blog/': typeof BlogIndexRoute
@@ -123,6 +130,7 @@ export interface FileRoutesByTo {
   '/robots.txt': typeof RobotsDottxtRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/api/brand-discovery': typeof ApiBrandDiscoveryRoute
+  '/api/contact': typeof ApiContactRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/projects/$projectId': typeof ProjectsProjectIdRoute
   '/blog': typeof BlogIndexRoute
@@ -140,6 +148,7 @@ export interface FileRoutesById {
   '/robots.txt': typeof RobotsDottxtRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/api/brand-discovery': typeof ApiBrandDiscoveryRoute
+  '/api/contact': typeof ApiContactRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/projects/$projectId': typeof ProjectsProjectIdRoute
   '/blog/': typeof BlogIndexRoute
@@ -158,6 +167,7 @@ export interface FileRouteTypes {
     | '/robots.txt'
     | '/sitemap.xml'
     | '/api/brand-discovery'
+    | '/api/contact'
     | '/blog/$slug'
     | '/projects/$projectId'
     | '/blog/'
@@ -174,6 +184,7 @@ export interface FileRouteTypes {
     | '/robots.txt'
     | '/sitemap.xml'
     | '/api/brand-discovery'
+    | '/api/contact'
     | '/blog/$slug'
     | '/projects/$projectId'
     | '/blog'
@@ -190,6 +201,7 @@ export interface FileRouteTypes {
     | '/robots.txt'
     | '/sitemap.xml'
     | '/api/brand-discovery'
+    | '/api/contact'
     | '/blog/$slug'
     | '/projects/$projectId'
     | '/blog/'
@@ -207,6 +219,7 @@ export interface RootRouteChildren {
   RobotsDottxtRoute: typeof RobotsDottxtRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   ApiBrandDiscoveryRoute: typeof ApiBrandDiscoveryRoute
+  ApiContactRoute: typeof ApiContactRoute
   BlogSlugRoute: typeof BlogSlugRoute
   ProjectsProjectIdRoute: typeof ProjectsProjectIdRoute
   BlogIndexRoute: typeof BlogIndexRoute
@@ -291,6 +304,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiBrandDiscoveryRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/contact': {
+      id: '/api/contact'
+      path: '/api/contact'
+      fullPath: '/api/contact'
+      preLoaderRoute: typeof ApiContactRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/blog/': {
       id: '/blog/'
       path: '/blog'
@@ -327,6 +347,7 @@ const rootRouteChildren: RootRouteChildren = {
   RobotsDottxtRoute: RobotsDottxtRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   ApiBrandDiscoveryRoute: ApiBrandDiscoveryRoute,
+  ApiContactRoute: ApiContactRoute,
   BlogSlugRoute: BlogSlugRoute,
   ProjectsProjectIdRoute: ProjectsProjectIdRoute,
   BlogIndexRoute: BlogIndexRoute,
