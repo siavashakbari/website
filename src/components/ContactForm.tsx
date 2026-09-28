@@ -313,7 +313,7 @@ export function ContactForm() {
                     value={formData.preferredDate}
                     onChange={(val) => setFormData({ ...formData, preferredDate: val })}
                     minDate={todayISO}
-                    placeholder="Select preferred date... / انتخاب تاریخ جلسه"
+                    placeholder="Select preferred date... / انتخاب تاریخ"
                   />
                 </div>
 
@@ -329,20 +329,22 @@ export function ContactForm() {
                     </span>
                   </div>
 
-                  <div className="flex flex-col sm:flex-row gap-3 pt-0.5">
+                  <div className="grid grid-cols-1 gap-3 pt-0.5 sm:grid-cols-2">
                     <button
                       type="button"
                       onClick={() => setFormData({ ...formData, timeSlot: "morning" })}
-                      className={`inline-flex h-14 flex-1 items-center justify-center gap-2.5 rounded-full px-4 text-xs sm:text-sm font-medium transition-all duration-300 cursor-pointer ${
+                      className={`group relative flex h-14 w-full flex-col items-center justify-center gap-0.5 rounded-full px-3 transition-all duration-300 cursor-pointer ${
                         formData.timeSlot === "morning"
                           ? "border border-transparent bg-secondary text-secondary-foreground shadow-[0_0_8px_color-mix(in_oklab,var(--secondary)_42%,transparent),0_0_17px_color-mix(in_oklab,var(--secondary)_24%,transparent),0_0_25px_color-mix(in_oklab,var(--secondary)_12%,transparent)]"
                           : "border border-[#EFEFEF]/20 bg-transparent text-[#EFEFEF]/80 hover:border-transparent hover:bg-secondary hover:text-secondary-foreground hover:shadow-[0_0_8px_color-mix(in_oklab,var(--secondary)_42%,transparent)]"
                       }`}
                     >
-                      <span className="leading-none">Morning (9:00 – 12:00)</span>
+                      <span className="text-xs sm:text-[0.8125rem] font-medium leading-tight whitespace-nowrap">
+                        Morning (9:00 – 12:00)
+                      </span>
                       <span
                         dir="rtl"
-                        className={`font-farsi text-sm font-bold leading-none translate-y-[1.5px] transition-colors ${
+                        className={`font-farsi text-xs sm:text-[0.85rem] font-bold leading-tight translate-y-[1px] whitespace-nowrap transition-colors ${
                           formData.timeSlot === "morning"
                             ? "text-secondary-foreground"
                             : "text-[#EFEFEF]/60 group-hover:text-secondary-foreground"
@@ -355,16 +357,18 @@ export function ContactForm() {
                     <button
                       type="button"
                       onClick={() => setFormData({ ...formData, timeSlot: "afternoon" })}
-                      className={`inline-flex h-14 flex-1 items-center justify-center gap-2.5 rounded-full px-4 text-xs sm:text-sm font-medium transition-all duration-300 cursor-pointer ${
+                      className={`group relative flex h-14 w-full flex-col items-center justify-center gap-0.5 rounded-full px-3 transition-all duration-300 cursor-pointer ${
                         formData.timeSlot === "afternoon"
                           ? "border border-transparent bg-secondary text-secondary-foreground shadow-[0_0_8px_color-mix(in_oklab,var(--secondary)_42%,transparent),0_0_17px_color-mix(in_oklab,var(--secondary)_24%,transparent),0_0_25px_color-mix(in_oklab,var(--secondary)_12%,transparent)]"
                           : "border border-[#EFEFEF]/20 bg-transparent text-[#EFEFEF]/80 hover:border-transparent hover:bg-secondary hover:text-secondary-foreground hover:shadow-[0_0_8px_color-mix(in_oklab,var(--secondary)_42%,transparent)]"
                       }`}
                     >
-                      <span className="leading-none">Afternoon (17:00 – 19:00)</span>
+                      <span className="text-xs sm:text-[0.8125rem] font-medium leading-tight whitespace-nowrap">
+                        Afternoon (17:00 – 19:00)
+                      </span>
                       <span
                         dir="rtl"
-                        className={`font-farsi text-sm font-bold leading-none translate-y-[1.5px] transition-colors ${
+                        className={`font-farsi text-xs sm:text-[0.85rem] font-bold leading-tight translate-y-[1px] whitespace-nowrap transition-colors ${
                           formData.timeSlot === "afternoon"
                             ? "text-secondary-foreground"
                             : "text-[#EFEFEF]/60 group-hover:text-secondary-foreground"
