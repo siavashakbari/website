@@ -337,10 +337,32 @@
   }
 
   .invert-cursor-active,
-  .invert-cursor-active *,
+  .invert-cursor-active *:not([data-admin-root] *),
   .invert-cursor-active *::before,
   .invert-cursor-active *::after {
     cursor: none !important;
+  }
+
+  /* Admin area must ALWAYS use standard native cursor, never custom bubble */
+  [data-admin-root],
+  [data-admin-root] *,
+  [data-admin-root] *::before,
+  [data-admin-root] *::after {
+    cursor: auto !important;
+  }
+  [data-admin-root] button,
+  [data-admin-root] a,
+  [data-admin-root] [role="button"],
+  [data-admin-root] input[type="button"],
+  [data-admin-root] input[type="submit"] {
+    cursor: pointer !important;
+  }
+  [data-admin-root] input[type="text"],
+  [data-admin-root] input[type="email"],
+  [data-admin-root] input[type="password"],
+  [data-admin-root] input[type="number"],
+  [data-admin-root] textarea {
+    cursor: text !important;
   }
 
   .back-to-top {

@@ -3,6 +3,7 @@ import { createFileRoute, Link, notFound, rootRouteId } from "@tanstack/react-ro
 import { ArrowLeft } from "lucide-react";
 import { DISCIPLINES } from "@/data/disciplines";
 import { projects } from "@/data/projects";
+import { getProjectById } from "@/lib/studio-store";
 import { jsonLdScript, pageHead, projectJsonLd } from "@/lib/seo";
 
 // Desktop: outline by default, green + glow on hover.
@@ -29,7 +30,7 @@ function useIsDesktop() {
 
 export const Route = createFileRoute("/projects/$projectId")({
   loader: ({ params }) => {
-    const project = projects.find((p) => p.id === params.projectId);
+    const project = getProjectById(params.projectId) || projects.find((p) => p.id === params.projectId);
     if (!project) throw notFound({ routeId: rootRouteId });
     return { project };
   },
@@ -101,12 +102,31 @@ function ProjectDetail() {
       }
     >
       <div className="mx-auto grid w-full max-w-6xl shrink-0 grid-cols-[minmax(0,48rem)_auto] gap-x-4 px-3 pt-8 pb-4">
-        <p className="col-start-1 text-xs font-semibold uppercase tracking-[0.25em] text-secondary">
-          {project.category} · {project.year}
+        <p className="col-start-1 text-xs font-semibold uppercase tracking-[0.25em] text-secondary flex items-center gap-2 flex-wrap">
+          <span>{project.category}</span>
+          {project.subDiscipline?.trim() && (
+            <>
+              <span className="opacity-50">·</span>
+              <span className="text-[#FFD166]">{project.subDiscipline}</span>
+            </>
+          )}
+          {project.year?.trim() && (
+            <>
+              <span className="opacity-50">·</span>
+              <span>{project.year}</span>
+            </>
+          )}
         </p>
+
         <h1 className="col-start-1 mt-4 font-display text-5xl font-medium text-foreground md:text-7xl">
           {project.title}
+          {project.titleFa?.trim() && (
+            <span className="block text-2xl md:text-3xl font-normal text-muted-foreground mt-2 font-fa">
+              {project.titleFa}
+            </span>
+          )}
         </h1>
+
         {isDesktop && backDiscipline && (
           <Link
             to="/$discipline"
@@ -117,9 +137,90 @@ function ProjectDetail() {
             Back to {backDiscipline.label}
           </Link>
         )}
-        <p className="col-start-1 mt-4 text-base leading-relaxed text-muted-foreground">
-          {project.description}
-        </p>
+
+        {project.description?.trim() && (
+          <p className="col-start-1 mt-4 text-base leading-relaxed text-muted-foreground">
+            {project.description}
+          </p>
+        )}
+
+        {/* METADATA & PRODUCTION CREDITS (ONLY BROUGHT UP IF PROVIDED AND NON-EMPTY) */}
+        {Boolean(
+          project.client?.trim() ||
+          project.models?.trim() ||
+          project.makeupArtist?.trim() ||
+          project.assistant?.trim() ||
+          project.stylist?.trim() ||
+          project.location?.trim()
+        ) && (
+          <div className="col-start-1 mt-6 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 py-4 px-5 rounded-2xl bg-white/[0.03] border border-white/10 text-xs">
+            {project.client?.trim() && (
+              <div>
+                <span className="text-[10px] uppercase font-bold tracking-wider text-secondary block mb-1">
+                  Client / Brand
+                </span>
+                <span className="text-white font-medium">{project.client}</span>
+              </div>
+            )}
+
+            {project.models?.trim() && (
+              <div>
+                <span className="text-[10px] uppercase font-bold tracking-wider text-secondary block mb-1">
+                  Model(s) / Subject
+                </span>
+                <span className="text-white font-medium">{project.models}</span>
+              </div>
+            )}
+
+            {project.makeupArtist?.trim() && (
+              <div>
+                <span className="text-[10px] uppercase font-bold tracking-wider text-secondary block mb-1">
+                  Makeup (MUA)
+                </span>
+                <span className="text-white font-medium">{project.makeupArtist}</span>
+              </div>
+            )}
+
+            {project.assistant?.trim() && (
+              <div>
+                <span className="text-[10px] uppercase font-bold tracking-wider text-secondary block mb-1">
+                  Assistant
+                </span>
+                <span className="text-white font-medium">{project.assistant}</span>
+              </div>
+            )}
+
+            {project.stylist?.trim() && (
+              <div>
+                <span className="text-[10px] uppercase font-bold tracking-wider text-secondary block mb-1">
+                  Art Direction / Styling
+                </span>
+                <span className="text-white font-medium">{project.stylist}</span>
+              </div>
+            )}
+
+            {project.location?.trim() && (
+              <div>
+                <span className="text-[10px] uppercase font-bold tracking-wider text-secondary block mb-1">
+                  Location
+                </span>
+                <span className="text-white font-medium">{project.location}</span>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* CAPTION / LONG-FORM STORY BOX (ONLY BROUGHT UP IF PROVIDED AND NON-EMPTY) */}
+        {project.caption?.trim() && (
+          <div className="col-start-1 mt-6 p-6 rounded-2xl bg-[#141414] border border-white/10 text-neutral-300">
+            <span className="text-[10px] uppercase font-mono tracking-widest text-[#2CE3C0] block mb-2 font-bold">
+              Project Story & Curatorial Notes
+            </span>
+            <div className="text-sm leading-relaxed whitespace-pre-wrap font-sans text-neutral-300">
+              {project.caption}
+            </div>
+          </div>
+        )}
       </div>
 
       {isDesktop ? (
