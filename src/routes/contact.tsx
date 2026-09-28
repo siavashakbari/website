@@ -223,8 +223,16 @@ function Contact() {
           </div>
         </div>
 
+        {/* Interactive Consultation Booking Form (30% wider: max-w-[73rem]) */}
+        <section
+          aria-label="Consultation booking form"
+          className="mx-auto mt-14 w-full max-w-[73rem] sm:mt-16 md:mt-20"
+        >
+          <ContactForm />
+        </section>
+
         {/* Buttons — centered row */}
-        <div className="mt-14 flex flex-wrap items-center justify-center gap-3 md:mt-16 md:gap-4">
+        <div className="mt-14 flex flex-wrap items-center justify-center gap-3 sm:mt-16 md:mt-20 md:gap-4">
           <a href="mailto:Siavakbari@gmail.com" className={contactBtnClass}>
             <Mail className="h-4 w-4" />
             Siavakbari@gmail.com
@@ -265,14 +273,6 @@ function Contact() {
             Instagram
           </a>
         </div>
-
-        {/* Interactive Consultation Booking Form */}
-        <section
-          aria-label="Consultation booking form"
-          className="mx-auto mt-16 w-full max-w-4xl sm:mt-20 md:mt-24"
-        >
-          <ContactForm />
-        </section>
 
         <BackToTop />
       </div>
