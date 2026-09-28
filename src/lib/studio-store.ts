@@ -2,117 +2,65 @@ import type { StudioProjectItem, StudioBlogItem } from "@/types/admin";
 import type { InvoiceData } from "@/types/invoice";
 import { INITIAL_INVOICE_DATA } from "@/types/invoice";
 import { BLOG_POSTS } from "@/data/blog-posts";
-import { projects as DEFAULT_PROJECTS, type Project } from "@/data/projects";
 
 const STORAGE_PROJECTS_KEY = "siavash_studio_custom_projects";
 const STORAGE_BLOG_KEY = "siavash_studio_custom_blogs";
 const STORAGE_INVOICES_KEY = "siavash_studio_invoices_archive";
 
-function defaultProjectToStudioItem(p: Project): StudioProjectItem {
-  const images = (p.gallery && p.gallery.length > 0 ? p.gallery : [p.image]).map((url, idx) => ({
-    id: `img-${p.id}-${idx}`,
-    url,
-    alt: `${p.title} ${idx + 1}`,
-  }));
-
-  return {
-    id: p.id,
-    title: p.title,
-    titleFa: p.titleFa,
-    client: p.client || "",
-    year: p.year,
-    discipline: p.discipline,
-    category: p.category,
-    subDiscipline: p.subDiscipline || "",
-    models: p.models || "",
-    makeupArtist: p.makeupArtist || "",
-    assistant: p.assistant || "",
-    stylist: p.stylist || "",
-    location: p.location || "",
-    coverImage: p.image,
-    description: p.description,
-    caption: p.caption || "",
-    seoKeywords: p.seoKeywords || `${p.title}, ${p.category}, Siavash Akbari`,
-    videoUrl: p.videoUrl || (p.image?.endsWith(".mp4") ? p.image : undefined),
-    images,
-    featured: true,
-    createdAt: new Date("2025-01-01").toISOString(),
-  };
-}
-
 // 1. Projects Store
 export function getStudioProjects(): StudioProjectItem[] {
-  let customMap: Record<string, StudioProjectItem> = {};
-  if (typeof window !== "undefined") {
-    try {
-      const raw = localStorage.getItem(STORAGE_PROJECTS_KEY);
-      if (raw) {
-        const parsed: StudioProjectItem[] = JSON.parse(raw);
-        parsed.forEach((item) => {
-          customMap[item.id] = item;
-        });
-      }
-    } catch (e) {
-      console.error("Error reading projects:", e);
-    }
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = localStorage.getItem(STORAGE_PROJECTS_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch (e) {
+    console.error("Error reading projects:", e);
   }
 
-  const defaults = DEFAULT_PROJECTS.map(defaultProjectToStudioItem);
-  const merged: StudioProjectItem[] = [];
-  const seenIds = new Set<string>();
-
-  // 1. Any newly created project not in defaults comes first
-  Object.values(customMap).forEach((custom) => {
-    if (!DEFAULT_PROJECTS.some((dp) => dp.id === custom.id)) {
-      merged.push(custom);
-      seenIds.add(custom.id);
-    }
-  });
-
-  // 2. Add defaults (or their custom overrides if edited in Studio)
-  defaults.forEach((def) => {
-    if (customMap[def.id]) {
-      merged.push({ ...def, ...customMap[def.id] });
-    } else {
-      merged.push(def);
-    }
-    seenIds.add(def.id);
-  });
-
-  return merged;
-}
-
-export function getProjectById(id: string): Project | undefined {
-  if (typeof window !== "undefined") {
-    const list = getStudioProjects();
-    const found = list.find((p) => p.id === id);
-    if (found) {
-      const gallery = found.images && found.images.length > 0 ? found.images.map((im) => im.url) : [found.coverImage];
-      return {
-        id: found.id,
-        title: found.title,
-        titleFa: found.titleFa,
-        discipline: (found.discipline as any) || "photography",
-        category: found.category || found.discipline,
-        subDiscipline: found.subDiscipline,
-        year: String(found.year),
-        description: found.description,
-        caption: found.caption,
-        image: found.coverImage,
-        aspect: "portrait",
-        gallery,
-        client: found.client,
-        models: found.models,
-        makeupArtist: found.makeupArtist,
-        assistant: found.assistant,
-        stylist: found.stylist,
-        location: found.location,
-        seoKeywords: found.seoKeywords,
-        videoUrl: found.videoUrl,
-      };
-    }
-  }
-  return DEFAULT_PROJECTS.find((p) => p.id === id);
+  // Initial starter data
+  return [
+    {
+      id: "proj-fashion-atlasi",
+      title: "Atlasi Fashion Series",
+      titleFa: "مجموعه مد اطلسی",
+      client: "Atlasi Atelier",
+      year: "2026",
+      discipline: "fashion-photography",
+      category: "Fashion Photography",
+      coverImage: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=1200&q=80",
+      description: "Editorial studio shoot exploring structured silhouettes and muted monochromatic tones.",
+      descriptionFa: "عکاسی استودیویی با بررسی سیلوئت‌های ساختاریافته و رنگ‌های مونوکروم.",
+      images: [
+        {
+          id: "img-1",
+          url: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=1200&q=80",
+          alt: "Atlasi Silhouette 01",
+        },
+        {
+          id: "img-2",
+          url: "https://images.unsplash.com/photo-1539109136881-3be0616acf4b?auto=format&fit=crop&w=1200&q=80",
+          alt: "Atlasi Texture Detail",
+        },
+      ],
+      featured: true,
+      createdAt: new Date().toISOString(),
+    },
+    {
+      id: "proj-echo-prime-video",
+      title: "Echo Prime Brand Film",
+      titleFa: "فیلم برند اکو پرایم",
+      client: "Echo Prime",
+      year: "2026",
+      discipline: "video",
+      category: "Video & Motion",
+      coverImage: "https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?auto=format&fit=crop&w=1200&q=80",
+      description: "Dynamic sound design, rapid motion cuts, and cinematic color science for athletic performance.",
+      descriptionFa: "طراحی صدای پویا، کات‌های حرکتی سریع و کالر ساینس سینمایی.",
+      images: [],
+      featured: true,
+      createdAt: new Date().toISOString(),
+    },
+  ];
 }
 
 export function saveStudioProject(project: StudioProjectItem): void {

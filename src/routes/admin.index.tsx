@@ -43,7 +43,22 @@ function AdminDashboard() {
       </div>
 
       {/* Supabase Status Callout */}
-      {!supabaseReady && (
+      {supabaseReady ? (
+        <div className="rounded-xl border border-[#2CE3C0]/30 bg-[#2CE3C0]/10 p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="space-y-0.5">
+            <h4 className="text-xs font-semibold text-[#2CE3C0] flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-[#2CE3C0] animate-pulse" />
+              <span>Supabase Cloud Authentication Connected</span>
+            </h4>
+            <p className="text-[11px] text-neutral-300">
+              Cloud authentication, Google Authenticator MFA, and remote database sync are online on <span className="font-mono text-white">mysxozqpunbzharompho.supabase.co</span>.
+            </p>
+          </div>
+          <span className="shrink-0 text-[11px] font-mono bg-[#2CE3C0] text-black font-bold px-3 py-1 rounded-md">
+            Cloud Connected · MFA Active
+          </span>
+        </div>
+      ) : (
         <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="space-y-1">
             <h4 className="text-sm font-semibold text-amber-300">

@@ -4,8 +4,13 @@ import type { AdminSession } from "@/types/admin";
 const SESSION_STORAGE_KEY = "siavash_admin_vault_session";
 
 // 1. Supabase Initialization
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || "";
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || "";
+const supabaseUrl =
+  import.meta.env.VITE_SUPABASE_URL ||
+  "https://mysxozqpunbzharompho.supabase.co";
+
+const supabaseAnonKey =
+  import.meta.env.VITE_SUPABASE_ANON_KEY ||
+  "sb_publishable_qxLkHtcguOLibqX_Lts0yg_PkhY7iE5";
 
 export const isSupabaseConfigured = (): boolean => {
   return Boolean(
