@@ -249,5 +249,54 @@ export const BLOG_POSTS: BlogPost[] = [
       },
     ],
   },
+
+  // 5. Test/Profile Post - Siavash Akbari
+  {
+    slug: "siavash-akbari",
+    title: "Siavash Akbari: Architectural Minimalism & Art Direction",
+    titleFa: "سیاوش اکبری: مینیمالیسم معماری و مدیریت هنری",
+    excerpt:
+      "A personal reflection on the evolution of multidisciplinary studio practice in Esfahan, balancing commercial architectural photography, brand identity, and experimental print projects.",
+    excerptFa:
+      "تأملی بر مسیر استودیو و تلفیق عکاسی معماری، دیزاین هویت بصری و پروژه‌های تجربی در اصفهان.",
+    category: "my-blogs",
+    categoryLabel: "My Blogs",
+    coverImage: imgPhotography,
+    publishedAt: "2026-09-28",
+    readTime: "4 min read",
+    featured: false,
+    author: DEFAULT_AUTHOR,
+    tags: ["Siavash Akbari", "Architecture", "Art Direction", "Minimalism", "Esfahan"],
+    aiSummary: [
+      "Siavash Akbari is an Iranian photographer, art director, and visual identity designer based in Esfahan.",
+      "The studio works at the intersection of Swiss modernist grid structures, Persian architectural geometry, and minimalist photography.",
+      "Commercial commissions span fashion campaigns, brand identity design, and architectural documentation.",
+    ],
+    sections: [
+      {
+        heading: "Foundations & Philosophy",
+        body: [
+          "Operating as a multidisciplinary designer and photographer in Esfahan means constantly dialoguing with architectural history and spatial rhythm. The ancient geometric proportions of Islamic and Persian architecture continue to inform how we construct grids in contemporary brand systems.",
+          "Our philosophy is grounded in disciplined restraint: removing ornamentation until only form, texture, and light remain to tell the story.",
+        ],
+        quote: {
+          text: "Design is not about adding layers; it is about reaching a point where nothing more can be removed without losing the soul.",
+          caption: "Siavash Akbari",
+        },
+      },
+      {
+        heading: "Crafting Across Disciplines",
+        body: [
+          "Whether developing a bilingual identity system for an architectural practice or capturing chiaroscuro shadows across a concrete façade, the approach remains unified.",
+          "Light behaves as an architect, and typography functions as spatial construction.",
+        ],
+        callout: {
+          title: "Creative Focus",
+          text: "Minimalist aesthetics, high-contrast chiaroscuro lighting, and enduring grid-based bilingual typography.",
+        },
+      },
+    ],
+  },
 ];
+
 

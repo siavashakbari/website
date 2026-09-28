@@ -3,6 +3,7 @@ import path from "node:path";
 
 const projectsFile = fs.readFileSync(path.join(process.cwd(), "src/data/projects.ts"), "utf8");
 const disciplinesFile = fs.readFileSync(path.join(process.cwd(), "src/data/disciplines.ts"), "utf8");
+const blogPostsFile = fs.readFileSync(path.join(process.cwd(), "src/data/blog-posts.ts"), "utf8");
 
 // Extract project IDs and years
 const projectMatches = [];
@@ -19,10 +20,18 @@ while ((match = discRegex.exec(disciplinesFile)) !== null) {
   disciplineSlugs.push(match[1]);
 }
 
+// Extract blog post slugs & publish dates
+const blogMatches = [];
+const blogRegex = /slug:\s*["']([^"']+)["'][\s\S]*?publishedAt:\s*["']([^"']+)["']/g;
+while ((match = blogRegex.exec(blogPostsFile)) !== null) {
+  blogMatches.push({ slug: match[1], publishedAt: match[2] });
+}
+
 const baseUrl = "https://www.siavashakbari.ir";
 
 const staticPages = [
   { path: "/", changefreq: "weekly", priority: "1.0" },
+  { path: "/blog", changefreq: "weekly", priority: "0.9" },
   { path: "/photography", changefreq: "weekly", priority: "0.9" },
   { path: "/graphic-design", changefreq: "weekly", priority: "0.9" },
   { path: "/product-design", changefreq: "weekly", priority: "0.9" },
@@ -44,7 +53,14 @@ const projectPages = projectMatches.map((p) => ({
   lastmod: p.year ? `${p.year}-01-01` : undefined,
 }));
 
-const allEntries = [...staticPages, ...disciplinePages, ...projectPages];
+const blogPages = blogMatches.map((b) => ({
+  path: `/blog/${b.slug}`,
+  changefreq: "weekly",
+  priority: "0.8",
+  lastmod: b.publishedAt,
+}));
+
+const allEntries = [...staticPages, ...disciplinePages, ...projectPages, ...blogPages];
 
 const urls = allEntries.map((e) => {
   const loc = `${baseUrl}${e.path === "/" ? "/" : e.path}`;

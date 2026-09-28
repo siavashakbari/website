@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { createFileRoute, notFound, Link } from "@tanstack/react-router";
 import {
   ArrowLeft,
@@ -15,12 +15,13 @@ import {
   Hash,
 } from "lucide-react";
 import { BLOG_POSTS } from "@/data/blog-posts";
+import { getBlogPostBySlug, getMergedBlogPosts, type StudioBlogItem } from "@/lib/studio-store";
 import { getSiteUrl, absoluteUrl, pageHead, jsonLdScript } from "@/lib/seo";
 import { BackToTop } from "@/components/BackToTop";
 
 export const Route = createFileRoute("/blog/$slug")({
   loader: ({ params }) => {
-    const post = BLOG_POSTS.find((p) => p.slug === params.slug);
+    const post = getBlogPostBySlug(params.slug) || BLOG_POSTS.find((p) => p.slug === params.slug);
     if (!post) throw notFound();
     return { post };
   },
@@ -41,8 +42,8 @@ export const Route = createFileRoute("/blog/$slug")({
       url: url,
       author: {
         "@type": "Person",
-        name: post.author.name,
-        jobTitle: post.author.role,
+        name: (post as any).author?.name || "Siavash Akbari",
+        jobTitle: (post as any).author?.role || "Photographer, Designer & Creative Director",
         url: siteUrl,
       },
       publisher: {
@@ -50,7 +51,7 @@ export const Route = createFileRoute("/blog/$slug")({
         name: "Siavash Akbari",
         url: siteUrl,
       },
-      keywords: post.tags.join(", "),
+      keywords: ((post as any).tags || []).join(", "),
     };
 
     const breadcrumbSchema = {
@@ -96,11 +97,21 @@ export const Route = createFileRoute("/blog/$slug")({
 });
 
 function BlogPostDetailPage() {
-  const { post } = Route.useLoaderData();
+  const { post: initialPost } = Route.useLoaderData();
+  const [post, setPost] = useState(initialPost);
+  const [allPosts, setAllPosts] = useState(() => getMergedBlogPosts());
   const [copied, setCopied] = useState(false);
 
+  useEffect(() => {
+    const livePost = getBlogPostBySlug(initialPost.slug);
+    if (livePost) {
+      setPost(livePost as any);
+    }
+    setAllPosts(getMergedBlogPosts());
+  }, [initialPost.slug]);
+
   // Related posts (excluding current post)
-  const relatedPosts = BLOG_POSTS.filter((p) => p.slug !== post.slug).slice(0, 3);
+  const relatedPosts = allPosts.filter((p) => p.slug !== post.slug && p.published !== false).slice(0, 3);
 
   const handleCopyLink = () => {
     if (typeof window !== "undefined") {
@@ -254,35 +265,51 @@ function BlogPostDetailPage() {
       {/* Article Container */}
       <div className="mx-auto max-w-4xl px-6 py-12 md:px-12 md:py-16">
         {/* Generative AI & Executive Summary Box (GEO / AEO Optimized) */}
-        <section
-          aria-label="Executive and AI Search Summary"
-          className="relative mb-12 overflow-hidden rounded-xl border border-secondary/30 bg-gradient-to-b from-secondary/[0.07] to-secondary/[0.02] p-6 backdrop-blur-sm md:p-8"
-        >
-          <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-secondary">
-            <Sparkles className="h-4 w-4" />
-            <span>Executive & AI Summary (Direct Factual Takeaways)</span>
-          </div>
+        {((Array.isArray(post.aiSummary) && post.aiSummary.length > 0) || (typeof post.aiSummary === "string" && post.aiSummary.trim())) && (
+          <section
+            aria-label="Executive and AI Search Summary"
+            className="relative mb-12 overflow-hidden rounded-xl border border-secondary/30 bg-gradient-to-b from-secondary/[0.07] to-secondary/[0.02] p-6 backdrop-blur-sm md:p-8"
+          >
+            <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-secondary">
+              <Sparkles className="h-4 w-4" />
+              <span>Executive & AI Summary (Direct Factual Takeaways)</span>
+            </div>
 
-          <p className="mt-2 text-xs leading-relaxed text-foreground/60">
-            Engineered for rapid human comprehension and direct generative engine citation
-            (Google AI Overviews, Perplexity, Claude & ChatGPT).
-          </p>
+            <p className="mt-2 text-xs leading-relaxed text-foreground/60">
+              Engineered for rapid human comprehension and direct generative engine citation
+              (Google AI Overviews, Perplexity, Claude & ChatGPT).
+            </p>
 
-          <ul className="mt-5 space-y-3">
-            {post.aiSummary.map((point, index) => (
-              <li
-                key={index}
-                className="flex items-start gap-3 text-sm leading-relaxed text-foreground/90"
-              >
-                <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-secondary shadow-[0_0_6px_#3febcc]" />
-                <span>{point}</span>
-              </li>
-            ))}
-          </ul>
-        </section>
+            <ul className="mt-5 space-y-3">
+              {Array.isArray(post.aiSummary)
+                ? post.aiSummary.map((point: string, index: number) => (
+                    <li
+                      key={index}
+                      className="flex items-start gap-3 text-sm leading-relaxed text-foreground/90"
+                    >
+                      <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-secondary shadow-[0_0_6px_#3febcc]" />
+                      <span>{point}</span>
+                    </li>
+                  ))
+                : (post.aiSummary as string)
+                    .split("\n")
+                    .map((p) => p.trim())
+                    .filter(Boolean)
+                    .map((point: string, index: number) => (
+                      <li
+                        key={index}
+                        className="flex items-start gap-3 text-sm leading-relaxed text-foreground/90"
+                      >
+                        <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-secondary shadow-[0_0_6px_#3febcc]" />
+                        <span>{point}</span>
+                      </li>
+                    ))}
+            </ul>
+          </section>
+        )}
 
-        {/* Table of Contents */}
-        {post.sections.length > 1 && (
+        {/* Table of Contents for structured posts */}
+        {post.sections && post.sections.length > 1 && (
           <nav
             aria-label="Table of Contents"
             className="mb-12 rounded-xl border border-foreground/10 bg-foreground/[0.02] p-6"
@@ -292,7 +319,7 @@ function BlogPostDetailPage() {
               <span>Table of Contents</span>
             </div>
             <ol className="mt-4 space-y-2">
-              {post.sections.map((section, idx) => (
+              {post.sections.map((section: any, idx: number) => (
                 <li key={idx}>
                   <a
                     href={`#section-${idx}`}
@@ -310,87 +337,132 @@ function BlogPostDetailPage() {
         )}
 
         {/* Body Content Sections */}
-        <article className="space-y-12">
-          {post.sections.map((section, idx) => (
-            <section key={idx} id={`section-${idx}`} className="scroll-mt-24 space-y-6">
-              <h2 className="font-display text-2xl font-normal tracking-tight text-foreground md:text-3xl">
-                {section.heading}
-              </h2>
+        {post.sections && post.sections.length > 0 ? (
+          <article className="space-y-12">
+            {post.sections.map((section: any, idx: number) => (
+              <section key={idx} id={`section-${idx}`} className="scroll-mt-24 space-y-6">
+                <h2 className="font-display text-2xl font-normal tracking-tight text-foreground md:text-3xl">
+                  {section.heading}
+                </h2>
 
-              <div className="space-y-5 text-base leading-relaxed text-foreground/80 md:text-lg">
-                {section.body.map((para, pIdx) => (
-                  <p key={pIdx}>{para}</p>
-                ))}
-              </div>
-
-              {/* Optional Section Quote */}
-              {section.quote && (
-                <figure className="my-8 border-l-2 border-secondary bg-secondary/[0.03] py-4 pl-6 pr-4">
-                  <blockquote className="font-display text-lg italic text-foreground/90 md:text-xl">
-                    "{section.quote.text}"
-                  </blockquote>
-                  {section.quote.caption && (
-                    <figcaption className="mt-3 text-xs tracking-wider uppercase text-secondary">
-                      — {section.quote.caption}
-                    </figcaption>
-                  )}
-                </figure>
-              )}
-
-              {/* Optional Section Image */}
-              {section.image && (
-                <figure className="my-8 overflow-hidden rounded-xl border border-foreground/10 bg-foreground/5">
-                  <img
-                    src={section.image.url}
-                    alt={section.image.alt}
-                    className="w-full object-cover"
-                  />
-                  {section.image.caption && (
-                    <figcaption className="p-4 text-center text-xs tracking-wide text-foreground/50">
-                      {section.image.caption}
-                    </figcaption>
-                  )}
-                </figure>
-              )}
-
-              {/* Optional Studio Callout Card */}
-              {section.callout && (
-                <div className="my-8 rounded-xl border border-secondary/30 bg-secondary/5 p-6 backdrop-blur-sm">
-                  <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-secondary">
-                    <Sparkles className="h-3.5 w-3.5" />
-                    <span>{section.callout.title}</span>
-                  </div>
-                  <p className="mt-2 text-sm leading-relaxed text-foreground/80">
-                    {section.callout.text}
-                  </p>
+                <div className="space-y-5 text-base leading-relaxed text-foreground/80 md:text-lg">
+                  {section.body.map((para: string, pIdx: number) => (
+                    <p key={pIdx}>{para}</p>
+                  ))}
                 </div>
-              )}
-            </section>
-          ))}
-        </article>
+
+                {/* Optional Section Quote */}
+                {section.quote && (
+                  <figure className="my-8 border-l-2 border-secondary bg-secondary/[0.03] py-4 pl-6 pr-4">
+                    <blockquote className="font-display text-lg italic text-foreground/90 md:text-xl">
+                      "{section.quote.text}"
+                    </blockquote>
+                    {section.quote.caption && (
+                      <figcaption className="mt-3 text-xs tracking-wider uppercase text-secondary">
+                        — {section.quote.caption}
+                      </figcaption>
+                    )}
+                  </figure>
+                )}
+
+                {/* Optional Section Image */}
+                {section.image && (
+                  <figure className="my-8 overflow-hidden rounded-xl border border-foreground/10 bg-foreground/5">
+                    <img
+                      src={section.image.url}
+                      alt={section.image.alt}
+                      className="w-full object-cover"
+                    />
+                    {section.image.caption && (
+                      <figcaption className="p-4 text-center text-xs tracking-wide text-foreground/50">
+                        {section.image.caption}
+                      </figcaption>
+                    )}
+                  </figure>
+                )}
+
+                {/* Optional Studio Callout Card */}
+                {section.callout && (
+                  <div className="my-8 rounded-xl border border-secondary/30 bg-secondary/5 p-6 backdrop-blur-sm">
+                    <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-secondary">
+                      <Sparkles className="h-3.5 w-3.5" />
+                      <span>{section.callout.title}</span>
+                    </div>
+                    <p className="mt-2 text-sm leading-relaxed text-foreground/80">
+                      {section.callout.text}
+                    </p>
+                  </div>
+                )}
+              </section>
+            ))}
+          </article>
+        ) : (
+          /* Render contentMarkdown for admin studio posts */
+          <article className="space-y-6 text-base leading-relaxed text-foreground/85 md:text-lg">
+            {((post as any).contentMarkdown || post.excerpt || "")
+              .split("\n\n")
+              .map((block: string, idx: number) => {
+                const trimmed = block.trim();
+                if (!trimmed) return null;
+                if (trimmed.startsWith("### ")) {
+                  return (
+                    <h3 key={idx} className="font-display text-xl font-normal tracking-tight text-foreground md:text-2xl pt-4">
+                      {trimmed.replace(/^###\s+/, "")}
+                    </h3>
+                  );
+                }
+                if (trimmed.startsWith("## ")) {
+                  return (
+                    <h2 key={idx} className="font-display text-2xl font-normal tracking-tight text-foreground md:text-3xl pt-6">
+                      {trimmed.replace(/^##\s+/, "")}
+                    </h2>
+                  );
+                }
+                if (trimmed.startsWith("# ")) {
+                  return (
+                    <h1 key={idx} className="font-display text-3xl font-normal tracking-tight text-foreground md:text-4xl pt-8">
+                      {trimmed.replace(/^#\s+/, "")}
+                    </h1>
+                  );
+                }
+                if (trimmed.startsWith("> ")) {
+                  return (
+                    <figure key={idx} className="my-6 border-l-2 border-secondary bg-secondary/[0.03] py-4 pl-6 pr-4">
+                      <blockquote className="font-display text-lg italic text-foreground/90 md:text-xl">
+                        {trimmed.replace(/^>\s*/, "")}
+                      </blockquote>
+                    </figure>
+                  );
+                }
+                return <p key={idx}>{trimmed}</p>;
+              })}
+          </article>
+        )}
 
         {/* Tags */}
-        <div className="mt-16 flex flex-wrap items-center gap-2 border-t border-foreground/10 pt-8">
-          <span className="mr-2 text-xs uppercase tracking-widest text-foreground/40">
-            Categorized:
-          </span>
-          {post.tags.map((tag) => (
-            <span
-              key={tag}
-              className="inline-flex items-center gap-1 rounded-full border border-foreground/10 bg-foreground/5 px-3 py-1 text-xs text-foreground/70"
-            >
-              <Hash className="h-3 w-3 text-secondary/70" />
-              {tag}
+        {((post as any).tags || []).length > 0 && (
+          <div className="mt-16 flex flex-wrap items-center gap-2 border-t border-foreground/10 pt-8">
+            <span className="mr-2 text-xs uppercase tracking-widest text-foreground/40">
+              Categorized:
             </span>
-          ))}
-        </div>
+            {((post as any).tags || []).map((tag: string) => (
+              <span
+                key={tag}
+                className="inline-flex items-center gap-1 rounded-full border border-foreground/10 bg-foreground/5 px-3 py-1 text-xs text-foreground/70"
+              >
+                <Hash className="h-3 w-3 text-secondary/70" />
+                {tag}
+              </span>
+            ))}
+          </div>
+        )}
 
         {/* Author Bio Card */}
         <div className="mt-12 rounded-2xl border border-foreground/15 bg-foreground/[0.02] p-8 md:p-10">
           <div className="flex flex-col gap-6 sm:flex-row sm:items-center">
             <img
-              src={post.author.avatar}
-              alt={post.author.name}
+              src={(post as any).author?.avatar || "/og.jpg"}
+              alt={(post as any).author?.name || "Siavash Akbari"}
               className="h-20 w-20 rounded-full border-2 border-secondary/40 object-cover shadow-[0_0_16px_rgba(63,235,204,0.25)]"
             />
             <div className="flex-1">
@@ -398,10 +470,11 @@ function BlogPostDetailPage() {
                 Written by Studio Director
               </div>
               <h3 className="mt-1 font-display text-xl font-normal text-foreground">
-                {post.author.name}
+                {(post as any).author?.name || "Siavash Akbari"}
               </h3>
               <p className="mt-2 text-xs leading-relaxed text-foreground/60">
-                {post.author.bio}
+                {(post as any).author?.bio ||
+                  "Multidisciplinary designer and photographer based in Esfahan, focusing on minimal aesthetics, visual identity systems, and contemporary art direction."}
               </p>
               <div className="mt-4 flex items-center gap-4 text-xs">
                 <Link to="/about" className="text-secondary hover:underline">

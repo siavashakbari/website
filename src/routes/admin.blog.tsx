@@ -14,7 +14,8 @@ import {
   Sparkles,
   Bot,
   Eye,
-  CheckCircle2
+  CheckCircle2,
+  Download
 } from "lucide-react";
 import { getStudioBlogPosts, saveStudioBlogPost, deleteStudioBlogPost } from "@/lib/studio-store";
 import type { StudioBlogItem } from "@/types/admin";
@@ -138,6 +139,16 @@ function AdminBlogView() {
     }
   };
 
+  const handleExportJSON = () => {
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(posts, null, 2));
+    const downloadAnchor = document.createElement("a");
+    downloadAnchor.setAttribute("href", dataStr);
+    downloadAnchor.setAttribute("download", `siavash_blog_posts_${new Date().toISOString().slice(0, 10)}.json`);
+    document.body.appendChild(downloadAnchor);
+    downloadAnchor.click();
+    downloadAnchor.remove();
+  };
+
   const filteredPosts = posts.filter((p) => {
     const matchesSearch =
       p.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -161,13 +172,23 @@ function AdminBlogView() {
           </p>
         </div>
 
-        <button
-          onClick={openNewPostForm}
-          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#2CE3C0] hover:bg-[#2CE3C0]/90 text-black text-xs font-semibold shadow-[0_0_15px_rgba(44,227,192,0.25)] transition-all cursor-pointer self-start sm:self-auto"
-        >
-          <Plus className="w-4 h-4" />
-          <span>Write New Article</span>
-        </button>
+        <div className="flex items-center gap-2.5">
+          <button
+            onClick={handleExportJSON}
+            className="inline-flex items-center gap-1.5 px-3 py-2.5 rounded-xl bg-white/10 hover:bg-white/15 text-white text-xs font-medium border border-white/10 transition-all cursor-pointer"
+            title="Download JSON backup of all blog posts"
+          >
+            <Download className="w-3.5 h-3.5" />
+            <span>Export JSON</span>
+          </button>
+          <button
+            onClick={openNewPostForm}
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#2CE3C0] hover:bg-[#2CE3C0]/90 text-black text-xs font-semibold shadow-[0_0_15px_rgba(44,227,192,0.25)] transition-all cursor-pointer self-start sm:self-auto"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Write New Article</span>
+          </button>
+        </div>
       </div>
 
       {/* Filter & Search Bar */}
