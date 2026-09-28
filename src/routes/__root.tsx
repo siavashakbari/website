@@ -391,9 +391,9 @@ function DeferredCursor() {
     const enable = () => setReady(true);
 
     if (typeof window !== "undefined" && "requestIdleCallback" in window) {
-      idleId = window.requestIdleCallback(enable, { timeout: 1800 });
-    } else {
-      timeoutId = window.setTimeout(enable, 250);
+      idleId = (window as any).requestIdleCallback(enable, { timeout: 1800 });
+    } else if (typeof window !== "undefined") {
+      timeoutId = (window as any).setTimeout(enable, 250);
     }
 
     return () => {
@@ -429,10 +429,10 @@ function RootComponent() {
     return () => media.removeEventListener("change", update);
   }, []);
 
-  // Lock page scroll only for desktop side-scroll project pages.
-  const lockProjectScroll = isProjectPage && isDesktop;
+  const isAdminPage = pathname.startsWith("/admin");
+  const lockProjectScroll = isProjectPage && isDesktop && !isAdminPage;
   const hideFooter =
-    isProjectPage || pathname === "/about" || (isSideScrollDiscipline && isDesktop);
+    isAdminPage || isProjectPage || pathname === "/about" || (isSideScrollDiscipline && isDesktop);
 
   useEffect(() => {
     if (!lockProjectScroll) return;
@@ -448,6 +448,8 @@ function RootComponent() {
   }, [lockProjectScroll]);
 
   useEffect(() => {
+    if (pathname.startsWith("/admin")) return;
+
     const isEditable = (target: EventTarget | null) => {
       if (!(target instanceof HTMLElement)) return false;
       const tag = target.tagName;
@@ -488,7 +490,7 @@ function RootComponent() {
       document.removeEventListener("dragstart", onDragStart);
       document.removeEventListener("keydown", onKeyDown);
     };
-  }, []);
+  }, [pathname]);
 
   return (
     <QueryClientProvider client={queryClient}>
@@ -498,7 +500,7 @@ function RootComponent() {
           lockProjectScroll ? "h-dvh overflow-hidden overscroll-none" : "min-h-screen"
         }`}
       >
-        <Header />
+        {!isAdminPage && <Header />}
         <main
           className={`flex-1 ${lockProjectScroll ? "flex min-h-0 flex-col overflow-hidden" : ""}`}
         >

@@ -1512,7 +1512,7 @@ export function BrandDiscoveryPage() {
                       >
                         <img
                           src={item.image}
-                          alt={item.title}
+                          alt={(item as any).title || (item as any).label || "Moodboard"}
                           className="h-full w-full object-cover"
                         />
                         <div className="absolute top-1.5 right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-secondary text-secondary-foreground text-[8px] font-bold">

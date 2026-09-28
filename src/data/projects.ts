@@ -321,15 +321,25 @@ export type Discipline = "photography" | "graphic-design" | "product-design" | "
 export interface Project {
   id: string;
   title: string;
+  titleFa?: string;
   discipline: Discipline;
   category: string;
+  subDiscipline?: string;
   year: string;
   description: string;
+  caption?: string;
   image: string;
   aspect: "portrait" | "landscape";
   gallery?: string[];
   client?: string;
+  models?: string;
+  makeupArtist?: string;
+  assistant?: string;
+  stylist?: string;
+  location?: string;
   credits?: string[];
+  seoKeywords?: string;
+  videoUrl?: string;
 }
 
 export const disciplines: { id: Discipline; label: string; description: string }[] = [
