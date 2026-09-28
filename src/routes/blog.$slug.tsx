@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { createFileRoute, notFound, Link } from "@tanstack/react-router";
-import { motion } from "motion/react";
 import {
   ArrowLeft,
   ArrowRight,
@@ -13,7 +12,6 @@ import {
   Sparkles,
   BookOpen,
   ChevronRight,
-  ChevronLeft,
   Hash,
 } from "lucide-react";
 import { BLOG_POSTS } from "@/data/blog-posts";
@@ -88,62 +86,18 @@ export const Route = createFileRoute("/blog/$slug")({
         image: post.coverImage,
         type: "article",
       }),
-      scripts: [jsonLdScript(blogPostingSchema), jsonLdScript(breadcrumbSchema)],
+      scripts: [
+        jsonLdScript(blogPostingSchema),
+        jsonLdScript(breadcrumbSchema),
+      ],
     };
   },
   component: BlogPostDetailPage,
 });
 
-type Lang = "en" | "fa";
-
-function LanguageSwitch({ lang, onToggle }: { lang: Lang; onToggle: () => void }) {
-  const isFa = lang === "fa";
-
-  return (
-    <button
-      type="button"
-      role="switch"
-      aria-checked={isFa}
-      aria-label={isFa ? "تغییر به انگلیسی" : "Switch to Persian"}
-      onClick={onToggle}
-      dir="ltr"
-      className="group relative inline-flex h-9 w-[5.5rem] shrink-0 items-center rounded-full border border-secondary/40 bg-secondary/5 p-0.5 shadow-none transition-all duration-300 ease-out hover:border-secondary hover:shadow-[0_0_12px_rgba(63,235,204,0.3)]"
-    >
-      <motion.span
-        aria-hidden
-        className="absolute top-0.5 bottom-0.5 left-0.5 w-[calc(50%-2px)] rounded-full bg-secondary text-secondary-foreground shadow-[0_0_10px_rgba(63,235,204,0.4)]"
-        initial={false}
-        animate={{ x: isFa ? "100%" : "0%" }}
-        transition={{ type: "spring", stiffness: 400, damping: 30 }}
-      />
-      <span
-        className={`relative z-[1] flex w-1/2 items-center justify-center text-[11px] font-medium uppercase tracking-wider transition-colors duration-200 ${
-          !isFa ? "text-secondary-foreground font-semibold" : "text-foreground/60"
-        }`}
-      >
-        EN
-      </span>
-      <span
-        className={`relative z-[1] flex w-1/2 items-center justify-center font-farsi text-xs font-medium transition-colors duration-200 ${
-          isFa ? "text-secondary-foreground font-semibold" : "text-foreground/60"
-        }`}
-      >
-        فا
-      </span>
-    </button>
-  );
-}
-
 function BlogPostDetailPage() {
   const { post } = Route.useLoaderData();
-  const [lang, setLang] = useState<Lang>("en");
   const [copied, setCopied] = useState(false);
-
-  const isFa = lang === "fa";
-
-  const toggleLanguage = () => {
-    setLang((prev) => (prev === "en" ? "fa" : "en"));
-  };
 
   // Related posts (excluding current post)
   const relatedPosts = BLOG_POSTS.filter((p) => p.slug !== post.slug).slice(0, 3);
@@ -158,62 +112,38 @@ function BlogPostDetailPage() {
 
   const shareUrl = typeof window !== "undefined" ? window.location.href : "";
   const shareTwitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(
-    isFa ? post.titleFa : post.title,
+    post.title,
   )}&url=${encodeURIComponent(shareUrl)}`;
   const shareLinkedInUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(
     shareUrl,
   )}`;
 
   return (
-    <div
-      dir={isFa ? "rtl" : "ltr"}
-      className={`relative min-h-screen bg-background text-foreground ${isFa ? "font-farsi" : ""}`}
-    >
+    <div className="relative min-h-screen bg-background text-foreground">
       {/* Top Breadcrumb & Back Bar */}
       <div className="border-b border-foreground/10 bg-background/80 px-6 py-4 backdrop-blur-md md:px-12 lg:px-20">
         <div className="mx-auto flex max-w-5xl items-center justify-between">
           <nav className="flex items-center gap-2 text-xs uppercase tracking-widest text-foreground/50">
             <Link to="/" className="transition-colors hover:text-secondary">
-              {isFa ? "خانه" : "Home"}
+              Home
             </Link>
-            {isFa ? (
-              <ChevronLeft className="h-3 w-3 text-foreground/30" />
-            ) : (
-              <ChevronRight className="h-3 w-3 text-foreground/30" />
-            )}
+            <ChevronRight className="h-3 w-3 text-foreground/30" />
             <Link to="/blog" className="transition-colors hover:text-secondary">
-              {isFa ? "وبلاگ" : "Blog"}
+              Blog
             </Link>
-            {isFa ? (
-              <ChevronLeft className="h-3 w-3 text-foreground/30" />
-            ) : (
-              <ChevronRight className="h-3 w-3 text-foreground/30" />
-            )}
-            <span className="max-w-[160px] truncate text-foreground sm:max-w-xs md:max-w-md">
-              {isFa ? post.titleFa : post.title}
+            <ChevronRight className="h-3 w-3 text-foreground/30" />
+            <span className="max-w-[200px] truncate text-foreground sm:max-w-xs md:max-w-md">
+              {post.title}
             </span>
           </nav>
 
-          <div className="flex items-center gap-4">
-            <LanguageSwitch lang={lang} onToggle={toggleLanguage} />
-
-            <Link
-              to="/blog"
-              className="inline-flex items-center gap-1.5 text-xs uppercase tracking-widest text-secondary transition-transform hover:-translate-x-0.5"
-            >
-              {isFa ? (
-                <>
-                  <span className="hidden sm:inline">همه مطالب</span>
-                  <ArrowRight className="h-3.5 w-3.5" />
-                </>
-              ) : (
-                <>
-                  <ArrowLeft className="h-3.5 w-3.5" />
-                  <span className="hidden sm:inline">All Articles</span>
-                </>
-              )}
-            </Link>
-          </div>
+          <Link
+            to="/blog"
+            className="inline-flex items-center gap-1.5 text-xs uppercase tracking-widest text-secondary transition-transform hover:-translate-x-0.5"
+          >
+            <ArrowLeft className="h-3.5 w-3.5" />
+            <span className="hidden sm:inline">All Articles</span>
+          </Link>
         </div>
       </div>
 
@@ -223,21 +153,17 @@ function BlogPostDetailPage() {
           {/* Category Pill */}
           <div className="inline-flex items-center gap-2 rounded-full border border-secondary/30 bg-secondary/10 px-3.5 py-1 text-xs uppercase tracking-widest text-secondary shadow-[0_0_12px_rgba(63,235,204,0.15)]">
             <span className="h-1.5 w-1.5 rounded-full bg-secondary shadow-[0_0_6px_#3febcc]" />
-            <span>{isFa ? post.categoryLabelFa : post.categoryLabel}</span>
+            <span>{post.categoryLabel}</span>
           </div>
 
           {/* Main Title */}
-          <h1
-            className={`mt-6 font-display text-3xl font-normal leading-[1.15] tracking-tight text-foreground md:text-5xl lg:text-6xl ${
-              isFa ? "font-farsi leading-[1.3] md:leading-[1.25]" : ""
-            }`}
-          >
-            {isFa ? post.titleFa : post.title}
+          <h1 className="mt-6 font-display text-3xl font-normal leading-[1.15] tracking-tight text-foreground md:text-5xl lg:text-6xl">
+            {post.title}
           </h1>
 
           {/* Subtitle / Excerpt */}
           <p className="mt-6 text-base leading-relaxed text-foreground/70 md:text-xl">
-            {isFa ? post.excerptFa : post.excerpt}
+            {post.excerpt}
           </p>
 
           {/* Meta & Author Bar */}
@@ -245,16 +171,14 @@ function BlogPostDetailPage() {
             <div className="flex items-center gap-3.5">
               <img
                 src={post.author.avatar}
-                alt={isFa ? post.author.nameFa : post.author.name}
+                alt={post.author.name}
                 className="h-11 w-11 rounded-full border border-secondary/40 object-cover shadow-[0_0_10px_rgba(63,235,204,0.2)]"
               />
               <div>
                 <div className="text-sm font-medium tracking-wide text-foreground">
-                  {isFa ? post.author.nameFa : post.author.name}
+                  {post.author.name}
                 </div>
-                <div className="text-xs text-foreground/50">
-                  {isFa ? post.author.roleFa : post.author.role}
-                </div>
+                <div className="text-xs text-foreground/50">{post.author.role}</div>
               </div>
             </div>
 
@@ -262,7 +186,7 @@ function BlogPostDetailPage() {
               <div className="flex items-center gap-4 text-xs text-foreground/50">
                 <span className="flex items-center gap-1.5">
                   <Calendar className="h-3.5 w-3.5 text-foreground/40" />
-                  {new Date(post.publishedAt).toLocaleDateString(isFa ? "fa-IR" : "en-US", {
+                  {new Date(post.publishedAt).toLocaleDateString("en-US", {
                     month: "short",
                     day: "numeric",
                     year: "numeric",
@@ -271,20 +195,16 @@ function BlogPostDetailPage() {
                 <span>·</span>
                 <span className="flex items-center gap-1.5">
                   <Clock className="h-3.5 w-3.5 text-foreground/40" />
-                  {isFa ? post.readTimeFa : post.readTime}
+                  {post.readTime}
                 </span>
               </div>
 
               {/* Share triggers */}
-              <div
-                className={`flex items-center gap-2 border-foreground/10 ${
-                  isFa ? "border-r pr-6" : "border-l pl-6"
-                }`}
-              >
+              <div className="flex items-center gap-2 border-l border-foreground/10 pl-6">
                 <button
                   type="button"
                   onClick={handleCopyLink}
-                  title={isFa ? "کپی پیوند مطلب" : "Copy article link"}
+                  title="Copy article link"
                   className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-foreground/15 text-foreground/60 transition-colors hover:border-secondary hover:text-secondary"
                 >
                   {copied ? (
@@ -323,7 +243,7 @@ function BlogPostDetailPage() {
           <div className="relative aspect-[16/9] w-full bg-foreground/5 sm:aspect-[21/9]">
             <img
               src={post.coverImage}
-              alt={isFa ? post.titleFa : post.title}
+              alt={post.title}
               className="h-full w-full object-cover"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-background/40 via-transparent to-transparent" />
@@ -335,26 +255,21 @@ function BlogPostDetailPage() {
       <div className="mx-auto max-w-4xl px-6 py-12 md:px-12 md:py-16">
         {/* Generative AI & Executive Summary Box (GEO / AEO Optimized) */}
         <section
-          aria-label={isFa ? "خلاصه اجرایی و نکات کلیدی" : "Executive and AI Search Summary"}
+          aria-label="Executive and AI Search Summary"
           className="relative mb-12 overflow-hidden rounded-xl border border-secondary/30 bg-gradient-to-b from-secondary/[0.07] to-secondary/[0.02] p-6 backdrop-blur-sm md:p-8"
         >
           <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-secondary">
             <Sparkles className="h-4 w-4" />
-            <span>
-              {isFa
-                ? "خلاصه محوری و نکات کلیدی (طراحی‌شده برای درک سریع و استناد هوش مصنوعی)"
-                : "Executive & AI Summary (Direct Factual Takeaways)"}
-            </span>
+            <span>Executive & AI Summary (Direct Factual Takeaways)</span>
           </div>
 
           <p className="mt-2 text-xs leading-relaxed text-foreground/60">
-            {isFa
-              ? "طراحی‌شده برای استناد موتورهای هوش مصنوعی زاینده (Google AI Overviews، Perplexity، Claude و ChatGPT) و مرور سریع مخاطبان حرفه‌ای."
-              : "Engineered for rapid human comprehension and direct generative engine citation (Google AI Overviews, Perplexity, Claude & ChatGPT)."}
+            Engineered for rapid human comprehension and direct generative engine citation
+            (Google AI Overviews, Perplexity, Claude & ChatGPT).
           </p>
 
           <ul className="mt-5 space-y-3">
-            {(isFa ? post.aiSummaryFa : post.aiSummary).map((point, index) => (
+            {post.aiSummary.map((point, index) => (
               <li
                 key={index}
                 className="flex items-start gap-3 text-sm leading-relaxed text-foreground/90"
@@ -369,12 +284,12 @@ function BlogPostDetailPage() {
         {/* Table of Contents */}
         {post.sections.length > 1 && (
           <nav
-            aria-label={isFa ? "فهرست مطالب" : "Table of Contents"}
+            aria-label="Table of Contents"
             className="mb-12 rounded-xl border border-foreground/10 bg-foreground/[0.02] p-6"
           >
             <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-widest text-foreground/60">
               <BookOpen className="h-3.5 w-3.5 text-secondary" />
-              <span>{isFa ? "فهرست مطالب" : "Table of Contents"}</span>
+              <span>Table of Contents</span>
             </div>
             <ol className="mt-4 space-y-2">
               {post.sections.map((section, idx) => (
@@ -383,8 +298,10 @@ function BlogPostDetailPage() {
                     href={`#section-${idx}`}
                     className="inline-flex items-center gap-2 text-xs tracking-wider text-foreground/70 transition-colors hover:text-secondary"
                   >
-                    <span className="font-mono text-[10px] text-foreground/40">0{idx + 1}.</span>
-                    <span>{isFa ? section.headingFa : section.heading}</span>
+                    <span className="font-mono text-[10px] text-foreground/40">
+                      0{idx + 1}.
+                    </span>
+                    <span>{section.heading}</span>
                   </a>
                 </li>
               ))}
@@ -396,39 +313,25 @@ function BlogPostDetailPage() {
         <article className="space-y-12">
           {post.sections.map((section, idx) => (
             <section key={idx} id={`section-${idx}`} className="scroll-mt-24 space-y-6">
-              <h2
-                className={`font-display text-2xl font-normal tracking-tight text-foreground md:text-3xl ${
-                  isFa ? "font-farsi leading-snug" : ""
-                }`}
-              >
-                {isFa ? section.headingFa : section.heading}
+              <h2 className="font-display text-2xl font-normal tracking-tight text-foreground md:text-3xl">
+                {section.heading}
               </h2>
 
               <div className="space-y-5 text-base leading-relaxed text-foreground/80 md:text-lg">
-                {(isFa ? section.bodyFa : section.body).map((para, pIdx) => (
+                {section.body.map((para, pIdx) => (
                   <p key={pIdx}>{para}</p>
                 ))}
               </div>
 
               {/* Optional Section Quote */}
               {section.quote && (
-                <figure
-                  className={`my-8 bg-secondary/[0.03] py-4 pr-4 ${
-                    isFa
-                      ? "border-r-2 border-secondary pr-6 pl-4"
-                      : "border-l-2 border-secondary pl-6 pr-4"
-                  }`}
-                >
-                  <blockquote
-                    className={`font-display text-lg italic text-foreground/90 md:text-xl ${
-                      isFa ? "font-farsi not-italic" : ""
-                    }`}
-                  >
-                    «{isFa ? section.quote.textFa : section.quote.text}»
+                <figure className="my-8 border-l-2 border-secondary bg-secondary/[0.03] py-4 pl-6 pr-4">
+                  <blockquote className="font-display text-lg italic text-foreground/90 md:text-xl">
+                    "{section.quote.text}"
                   </blockquote>
-                  {(isFa ? section.quote.captionFa : section.quote.caption) && (
+                  {section.quote.caption && (
                     <figcaption className="mt-3 text-xs tracking-wider uppercase text-secondary">
-                      — {isFa ? section.quote.captionFa : section.quote.caption}
+                      — {section.quote.caption}
                     </figcaption>
                   )}
                 </figure>
@@ -439,12 +342,12 @@ function BlogPostDetailPage() {
                 <figure className="my-8 overflow-hidden rounded-xl border border-foreground/10 bg-foreground/5">
                   <img
                     src={section.image.url}
-                    alt={isFa ? section.image.altFa || section.image.alt : section.image.alt}
+                    alt={section.image.alt}
                     className="w-full object-cover"
                   />
-                  {(isFa ? section.image.captionFa : section.image.caption) && (
+                  {section.image.caption && (
                     <figcaption className="p-4 text-center text-xs tracking-wide text-foreground/50">
-                      {isFa ? section.image.captionFa : section.image.caption}
+                      {section.image.caption}
                     </figcaption>
                   )}
                 </figure>
@@ -455,10 +358,10 @@ function BlogPostDetailPage() {
                 <div className="my-8 rounded-xl border border-secondary/30 bg-secondary/5 p-6 backdrop-blur-sm">
                   <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-secondary">
                     <Sparkles className="h-3.5 w-3.5" />
-                    <span>{isFa ? section.callout.titleFa : section.callout.title}</span>
+                    <span>{section.callout.title}</span>
                   </div>
                   <p className="mt-2 text-sm leading-relaxed text-foreground/80">
-                    {isFa ? section.callout.textFa : section.callout.text}
+                    {section.callout.text}
                   </p>
                 </div>
               )}
@@ -469,9 +372,9 @@ function BlogPostDetailPage() {
         {/* Tags */}
         <div className="mt-16 flex flex-wrap items-center gap-2 border-t border-foreground/10 pt-8">
           <span className="mr-2 text-xs uppercase tracking-widest text-foreground/40">
-            {isFa ? "دسته‌بندی:" : "Categorized:"}
+            Categorized:
           </span>
-          {(isFa ? post.tagsFa : post.tags).map((tag) => (
+          {post.tags.map((tag) => (
             <span
               key={tag}
               className="inline-flex items-center gap-1 rounded-md border border-foreground/10 bg-foreground/5 px-3 py-1 text-xs text-foreground/70"
@@ -487,25 +390,25 @@ function BlogPostDetailPage() {
           <div className="flex flex-col gap-6 sm:flex-row sm:items-center">
             <img
               src={post.author.avatar}
-              alt={isFa ? post.author.nameFa : post.author.name}
+              alt={post.author.name}
               className="h-20 w-20 rounded-full border-2 border-secondary/40 object-cover shadow-[0_0_16px_rgba(63,235,204,0.25)]"
             />
             <div className="flex-1">
               <div className="text-xs uppercase tracking-widest text-secondary">
-                {isFa ? "نویسنده و مدیر هنری استودیو" : "Written by Studio Director"}
+                Written by Studio Director
               </div>
               <h3 className="mt-1 font-display text-xl font-normal text-foreground">
-                {isFa ? post.author.nameFa : post.author.name}
+                {post.author.name}
               </h3>
               <p className="mt-2 text-xs leading-relaxed text-foreground/60">
-                {isFa ? post.author.bioFa : post.author.bio}
+                {post.author.bio}
               </p>
               <div className="mt-4 flex items-center gap-4 text-xs">
                 <Link to="/about" className="text-secondary hover:underline">
-                  {isFa ? "درباره سیاوش ←" : "About Siavash →"}
+                  About Siavash →
                 </Link>
                 <Link to="/contact" className="text-foreground/60 hover:text-foreground">
-                  {isFa ? "ارتباط با استودیو ←" : "Get in Touch →"}
+                  Get in Touch →
                 </Link>
               </div>
             </div>
@@ -513,28 +416,24 @@ function BlogPostDetailPage() {
         </div>
       </div>
 
-      {/* Related Articles */}
+      {/* Related Articles (Twelve Labs Modular Grid) */}
       <section className="border-t border-foreground/10 bg-foreground/[0.015] px-6 py-16 md:px-12 lg:px-20">
         <div className="mx-auto max-w-7xl">
           <div className="mb-8 flex items-center justify-between">
             <div>
               <span className="text-xs uppercase tracking-widest text-secondary">
-                {isFa ? "ادامه در نشریه استودیو" : "Next in Studio Journal"}
+                Next in Studio Journal
               </span>
               <h3 className="mt-1 font-display text-2xl font-normal tracking-tight text-foreground md:text-3xl">
-                {isFa ? "مطالب و اخبار مرتبط" : "Related Posts & News"}
+                Related Posts & News
               </h3>
             </div>
             <Link
               to="/blog"
               className="inline-flex items-center gap-1.5 text-xs uppercase tracking-widest text-secondary transition-transform hover:translate-x-0.5"
             >
-              <span>{isFa ? "مشاهده همه" : "Explore All"}</span>
-              {isFa ? (
-                <ArrowLeft className="h-3.5 w-3.5" />
-              ) : (
-                <ArrowRight className="h-3.5 w-3.5" />
-              )}
+              <span>Explore All</span>
+              <ArrowRight className="h-3.5 w-3.5" />
             </Link>
           </div>
 
@@ -549,44 +448,36 @@ function BlogPostDetailPage() {
                 <div className="relative aspect-[16/10] w-full overflow-hidden bg-foreground/5">
                   <img
                     src={related.coverImage}
-                    alt={isFa ? related.titleFa : related.title}
+                    alt={related.title}
                     className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                   />
-                  <div
-                    className={`absolute top-3 inline-flex items-center gap-1.5 rounded-full border border-foreground/10 bg-background/85 px-2.5 py-0.5 text-[10px] font-medium tracking-widest uppercase text-foreground backdrop-blur-md ${
-                      isFa ? "right-3" : "left-3"
-                    }`}
-                  >
+                  <div className="absolute top-3 left-3 inline-flex items-center gap-1.5 rounded-full border border-foreground/10 bg-background/85 px-2.5 py-0.5 text-[10px] font-medium tracking-widest uppercase text-foreground backdrop-blur-md">
                     <span className="h-1.5 w-1.5 rounded-full bg-secondary shadow-[0_0_6px_#3febcc]" />
-                    <span>{isFa ? related.categoryLabelFa : related.categoryLabel}</span>
+                    <span>{related.categoryLabel}</span>
                   </div>
                 </div>
 
                 <div className="flex flex-1 flex-col p-5">
                   <div className="text-[11px] text-foreground/50">
-                    {new Date(related.publishedAt).toLocaleDateString(isFa ? "fa-IR" : "en-US", {
+                    {new Date(related.publishedAt).toLocaleDateString("en-US", {
                       month: "short",
                       day: "numeric",
                       year: "numeric",
                     })}{" "}
-                    · {isFa ? related.readTimeFa : related.readTime}
+                    · {related.readTime}
                   </div>
 
-                  <h4
-                    className={`mt-2.5 font-display text-base font-normal leading-snug tracking-tight text-foreground transition-colors group-hover:text-secondary ${
-                      isFa ? "font-farsi text-sm" : ""
-                    }`}
-                  >
-                    {isFa ? related.titleFa : related.title}
+                  <h4 className="mt-2.5 font-display text-base font-normal leading-snug tracking-tight text-foreground transition-colors group-hover:text-secondary">
+                    {related.title}
                   </h4>
 
                   <p className="mt-2 line-clamp-2 text-xs leading-relaxed text-foreground/60">
-                    {isFa ? related.excerptFa : related.excerpt}
+                    {related.excerpt}
                   </p>
 
                   <div className="mt-4 flex items-center gap-1 pt-2 text-[11px] font-medium tracking-widest uppercase text-secondary">
-                    <span>{isFa ? "مطالعه مطلب" : "Read Story"}</span>
-                    {isFa ? <ArrowLeft className="h-3 w-3" /> : <ArrowRight className="h-3 w-3" />}
+                    <span>Read Story</span>
+                    <ArrowRight className="h-3 w-3" />
                   </div>
                 </div>
               </Link>
@@ -599,3 +490,4 @@ function BlogPostDetailPage() {
     </div>
   );
 }
+

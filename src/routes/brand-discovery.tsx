@@ -14,10 +14,7 @@ import { jsPDF } from "jspdf";
 import { pageHead } from "@/lib/seo";
 
 // Visual identity curated assets: 9 coupled pairs & 35 moodboard items
-import {
-  COUPLED_LOGO_PAIRS,
-  MOODBOARD_GRID_IMAGES,
-} from "@/data/visual-identity-assets";
+import { COUPLED_LOGO_PAIRS, MOODBOARD_GRID_IMAGES } from "@/data/visual-identity-assets";
 import { PEYDA_BASE64 } from "@/assets/fonts/peyda/peyda-base64";
 
 // Helper to detect RTL characters (Farsi / Arabic)
@@ -29,8 +26,7 @@ export const Route = createFileRoute("/brand-discovery")({
   head: () =>
     pageHead({
       title: "فرم طراحی هویت دیداری — Siavash Akbari",
-      description:
-        "فرم جامع طراحی هویت دیداری و لوگو دیزاین توسط سیاوش اکبری استودیو.",
+      description: "فرم جامع طراحی هویت دیداری و لوگو دیزاین توسط سیاوش اکبری استودیو.",
       path: "/brand-discovery",
     }),
   component: BrandDiscoveryPage,
@@ -165,9 +161,7 @@ function LanguageSwitch({
         initial={false}
         animate={{ x: isFa ? "100%" : "0%" }}
         transition={
-          reduceMotion
-            ? { duration: 0 }
-            : { type: "spring", stiffness: 380, damping: 28 }
+          reduceMotion ? { duration: 0 } : { type: "spring", stiffness: 380, damping: 28 }
         }
       />
       <span
@@ -248,10 +242,7 @@ export function BrandDiscoveryPage() {
   // Close custom language dropdown when clicking outside
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (
-        langDropdownRef.current &&
-        !langDropdownRef.current.contains(event.target as Node)
-      ) {
+      if (langDropdownRef.current && !langDropdownRef.current.contains(event.target as Node)) {
         setIsLangDropdownOpen(false);
       }
     }
@@ -260,7 +251,7 @@ export function BrandDiscoveryPage() {
   }, []);
 
   const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
   ) => {
     const { name, value, type } = e.target;
     if (name === "brandNameFa" || name === "brandNameEn") {
@@ -393,11 +384,7 @@ export function BrandDiscoveryPage() {
     doc.setFontSize(8.5);
     doc.setFont("helvetica", "normal");
     doc.setTextColor(200, 200, 200);
-    doc.text(
-      isAdmin ? "Siavash Akbari — Studio Internal Brief" : "Siavash Akbari",
-      15,
-      36
-    );
+    doc.text(isAdmin ? "Siavash Akbari — Studio Internal Brief" : "Siavash Akbari", 15, 36);
 
     let currentY = 52;
 
@@ -501,7 +488,9 @@ export function BrandDiscoveryPage() {
         doc.addPage();
         currentY = 20;
       }
-      addSectionTitle(`SECTION 2: MOODBOARD SELECTIONS (${selectedMoodboardIndices.length} SELECTED)`);
+      addSectionTitle(
+        `SECTION 2: MOODBOARD SELECTIONS (${selectedMoodboardIndices.length} SELECTED)`,
+      );
       currentY += 2;
 
       const mbWidth = 25;
@@ -574,7 +563,14 @@ export function BrandDiscoveryPage() {
             doc.roundedRect(xOffset, currentY, colWidth, cardHeight, 2, 2, "FD");
 
             // Embed image within card
-            doc.addImage(base64Data, "JPEG", xOffset + 3, currentY + 3, colWidth - 6, imgHeight - 6);
+            doc.addImage(
+              base64Data,
+              "JPEG",
+              xOffset + 3,
+              currentY + 3,
+              colWidth - 6,
+              imgHeight - 6,
+            );
 
             // Label text below image
             doc.setFontSize(8);
@@ -585,7 +581,9 @@ export function BrandDiscoveryPage() {
               ? `Pair ${s.pairId}: ${s.chosenBrand} (${s.chosenFeeling})`
               : `Pair ${s.pairId}: ${s.chosenBrand}`;
 
-            doc.text(labelText, xOffset + colWidth / 2, currentY + imgHeight + 5, { align: "center" });
+            doc.text(labelText, xOffset + colWidth / 2, currentY + imgHeight + 5, {
+              align: "center",
+            });
           }
         } catch (e) {
           console.error(e);
@@ -595,7 +593,7 @@ export function BrandDiscoveryPage() {
     }
 
     // Footer on all pages
-    const pageCount = (doc as any).internal.getNumberOfPages();
+    const pageCount = doc.getNumberOfPages();
     for (let p = 1; p <= pageCount; p++) {
       doc.setPage(p);
       doc.setFont("helvetica", "normal");
@@ -732,7 +730,11 @@ export function BrandDiscoveryPage() {
         >
           <div className="mb-8 rounded-3xl border border-secondary/20 bg-secondary/5 p-5">
             <div className="flex items-center justify-between text-xs font-semibold uppercase tracking-wider text-secondary mb-1">
-              <span>{isFa ? "بخش اول از سه بخش: پرسشنامه تحلیلی" : "Section 1 of 3: Comprehensive Questionnaire"}</span>
+              <span>
+                {isFa
+                  ? "بخش اول از سه بخش: پرسشنامه تحلیلی"
+                  : "Section 1 of 3: Comprehensive Questionnaire"}
+              </span>
               <span>1 / 3</span>
             </div>
             <p className="text-xs leading-relaxed text-muted-foreground">
@@ -746,13 +748,17 @@ export function BrandDiscoveryPage() {
             {/* PART 1 */}
             <div className="rounded-3xl border border-foreground/15 bg-background p-6 md:p-8">
               <h2 className="mb-6 flex items-center gap-2 text-lg font-bold text-secondary">
-                <span>{isFa ? "اطلاعات پایه و هویت برند" : "Basic Information & Brand Identity"}</span>
+                <span>
+                  {isFa ? "اطلاعات پایه و هویت برند" : "Basic Information & Brand Identity"}
+                </span>
               </h2>
 
               <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                 <div>
                   <label className="block text-xs font-normal tracking-wide text-foreground/80 mb-2">
-                    {isFa ? "نام برند به زبان فارسی (املای دقیق و رسمی) *" : "Brand Name in Persian (Exact spelling) *"}
+                    {isFa
+                      ? "نام برند به زبان فارسی (املای دقیق و رسمی) *"
+                      : "Brand Name in Persian (Exact spelling) *"}
                   </label>
                   <input
                     type="text"
@@ -767,7 +773,9 @@ export function BrandDiscoveryPage() {
 
                 <div>
                   <label className="block text-xs font-normal tracking-wide text-foreground/80 mb-2">
-                    {isFa ? "نام برند به زبان انگلیسی (املای رسمی برای بخش دوزبانه) *" : "Brand Name in English (Exact official spelling) *"}
+                    {isFa
+                      ? "نام برند به زبان انگلیسی (املای رسمی برای بخش دوزبانه) *"
+                      : "Brand Name in English (Exact official spelling) *"}
                   </label>
                   <input
                     type="text"
@@ -795,12 +803,12 @@ export function BrandDiscoveryPage() {
                           ? "فارسی (Persian)"
                           : "Persian"
                         : formData.primaryLanguage === "انگلیسی (English)"
-                        ? isFa
-                          ? "انگلیسی (English)"
-                          : "English"
-                        : isFa
-                        ? "ارزش برابر هر دو زبان (Equal Weight)"
-                        : "Equal Priority"}
+                          ? isFa
+                            ? "انگلیسی (English)"
+                            : "English"
+                          : isFa
+                            ? "ارزش برابر هر دو زبان (Equal Weight)"
+                            : "Equal Priority"}
                     </span>
                     <ChevronDown
                       className={`h-4 w-4 text-foreground/60 transition-transform duration-200 ${
@@ -823,9 +831,7 @@ export function BrandDiscoveryPage() {
                         },
                         {
                           value: "ارزش برابر هر دو زبان (Equal)",
-                          label: isFa
-                            ? "ارزش برابر هر دو زبان (Equal Weight)"
-                            : "Equal Priority",
+                          label: isFa ? "ارزش برابر هر دو زبان (Equal Weight)" : "Equal Priority",
                         },
                       ].map((opt) => {
                         const isSelected = formData.primaryLanguage === opt.value;
@@ -864,7 +870,11 @@ export function BrandDiscoveryPage() {
                     name="slogan"
                     value={formData.slogan}
                     onChange={handleInputChange}
-                    placeholder={isFa ? "آیا شعاری برای قرارگیری کنار لوگو دارید؟" : "Tagline to accompany the logo"}
+                    placeholder={
+                      isFa
+                        ? "آیا شعاری برای قرارگیری کنار لوگو دارید؟"
+                        : "Tagline to accompany the logo"
+                    }
                     className={inputPillClass}
                   />
                 </div>
@@ -877,7 +887,9 @@ export function BrandDiscoveryPage() {
                         {isFa ? "آیا مایل به طراحی مسکات (کاراکتر برند) هستید؟" : "Want a Mascot?"}
                       </span>
                       <p className="text-xs text-muted-foreground mt-0.5">
-                        {isFa ? "طراحی کاراکتر یا شخصیت اختصاصی برای هویت دیداری" : "Design a dedicated mascot character for your brand"}
+                        {isFa
+                          ? "طراحی کاراکتر یا شخصیت اختصاصی برای هویت دیداری"
+                          : "Design a dedicated mascot character for your brand"}
                       </p>
                     </div>
 
@@ -922,7 +934,11 @@ export function BrandDiscoveryPage() {
                         name="mascotDescription"
                         value={formData.mascotDescription}
                         onChange={handleInputChange}
-                        placeholder={isFa ? "کاراکتر مد نظرتان را شرح دهید (مثلاً خرس مهربان، ربات آینده‌نگر، پرنده بازیگوش...)" : "Describe your mascot"}
+                        placeholder={
+                          isFa
+                            ? "کاراکتر مد نظرتان را شرح دهید (مثلاً خرس مهربان، ربات آینده‌نگر، پرنده بازیگوش...)"
+                            : "Describe your mascot"
+                        }
                         className={textareaPillClass}
                       />
                     </motion.div>
@@ -938,7 +954,11 @@ export function BrandDiscoveryPage() {
                     name="activity"
                     value={formData.activity}
                     onChange={handleInputChange}
-                    placeholder={isFa ? "کسب‌وکار شما دقیقاً چه کالا یا خدماتی ارائه می‌دهد؟" : "What exact products or services does your business offer?"}
+                    placeholder={
+                      isFa
+                        ? "کسب‌وکار شما دقیقاً چه کالا یا خدماتی ارائه می‌دهد؟"
+                        : "What exact products or services does your business offer?"
+                    }
                     className={textareaPillClass}
                   />
                 </div>
@@ -952,7 +972,11 @@ export function BrandDiscoveryPage() {
                     name="nameHistory"
                     value={formData.nameHistory}
                     onChange={handleInputChange}
-                    placeholder={isFa ? "چه داستانی یا مفهومی پشت این نام نهفته است؟" : "What is the story or concept behind the brand name?"}
+                    placeholder={
+                      isFa
+                        ? "چه داستانی یا مفهومی پشت این نام نهفته است؟"
+                        : "What is the story or concept behind the brand name?"
+                    }
                     className={textareaPillClass}
                   />
                 </div>
@@ -968,14 +992,20 @@ export function BrandDiscoveryPage() {
               <div className="flex flex-col gap-6">
                 <div>
                   <label className="block text-xs font-normal tracking-wide text-foreground/80 mb-2">
-                    {isFa ? "مخاطبان اصلی چه کسانی هستند؟" : "Who are your primary target audiences?"}
+                    {isFa
+                      ? "مخاطبان اصلی چه کسانی هستند؟"
+                      : "Who are your primary target audiences?"}
                   </label>
                   <textarea
                     rows={2}
                     name="targetAudience"
                     value={formData.targetAudience}
                     onChange={handleInputChange}
-                    placeholder={isFa ? "سن، جنسیت، سطح درآمد، موقعیت جغرافیایی و سبک زندگی آنها" : "Age, gender, income level, geographic location, lifestyle..."}
+                    placeholder={
+                      isFa
+                        ? "سن، جنسیت، سطح درآمد، موقعیت جغرافیایی و سبک زندگی آنها"
+                        : "Age, gender, income level, geographic location, lifestyle..."
+                    }
                     className={textareaPillClass}
                   />
                 </div>
@@ -989,7 +1019,11 @@ export function BrandDiscoveryPage() {
                     name="competitors"
                     value={formData.competitors}
                     onChange={handleInputChange}
-                    placeholder={isFa ? "۳ رقیب اصلی شما چه کسانی هستند و به نظر شما نقطه قوت و ضعف لوگوی آنها چیست؟" : "Name 3 main competitors and what you consider strengths/weaknesses of their logos"}
+                    placeholder={
+                      isFa
+                        ? "۳ رقیب اصلی شما چه کسانی هستند و به نظر شما نقطه قوت و ضعف لوگوی آنها چیست؟"
+                        : "Name 3 main competitors and what you consider strengths/weaknesses of their logos"
+                    }
                     className={textareaPillClass}
                   />
                 </div>
@@ -1012,21 +1046,31 @@ export function BrandDiscoveryPage() {
                     name="brandAttributes"
                     value={formData.brandAttributes}
                     onChange={handleInputChange}
-                    placeholder={isFa ? "مثلاً: جدی، صمیمی، لوکس، پرانرژی، قابل اعتماد، مینیمال، مدرن یا سنتی" : "e.g. Serious, warm, luxury, energetic, trustworthy, minimal, modern, heritage"}
+                    placeholder={
+                      isFa
+                        ? "مثلاً: جدی، صمیمی، لوکس، پرانرژی، قابل اعتماد، مینیمال، مدرن یا سنتی"
+                        : "e.g. Serious, warm, luxury, energetic, trustworthy, minimal, modern, heritage"
+                    }
                     className={inputPillClass}
                   />
                 </div>
 
                 <div>
                   <label className="block text-xs font-normal tracking-wide text-foreground/80 mb-2">
-                    {isFa ? "فرم‌های مورد علاقه برای نشان" : "Preferred Shapes & Forms for the Mark"}
+                    {isFa
+                      ? "فرم‌های مورد علاقه برای نشان"
+                      : "Preferred Shapes & Forms for the Mark"}
                   </label>
                   <textarea
                     rows={2}
                     name="favoriteForms"
                     value={formData.favoriteForms}
                     onChange={handleInputChange}
-                    placeholder={isFa ? "لطفاً با دقت مثال بزنید (چه دقیق مثل درخت، پرنده، انسان، ساختمان یا کلی مثل دایره، پنج‌ضلعی، لوزی...)" : "Specific motifs (tree, bird, building, human figure...) or abstract geometry (circle, pentagon, diamond...)"}
+                    placeholder={
+                      isFa
+                        ? "لطفاً با دقت مثال بزنید (چه دقیق مثل درخت، پرنده، انسان، ساختمان یا کلی مثل دایره، پنج‌ضلعی، لوزی...)"
+                        : "Specific motifs (tree, bird, building, human figure...) or abstract geometry (circle, pentagon, diamond...)"
+                    }
                     className={textareaPillClass}
                   />
                 </div>
@@ -1036,7 +1080,11 @@ export function BrandDiscoveryPage() {
             {/* PART 4 */}
             <div className="rounded-3xl border border-foreground/15 bg-background p-6 md:p-8">
               <h2 className="mb-6 flex items-center gap-2 text-lg font-bold text-secondary">
-                <span>{isFa ? "کاربردها و الزامات فنی (مخصوص لوگوی دوزبانه)" : "Technical Requirements & Applications (Bilingual)"}</span>
+                <span>
+                  {isFa
+                    ? "کاربردها و الزامات فنی (مخصوص لوگوی دوزبانه)"
+                    : "Technical Requirements & Applications (Bilingual)"}
+                </span>
               </h2>
 
               <div className="flex flex-col gap-6">
@@ -1049,7 +1097,11 @@ export function BrandDiscoveryPage() {
                     name="layoutPreference"
                     value={formData.layoutPreference}
                     onChange={handleInputChange}
-                    placeholder={isFa ? "مثلاً: متن فارسی در بالا/راست و انگلیسی در پایین/چپ، یا استفاده از نسخه‌های مجزا" : "e.g. Persian on top/right, English below/left, or dedicated standalone versions"}
+                    placeholder={
+                      isFa
+                        ? "مثلاً: متن فارسی در بالا/راست و انگلیسی در پایین/چپ، یا استفاده از نسخه‌های مجزا"
+                        : "e.g. Persian on top/right, English below/left, or dedicated standalone versions"
+                    }
                     className={inputPillClass}
                   />
                 </div>
@@ -1063,7 +1115,11 @@ export function BrandDiscoveryPage() {
                     name="mainApplications"
                     value={formData.mainApplications}
                     onChange={handleInputChange}
-                    placeholder={isFa ? "شبکه‌های اجتماعی، وبسایت، تابلو سردر، بسته‌بندی محصول، کارت ویزیت و اوراق اداری..." : "Social media, website, physical signage, packaging, stationery, apparel..."}
+                    placeholder={
+                      isFa
+                        ? "شبکه‌های اجتماعی، وبسایت، تابلو سردر، بسته‌بندی محصول، کارت ویزیت و اوراق اداری..."
+                        : "Social media, website, physical signage, packaging, stationery, apparel..."
+                    }
                     className={inputPillClass}
                   />
                 </div>
@@ -1077,7 +1133,11 @@ export function BrandDiscoveryPage() {
                     name="scalability"
                     value={formData.scalability}
                     onChange={handleInputChange}
-                    placeholder={isFa ? "آیا لوگو قرار است روی المان‌های بسیار کوچک (آیکون اپ یا خودکار) یا ابعاد بزرگ چاپ شود؟" : "Will it be used in micro sizes (app icon, pen engraving) or huge formats (facades, billboards)?"}
+                    placeholder={
+                      isFa
+                        ? "آیا لوگو قرار است روی المان‌های بسیار کوچک (آیکون اپ یا خودکار) یا ابعاد بزرگ چاپ شود؟"
+                        : "Will it be used in micro sizes (app icon, pen engraving) or huge formats (facades, billboards)?"
+                    }
                     className={inputPillClass}
                   />
                 </div>
@@ -1099,7 +1159,11 @@ export function BrandDiscoveryPage() {
                   name="forbiddenElements"
                   value={formData.forbiddenElements}
                   onChange={handleInputChange}
-                  placeholder={isFa ? "چه طرح، نماد، رنگ یا ایده‌ای است که به هیچ عنوان نباید در لوگوی شما استفاده شود؟" : "What symbols, ideas, concepts or colors must NOT appear in your logo under any circumstances?"}
+                  placeholder={
+                    isFa
+                      ? "چه طرح، نماد، رنگ یا ایده‌ای است که به هیچ عنوان نباید در لوگوی شما استفاده شود؟"
+                      : "What symbols, ideas, concepts or colors must NOT appear in your logo under any circumstances?"
+                  }
                   className={textareaPillClass}
                 />
               </div>
@@ -1120,18 +1184,19 @@ export function BrandDiscoveryPage() {
                   name="additionalNotes"
                   value={formData.additionalNotes}
                   onChange={handleInputChange}
-                  placeholder={isFa ? "اگر نکته دیگری لازم می‌دانید اضافه کنید..." : "add more if you think is neccecary"}
+                  placeholder={
+                    isFa
+                      ? "اگر نکته دیگری لازم می‌دانید اضافه کنید..."
+                      : "add more if you think is neccecary"
+                  }
                   className={textareaPillClass}
                 />
               </div>
             </div>
 
             {/* Next Step Button & Feedback */}
-            <div className="flex flex-col items-end gap-3 w-full">
-              <button
-                type="submit"
-                className={activeActionBtnClass}
-              >
+            <div className="flex flex-col items-center sm:items-end gap-3 w-full">
+              <button type="submit" className={`${activeActionBtnClass} w-full sm:w-auto`}>
                 <span>{isFa ? "ادامه به بخش مودبورد (Moodboard)" : "Continue to Moodboard"}</span>
                 {isFa ? <ArrowLeft className="h-4 w-4" /> : <ArrowRight className="h-4 w-4" />}
               </button>
@@ -1164,10 +1229,14 @@ export function BrandDiscoveryPage() {
           {/* Section banner */}
           <div className="mb-6 rounded-3xl border border-secondary/30 bg-secondary/5 p-6 text-center">
             <div className="flex items-center justify-between text-xs font-semibold uppercase tracking-wider text-secondary mb-2">
-              <span>{isFa ? "بخش دوم از سه بخش: مودبورد دیداری" : "Section 2 of 3: Visual Moodboard"}</span>
+              <span>
+                {isFa ? "بخش دوم از سه بخش: مودبورد دیداری" : "Section 2 of 3: Visual Moodboard"}
+              </span>
               <span>2 / 3</span>
             </div>
-            <h3 className={`text-xl font-bold text-foreground ${isFa ? "font-farsi" : "font-display"}`}>
+            <h3
+              className={`text-xl font-bold text-foreground ${isFa ? "font-farsi" : "font-display"}`}
+            >
               {isFa ? "انتخاب نمونه‌های مودبورد" : "Select Your Moodboard Aesthetics"}
             </h3>
             <p className="mt-2 text-xs leading-relaxed text-muted-foreground max-w-xl mx-auto">
@@ -1200,8 +1269,8 @@ export function BrandDiscoveryPage() {
                     isSelected
                       ? "border-secondary ring-2 ring-secondary/50 shadow-[0_0_20px_color-mix(in_oklab,var(--secondary)_25%,transparent)] bg-secondary/5 scale-[0.98]"
                       : isLimitReached
-                      ? "border-foreground/10 opacity-40 cursor-not-allowed"
-                      : "border-foreground/15 bg-background hover:border-secondary/60 hover:shadow-lg"
+                        ? "border-foreground/10 opacity-40 cursor-not-allowed"
+                        : "border-foreground/15 bg-background hover:border-secondary/60 hover:shadow-lg"
                   }`}
                 >
                   <div className="flex h-full w-full items-center justify-center p-3.5">
@@ -1230,26 +1299,26 @@ export function BrandDiscoveryPage() {
           </div>
 
           {/* Navigation Controls */}
-          <div className="mt-10 flex items-center justify-between border-t border-foreground/10 pt-6">
+          <div className="mt-10 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-t border-foreground/10 pt-6 w-full">
+            <button
+              type="button"
+              onClick={handleContinueToPickOne}
+              className={`${activeActionBtnClass} w-full sm:w-auto sm:order-2`}
+            >
+              <span>{isFa ? "ادامه به انتخاب جفتی (Pick One)" : "Continue to Pick One"}</span>
+              {isFa ? <ArrowLeft className="h-4 w-4" /> : <ArrowRight className="h-4 w-4" />}
+            </button>
+
             <button
               type="button"
               onClick={() => {
                 setStep("form");
                 window.scrollTo({ top: 0, behavior: "smooth" });
               }}
-              className={actionBtnClass}
+              className={`${actionBtnClass} w-full sm:w-auto sm:order-1`}
             >
               {isFa ? <ArrowRight className="h-4 w-4" /> : <ArrowLeft className="h-4 w-4" />}
               <span>{isFa ? "مرحله قبل: پرسشنامه" : "Back: Questionnaire"}</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={handleContinueToPickOne}
-              className={activeActionBtnClass}
-            >
-              <span>{isFa ? "ادامه به انتخاب جفتی (Pick One)" : "Continue to Pick One"}</span>
-              {isFa ? <ArrowLeft className="h-4 w-4" /> : <ArrowRight className="h-4 w-4" />}
             </button>
           </div>
         </motion.div>
@@ -1311,7 +1380,9 @@ export function BrandDiscoveryPage() {
               onClick={() => handleSelectChoice("A")}
               className="group relative flex cursor-pointer flex-col items-center rounded-2xl md:rounded-3xl border border-foreground/15 bg-background p-3 sm:p-5 md:p-8 text-center transition-all duration-300 hover:border-secondary hover:shadow-[0_0_25px_color-mix(in_oklab,var(--secondary)_20%,transparent)]"
             >
-              <div className={`mb-2 sm:mb-4 rounded-full border border-foreground/10 bg-foreground/5 px-2.5 sm:px-5 py-1 text-[11px] sm:text-xs font-semibold uppercase tracking-wider text-foreground/80 ${isFa ? "font-farsi" : ""}`}>
+              <div
+                className={`mb-2 sm:mb-4 rounded-full border border-foreground/10 bg-foreground/5 px-2.5 sm:px-5 py-1 text-[11px] sm:text-xs font-semibold uppercase tracking-wider text-foreground/80 ${isFa ? "font-farsi" : ""}`}
+              >
                 {isFa ? "گزینه الف (A)" : "Option A"}
               </div>
 
@@ -1340,7 +1411,9 @@ export function BrandDiscoveryPage() {
               onClick={() => handleSelectChoice("B")}
               className="group relative flex cursor-pointer flex-col items-center rounded-2xl md:rounded-3xl border border-foreground/15 bg-background p-3 sm:p-5 md:p-8 text-center transition-all duration-300 hover:border-secondary hover:shadow-[0_0_25px_color-mix(in_oklab,var(--secondary)_20%,transparent)]"
             >
-              <div className={`mb-2 sm:mb-4 rounded-full border border-foreground/10 bg-foreground/5 px-2.5 sm:px-5 py-1 text-[11px] sm:text-xs font-semibold uppercase tracking-wider text-foreground/80 ${isFa ? "font-farsi" : ""}`}>
+              <div
+                className={`mb-2 sm:mb-4 rounded-full border border-foreground/10 bg-foreground/5 px-2.5 sm:px-5 py-1 text-[11px] sm:text-xs font-semibold uppercase tracking-wider text-foreground/80 ${isFa ? "font-farsi" : ""}`}
+              >
                 {isFa ? "گزینه ب (B)" : "Option B"}
               </div>
 
@@ -1367,7 +1440,11 @@ export function BrandDiscoveryPage() {
 
           {/* Navigation Controls: Centered on mobile */}
           <div className="mt-8 flex w-full items-center justify-center sm:justify-start">
-            <button type="button" onClick={handlePrevPickOne} className={actionBtnClass}>
+            <button
+              type="button"
+              onClick={handlePrevPickOne}
+              className={`${actionBtnClass} w-full sm:w-auto`}
+            >
               {isFa ? <ArrowRight className="h-4 w-4" /> : <ArrowLeft className="h-4 w-4" />}
               <span>{isFa ? "مرحله قبل: مودبورد" : "Back: Moodboard"}</span>
             </button>
@@ -1417,7 +1494,9 @@ export function BrandDiscoveryPage() {
             {/* Moodboard Selections */}
             {selectedMoodboardIndices.length > 0 && (
               <div>
-                <h3 className={`mb-3 text-base font-bold text-foreground ${isFa ? "font-farsi" : "font-display"}`}>
+                <h3
+                  className={`mb-3 text-base font-bold text-foreground ${isFa ? "font-farsi" : "font-display"}`}
+                >
                   {isFa
                     ? `تصاویر انتخابی شما در مودبورد (${selectedMoodboardIndices.length} مورد)`
                     : `Your Selected Moodboard Images (${selectedMoodboardIndices.length})`}
@@ -1431,7 +1510,11 @@ export function BrandDiscoveryPage() {
                         key={item.id}
                         className="relative aspect-square overflow-hidden rounded-2xl border border-secondary/30 bg-foreground/[0.02]"
                       >
-                        <img src={item.image} alt={item.title} className="h-full w-full object-cover" />
+                        <img
+                          src={item.image}
+                          alt={item.title}
+                          className="h-full w-full object-cover"
+                        />
                         <div className="absolute top-1.5 right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-secondary text-secondary-foreground text-[8px] font-bold">
                           ✓
                         </div>
@@ -1445,8 +1528,12 @@ export function BrandDiscoveryPage() {
             {/* Pick One Choices (User views only brand names) */}
             {selections.length > 0 && (
               <div className="border-t border-foreground/10 pt-6">
-                <h3 className={`mb-3 text-base font-bold text-foreground ${isFa ? "font-farsi" : "font-display"}`}>
-                  {isFa ? "گزینه‌های انتخابی شما (Preferred Aesthetics)" : "Your Selected Aesthetics (Pick One)"}
+                <h3
+                  className={`mb-3 text-base font-bold text-foreground ${isFa ? "font-farsi" : "font-display"}`}
+                >
+                  {isFa
+                    ? "گزینه‌های انتخابی شما (Preferred Aesthetics)"
+                    : "Your Selected Aesthetics (Pick One)"}
                 </h3>
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
                   {selections.map((s) => (
@@ -1462,7 +1549,9 @@ export function BrandDiscoveryPage() {
                         />
                       </div>
                       <span className="mt-2 text-xs font-semibold text-foreground/80">
-                        {isFa ? `جفت ${s.pairId}: ${s.chosenBrand}` : `Pair ${s.pairId}: ${s.chosenBrand}`}
+                        {isFa
+                          ? `جفت ${s.pairId}: ${s.chosenBrand}`
+                          : `Pair ${s.pairId}: ${s.chosenBrand}`}
                       </span>
                     </div>
                   ))}
@@ -1471,11 +1560,11 @@ export function BrandDiscoveryPage() {
             )}
 
             {/* Actions */}
-            <div className="mt-4 flex flex-wrap items-center justify-between gap-4 border-t border-foreground/10 pt-6">
+            <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-t border-foreground/10 pt-6 w-full">
               <button
                 type="button"
                 onClick={handleDownloadPdf}
-                className={activeActionBtnClass}
+                className={`${activeActionBtnClass} w-full sm:w-auto`}
               >
                 <Download className="h-4 w-4" />
                 <span>{isFa ? "دانلود نسخه PDF خلاصه فرم" : "Download PDF Report"}</span>
@@ -1484,7 +1573,7 @@ export function BrandDiscoveryPage() {
               <button
                 type="button"
                 onClick={handleReset}
-                className="flex items-center gap-1.5 text-xs text-foreground/50 hover:text-foreground transition-colors cursor-pointer"
+                className="flex items-center justify-center gap-1.5 text-xs text-foreground/50 hover:text-foreground transition-colors cursor-pointer py-2 sm:py-0 w-full sm:w-auto"
               >
                 <RotateCcw className="h-3.5 w-3.5" />
                 <span>{isFa ? "تکمیل مجدد فرم" : "Start New Form"}</span>
