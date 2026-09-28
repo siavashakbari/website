@@ -1,22 +1,23 @@
 import { useEffect, useRef, useState } from "react";
-import { createFileRoute, notFound, rootRouteId } from "@tanstack/react-router";
+import { createFileRoute, Link, notFound, rootRouteId } from "@tanstack/react-router";
 import { createPortal } from "react-dom";
 import { Play } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
-import { ExpandableCard, ExpandableCardGrid } from "@/components/ui/expandable-card";
-import { GalleryLoadProvider } from "@/components/AdaptiveThumb";
+import { AdaptiveThumb, GalleryLoadProvider } from "@/components/AdaptiveThumb";
 import { BackToTop } from "@/components/BackToTop";
 import { CoverTile } from "@/components/CoverTile";
 import { DISCIPLINES } from "@/data/disciplines";
 import { projects, type Project } from "@/data/projects";
+import { getPhotoByStem } from "@/data/photo-inventory";
 import { pageHead } from "@/lib/seo";
 import { VideoPlayer } from "@/components/ui/video-player";
-import { metaFromSrc } from "@/lib/adaptive-image";
+import { metaFromSrc, assetStemFromSrc } from "@/lib/adaptive-image";
 
 interface DisciplinePhoto {
   key: string;
   src: string;
-  /** Clean caption: project title plus photo number, e.g. "Atlasi — 08" */
+  code: string;
+  disciplineSlug: string;
   imageName: string;
   title: string;
   year: string;
@@ -130,9 +131,15 @@ export const Route = createFileRoute("/$discipline")({
     matching.forEach((project: Project) => {
       const gallery = project.gallery ?? [project.image];
       gallery.forEach((src, idx) => {
+        const stem = assetStemFromSrc(src);
+        const inv = getPhotoByStem(stem);
+        const code = inv?.code || `${project.id}-${String(idx + 1).padStart(2, "0")}`;
+
         items.push({
           key: `${project.id}-${idx}`,
           src,
+          code,
+          disciplineSlug: discipline.slug,
           imageName: photoCaption(project.title, idx, gallery.length),
           title: project.title,
           year: project.year,
@@ -172,25 +179,24 @@ export const Route = createFileRoute("/$discipline")({
 function PhotoMasonry({ items }: { items: DisciplinePhoto[] }) {
   return (
     <GalleryLoadProvider total={items.length}>
-      <ExpandableCardGrid className="columns-1 gap-x-[4px] px-[13px] sm:columns-2 lg:columns-3">
+      <div className="columns-1 gap-x-[4px] px-[13px] sm:columns-2 lg:columns-3">
         {items.map((item, index) => (
-          <ExpandableCard
-            key={item.key}
-            cardId={item.key}
-            index={index}
-            title={item.imageName}
-            src={item.src}
-            classNameExpanded="[&_h4]:font-medium [&_h4]:text-[#0F0F0F] dark:[&_h4]:text-[#EFEFEF]"
-          >
-            <h4>Name</h4>
-            <p>{item.imageName}</p>
-            <h4>Project</h4>
-            <p>{item.title}</p>
-            <h4>Date</h4>
-            <p>{item.year}</p>
-          </ExpandableCard>
+          <div key={item.key} className="relative mb-[4px] break-inside-avoid">
+            <Link
+              to="/$discipline/$photoId"
+              params={{ discipline: item.disciplineSlug, photoId: item.code }}
+              className="group relative block w-full overflow-hidden bg-[#0F0F0F] transition-opacity hover:opacity-90 cursor-pointer"
+            >
+              <AdaptiveThumb
+                src={item.src}
+                index={index}
+                alt={item.imageName}
+                className="block h-auto w-full transition-transform duration-500 ease-out group-hover:scale-[1.02]"
+              />
+            </Link>
+          </div>
         ))}
-      </ExpandableCardGrid>
+      </div>
     </GalleryLoadProvider>
   );
 }

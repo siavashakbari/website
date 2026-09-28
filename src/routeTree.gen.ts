@@ -20,6 +20,7 @@ import { Route as PhotographyRouteImport } from './routes/photography'
 import { Route as ProductDesignRouteImport } from './routes/product-design'
 import { Route as RobotsDottxtRouteImport } from './routes/robots[.]txt'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
+import { Route as DisciplinePhotoIdRouteImport } from './routes/$discipline.$photoId'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as AdminBlogRouteImport } from './routes/admin.blog'
 import { Route as AdminInvoicesRouteImport } from './routes/admin.invoices'
@@ -86,6 +87,11 @@ const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   path: '/sitemap.xml',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DisciplinePhotoIdRoute = DisciplinePhotoIdRouteImport.update({
+  id: '/$photoId',
+  path: '/$photoId',
+  getParentRoute: () => DisciplineRoute,
+} as any)
 const AdminIndexRoute = AdminIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -139,7 +145,7 @@ const VisualIdentityProjectIdRoute = VisualIdentityProjectIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/$discipline': typeof DisciplineRoute
+  '/$discipline': typeof DisciplineRouteWithChildren
   '/about': typeof AboutRoute
   '/admin': typeof AdminRouteWithChildren
   '/brand-discovery': typeof BrandDiscoveryRoute
@@ -149,6 +155,7 @@ export interface FileRoutesByFullPath {
   '/product-design': typeof ProductDesignRoute
   '/robots.txt': typeof RobotsDottxtRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/$discipline/$photoId': typeof DisciplinePhotoIdRoute
   '/admin/blog': typeof AdminBlogRoute
   '/admin/invoices': typeof AdminInvoicesRoute
   '/admin/projects': typeof AdminProjectsRoute
@@ -162,7 +169,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/$discipline': typeof DisciplineRoute
+  '/$discipline': typeof DisciplineRouteWithChildren
   '/about': typeof AboutRoute
   '/brand-discovery': typeof BrandDiscoveryRoute
   '/contact': typeof ContactRoute
@@ -171,6 +178,7 @@ export interface FileRoutesByTo {
   '/product-design': typeof ProductDesignRoute
   '/robots.txt': typeof RobotsDottxtRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/$discipline/$photoId': typeof DisciplinePhotoIdRoute
   '/admin/blog': typeof AdminBlogRoute
   '/admin/invoices': typeof AdminInvoicesRoute
   '/admin/projects': typeof AdminProjectsRoute
@@ -185,7 +193,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/$discipline': typeof DisciplineRoute
+  '/$discipline': typeof DisciplineRouteWithChildren
   '/about': typeof AboutRoute
   '/admin': typeof AdminRouteWithChildren
   '/brand-discovery': typeof BrandDiscoveryRoute
@@ -195,6 +203,7 @@ export interface FileRoutesById {
   '/product-design': typeof ProductDesignRoute
   '/robots.txt': typeof RobotsDottxtRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/$discipline/$photoId': typeof DisciplinePhotoIdRoute
   '/admin/blog': typeof AdminBlogRoute
   '/admin/invoices': typeof AdminInvoicesRoute
   '/admin/projects': typeof AdminProjectsRoute
@@ -220,6 +229,7 @@ export interface FileRouteTypes {
     | '/product-design'
     | '/robots.txt'
     | '/sitemap.xml'
+    | '/$discipline/$photoId'
     | '/admin/blog'
     | '/admin/invoices'
     | '/admin/projects'
@@ -242,6 +252,7 @@ export interface FileRouteTypes {
     | '/product-design'
     | '/robots.txt'
     | '/sitemap.xml'
+    | '/$discipline/$photoId'
     | '/admin/blog'
     | '/admin/invoices'
     | '/admin/projects'
@@ -265,6 +276,7 @@ export interface FileRouteTypes {
     | '/product-design'
     | '/robots.txt'
     | '/sitemap.xml'
+    | '/$discipline/$photoId'
     | '/admin/blog'
     | '/admin/invoices'
     | '/admin/projects'
@@ -279,7 +291,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  DisciplineRoute: typeof DisciplineRoute
+  DisciplineRoute: typeof DisciplineRouteWithChildren
   AboutRoute: typeof AboutRoute
   AdminRoute: typeof AdminRouteWithChildren
   BrandDiscoveryRoute: typeof BrandDiscoveryRoute
@@ -376,6 +388,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SitemapDotxmlRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/$discipline/$photoId': {
+      id: '/$discipline/$photoId'
+      path: '/$photoId'
+      fullPath: '/$discipline/$photoId'
+      preLoaderRoute: typeof DisciplinePhotoIdRouteImport
+      parentRoute: typeof DisciplineRoute
+    }
     '/admin/': {
       id: '/admin/'
       path: '/'
@@ -449,6 +468,18 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface DisciplineRouteChildren {
+  DisciplinePhotoIdRoute: typeof DisciplinePhotoIdRoute
+}
+
+const DisciplineRouteChildren: DisciplineRouteChildren = {
+  DisciplinePhotoIdRoute: DisciplinePhotoIdRoute,
+}
+
+const DisciplineRouteWithChildren = DisciplineRoute._addFileChildren(
+  DisciplineRouteChildren,
+)
+
 interface AdminRouteChildren {
   AdminBlogRoute: typeof AdminBlogRoute
   AdminInvoicesRoute: typeof AdminInvoicesRoute
@@ -467,7 +498,7 @@ const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  DisciplineRoute: DisciplineRoute,
+  DisciplineRoute: DisciplineRouteWithChildren,
   AboutRoute: AboutRoute,
   AdminRoute: AdminRouteWithChildren,
   BrandDiscoveryRoute: BrandDiscoveryRoute,

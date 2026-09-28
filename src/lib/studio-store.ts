@@ -223,3 +223,53 @@ export function deleteInvoice(id: string): void {
   const list = getSavedInvoices().filter((inv) => inv.id !== id);
   localStorage.setItem(STORAGE_INVOICES_KEY, JSON.stringify(list));
 }
+
+// 4. Photo Inventory Metadata Store (Matching PHOTO_INVENTORY_VIEWER.html)
+export const STORAGE_INVENTORY_KEY = "siavash_portfolio_inventory_v3";
+
+import { PHOTO_INVENTORY, type PhotoInventoryItem } from "@/data/photo-inventory";
+
+export function getCustomPhotoMetadata(): Record<string, Partial<PhotoInventoryItem>> {
+  if (typeof window === "undefined") return {};
+  try {
+    const raw = localStorage.getItem(STORAGE_INVENTORY_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch (e) {
+    console.error("Error reading photo inventory metadata:", e);
+  }
+  return {};
+}
+
+export function getMergedPhotoInventory(): PhotoInventoryItem[] {
+  const customMap = getCustomPhotoMetadata();
+  return PHOTO_INVENTORY.map((item) => {
+    const custom = customMap[item.code];
+    if (!custom) return item;
+    return {
+      ...item,
+      ...custom,
+    };
+  });
+}
+
+export function getPhotoItemByCode(code: string): PhotoInventoryItem | undefined {
+  const all = getMergedPhotoInventory();
+  return all.find((i) => i.code.toUpperCase() === code.toUpperCase());
+}
+
+export function savePhotoInventoryItem(item: Partial<PhotoInventoryItem> & { code: string }): void {
+  if (typeof window === "undefined") return;
+  const map = getCustomPhotoMetadata();
+  map[item.code] = {
+    ...(map[item.code] || {}),
+    ...item,
+  };
+  localStorage.setItem(STORAGE_INVENTORY_KEY, JSON.stringify(map));
+}
+
+export function saveBulkPhotoInventory(items: Record<string, Partial<PhotoInventoryItem>>): void {
+  if (typeof window === "undefined") return;
+  const current = getCustomPhotoMetadata();
+  const merged = { ...current, ...items };
+  localStorage.setItem(STORAGE_INVENTORY_KEY, JSON.stringify(merged));
+}
