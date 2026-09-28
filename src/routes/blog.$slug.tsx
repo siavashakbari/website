@@ -21,13 +21,28 @@ import { BackToTop } from "@/components/BackToTop";
 
 export const Route = createFileRoute("/blog/$slug")({
   loader: ({ params }) => {
+    // 1. Direct match in persistent studio-store or default BLOG_POSTS
     const post = getBlogPostBySlug(params.slug) || BLOG_POSTS.find((p) => p.slug === params.slug);
-    if (!post) throw notFound();
-    return { post };
+    
+    // In SSR (where localStorage is empty) a custom post created in admin might not exist on the server yet.
+    // Instead of throwing a hard 404, we pass null or empty placeholder so client can hydrate from localStorage.
+    if (!post) {
+      if (typeof window === "undefined") {
+        return { post: null, slug: params.slug };
+      }
+      throw notFound();
+    }
+    return { post, slug: params.slug };
   },
   head: ({ loaderData }) => {
     const post = loaderData?.post;
-    if (!post) return {};
+    if (!post) {
+      return pageHead({
+        title: "Blog — Siavash Akbari",
+        description: "Studio Journal & News by Siavash Akbari",
+        path: `/blog/${loaderData?.slug || ""}`,
+      });
+    }
     const url = absoluteUrl(`/blog/${post.slug}`);
     const siteUrl = getSiteUrl();
 
@@ -97,18 +112,34 @@ export const Route = createFileRoute("/blog/$slug")({
 });
 
 function BlogPostDetailPage() {
-  const { post: initialPost } = Route.useLoaderData();
-  const [post, setPost] = useState(initialPost);
+  const { post: initialPost, slug } = Route.useLoaderData();
+  const [post, setPost] = useState<any>(initialPost || (() => getBlogPostBySlug(slug)));
   const [allPosts, setAllPosts] = useState(() => getMergedBlogPosts());
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
-    const livePost = getBlogPostBySlug(initialPost.slug);
+    const livePost = getBlogPostBySlug(slug) || (initialPost ? getBlogPostBySlug(initialPost.slug) : undefined);
     if (livePost) {
       setPost(livePost as any);
     }
     setAllPosts(getMergedBlogPosts());
-  }, [initialPost.slug]);
+  }, [slug, initialPost]);
+
+  if (!post) {
+    return (
+      <div className="mx-auto max-w-3xl px-6 py-32 text-center text-foreground">
+        <h1 className="font-display text-4xl">Article Not Found</h1>
+        <p className="mt-4 text-muted-foreground">The article you are looking for does not exist or has been removed.</p>
+        <Link
+          to="/blog"
+          className="mt-6 inline-flex items-center gap-2 rounded-full border border-secondary/40 bg-secondary/10 px-5 py-2 text-xs uppercase tracking-widest text-secondary hover:bg-secondary hover:text-black transition-colors"
+        >
+          <ArrowLeft className="w-3.5 h-3.5" />
+          <span>Back to Blog</span>
+        </Link>
+      </div>
+    );
+  }
 
   // Related posts (excluding current post)
   const relatedPosts = allPosts.filter((p) => p.slug !== post.slug && p.published !== false).slice(0, 3);
@@ -181,15 +212,17 @@ function BlogPostDetailPage() {
           <div className="mt-8 flex flex-col gap-6 border-y border-foreground/10 py-6 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-3.5">
               <img
-                src={post.author.avatar}
-                alt={post.author.name}
+                src={post.author?.avatar || "/og.jpg"}
+                alt={post.author?.name || "Siavash Akbari"}
                 className="h-11 w-11 rounded-full border border-secondary/40 object-cover shadow-[0_0_10px_rgba(63,235,204,0.2)]"
               />
               <div>
                 <div className="text-sm font-medium tracking-wide text-foreground">
-                  {post.author.name}
+                  {post.author?.name || "Siavash Akbari"}
                 </div>
-                <div className="text-xs text-foreground/50">{post.author.role}</div>
+                <div className="text-xs text-foreground/50">
+                  {post.author?.role || "Photographer, Designer & Creative Director"}
+                </div>
               </div>
             </div>
 

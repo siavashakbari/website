@@ -41,3 +41,6 @@ originals-hq/
 .recover-hq/
 
 .vercel/
+.agents/
+.codebase-context/
+

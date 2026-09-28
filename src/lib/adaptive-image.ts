@@ -58,3 +58,12 @@ export function loadRankForIndex(domIndex: number, total: number, cols: number):
   const rank = order.indexOf(domIndex);
   return rank === -1 ? domIndex : rank;
 }
+
+/** Get <20KB WebP thumbnail URL from public/thumbs/ */
+export function getThumbSrc(src: string): string {
+  if (!src || src.endsWith(".mp4") || src.endsWith(".gif") || src.startsWith("data:")) return src;
+  const stem = assetStemFromSrc(src);
+  if (!stem) return src;
+  return `/thumbs/${stem}.webp`;
+}
+

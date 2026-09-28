@@ -121,6 +121,13 @@ function AdminBlogView() {
       contentMarkdown: contentMarkdown.trim(),
       published: isPublished,
       aiSummary: aiSummary.trim() || undefined,
+      author: editingPost?.author || {
+        name: "Siavash Akbari",
+        role: "Photographer, Designer & Creative Director",
+        avatar: "/og.jpg",
+        bio: "Multidisciplinary designer and photographer based in Esfahan, focusing on minimal aesthetics, visual identity systems, and contemporary art direction.",
+      },
+      tags: editingPost?.tags || ["Editorial", "Design", "Studio"],
     };
 
     saveStudioBlogPost(postToSave);

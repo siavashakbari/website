@@ -58,6 +58,16 @@ export function InvertCursor() {
     let magnetStrength = 0;
     let lastButtonRadius = SIZE_PX / 2;
 
+    // Track document loading state to defer non-essential DOM queries
+    let isDocLoading = document.readyState !== "complete";
+    if (isDocLoading) {
+      const onLoad = () => {
+        isDocLoading = false;
+        window.removeEventListener("load", onLoad);
+      };
+      window.addEventListener("load", onLoad, { once: true });
+    }
+
     const onMove = (e: MouseEvent) => {
       targetX = e.clientX;
       targetY = e.clientY;
@@ -122,9 +132,12 @@ export function InvertCursor() {
     let lastMagnetUpdate = 0;
 
     const findMagnet = (x: number, y: number) => {
+      // During page load, completely avoid DOM queries to prevent main thread lag
+      if (isDocLoading) return null;
+
       const now = performance.now();
-      // Scan for magnets only once per 1.5s or if empty
-      if (now - lastMagnetUpdate > 1500 || cachedMagnets.length === 0) {
+      // Scan for magnets only once per 2s or if empty
+      if (now - lastMagnetUpdate > 2000 || cachedMagnets.length === 0) {
         cachedMagnets = Array.from(document.querySelectorAll<HTMLElement>("[data-cursor-magnet]"));
         lastMagnetUpdate = now;
       }
@@ -165,8 +178,8 @@ export function InvertCursor() {
       const dtRatio = dtMs / 16.67;
 
       frame += 1;
-      // Check magnet every 10 frames to keep main thread completely light
-      if (frame % 10 === 0) {
+      // Check magnet every 12 frames once document is fully loaded
+      if (frame % 12 === 0 && !isDocLoading) {
         magnetCache = visible ? findMagnet(targetX, targetY) : null;
       }
 
@@ -266,7 +279,7 @@ export function InvertCursor() {
     };
     raf = requestAnimationFrame(tick);
 
-    window.addEventListener("mousemove", onMove);
+    window.addEventListener("mousemove", onMove, { passive: true });
     document.addEventListener("mouseleave", onLeave);
     document.addEventListener("mouseenter", onEnter);
     window.addEventListener("wheel", onWheel, { passive: true });
@@ -288,7 +301,10 @@ export function InvertCursor() {
       ref={dotRef}
       aria-hidden
       className="pointer-events-none fixed left-0 top-0 z-[100000] hidden opacity-0 mix-blend-difference lg:block"
-      style={{ willChange: "transform" }}
+      style={{
+        willChange: "transform",
+        contain: "layout style paint",
+      }}
     >
       <span
         ref={shapeRef}
@@ -299,6 +315,7 @@ export function InvertCursor() {
           borderRadius: "50%",
           willChange: "transform, border-radius",
           transformOrigin: "center center",
+          contain: "layout style paint",
         }}
       />
     </div>

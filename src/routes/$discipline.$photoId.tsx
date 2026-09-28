@@ -143,77 +143,57 @@ function DedicatedPhotoPage() {
             />
           </div>
 
-          {/* Right Narrative block */}
-          <div className="flex flex-col justify-start space-y-6 pt-2 md:pt-4">
-            {/* Bold Headline / Quote */}
-            <h1 className="font-display text-2xl md:text-3xl lg:text-4xl font-normal leading-snug tracking-tight text-white">
-              {photo.caption
-                ? photo.caption
-                : `We believe that great storytelling comes from a blend of technical mastery, emotional depth and knowing your audience.`}
-            </h1>
-
-            {/* Paragraph / Context */}
-            <div className="space-y-4 text-xs md:text-sm text-neutral-400 leading-relaxed font-sans">
-              <p>
-                {photo.subdiscipline
-                  ? `An exploration in ${photo.subdiscipline.toLowerCase()} — captured as part of the ${photo.project} series. Designed for brands and creators who seek nuanced visual identity and quiet presence.`
-                  : `Step into a world where every frame tells a story and design becomes emotion made visible. The showcase celebrates the harmony of crafted imagery and intentional aesthetics.`}
-              </p>
-              <p>
-                Through refined visuals and precise composition, we turn visions into bold narratives that resonate across mediums. Transcending the expected — creating work that moves.
-              </p>
-            </div>
-
-            {/* Explore Link indicator */}
-            <div className="pt-2">
-              <span className="inline-flex items-center gap-2 text-xs font-semibold text-white tracking-wide border-b border-white/40 pb-0.5 group-hover:border-white">
-                <span>Explore {photo.project} collection</span>
-                <span>→</span>
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* Bottom Metadata Matrix (Matching Screenshot Layout) */}
-        <div className="mt-16 md:mt-24 border-t border-white/10 divide-y divide-white/10 text-xs md:text-sm">
-          {/* Row 1: Services / Discipline */}
-          <div className="grid grid-cols-1 md:grid-cols-[200px_1fr] py-4 md:py-5 gap-2 md:gap-4 items-baseline">
-            <div className="text-neutral-500 font-mono uppercase tracking-wider text-xs">
-              Services
-            </div>
-            <div className="text-neutral-200 font-sans">
-              {photo.discipline}
-              {photo.subdiscipline ? ` / ${photo.subdiscipline}` : ""}
-              {photo.project ? ` / ${photo.project}` : ""}
-            </div>
-          </div>
-
-          {/* Row 2: Statistics / Details */}
-          <div className="grid grid-cols-1 md:grid-cols-[200px_1fr] py-4 md:py-5 gap-2 md:gap-4 items-baseline">
-            <div className="text-neutral-500 font-mono uppercase tracking-wider text-xs">
-              Details
-            </div>
-            <div className="space-y-1 text-neutral-200 font-sans">
-              <div>Asset Code: <span className="font-mono text-[#2CE3C0] font-semibold">{photo.code}</span></div>
-              {photo.date && <div>Year / Date: {photo.date}</div>}
-              {photo.keywords && <div className="text-xs text-neutral-400">Keywords: {photo.keywords}</div>}
-            </div>
-          </div>
-
-          {/* Row 3: Clients & Credits */}
-          {(photo.client || photo.model || photo.makeupArtist || photo.assistant) && (
-            <div className="grid grid-cols-1 md:grid-cols-[200px_1fr] py-4 md:py-5 gap-2 md:gap-4 items-baseline">
-              <div className="text-neutral-500 font-mono uppercase tracking-wider text-xs">
-                Credits
+          {/* Right Column: Metadata & Details Matrix (Brought up next to image) */}
+          <div className="flex flex-col justify-start space-y-6">
+            {photo.caption?.trim() && (
+              <div className="pb-2">
+                <h1 className="font-display text-xl md:text-2xl font-normal leading-snug tracking-tight text-white">
+                  {photo.caption}
+                </h1>
               </div>
-              <div className="text-neutral-200 font-sans flex flex-wrap gap-x-6 gap-y-1">
-                {photo.client && <div>Client: <strong className="text-white font-medium">{photo.client}</strong></div>}
-                {photo.model && <div>Model: <strong className="text-white font-medium">{photo.model}</strong></div>}
-                {photo.makeupArtist && <div>MUA: <strong className="text-white font-medium">{photo.makeupArtist}</strong></div>}
-                {photo.assistant && <div>Assistant: <strong className="text-white font-medium">{photo.assistant}</strong></div>}
+            )}
+
+            <div className="border-t border-white/10 divide-y divide-white/10 text-xs md:text-sm">
+              {/* Row 1: Services / Discipline */}
+              <div className="grid grid-cols-1 sm:grid-cols-[140px_1fr] py-4 gap-2 sm:gap-4 items-baseline">
+                <div className="text-neutral-500 font-mono uppercase tracking-wider text-xs">
+                  Services
+                </div>
+                <div className="text-neutral-200 font-sans">
+                  {photo.discipline}
+                  {photo.subdiscipline ? ` / ${photo.subdiscipline}` : ""}
+                  {photo.project ? ` / ${photo.project}` : ""}
+                </div>
               </div>
+
+              {/* Row 2: Statistics / Details */}
+              <div className="grid grid-cols-1 sm:grid-cols-[140px_1fr] py-4 gap-2 sm:gap-4 items-baseline">
+                <div className="text-neutral-500 font-mono uppercase tracking-wider text-xs">
+                  Details
+                </div>
+                <div className="space-y-1 text-neutral-200 font-sans">
+                  <div>Asset Code: <span className="font-mono text-[#2CE3C0] font-semibold">{photo.code}</span></div>
+                  {photo.date && <div>Year / Date: {photo.date}</div>}
+                  {photo.keywords && <div className="text-xs text-neutral-400">Keywords: {photo.keywords}</div>}
+                </div>
+              </div>
+
+              {/* Row 3: Clients & Credits */}
+              {(photo.client || photo.model || photo.makeupArtist || photo.assistant) && (
+                <div className="grid grid-cols-1 sm:grid-cols-[140px_1fr] py-4 gap-2 sm:gap-4 items-baseline">
+                  <div className="text-neutral-500 font-mono uppercase tracking-wider text-xs">
+                    Credits
+                  </div>
+                  <div className="text-neutral-200 font-sans flex flex-wrap gap-x-6 gap-y-1.5">
+                    {photo.client && <div>Client: <strong className="text-white font-medium">{photo.client}</strong></div>}
+                    {photo.model && <div>Model: <strong className="text-white font-medium">{photo.model}</strong></div>}
+                    {photo.makeupArtist && <div>MUA: <strong className="text-white font-medium">{photo.makeupArtist}</strong></div>}
+                    {photo.assistant && <div>Assistant: <strong className="text-white font-medium">{photo.assistant}</strong></div>}
+                  </div>
+                </div>
+              )}
             </div>
-          )}
+          </div>
         </div>
       </div>
     </div>
