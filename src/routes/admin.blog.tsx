@@ -41,9 +41,13 @@ function AdminBlogView() {
   const [excerpt, setExcerpt] = useState("");
   const [excerptFa, setExcerptFa] = useState("");
   const [contentMarkdown, setContentMarkdown] = useState("");
+  const [contentMarkdownFa, setContentMarkdownFa] = useState("");
   const [readTime, setReadTime] = useState("4 min read");
   const [isPublished, setIsPublished] = useState(true);
   const [aiSummary, setAiSummary] = useState("");
+  const [aiSummaryFa, setAiSummaryFa] = useState("");
+  const [tagsInput, setTagsInput] = useState("");
+  const [tagsInputFa, setTagsInputFa] = useState("");
   const [saveSuccess, setSaveSuccess] = useState(false);
 
   useEffect(() => {
@@ -60,9 +64,13 @@ function AdminBlogView() {
     setExcerpt("");
     setExcerptFa("");
     setContentMarkdown("");
+    setContentMarkdownFa("");
     setReadTime("4 min read");
     setIsPublished(true);
     setAiSummary("");
+    setAiSummaryFa("");
+    setTagsInput("Visual Identity, Art Direction, Editorial");
+    setTagsInputFa("هویت بصری, مدیریت هنری, مقاله");
     setIsEditorOpen(true);
   };
 
@@ -76,9 +84,13 @@ function AdminBlogView() {
     setExcerpt(post.excerpt);
     setExcerptFa(post.excerptFa || "");
     setContentMarkdown(post.contentMarkdown || post.excerpt);
+    setContentMarkdownFa(post.contentMarkdownFa || post.excerptFa || "");
     setReadTime(post.readTime);
     setIsPublished(post.published);
     setAiSummary(post.aiSummary || "");
+    setAiSummaryFa(post.aiSummaryFa || "");
+    setTagsInput((post.tags || []).join(", "));
+    setTagsInputFa((post.tagsFa || []).join(", "));
     setIsEditorOpen(true);
   };
 
@@ -107,6 +119,16 @@ function AdminBlogView() {
 
     const matchedCat = BLOG_CATEGORIES.find((c) => c.key === category);
 
+    const parsedTags = tagsInput
+      .split(/[,،]/)
+      .map((t) => t.trim().replace(/^#+/, ""))
+      .filter(Boolean);
+
+    const parsedTagsFa = tagsInputFa
+      .split(/[,،]/)
+      .map((t) => t.trim().replace(/^#+/, ""))
+      .filter(Boolean);
+
     const postToSave: StudioBlogItem = {
       slug: slug.trim(),
       title: title.trim(),
@@ -119,15 +141,19 @@ function AdminBlogView() {
       publishedAt: editingPost ? editingPost.publishedAt : new Date().toISOString().split("T")[0],
       readTime,
       contentMarkdown: contentMarkdown.trim(),
+      contentMarkdownFa: contentMarkdownFa.trim() || undefined,
       published: isPublished,
       aiSummary: aiSummary.trim() || undefined,
+      aiSummaryFa: aiSummaryFa.trim() || undefined,
+      tags: parsedTags.length > 0 ? parsedTags : ["Editorial", "Design", "Studio"],
+      tagsFa: parsedTagsFa.length > 0 ? parsedTagsFa : undefined,
       author: editingPost?.author || {
         name: "Siavash Akbari",
         role: "Photographer, Designer & Creative Director",
+        roleFa: "عکاس، طراح و مدیر هنری",
         avatar: "/og.jpg",
         bio: "Multidisciplinary designer and photographer based in Esfahan, focusing on minimal aesthetics, visual identity systems, and contemporary art direction.",
       },
-      tags: editingPost?.tags || ["Editorial", "Design", "Studio"],
     };
 
     saveStudioBlogPost(postToSave);
@@ -138,6 +164,7 @@ function AdminBlogView() {
       setIsEditorOpen(false);
     }, 800);
   };
+
 
   const handleDelete = (postSlug: string, postTitle: string) => {
     if (window.confirm(`Are you sure you want to delete blog post "${postTitle}"?`)) {
@@ -446,39 +473,118 @@ function AdminBlogView() {
                 </div>
               </div>
 
-              {/* AI Search & GEO Optimization Summary */}
-              <div className="p-4 rounded-xl bg-[#2CE3C0]/5 border border-[#2CE3C0]/25 space-y-2">
+              {/* AI Search & GEO Optimization Summary (Dual English & Farsi) */}
+              <div className="p-4 rounded-xl bg-[#2CE3C0]/5 border border-[#2CE3C0]/25 space-y-3">
                 <div className="flex items-center gap-2 text-[#2CE3C0] font-semibold">
                   <Bot className="w-4 h-4" />
                   <span>AI Search / GEO Citation Summary (ChatGPT, Perplexity & Google AI Overviews)</span>
                 </div>
-                <textarea
-                  rows={2}
-                  value={aiSummary}
-                  onChange={(e) => setAiSummary(e.target.value)}
-                  placeholder="Direct, factual 40-word summary structured for LLM answer engines to quote and cite directly in answers..."
-                  className="w-full bg-black/60 border border-white/10 rounded-lg px-3.5 py-2 text-white placeholder:text-neutral-500 focus:outline-none focus:border-[#2CE3C0]"
-                />
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block font-mono uppercase tracking-wider text-neutral-400 mb-1.5 text-[11px]">
+                      AI Summary (English)
+                    </label>
+                    <textarea
+                      rows={3}
+                      value={aiSummary}
+                      onChange={(e) => setAiSummary(e.target.value)}
+                      placeholder="Direct, factual 40-word summary structured for LLM answer engines to quote in English..."
+                      className="w-full bg-black/60 border border-white/10 rounded-lg px-3.5 py-2 text-white placeholder:text-neutral-500 focus:outline-none focus:border-[#2CE3C0]"
+                    />
+                  </div>
+                  <div>
+                    <label className="block font-mono uppercase tracking-wider text-neutral-400 mb-1.5 text-[11px]">
+                      خلاصه هوش مصنوعی (فارسی)
+                    </label>
+                    <textarea
+                      rows={3}
+                      dir="rtl"
+                      value={aiSummaryFa}
+                      onChange={(e) => setAiSummaryFa(e.target.value)}
+                      placeholder="خلاصه فکت‌محور برای پاسخ موتورهای جستجوی هوش مصنوعی به زبان فارسی..."
+                      className="w-full bg-black/60 border border-white/10 rounded-lg px-3.5 py-2 text-white placeholder:text-neutral-500 focus:outline-none focus:border-[#2CE3C0]"
+                    />
+                  </div>
+                </div>
               </div>
 
-              {/* Main Content Markdown Editor */}
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <label className="font-mono uppercase tracking-wider text-neutral-300 font-semibold">
-                    Article Body (Markdown Supported)
+              {/* Categorized Tags / Hashtags (Dual English & Farsi) */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block font-mono uppercase tracking-wider text-neutral-400 mb-1.5">
+                    Categorized Tags / Hashtags (English, comma-separated)
                   </label>
+                  <input
+                    type="text"
+                    value={tagsInput}
+                    onChange={(e) => setTagsInput(e.target.value)}
+                    placeholder="e.g. Visual Identity, Art Direction, Editorial"
+                    className="w-full bg-black/50 border border-white/10 rounded-lg px-3.5 py-2 text-white focus:outline-none focus:border-[#2CE3C0]"
+                  />
+                  <p className="text-[10px] text-neutral-500 mt-1">
+                    Displays at the end of the article as #Tag badges
+                  </p>
+                </div>
+
+                <div>
+                  <label className="block font-mono uppercase tracking-wider text-neutral-400 mb-1.5">
+                    هشتگ‌ها / دسته‌بندی‌ها (فارسی، جداشده با کاما)
+                  </label>
+                  <input
+                    type="text"
+                    dir="rtl"
+                    value={tagsInputFa}
+                    onChange={(e) => setTagsInputFa(e.target.value)}
+                    placeholder="مثال: هویت بصری, عکاسی, مدیریت هنری"
+                    className="w-full bg-black/50 border border-white/10 rounded-lg px-3.5 py-2 text-white focus:outline-none focus:border-[#2CE3C0]"
+                  />
+                  <p className="text-[10px] text-neutral-500 mt-1" dir="rtl">
+                    در انتهای مقاله با # هشتگ نمایش داده می‌شود
+                  </p>
+                </div>
+              </div>
+
+              {/* Main Content Markdown Editors (Dual English & Farsi) */}
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <span className="font-mono uppercase tracking-wider text-neutral-300 font-semibold">
+                    Article Body (Markdown Supported)
+                  </span>
                   <span className="text-[11px] text-[#2CE3C0] font-mono">
                     Estimated {readTime}
                   </span>
                 </div>
-                <textarea
-                  rows={8}
-                  value={contentMarkdown}
-                  onChange={(e) => handleContentChange(e.target.value)}
-                  placeholder="## Introduction&#10;&#10;Write your article here using standard Markdown headers, bullet points, quotes, and links..."
-                  className="w-full bg-black/50 border border-white/10 rounded-xl p-4 font-mono text-xs leading-relaxed text-white focus:outline-none focus:border-[#2CE3C0]"
-                />
+
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <label className="block font-mono uppercase tracking-wider text-neutral-400 text-[11px]">
+                      Article Body (English) *
+                    </label>
+                    <textarea
+                      rows={10}
+                      value={contentMarkdown}
+                      onChange={(e) => handleContentChange(e.target.value)}
+                      placeholder="## Introduction&#10;&#10;Write your article here using standard Markdown headers (##), bullet points, and paragraphs..."
+                      className="w-full bg-black/50 border border-white/10 rounded-xl p-4 font-mono text-xs leading-relaxed text-white focus:outline-none focus:border-[#2CE3C0]"
+                    />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="block font-mono uppercase tracking-wider text-neutral-400 text-[11px]">
+                      متن کامل مقاله (فارسی)
+                    </label>
+                    <textarea
+                      rows={10}
+                      dir="rtl"
+                      value={contentMarkdownFa}
+                      onChange={(e) => setContentMarkdownFa(e.target.value)}
+                      placeholder="## مقدمه&#10;&#10;متن کامل مقاله به زبان فارسی را با پشتیبانی کامل مارک‌داون، تیترها و پاراگراف‌ها اینجا بنویسید..."
+                      className="w-full bg-black/50 border border-white/10 rounded-xl p-4 font-mono text-xs leading-relaxed text-white focus:outline-none focus:border-[#2CE3C0]"
+                    />
+                  </div>
+                </div>
               </div>
+
 
               {/* Publication Status */}
               <div className="flex items-center gap-2 pt-2">

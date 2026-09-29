@@ -14,28 +14,13 @@ export interface StudioProjectItem {
   id: string;
   title: string;
   titleFa?: string;
-  client?: string;
+  client: string;
   year: number | string;
   discipline: string; // e.g. "fashion-photography", "food-photography", "visual-identity", "graphic-design", "video", etc.
   category?: string;
-  subDiscipline?: string; // e.g. "Furniture", "Plants & Botanicals", "Packaging", "Ceramics", "Textiles"
-  models?: string; // Model(s) or key subjects
-  makeupArtist?: string; // Makeup Artist (MUA)
-  assistant?: string; // Photo / Design Assistant
-  stylist?: string; // Art Direction / Styling
-  location?: string; // e.g. "Esfahan Studio"
   coverImage: string;
   description: string;
   descriptionFa?: string;
-  caption?: string; // Dedicated Caption / Story / Long Text box
-  seoKeywords?: string;
-  videoUrl?: string; // Video URL or source
-  videoSpecs?: {
-    durationSec?: number;
-    targetSizeMb?: number;
-    actualSizeMb?: number;
-    resolution?: string;
-  };
   images: {
     id: string;
     url: string;
@@ -60,14 +45,6 @@ export interface StudioBlogItem {
   contentMarkdown: string;
   published: boolean;
   featured?: boolean;
-  tags?: string[];
-  author?: {
-    name: string;
-    role: string;
-    roleFa?: string;
-    avatar: string;
-    bio?: string;
-  };
   seoDescription?: string;
   aiSummary?: string;
 }

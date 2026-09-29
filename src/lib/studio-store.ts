@@ -170,12 +170,15 @@ export function getStudioBlogPosts(): StudioBlogItem[] {
     coverImage: bp.coverImage,
     publishedAt: bp.publishedAt,
     readTime: bp.readTime,
-    contentMarkdown: bp.excerpt,
+    contentMarkdown: bp.contentMarkdown || bp.excerpt,
+    contentMarkdownFa: bp.contentMarkdownFa || bp.excerptFa,
     published: true,
     featured: bp.featured,
     tags: bp.tags || [],
+    tagsFa: bp.tagsFa || [],
     author: bp.author,
     aiSummary: bp.aiSummary?.join("\n"),
+    aiSummaryFa: bp.aiSummaryFa?.join("\n"),
   }));
 }
 
@@ -195,12 +198,15 @@ export function getMergedBlogPosts(): StudioBlogItem[] {
     coverImage: bp.coverImage,
     publishedAt: bp.publishedAt,
     readTime: bp.readTime,
-    contentMarkdown: bp.excerpt,
+    contentMarkdown: bp.contentMarkdown || bp.excerpt,
+    contentMarkdownFa: bp.contentMarkdownFa || bp.excerptFa,
     published: true,
     featured: bp.featured,
     tags: bp.tags || [],
+    tagsFa: bp.tagsFa || [],
     author: bp.author,
     aiSummary: bp.aiSummary?.join("\n"),
+    aiSummaryFa: bp.aiSummaryFa?.join("\n"),
   }));
 }
 
@@ -223,14 +229,20 @@ export function getBlogPostBySlug(slug: string): StudioBlogItem | undefined {
       coverImage: defaultFound.coverImage,
       publishedAt: defaultFound.publishedAt,
       readTime: defaultFound.readTime,
-      contentMarkdown: defaultFound.excerpt,
+      contentMarkdown: defaultFound.contentMarkdown || defaultFound.excerpt,
+      contentMarkdownFa: defaultFound.contentMarkdownFa || defaultFound.excerptFa,
       published: true,
       featured: defaultFound.featured,
+      tags: defaultFound.tags || [],
+      tagsFa: defaultFound.tagsFa || [],
+      author: defaultFound.author,
       aiSummary: defaultFound.aiSummary?.join("\n"),
+      aiSummaryFa: defaultFound.aiSummaryFa?.join("\n"),
     };
   }
   return undefined;
 }
+
 
 export function saveStudioBlogPost(post: StudioBlogItem): void {
   if (typeof window === "undefined") return;

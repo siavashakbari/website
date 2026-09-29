@@ -29,17 +29,23 @@ export interface BlogSection {
   heading: string;
   headingFa?: string;
   body: string[];
+  bodyFa?: string[];
   quote?: {
     text: string;
+    textFa?: string;
     caption?: string;
+    captionFa?: string;
   };
   callout?: {
     title: string;
+    titleFa?: string;
     text: string;
+    textFa?: string;
   };
   image?: {
     url: string;
     caption: string;
+    captionFa?: string;
     alt: string;
   };
 }
@@ -55,12 +61,18 @@ export interface BlogPost {
   coverImage: string;
   publishedAt: string; // ISO format e.g. "2026-09-28"
   readTime: string;
+  readTimeFa?: string;
   featured?: boolean;
   author: BlogAuthor;
   tags: string[];
+  tagsFa?: string[];
   aiSummary: string[];
-  sections: BlogSection[];
+  aiSummaryFa?: string[];
+  contentMarkdown?: string;
+  contentMarkdownFa?: string;
+  sections?: BlogSection[];
 }
+
 
 export const DEFAULT_AUTHOR: BlogAuthor = {
   name: "Siavash Akbari",
