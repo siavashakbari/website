@@ -301,10 +301,7 @@ export function InvertCursor() {
       ref={dotRef}
       aria-hidden
       className="pointer-events-none fixed left-0 top-0 z-[100000] hidden opacity-0 mix-blend-difference lg:block"
-      style={{
-        willChange: "transform",
-        contain: "layout style paint",
-      }}
+      style={{ willChange: "transform" }}
     >
       <span
         ref={shapeRef}
@@ -315,9 +312,9 @@ export function InvertCursor() {
           borderRadius: "50%",
           willChange: "transform, border-radius",
           transformOrigin: "center center",
-          contain: "layout style paint",
         }}
       />
     </div>
   );
 }
+
