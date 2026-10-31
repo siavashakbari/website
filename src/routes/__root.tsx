@@ -396,30 +396,38 @@ function MobileNav() {
 function DeferredCursor() {
   const router = useRouter();
   const pathname = router.state.location.pathname;
-  if (pathname.startsWith("/admin")) return null;
+  const isAdmin = pathname.startsWith("/admin");
 
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
+    if (isAdmin) return;
     let idleId = 0;
     let timeoutId = 0;
     const enable = () => setReady(true);
 
-    if (typeof window !== "undefined" && "requestIdleCallback" in window) {
-      idleId = (window as any).requestIdleCallback(enable, { timeout: 1800 });
+    const win = window as unknown as {
+      requestIdleCallback?: (cb: () => void, opts?: { timeout: number }) => number;
+      cancelIdleCallback?: (id: number) => void;
+      setTimeout: (cb: () => void, ms: number) => number;
+      clearTimeout: (id: number) => void;
+    };
+
+    if (typeof window !== "undefined" && typeof win.requestIdleCallback === "function") {
+      idleId = win.requestIdleCallback(enable, { timeout: 1800 });
     } else if (typeof window !== "undefined") {
-      timeoutId = (window as any).setTimeout(enable, 250);
+      timeoutId = win.setTimeout(enable, 250);
     }
 
     return () => {
-      if (idleId && "cancelIdleCallback" in window) {
-        window.cancelIdleCallback(idleId);
+      if (idleId && typeof win.cancelIdleCallback === "function") {
+        win.cancelIdleCallback(idleId);
       }
-      if (timeoutId) window.clearTimeout(timeoutId);
+      if (timeoutId) win.clearTimeout(timeoutId);
     };
-  }, []);
+  }, [isAdmin]);
 
-  if (!ready) return null;
+  if (isAdmin || !ready) return null;
 
   return (
     <Suspense fallback={null}>
@@ -432,7 +440,9 @@ function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const router = useRouter();
   const pathname = router.state.location.pathname;
-  const isProjectPage = pathname.startsWith("/projects/");
+  const isProjectPage =
+    pathname.startsWith("/projects/") ||
+    (pathname.startsWith("/visual-identity/") && pathname.length > "/visual-identity/".length);
   const isSideScrollDiscipline = pathname === "/book-covers" || pathname === "/posters";
   const [isDesktop, setIsDesktop] = useState(false);
 
@@ -445,7 +455,7 @@ function RootComponent() {
   }, []);
 
   const isAdminPage = pathname.startsWith("/admin");
-  const lockProjectScroll = isProjectPage && isDesktop && !isAdminPage;
+  const lockProjectScroll = (isProjectPage || isSideScrollDiscipline) && isDesktop && !isAdminPage;
   const hideFooter =
     isAdminPage || isProjectPage || pathname === "/about" || (isSideScrollDiscipline && isDesktop);
 

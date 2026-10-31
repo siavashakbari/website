@@ -63,9 +63,7 @@ export const Route = createFileRoute("/projects/$projectId")({
   head: ({ loaderData }) => {
     const p = loaderData?.project;
     const title = p ? `${p.title} — Siavash Akbari` : "Project — Siavash Akbari";
-    const description =
-      p?.description ??
-      "Project from the portfolio of Siavash Akbari.";
+    const description = p?.description ?? "Project from the portfolio of Siavash Akbari.";
     const seo = pageHead({
       title,
       description,
@@ -111,6 +109,22 @@ function ProjectDetail() {
   };
 
   useEffect(() => {
+    if (!isDesktop) return;
+    const el = scrollRef.current;
+    if (!el) return;
+
+    const onWheel = (e: WheelEvent) => {
+      if (activeIndex !== null) return;
+      if (e.deltaY === 0) return;
+      e.preventDefault();
+      el.scrollLeft += e.deltaY;
+    };
+
+    window.addEventListener("wheel", onWheel, { passive: false });
+    return () => window.removeEventListener("wheel", onWheel);
+  }, [isDesktop, activeIndex]);
+
+  useEffect(() => {
     if (activeIndex === null) return;
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") setActiveIndex(null);
@@ -121,11 +135,7 @@ function ProjectDetail() {
 
   return (
     <article
-      className={
-        isDesktop
-          ? "flex min-h-0 flex-1 flex-col overflow-hidden"
-          : "flex flex-col pb-16"
-      }
+      className={isDesktop ? "flex min-h-0 flex-1 flex-col overflow-hidden" : "flex flex-col pb-16"}
     >
       <div className="mx-auto grid w-full max-w-6xl shrink-0 grid-cols-[minmax(0,48rem)_auto] gap-x-4 px-3 pt-8 pb-4">
         <p className="col-start-1 text-xs font-semibold uppercase tracking-[0.25em] text-secondary">
@@ -160,7 +170,7 @@ function ProjectDetail() {
             return (
               <figure
                 key={src}
-                className="h-full shrink-0 cursor-zoom-in"
+                className="flex h-full shrink-0 cursor-zoom-in items-center justify-center"
                 onClick={() => setActiveIndex(i)}
               >
                 {isVideo ? (
@@ -170,14 +180,16 @@ function ProjectDetail() {
                     muted
                     loop
                     playsInline
-                    className="h-full w-auto max-w-none bg-card object-contain"
+                    draggable={false}
+                    className="h-full w-auto max-w-none select-none bg-card object-contain"
                   />
                 ) : (
                   <img
                     src={src}
                     alt={`${project.title} — image ${i + 1}`}
                     loading={i < 2 ? "eager" : "lazy"}
-                    className="h-full w-auto max-w-none bg-card object-contain"
+                    draggable={false}
+                    className="h-full w-auto max-w-none select-none bg-card object-contain"
                   />
                 )}
               </figure>
