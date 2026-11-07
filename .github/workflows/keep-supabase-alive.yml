@@ -1,0 +1,35 @@
+name: Keep Supabase Alive
+
+on:
+  schedule:
+    # Runs at 06:00 UTC every 3 days (Supabase pauses after 7 days of inactivity)
+    - cron: '0 6 */3 * *'
+  workflow_dispatch: # Allows manual trigger from GitHub Actions dashboard
+
+jobs:
+  ping:
+    name: Ping Supabase API
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send keep-alive requests to Supabase
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL || 'https://mysxozqpunbzharompho.supabase.co' }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_ANON_KEY || 'sb_publishable_qxLkHtcguOLibqX_Lts0yg_PkhY7iE5' }}
+        run: |
+          echo "Pinging Supabase Auth Health..."
+          HTTP_HEALTH=$(curl -s -o /dev/null -w "%{http_code}" -H "apikey: $SUPABASE_KEY" "$SUPABASE_URL/auth/v1/health")
+          echo "Auth health status: $HTTP_HEALTH"
+
+          echo "Pinging Supabase Auth Settings..."
+          HTTP_SETTINGS=$(curl -s -o /dev/null -w "%{http_code}" -H "apikey: $SUPABASE_KEY" "$SUPABASE_URL/auth/v1/settings")
+          echo "Auth settings status: $HTTP_SETTINGS"
+
+          echo "Pinging Supabase REST API..."
+          HTTP_REST=$(curl -s -o /dev/null -w "%{http_code}" -H "apikey: $SUPABASE_KEY" "$SUPABASE_URL/rest/v1/")
+          echo "REST API status: $HTTP_REST"
+
+          if [ "$HTTP_HEALTH" -eq 200 ] || [ "$HTTP_SETTINGS" -eq 200 ]; then
+            echo "✅ Supabase project pinged successfully. Inactivity timer reset."
+          else
+            echo "⚠️ Warning: Expected HTTP 200 but received Health: $HTTP_HEALTH, Settings: $HTTP_SETTINGS"
+          fi
