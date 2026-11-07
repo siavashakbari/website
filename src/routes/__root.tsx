@@ -450,9 +450,14 @@ function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const router = useRouter();
   const pathname = router.state.location.pathname;
+  const pathParts = pathname.split("/").filter(Boolean);
+  const isPhotoPage =
+    pathParts.length >= 4 ||
+    (pathParts.length === 2 && /^(PHOT|SA|DSGN|VIDO|[A-Z0-9]{4}-[A-Z0-9]{4})/i.test(pathParts[1]));
   const isProjectPage =
-    pathname.startsWith("/projects/") ||
-    (pathname.startsWith("/visual-identity/") && pathname.length > "/visual-identity/".length);
+    (pathname.startsWith("/projects/") && pathname.length > "/projects/".length) ||
+    (pathname.startsWith("/visual-identity/") && pathname.length > "/visual-identity/".length) ||
+    pathParts.length === 3;
   const isSideScrollDiscipline = pathname === "/book-covers" || pathname === "/posters";
   const [isDesktop, setIsDesktop] = useState(false);
 
@@ -465,9 +470,9 @@ function RootComponent() {
   }, []);
 
   const isAdminPage = pathname.startsWith("/admin");
-  const lockProjectScroll = (isProjectPage || isSideScrollDiscipline) && isDesktop && !isAdminPage;
+  const lockProjectScroll = (isProjectPage || isPhotoPage || isSideScrollDiscipline) && isDesktop && !isAdminPage;
   const hideFooter =
-    isAdminPage || isProjectPage || pathname === "/about" || (isSideScrollDiscipline && isDesktop);
+    isAdminPage || isProjectPage || isPhotoPage || pathname === "/about" || (isSideScrollDiscipline && isDesktop);
 
   useEffect(() => {
     if (!lockProjectScroll) return;

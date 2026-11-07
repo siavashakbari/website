@@ -1,6 +1,6 @@
-import { useEffect, useRef, useState } from "react";
-import { createFileRoute, notFound, rootRouteId, useRouter, Link } from "@tanstack/react-router";
-import { ArrowLeft, ChevronLeft, ChevronRight, Share2, Check, ExternalLink } from "lucide-react";
+import { useEffect } from "react";
+import { createFileRoute, notFound, rootRouteId, Link } from "@tanstack/react-router";
+import { ArrowLeft, ChevronLeft, ChevronRight, ExternalLink } from "lucide-react";
 import {
   getPhotoItemBySlugOrCode,
   getPhotosByProject,
@@ -8,7 +8,7 @@ import {
   type PhotoInventoryItem,
 } from "@/lib/studio-store";
 import { resolveInventoryImage } from "@/lib/inventory-assets";
-import { pageHead, jsonLdScript, visualAssetJsonLd, absoluteUrl } from "@/lib/seo";
+import { pageHead } from "@/lib/seo";
 import { projects } from "@/data/projects";
 import {
   normalizeDisciplineSlug,
@@ -135,8 +135,6 @@ function DedicatedPhotoView() {
     nextPhoto,
   } = Route.useLoaderData();
 
-  const [copiedLink, setCopiedLink] = useState(false);
-
   const canonicalPath =
     photo.canonicalPath ||
     `/${disciplineSlug}/${specialtySlug}/${projectSlug}/${photo.code}`;
@@ -165,18 +163,6 @@ function DedicatedPhotoView() {
     trackPortfolioAssetView(assetMeta);
   }, [photo]);
 
-  const handleShare = () => {
-    if (typeof window === "undefined") return;
-    const url = window.location.href;
-    if (navigator.share) {
-      navigator.share({ title: `${photo.code} — ${photo.project}`, url }).catch(() => {});
-    } else {
-      navigator.clipboard.writeText(url);
-      setCopiedLink(true);
-      setTimeout(() => setCopiedLink(false), 2000);
-    }
-  };
-
   const handleCreditClick = (role: string, name: string) => {
     trackCreditClick(role, name, photo.code, photo.project);
   };
@@ -186,46 +172,41 @@ function DedicatedPhotoView() {
   };
 
   return (
-    <div className="min-h-screen w-full bg-[#0F0F0F] text-foreground">
+    <div className="flex h-full md:h-[calc(100dvh-3.5rem)] md:max-h-[calc(100dvh-3.5rem)] flex-col bg-[#0F0F0F] text-foreground overflow-hidden">
       {/* Top Header Bar */}
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 py-6 flex items-center justify-between border-b border-white/5">
+      <div className="shrink-0 w-full px-4 sm:px-6 py-3.5 flex items-center justify-between border-b border-white/5 bg-[#0F0F0F]">
         <Link
           to={backUrl as any}
-          className="inline-flex items-center gap-2 text-xs font-mono uppercase tracking-widest text-neutral-400 hover:text-white transition-colors"
+          className="inline-flex items-center gap-2 text-xs font-mono uppercase tracking-widest text-[#2CE3C0] hover:text-white transition-colors px-3 py-1.5 rounded-full border border-[#2CE3C0]/30 hover:border-white bg-[#2CE3C0]/10 hover:bg-white/10"
         >
           <ArrowLeft className="w-3.5 h-3.5" />
-          <span className="capitalize">Back to {specialtySlug.replace("-", " ")}</span>
+          <span className="capitalize">Back to {specialtySlug.replace(/-/g, " ")}</span>
         </Link>
 
         <div className="flex items-center gap-2.5">
           <span className="font-mono text-xs px-2.5 py-1 rounded-full bg-white/5 border border-white/10 text-[#2CE3C0] font-semibold">
             {photo.code}
           </span>
-          <button
-            onClick={handleShare}
-            className="p-1.5 rounded-full bg-white/5 hover:bg-white/10 text-neutral-400 hover:text-white transition-colors cursor-pointer"
-            title="Share or Copy Link"
-          >
-            {copiedLink ? <Check className="w-4 h-4 text-[#2CE3C0]" /> : <Share2 className="w-4 h-4" />}
-          </button>
         </div>
       </div>
 
-      {/* Main Image Showcase */}
-      <div className="relative w-full flex items-center justify-center py-6 sm:py-10 px-4 group">
-        <div className="relative max-h-[82vh] flex items-center justify-center">
+      {/* Main Split: Photo on Left, Info on Right */}
+      <div className="flex-1 min-h-0 flex flex-col md:flex-row overflow-hidden">
+        {/* Left Side: Photo showcase with navigation */}
+        <div className="flex-1 h-full min-h-0 relative flex items-center justify-center p-4 md:p-8 bg-black/40 group overflow-hidden">
           <img
             src={resolvedImage}
             alt={photo.caption || `${photo.project} — ${photo.code}`}
-            className="max-h-[82vh] w-auto max-w-full object-contain rounded-md shadow-2xl"
+            className="max-h-full max-w-full w-auto h-auto object-contain rounded-sm shadow-2xl select-none"
             loading="eager"
+            draggable={false}
           />
 
           {/* Sibling navigation */}
           {prevPhoto && (
             <Link
               to={buildPhotoUrl(disciplineSlug, specialtySlug, projectSlug, prevPhoto.code) as any}
-              className="absolute left-3 top-1/2 -translate-y-1/2 p-2.5 rounded-full bg-black/60 text-white/80 hover:text-white hover:bg-black/90 backdrop-blur-md opacity-0 group-hover:opacity-100 transition-all border border-white/10"
+              className="absolute left-4 top-1/2 -translate-y-1/2 p-3 rounded-full bg-black/70 text-white/80 hover:text-white hover:bg-black/90 backdrop-blur-md opacity-0 group-hover:opacity-100 transition-all border border-white/10 cursor-pointer shadow-lg"
               title="Previous photo"
             >
               <ChevronLeft className="w-5 h-5" />
@@ -235,137 +216,139 @@ function DedicatedPhotoView() {
           {nextPhoto && (
             <Link
               to={buildPhotoUrl(disciplineSlug, specialtySlug, projectSlug, nextPhoto.code) as any}
-              className="absolute right-3 top-1/2 -translate-y-1/2 p-2.5 rounded-full bg-black/60 text-white/80 hover:text-white hover:bg-black/90 backdrop-blur-md opacity-0 group-hover:opacity-100 transition-all border border-white/10"
+              className="absolute right-4 top-1/2 -translate-y-1/2 p-3 rounded-full bg-black/70 text-white/80 hover:text-white hover:bg-black/90 backdrop-blur-md opacity-0 group-hover:opacity-100 transition-all border border-white/10 cursor-pointer shadow-lg"
               title="Next photo"
             >
               <ChevronRight className="w-5 h-5" />
             </Link>
           )}
         </div>
-      </div>
 
-      {/* Editorial Details Section */}
-      <div className="mx-auto max-w-4xl px-6 py-12 space-y-8">
-        <div>
-          <h1 className="font-display text-2xl md:text-3xl font-normal leading-snug tracking-tight text-white">
-            {photo.caption?.trim() || `${photo.project} — Frame ${photo.code.split("-").pop() || "01"}`}
-          </h1>
-        </div>
-
-        <div className="border-t border-white/10 divide-y divide-white/10 text-xs md:text-sm">
-          {/* Services */}
-          <div className="grid grid-cols-1 sm:grid-cols-[140px_1fr] py-4 gap-2 sm:gap-4 items-baseline">
-            <div className="text-neutral-500 font-mono uppercase tracking-wider text-xs">
-              Services
+        {/* Right Side: Text & Info Column */}
+        <div className="w-full md:w-[380px] lg:w-[440px] shrink-0 h-full overflow-y-auto border-t md:border-t-0 md:border-l border-white/10 p-6 md:p-8 flex flex-col justify-between space-y-6 bg-[#0F0F0F]">
+          <div className="space-y-6">
+            <div>
+              <h1 className="font-display text-xl md:text-2xl font-normal leading-snug tracking-tight text-white">
+                {photo.caption?.trim() || `${photo.project} — Frame ${photo.code.split("-").pop() || "01"}`}
+              </h1>
             </div>
-            <div className="text-neutral-200 font-sans">
-              <Link to={`/${disciplineSlug}` as any} className="hover:text-[#2CE3C0] transition-colors">
-                {photo.discipline || disciplineSlug}
-              </Link>
-              {photo.subdiscipline && (
-                <>
-                  {" / "}
-                  <Link to={backUrl as any} className="hover:text-[#2CE3C0] transition-colors">
-                    {photo.subdiscipline}
+
+            <div className="border-t border-white/10 divide-y divide-white/10 text-xs md:text-sm">
+              {/* Services */}
+              <div className="grid grid-cols-1 sm:grid-cols-[110px_1fr] py-3.5 gap-2 sm:gap-4 items-baseline">
+                <div className="text-neutral-500 font-mono uppercase tracking-wider text-xs">
+                  Services
+                </div>
+                <div className="text-neutral-200 font-sans">
+                  <Link to={`/${disciplineSlug}` as any} className="hover:text-[#2CE3C0] transition-colors">
+                    {photo.discipline || disciplineSlug}
                   </Link>
-                </>
-              )}
-              {photo.project && (
-                <>
-                  {" / "}
-                  <Link
-                    to={`/${disciplineSlug}/${specialtySlug}/${projectSlug}` as any}
-                    className="hover:text-[#2CE3C0] transition-colors"
-                  >
-                    {photo.project}
-                  </Link>
-                </>
+                  {photo.subdiscipline && (
+                    <>
+                      {" / "}
+                      <Link to={backUrl as any} className="hover:text-[#2CE3C0] transition-colors">
+                        {photo.subdiscipline}
+                      </Link>
+                    </>
+                  )}
+                  {photo.project && (
+                    <>
+                      {" / "}
+                      <Link
+                        to={`/${disciplineSlug}/${specialtySlug}/${projectSlug}` as any}
+                        className="hover:text-[#2CE3C0] transition-colors"
+                      >
+                        {photo.project}
+                      </Link>
+                    </>
+                  )}
+                </div>
+              </div>
+
+              {/* Details */}
+              <div className="grid grid-cols-1 sm:grid-cols-[110px_1fr] py-3.5 gap-2 sm:gap-4 items-baseline">
+                <div className="text-neutral-500 font-mono uppercase tracking-wider text-xs">
+                  Details
+                </div>
+                <div className="space-y-1.5 text-neutral-200 font-sans">
+                  <div>
+                    Asset Code: <span className="font-mono text-[#2CE3C0] font-semibold">{photo.code}</span>
+                  </div>
+                  <div>
+                    Canonical URL:{" "}
+                    <span className="font-mono text-[11px] text-neutral-400 break-all">{canonicalPath}</span>
+                  </div>
+                  {photo.date && <div>Year / Date: {photo.date}</div>}
+                  {photo.keywords && (
+                    <div className="text-xs text-neutral-400">Keywords: {photo.keywords}</div>
+                  )}
+                </div>
+              </div>
+
+              {/* Credits */}
+              {(photo.client || photo.model || photo.makeupArtist || photo.assistant) && (
+                <div className="grid grid-cols-1 sm:grid-cols-[110px_1fr] py-3.5 gap-2 sm:gap-4 items-baseline">
+                  <div className="text-neutral-500 font-mono uppercase tracking-wider text-xs">
+                    Credits
+                  </div>
+                  <div className="text-neutral-200 font-sans flex flex-wrap gap-x-4 gap-y-2">
+                    {photo.client && (
+                      <div
+                        onClick={() => handleCreditClick("Client", photo.client)}
+                        className="cursor-pointer hover:text-[#2CE3C0] transition-colors"
+                      >
+                        Client: <strong className="text-white font-medium">{photo.client}</strong>
+                      </div>
+                    )}
+                    {photo.model && (
+                      <div
+                        onClick={() => handleCreditClick("Model", photo.model)}
+                        className="cursor-pointer hover:text-[#2CE3C0] transition-colors"
+                      >
+                        Model: <strong className="text-white font-medium">{photo.model}</strong>
+                      </div>
+                    )}
+                    {photo.makeupArtist && (
+                      <div
+                        onClick={() => handleCreditClick("Makeup Artist", photo.makeupArtist)}
+                        className="cursor-pointer hover:text-[#2CE3C0] transition-colors"
+                      >
+                        MUA: <strong className="text-white font-medium">{photo.makeupArtist}</strong>
+                      </div>
+                    )}
+                    {photo.assistant && (
+                      <div
+                        onClick={() => handleCreditClick("Assistant", photo.assistant)}
+                        className="cursor-pointer hover:text-[#2CE3C0] transition-colors"
+                      >
+                        Assistant: <strong className="text-white font-medium">{photo.assistant}</strong>
+                      </div>
+                    )}
+                  </div>
+                </div>
               )}
             </div>
           </div>
 
-          {/* Details */}
-          <div className="grid grid-cols-1 sm:grid-cols-[140px_1fr] py-4 gap-2 sm:gap-4 items-baseline">
-            <div className="text-neutral-500 font-mono uppercase tracking-wider text-xs">
-              Details
-            </div>
-            <div className="space-y-1.5 text-neutral-200 font-sans">
-              <div>
-                Asset Code: <span className="font-mono text-[#2CE3C0] font-semibold">{photo.code}</span>
-              </div>
-              <div>
-                Canonical URL:{" "}
-                <span className="font-mono text-xs text-neutral-400">{canonicalPath}</span>
-              </div>
-              {photo.date && <div>Year / Date: {photo.date}</div>}
-              {photo.keywords && (
-                <div className="text-xs text-neutral-400">Keywords: {photo.keywords}</div>
-              )}
-            </div>
+          {/* Action Row */}
+          <div className="pt-4 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-3">
+            <a
+              href="/contact"
+              onClick={handleCommissionClick}
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-full bg-white/5 hover:bg-[#2CE3C0] hover:text-black border border-white/10 hover:border-transparent text-xs font-semibold tracking-wider uppercase transition-all duration-300"
+            >
+              <span>Commission Work</span>
+              <ExternalLink className="w-3.5 h-3.5" />
+            </a>
+
+            <Link
+              to="/admin/inventory"
+              search={{ query: photo.code } as any}
+              className="text-xs font-mono text-neutral-500 hover:text-neutral-300 transition-colors"
+            >
+              Edit in Studio
+            </Link>
           </div>
-
-          {/* Credits */}
-          {(photo.client || photo.model || photo.makeupArtist || photo.assistant) && (
-            <div className="grid grid-cols-1 sm:grid-cols-[140px_1fr] py-4 gap-2 sm:gap-4 items-baseline">
-              <div className="text-neutral-500 font-mono uppercase tracking-wider text-xs">
-                Credits
-              </div>
-              <div className="text-neutral-200 font-sans flex flex-wrap gap-x-6 gap-y-2">
-                {photo.client && (
-                  <div
-                    onClick={() => handleCreditClick("Client", photo.client)}
-                    className="cursor-pointer hover:text-[#2CE3C0] transition-colors"
-                  >
-                    Client: <strong className="text-white font-medium">{photo.client}</strong>
-                  </div>
-                )}
-                {photo.model && (
-                  <div
-                    onClick={() => handleCreditClick("Model", photo.model)}
-                    className="cursor-pointer hover:text-[#2CE3C0] transition-colors"
-                  >
-                    Model: <strong className="text-white font-medium">{photo.model}</strong>
-                  </div>
-                )}
-                {photo.makeupArtist && (
-                  <div
-                    onClick={() => handleCreditClick("Makeup Artist", photo.makeupArtist)}
-                    className="cursor-pointer hover:text-[#2CE3C0] transition-colors"
-                  >
-                    MUA: <strong className="text-white font-medium">{photo.makeupArtist}</strong>
-                  </div>
-                )}
-                {photo.assistant && (
-                  <div
-                    onClick={() => handleCreditClick("Assistant", photo.assistant)}
-                    className="cursor-pointer hover:text-[#2CE3C0] transition-colors"
-                  >
-                    Assistant: <strong className="text-white font-medium">{photo.assistant}</strong>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Commission Button */}
-        <div className="pt-4 flex items-center justify-between">
-          <a
-            href="/contact"
-            onClick={handleCommissionClick}
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-white/5 hover:bg-[#2CE3C0] hover:text-black border border-white/10 hover:border-transparent text-xs font-semibold tracking-wider uppercase transition-all duration-300"
-          >
-            <span>Commission / License This Work</span>
-            <ExternalLink className="w-3.5 h-3.5" />
-          </a>
-
-          <Link
-            to="/admin/inventory"
-            search={{ query: photo.code } as any}
-            className="text-xs font-mono text-neutral-500 hover:text-neutral-300 transition-colors"
-          >
-            Edit in Studio
-          </Link>
         </div>
       </div>
     </div>

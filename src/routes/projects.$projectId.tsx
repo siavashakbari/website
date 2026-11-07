@@ -162,13 +162,13 @@ function ProjectDetail() {
 
   return (
     <article
-      className={isDesktop ? "flex min-h-0 flex-1 flex-col overflow-hidden" : "flex flex-col pb-16"}
+      className={isDesktop ? "flex h-[calc(100dvh-3.5rem)] max-h-[calc(100dvh-3.5rem)] flex-col overflow-hidden" : "flex flex-col pb-16"}
     >
-      <div className="mx-auto grid w-full max-w-6xl shrink-0 grid-cols-[minmax(0,48rem)_auto] gap-x-4 px-3 pt-8 pb-4">
+      <div className="mx-auto grid w-full max-w-6xl shrink-0 grid-cols-[minmax(0,48rem)_auto] gap-x-4 px-4 pt-4 pb-2 md:pt-6 md:pb-3">
         <p className="col-start-1 text-xs font-semibold uppercase tracking-[0.25em] text-secondary">
           {project.category} · {project.year}
         </p>
-        <h1 className="col-start-1 mt-4 font-display text-5xl font-medium text-foreground md:text-7xl">
+        <h1 className="col-start-1 mt-2 font-display text-4xl font-medium text-foreground md:text-6xl">
           {project.title}
         </h1>
         {isDesktop && backDiscipline && (
@@ -181,7 +181,7 @@ function ProjectDetail() {
             Back to {backDiscipline.label}
           </Link>
         )}
-        <p className="col-start-1 mt-4 text-base leading-relaxed text-muted-foreground">
+        <p className="col-start-1 mt-2 text-sm md:text-base leading-relaxed text-muted-foreground max-w-3xl line-clamp-3">
           {project.description}
         </p>
       </div>
@@ -190,14 +190,14 @@ function ProjectDetail() {
         <div
           ref={scrollRef}
           onWheel={handleWheel}
-          className="scrollbar-hide flex min-h-0 flex-1 gap-6 overflow-x-auto overflow-y-hidden px-6 pb-4"
+          className="scrollbar-hide flex min-h-0 flex-1 items-center gap-6 overflow-x-auto overflow-y-hidden px-6 pb-4 pt-1"
         >
           {images.map((src: string, i: number) => {
             const isVideo = src.endsWith(".mp4");
             return (
               <figure
                 key={src}
-                className="flex h-full shrink-0 cursor-zoom-in items-center justify-center"
+                className="flex h-full max-h-full shrink-0 cursor-zoom-in items-center justify-center py-1"
                 onClick={() => setActiveIndex(i)}
               >
                 {isVideo ? (
@@ -208,7 +208,7 @@ function ProjectDetail() {
                     loop
                     playsInline
                     draggable={false}
-                    className="h-full w-auto max-w-none select-none bg-card object-contain"
+                    className="h-full w-auto max-h-full max-w-none select-none bg-card object-contain"
                   />
                 ) : (
                   <img
@@ -216,7 +216,7 @@ function ProjectDetail() {
                     alt={`${project.title} — image ${i + 1}`}
                     loading={i < 2 ? "eager" : "lazy"}
                     draggable={false}
-                    className="h-full w-auto max-w-none select-none bg-card object-contain"
+                    className="h-full w-auto max-h-full max-w-none select-none bg-card object-contain"
                   />
                 )}
               </figure>

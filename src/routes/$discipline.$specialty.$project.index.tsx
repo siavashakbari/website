@@ -163,13 +163,13 @@ function ProjectCaseStudyPage() {
 
   return (
     <article
-      className={isDesktop ? "flex min-h-0 flex-1 flex-col overflow-hidden" : "flex flex-col pb-16"}
+      className={isDesktop ? "flex h-[calc(100dvh-3.5rem)] max-h-[calc(100dvh-3.5rem)] flex-col overflow-hidden" : "flex flex-col pb-16"}
     >
-      <div className="mx-auto grid w-full max-w-6xl shrink-0 grid-cols-[minmax(0,48rem)_auto] gap-x-4 px-3 pt-8 pb-4">
+      <div className="mx-auto grid w-full max-w-6xl shrink-0 grid-cols-[minmax(0,48rem)_auto] gap-x-4 px-4 pt-4 pb-2 md:pt-6 md:pb-3">
         <p className="col-start-1 text-xs font-semibold uppercase tracking-[0.25em] text-secondary">
           {data.category} · {data.year}
         </p>
-        <h1 className="col-start-1 mt-4 font-display text-5xl font-medium text-foreground md:text-7xl">
+        <h1 className="col-start-1 mt-2 font-display text-4xl font-medium text-foreground md:text-6xl">
           {data.title}
         </h1>
 
@@ -183,25 +183,25 @@ function ProjectCaseStudyPage() {
           </Link>
         )}
 
-        <p className="col-start-1 mt-4 text-base leading-relaxed text-muted-foreground">
+        <p className="col-start-1 mt-2 text-sm md:text-base leading-relaxed text-muted-foreground max-w-3xl line-clamp-3">
           {data.description}
         </p>
 
         {/* METADATA CREDITS MATRIX */}
         {hasCredits && (
-          <div className="col-start-1 mt-6 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 p-5 rounded-2xl bg-[#141414] border border-white/10 text-xs">
+          <div className="col-start-1 mt-3 flex flex-wrap items-center gap-x-6 gap-y-1.5 pt-2 border-t border-white/10 text-xs">
             {data.client && (
               <div>
-                <span className="text-[10px] uppercase font-bold tracking-wider text-secondary block mb-1">
-                  Client
+                <span className="text-[10px] uppercase font-bold tracking-wider text-secondary mr-1">
+                  Client:
                 </span>
                 <span className="text-white font-medium">{data.client}</span>
               </div>
             )}
             {data.models && (
               <div>
-                <span className="text-[10px] uppercase font-bold tracking-wider text-secondary block mb-1">
-                  Model(s)
+                <span className="text-[10px] uppercase font-bold tracking-wider text-secondary mr-1">
+                  Model:
                 </span>
                 <span className="text-white font-medium">
                   {Array.isArray(data.models) ? data.models.join(", ") : data.models}
@@ -210,48 +210,28 @@ function ProjectCaseStudyPage() {
             )}
             {data.makeupArtist && (
               <div>
-                <span className="text-[10px] uppercase font-bold tracking-wider text-secondary block mb-1">
-                  Makeup Artist
+                <span className="text-[10px] uppercase font-bold tracking-wider text-secondary mr-1">
+                  MUA:
                 </span>
                 <span className="text-white font-medium">{data.makeupArtist}</span>
               </div>
             )}
-            {data.stylist && (
-              <div>
-                <span className="text-[10px] uppercase font-bold tracking-wider text-secondary block mb-1">
-                  Stylist
-                </span>
-                <span className="text-white font-medium">{data.stylist}</span>
-              </div>
-            )}
             {data.assistant && (
               <div>
-                <span className="text-[10px] uppercase font-bold tracking-wider text-secondary block mb-1">
-                  Assistant
+                <span className="text-[10px] uppercase font-bold tracking-wider text-secondary mr-1">
+                  Assistant:
                 </span>
                 <span className="text-white font-medium">{data.assistant}</span>
               </div>
             )}
-            {data.location && (
+            {data.stylist && (
               <div>
-                <span className="text-[10px] uppercase font-bold tracking-wider text-secondary block mb-1">
-                  Location
+                <span className="text-[10px] uppercase font-bold tracking-wider text-secondary mr-1">
+                  Stylist:
                 </span>
-                <span className="text-white font-medium">{data.location}</span>
+                <span className="text-white font-medium">{data.stylist}</span>
               </div>
             )}
-          </div>
-        )}
-
-        {/* LONG-FORM STORY BOX */}
-        {data.caption?.trim() && (
-          <div className="col-start-1 mt-6 p-6 rounded-2xl bg-[#141414] border border-white/10 text-neutral-300">
-            <span className="text-[10px] uppercase font-mono tracking-widest text-[#2CE3C0] block mb-2 font-bold">
-              Project Story & Curatorial Notes
-            </span>
-            <div className="text-sm leading-relaxed whitespace-pre-wrap font-sans text-neutral-300">
-              {data.caption}
-            </div>
           </div>
         )}
       </div>
@@ -261,14 +241,14 @@ function ProjectCaseStudyPage() {
         <div
           ref={scrollRef}
           onWheel={handleWheel}
-          className="scrollbar-hide flex min-h-0 flex-1 gap-6 overflow-x-auto overflow-y-hidden px-6 pb-4"
+          className="scrollbar-hide flex min-h-0 flex-1 items-center gap-6 overflow-x-auto overflow-y-hidden px-6 pb-4 pt-1"
         >
           {images.map((src: string, i: number) => {
             const isVideo = src.endsWith(".mp4");
             return (
               <figure
                 key={src}
-                className="flex h-full shrink-0 cursor-zoom-in items-center justify-center"
+                className="flex h-full max-h-full shrink-0 cursor-zoom-in items-center justify-center py-1"
                 onClick={() => setActiveIndex(i)}
               >
                 {isVideo ? (
@@ -279,7 +259,7 @@ function ProjectCaseStudyPage() {
                     loop
                     playsInline
                     draggable={false}
-                    className="h-full w-auto max-w-none select-none bg-card object-contain"
+                    className="h-full w-auto max-h-full max-w-none select-none bg-card object-contain"
                   />
                 ) : (
                   <img
@@ -287,7 +267,7 @@ function ProjectCaseStudyPage() {
                     alt={`${data.title} — image ${i + 1}`}
                     loading={i < 2 ? "eager" : "lazy"}
                     draggable={false}
-                    className="h-full w-auto max-w-none select-none bg-card object-contain"
+                    className="h-full w-auto max-h-full max-w-none select-none bg-card object-contain"
                   />
                 )}
               </figure>
