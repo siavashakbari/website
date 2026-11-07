@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { createFileRoute, notFound, rootRouteId, Link } from "@tanstack/react-router";
 import { ArrowLeft, ChevronLeft, ChevronRight, ExternalLink } from "lucide-react";
 import {
@@ -129,16 +129,80 @@ export const Route = createFileRoute("/$discipline/$specialty/$project/$photoId"
 });
 
 function DedicatedPhotoView() {
+  const loaderData = Route.useLoaderData();
   const {
     disciplineSlug,
     specialtySlug,
     projectSlug,
-    photo,
-    projectDescription,
-    resolvedImage,
     prevPhoto,
     nextPhoto,
-  } = Route.useLoaderData();
+  } = loaderData;
+
+  const [photo, setPhoto] = useState(loaderData.photo);
+  const [projectDescription, setProjectDescription] = useState(loaderData.projectDescription);
+  const [resolvedImage, setResolvedImage] = useState(loaderData.resolvedImage);
+
+  // Client hydration from localStorage / studio store
+  useEffect(() => {
+    const currentPhoto =
+      getPhotoItemBySlugOrCode(
+        loaderData.photo.code,
+        loaderData.disciplineSlug,
+        loaderData.specialtySlug,
+        loaderData.projectSlug,
+      ) ||
+      getPhotoItemBySlugOrCode(
+        loaderData.photo.standardCode || "",
+        loaderData.disciplineSlug,
+        loaderData.specialtySlug,
+        loaderData.projectSlug,
+      );
+
+    const allProjects = getStudioProjects();
+    const parentProject =
+      allProjects.find(
+        (p) => normalizeProjectSlug(p.title) === loaderData.projectSlug || p.id === loaderData.projectSlug,
+      ) ||
+      projects.find(
+        (p) => normalizeProjectSlug(p.title) === loaderData.projectSlug || p.id === loaderData.projectSlug,
+      );
+
+    if (parentProject?.description) {
+      setProjectDescription(parentProject.description);
+    }
+
+    if (currentPhoto) {
+      const client = currentPhoto.client || parentProject?.client || "";
+      const model =
+        currentPhoto.model ||
+        (parentProject
+          ? Array.isArray(parentProject.models)
+            ? parentProject.models.join(", ")
+            : parentProject.models
+          : "") ||
+        "";
+      const makeupArtist = currentPhoto.makeupArtist || parentProject?.makeupArtist || "";
+      const assistant = currentPhoto.assistant || parentProject?.assistant || "";
+      const year = currentPhoto.date || parentProject?.year || "2024";
+
+      const resolved: PhotoInventoryItem = {
+        ...currentPhoto,
+        client,
+        model,
+        makeupArtist,
+        assistant,
+        date: String(year),
+        subdiscipline:
+          currentPhoto.subdiscipline ||
+          parentProject?.subDiscipline ||
+          parentProject?.category ||
+          loaderData.specialtySlug,
+        caption: currentPhoto.caption || parentProject?.caption || parentProject?.description || "",
+      };
+      setPhoto(resolved);
+      setResolvedImage(resolveInventoryImage(resolved.imgSrc));
+    }
+  }, [loaderData.photo.code, loaderData.projectSlug]);
 
   const backUrl = `/${disciplineSlug}/${specialtySlug}`;
 

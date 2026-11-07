@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState, useEffect, useMemo, useRef } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
   Layers,
   Search,
@@ -128,7 +128,6 @@ function AdminAssetsManagementView() {
 
   // Pagination State (32 items per page)
   const [currentPage, setCurrentPage] = useState(1);
-  const sideStripRef = useRef<HTMLDivElement>(null);
 
   // Bulk Edit Modal / Bar State
   const [bulkProject, setBulkProject] = useState("");
@@ -536,16 +535,6 @@ function AdminAssetsManagementView() {
     setTimeout(() => setHighlightedCode(null), 3000);
   };
 
-  // Side strip horizontal scroll controls
-  const scrollSideStrip = (direction: "left" | "right") => {
-    if (!sideStripRef.current) return;
-    const distance = 420;
-    sideStripRef.current.scrollBy({
-      left: direction === "left" ? -distance : distance,
-      behavior: "smooth",
-    });
-  };
-
   return (
     <div className="space-y-8 pb-32 relative">
       {/* Autocomplete Datalists */}
@@ -734,77 +723,6 @@ function AdminAssetsManagementView() {
               </button>
             </div>
           </div>
-        </div>
-      </div>
-
-      {/* SIDE-SCROLL FAST STRIP (Horizontal Fast-Scroller) */}
-      <div className="p-3.5 rounded-2xl bg-[#141414] border border-white/10 space-y-2">
-        <div className="flex items-center justify-between text-xs">
-          <div className="flex items-center gap-2">
-            <span className="font-mono uppercase text-[#2CE3C0] font-bold text-[11px] flex items-center gap-1.5">
-              <Layers className="w-3.5 h-3.5" />
-              Side-Scroll Fast Scrubber (Current Page Assets)
-            </span>
-            <span className="text-[10px] text-neutral-500 font-mono">
-              Click any photo to jump directly to its card
-            </span>
-          </div>
-
-          <div className="flex items-center gap-1.5">
-            <button
-              onClick={() => scrollSideStrip("left")}
-              className="p-1 rounded bg-black/60 border border-white/10 text-neutral-400 hover:text-white"
-              title="Scroll left"
-            >
-              <ChevronLeft className="w-3.5 h-3.5" />
-            </button>
-            <button
-              onClick={() => scrollSideStrip("right")}
-              className="p-1 rounded bg-black/60 border border-white/10 text-neutral-400 hover:text-white"
-              title="Scroll right"
-            >
-              <ChevronRight className="w-3.5 h-3.5" />
-            </button>
-          </div>
-        </div>
-
-        {/* Scrollable Ribbon */}
-        <div
-          ref={sideStripRef}
-          className="flex items-center gap-2.5 overflow-x-auto pb-1.5 scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent select-none"
-        >
-          {paginatedItems.map((item, idx) => {
-            const resolvedSrc = resolveInventoryImage(item.imgSrc);
-            const isHighlighted = highlightedCode === item.code;
-            return (
-              <button
-                key={item.code}
-                type="button"
-                onClick={() => scrollToCard(item.code)}
-                className={`shrink-0 flex items-center gap-2 p-1.5 rounded-xl border transition-all duration-200 cursor-pointer ${
-                  isHighlighted
-                    ? "bg-[#2CE3C0]/20 border-[#2CE3C0] scale-105 shadow-[0_0_12px_rgba(44,227,192,0.4)]"
-                    : "bg-black/60 border-white/10 hover:border-white/30 hover:bg-white/5"
-                }`}
-                title={`Jump to ${item.displayName || item.project} (${item.code})`}
-              >
-                <div className="w-12 h-12 rounded-lg bg-black/80 overflow-hidden shrink-0 flex items-center justify-center border border-white/10">
-                  <img src={resolvedSrc} alt={item.code} className="w-full h-full object-contain" />
-                </div>
-                <div className="text-left pr-2 max-w-[130px]">
-                  <div className="text-[10px] font-mono font-bold text-[#2CE3C0] truncate">
-                    #{idx + 1 + (safeCurrentPage - 1) * CARDS_PER_PAGE} {item.code.split("-").slice(-2).join("-")}
-                  </div>
-                  <div className="text-[11px] text-white font-medium truncate">
-                    {item.displayName || item.project}
-                  </div>
-                  <div className="text-[9px] text-neutral-400 truncate font-mono">
-                    {item.discipline}
-                  </div>
-                </div>
-              </button>
-            );
-          })}
         </div>
       </div>
 
@@ -1385,41 +1303,6 @@ function AdminAssetsManagementView() {
           </div>
         </div>
       )}
-
-      {/* FAST-SCROLL RAIL (Vertical Floating Sidebar on Desktop) */}
-      <aside className="hidden 2xl:flex fixed right-4 top-24 bottom-24 w-12 z-40 flex-col items-center justify-between p-2 rounded-2xl bg-[#141414]/90 border border-white/10 backdrop-blur-md shadow-2xl">
-        <button
-          onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-          className="p-2 rounded-xl bg-white/5 hover:bg-[#2CE3C0] hover:text-black text-neutral-400 transition-colors"
-          title="Scroll to Top"
-        >
-          <ArrowUp className="w-4 h-4" />
-        </button>
-
-        {/* Page Scrubber Dots */}
-        <div className="flex flex-col items-center gap-1.5 overflow-y-auto max-h-[60vh] py-2 scrollbar-none">
-          {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
-            <button
-              key={p}
-              onClick={() => goToPage(p)}
-              className={`rounded-full transition-all ${
-                safeCurrentPage === p
-                  ? "w-3 h-3 bg-[#2CE3C0] ring-2 ring-[#2CE3C0]/40"
-                  : "w-2 h-2 bg-neutral-600 hover:bg-neutral-400"
-              }`}
-              title={`Jump to Page ${p}`}
-            />
-          ))}
-        </div>
-
-        <button
-          onClick={() => window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" })}
-          className="p-2 rounded-xl bg-white/5 hover:bg-[#2CE3C0] hover:text-black text-neutral-400 transition-colors"
-          title="Scroll to Bottom"
-        >
-          <ArrowDown className="w-4 h-4" />
-        </button>
-      </aside>
 
       {/* Import Photos Modal */}
       {showImportModal && (

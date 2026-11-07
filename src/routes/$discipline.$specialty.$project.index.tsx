@@ -2,9 +2,20 @@ import { useEffect, useRef, useState } from "react";
 import { createFileRoute, Link, notFound, rootRouteId } from "@tanstack/react-router";
 import { ArrowLeft } from "lucide-react";
 import { projects } from "@/data/projects";
-import { getStudioProjects, getPhotosByProject, type StudioProjectItem } from "@/lib/studio-store";
+import {
+  getStudioProjects,
+  getPhotosByProject,
+  type StudioProjectItem,
+} from "@/lib/studio-store";
+import type { PhotoInventoryItem } from "@/data/photo-inventory";
 import { pageHead, jsonLdScript, projectJsonLd } from "@/lib/seo";
-import { normalizeDisciplineSlug, normalizeSpecialtySlug, normalizeProjectSlug } from "@/lib/taxonomy";
+import {
+  normalizeDisciplineSlug,
+  normalizeSpecialtySlug,
+  normalizeProjectSlug,
+  buildPhotoUrl,
+} from "@/lib/taxonomy";
+import { resolveInventoryImage } from "@/lib/inventory-assets";
 
 // Desktop: outline by default, green + glow on hover.
 const backBtnClass =
@@ -111,11 +122,51 @@ export const Route = createFileRoute("/$discipline/$specialty/$project/")({
 });
 
 function ProjectCaseStudyPage() {
-  const data = Route.useLoaderData();
-  const images = data.images;
+  const loaderData = Route.useLoaderData();
+  const [data, setData] = useState(loaderData);
   const scrollRef = useRef<HTMLDivElement>(null);
-  const [activeIndex, setActiveIndex] = useState<number | null>(null);
   const isDesktop = useIsDesktop();
+
+  // Client hydration for project updates saved in localStorage/admin
+  useEffect(() => {
+    const allStudio = getStudioProjects();
+    const found = allStudio.find(
+      (p) => normalizeProjectSlug(p.title) === loaderData.projectSlug || p.id === loaderData.projectSlug,
+    );
+    const projectPhotos = getPhotosByProject(loaderData.projectSlug);
+
+    if (found || projectPhotos.length > 0) {
+      const updatedImages: string[] =
+        found?.images && found.images.length > 0
+          ? found.images.map((im) => im.url)
+          : projectPhotos.length > 0
+            ? projectPhotos.map((p) => p.imgSrc)
+            : found?.gallery && found.gallery.length > 0
+              ? found.gallery
+              : found?.image
+                ? [found.image]
+                : loaderData.images;
+
+      setData({
+        ...loaderData,
+        title: found?.title || loaderData.title,
+        year: found?.year ? String(found.year) : loaderData.year,
+        category: found?.subDiscipline || found?.category || loaderData.category,
+        description: found?.description || loaderData.description,
+        client: found?.client !== undefined ? found.client : loaderData.client,
+        models: found?.models !== undefined ? found.models : loaderData.models,
+        makeupArtist: found?.makeupArtist !== undefined ? found.makeupArtist : loaderData.makeupArtist,
+        assistant: found?.assistant !== undefined ? found.assistant : loaderData.assistant,
+        stylist: found?.stylist !== undefined ? found.stylist : loaderData.stylist,
+        location: found?.location !== undefined ? found.location : loaderData.location,
+        caption: found?.caption !== undefined ? found.caption : loaderData.caption,
+        images: updatedImages.length > 0 ? updatedImages : loaderData.images,
+        coverImage: updatedImages[0] || loaderData.coverImage,
+      });
+    }
+  }, [loaderData.projectSlug]);
+
+  const images = data.images;
 
   const handleWheel = (e: React.WheelEvent<HTMLDivElement>) => {
     if (!isDesktop) return;
@@ -132,7 +183,6 @@ function ProjectCaseStudyPage() {
     if (!el) return;
 
     const onWheel = (e: WheelEvent) => {
-      if (activeIndex !== null) return;
       if (e.deltaY === 0) return;
       e.preventDefault();
       el.scrollLeft += e.deltaY;
@@ -140,16 +190,26 @@ function ProjectCaseStudyPage() {
 
     window.addEventListener("wheel", onWheel, { passive: false });
     return () => window.removeEventListener("wheel", onWheel);
-  }, [isDesktop, activeIndex]);
+  }, [isDesktop]);
 
-  useEffect(() => {
-    if (activeIndex === null) return;
-    const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setActiveIndex(null);
-    };
-    document.addEventListener("keydown", onKeyDown);
-    return () => document.removeEventListener("keydown", onKeyDown);
-  }, [activeIndex]);
+  const getPhotoUrlForIndex = (src: string, i: number) => {
+    const projectPhotos = getPhotosByProject(data.projectSlug);
+    const cleanSrc = src.replace(/^file:/, "").toLowerCase();
+    const filename = cleanSrc.split("/").pop() || "";
+
+    const matched = projectPhotos.find((p) => {
+      const pSrc = (p.imgSrc || "").replace(/^file:/, "").toLowerCase();
+      return pSrc === cleanSrc || pSrc.endsWith(filename) || cleanSrc.endsWith(pSrc.split("/").pop() || "");
+    });
+
+    const photoIdentifier =
+      matched?.standardCode ||
+      matched?.code ||
+      matched?.seoSlug ||
+      `${data.projectSlug}-${i + 1}`;
+
+    return buildPhotoUrl(data.disciplineSlug, data.specialtySlug, data.projectSlug, photoIdentifier);
+  };
 
   const hasCredits =
     Boolean(data.client) ||
@@ -245,11 +305,13 @@ function ProjectCaseStudyPage() {
         >
           {images.map((src: string, i: number) => {
             const isVideo = src.endsWith(".mp4");
+            const photoUrl = getPhotoUrlForIndex(src, i);
             return (
-              <figure
+              <Link
                 key={src}
-                className="flex h-full max-h-full shrink-0 cursor-zoom-in items-center justify-center py-1"
-                onClick={() => setActiveIndex(i)}
+                to={photoUrl as any}
+                className="group flex h-full max-h-full shrink-0 cursor-pointer items-center justify-center py-1 transition-transform duration-300 hover:scale-[1.01]"
+                title={`${data.title} — Photo ${i + 1}`}
               >
                 {isVideo ? (
                   <video
@@ -259,7 +321,7 @@ function ProjectCaseStudyPage() {
                     loop
                     playsInline
                     draggable={false}
-                    className="h-full w-auto max-h-full max-w-none select-none bg-card object-contain"
+                    className="h-full w-auto max-h-full max-w-none select-none bg-card object-contain group-hover:brightness-105 transition-all"
                   />
                 ) : (
                   <img
@@ -267,10 +329,10 @@ function ProjectCaseStudyPage() {
                     alt={`${data.title} — image ${i + 1}`}
                     loading={i < 2 ? "eager" : "lazy"}
                     draggable={false}
-                    className="h-full w-auto max-h-full max-w-none select-none bg-card object-contain"
+                    className="h-full w-auto max-h-full max-w-none select-none bg-card object-contain group-hover:brightness-105 transition-all"
                   />
                 )}
-              </figure>
+              </Link>
             );
           })}
         </div>
@@ -278,11 +340,13 @@ function ProjectCaseStudyPage() {
         <div className="flex flex-col gap-4 px-3 pt-6">
           {images.map((src: string, i: number) => {
             const isVideo = src.endsWith(".mp4");
+            const photoUrl = getPhotoUrlForIndex(src, i);
             return (
-              <figure
+              <Link
                 key={src}
-                className="w-full cursor-zoom-in overflow-hidden bg-card"
-                onClick={() => setActiveIndex(i)}
+                to={photoUrl as any}
+                className="w-full cursor-pointer overflow-hidden bg-card transition-opacity hover:opacity-95"
+                title={`${data.title} — Photo ${i + 1}`}
               >
                 {isVideo ? (
                   <video
@@ -301,7 +365,7 @@ function ProjectCaseStudyPage() {
                     className="w-full object-contain"
                   />
                 )}
-              </figure>
+              </Link>
             );
           })}
         </div>
@@ -313,44 +377,6 @@ function ProjectCaseStudyPage() {
             <ArrowLeft className="h-4 w-4" />
             <span className="capitalize">Back to {data.specialtySlug.replace("-", " ")}</span>
           </Link>
-        </div>
-      )}
-
-      {/* Lightbox Modal */}
-      {activeIndex !== null && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-label="Image preview"
-          onClick={() => setActiveIndex(null)}
-          className="fixed inset-0 z-50 flex items-center justify-center bg-background/90 p-4 backdrop-blur-md"
-        >
-          <button
-            type="button"
-            onClick={() => setActiveIndex(null)}
-            className="absolute top-6 right-6 z-10 text-muted-foreground hover:text-foreground cursor-pointer"
-            aria-label="Close image preview"
-          >
-            ✕
-          </button>
-          {images[activeIndex]?.endsWith(".mp4") ? (
-            <video
-              src={images[activeIndex]}
-              autoPlay
-              controls
-              loop
-              playsInline
-              onClick={(e) => e.stopPropagation()}
-              className="max-h-[90vh] max-w-[90vw] object-contain shadow-2xl"
-            />
-          ) : (
-            <img
-              src={images[activeIndex]}
-              alt={`${data.title} — enlarged preview`}
-              onClick={(e) => e.stopPropagation()}
-              className="max-h-[90vh] max-w-[90vw] object-contain shadow-2xl"
-            />
-          )}
         </div>
       )}
     </article>

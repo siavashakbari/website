@@ -446,14 +446,64 @@ export function addCustomSpecialty(
 }
 
 // -------------------------------------------------------------
-// Custom Photos & Merged Inventory (with 4-Part Standard Codes)
+// Custom Photos & Merged Inventory (with Robust Deduplication)
 // -------------------------------------------------------------
+
+export function getPhotoDedupeKey(item: Partial<PhotoInventoryItem>): string {
+  // If we have an image source, strip path, directory, vite hash, thumb suffix, query params
+  if (item.imgSrc) {
+    const rawNoQuery = item.imgSrc.split("?")[0].split("#")[0];
+    const rawFile = rawNoQuery.replace(/^.*[\\\/]/, "").toLowerCase().trim();
+    // Strip thumb indicator: e.g. -thumb
+    const noThumb = rawFile.replace(/[-_]thumb\./i, ".");
+    // Strip Vite asset hash: e.g. fashion-zeeen-01-B4g9Z1qa.jpg -> fashion-zeeen-01.jpg
+    const noHash = noThumb.replace(/[-_][a-zA-Z0-9_-]{6,16}(\.[a-z0-9]+)$/i, "$1");
+    // Remove extension
+    const stem = noHash.replace(/\.[a-z0-9]+$/i, "");
+    if (stem && stem.length > 2 && stem !== "placeholder") {
+      return `file:${stem}`;
+    }
+  }
+
+  const stdCode = (item.standardCode || "").toUpperCase().trim();
+  if (/^[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}-\d{4}$/i.test(stdCode)) {
+    return `std:${stdCode}`;
+  }
+
+  const code = (item.code || "").toUpperCase().trim();
+  if (/^[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}-\d{4}$/i.test(code)) {
+    return `std:${code}`;
+  }
+
+  if (code.startsWith("SA-")) {
+    return `legacy:${code}`;
+  }
+
+  if (item.project && (item.title || item.displayName)) {
+    return `proj:${taxNormProj(item.project)}:${(item.displayName || item.title || "").toLowerCase()}`;
+  }
+
+  return `item:${item.title || Math.random()}`;
+}
 
 export function getCustomPhotoAssets(): PhotoInventoryItem[] {
   if (typeof window === "undefined") return [];
   try {
     const raw = localStorage.getItem(STORAGE_CUSTOM_PHOTOS_KEY);
-    if (raw) return JSON.parse(raw);
+    if (raw) {
+      const parsed: PhotoInventoryItem[] = JSON.parse(raw);
+      // Clean up and deduplicate so historical duplicates in localStorage are purged
+      const seen = new Set<string>();
+      const deduped: PhotoInventoryItem[] = [];
+      parsed.forEach((item) => {
+        const key = getPhotoDedupeKey(item);
+        if (!seen.has(key)) {
+          seen.add(key);
+          deduped.push(item);
+        }
+      });
+      return deduped;
+    }
   } catch (e) {
     console.error("Error reading custom photos:", e);
   }
@@ -463,13 +513,33 @@ export function getCustomPhotoAssets(): PhotoInventoryItem[] {
 export function saveCustomPhotoAsset(photo: PhotoInventoryItem): void {
   if (typeof window === "undefined") return;
   const list = getCustomPhotoAssets();
-  const idx = list.findIndex((p) => p.code === photo.code || p.standardCode === photo.standardCode);
+  const photoKey = getPhotoDedupeKey(photo);
+
+  const idx = list.findIndex(
+    (p) =>
+      getPhotoDedupeKey(p) === photoKey ||
+      p.code === photo.code ||
+      p.standardCode === photo.code ||
+      (photo.standardCode &&
+        (p.code === photo.standardCode || p.standardCode === photo.standardCode)),
+  );
+
   if (idx >= 0) {
-    list[idx] = photo;
+    list[idx] = { ...list[idx], ...photo };
   } else {
     list.unshift(photo);
   }
-  localStorage.setItem(STORAGE_CUSTOM_PHOTOS_KEY, JSON.stringify(list));
+
+  // Deduplicate before saving back
+  const seen = new Set<string>();
+  const cleanList = list.filter((p) => {
+    const k = getPhotoDedupeKey(p);
+    if (seen.has(k)) return false;
+    seen.add(k);
+    return true;
+  });
+
+  localStorage.setItem(STORAGE_CUSTOM_PHOTOS_KEY, JSON.stringify(cleanList));
 }
 
 export function deleteCustomPhotoAsset(code: string): void {
@@ -508,34 +578,32 @@ function inferItemSpecialty(item: PhotoInventoryItem): string {
 
 /**
  * Returns complete photo inventory:
- * 1. Static items enriched with standard 4-part code (e.g. PHOT-FASH-SEPI-0001)
- * 2. Overrides from custom metadata
- * 3. User-created imported photos
+ * Guaranteed 100% deduplicated by image filename/source and code!
  */
 export function getMergedPhotoInventory(): PhotoInventoryItem[] {
   const customMetadataMap = getCustomPhotoMetadata();
   const customPhotos = getCustomPhotoAssets();
 
-  // Track sequence per project to assign standard 4-digit numbers if needed
+  const resultMap = new Map<string, PhotoInventoryItem>();
   const projectSequenceMap: Record<string, number> = {};
 
-  const staticMerged = PHOTO_INVENTORY.map((item) => {
+  // 1. Process static inventory items first
+  PHOTO_INVENTORY.forEach((item, idx) => {
     const custom = customMetadataMap[item.code] || customMetadataMap[item.standardCode || ""];
 
     const discSlug = custom?.disciplineSlug || taxNormDisc(item.disciplineSlug || item.discipline);
     const specSlug = custom?.specialtySlug || inferItemSpecialty(item);
     const projSlug = custom?.projectSlug || taxNormProj(custom?.project || item.project);
 
-    // Track sequence
     if (!projectSequenceMap[projSlug]) projectSequenceMap[projSlug] = 0;
     projectSequenceMap[projSlug] += 1;
     const seq = projectSequenceMap[projSlug];
 
-    // Check if filename has number (e.g. "...-01.jpg")
-    const matchNum = item.imgSrc?.match(/[-_](\d+)(?:-thumb)?\.[a-z0-9]+$/i) || item.code?.match(/[-_](\d+)$/);
+    const matchNum =
+      item.imgSrc?.match(/[-_](\d+)(?:-thumb)?\.[a-z0-9]+$/i) ||
+      item.code?.match(/[-_](\d+)$/);
     const numInt = matchNum ? parseInt(matchNum[1], 10) : seq;
 
-    // Standard 4-part code: PHOT-FASH-SEPI-0001
     const standardCode =
       custom?.standardCode ||
       (/^[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}-\d{4}$/i.test(item.code)
@@ -544,20 +612,23 @@ export function getMergedPhotoInventory(): PhotoInventoryItem[] {
 
     const canonicalPath = buildPhotoUrl(discSlug, specSlug, projSlug, standardCode);
 
-    return {
+    const mergedItem: PhotoInventoryItem = {
       ...item,
       ...custom,
-      code: standardCode, // Photo name and code match standard
+      code: standardCode,
       standardCode,
       disciplineSlug: discSlug,
       specialtySlug: specSlug,
       projectSlug: projSlug,
       canonicalPath,
     };
+
+    const key = getPhotoDedupeKey(mergedItem);
+    resultMap.set(key, mergedItem);
   });
 
-  // Merge any custom user-imported photos
-  const mergedCustom = customPhotos.map((item, idx) => {
+  // 2. Process custom photos: if same image exists, OVERWRITE/MERGE fields without duplicating!
+  customPhotos.forEach((item, idx) => {
     const custom = customMetadataMap[item.code] || customMetadataMap[item.standardCode || ""];
     const discSlug = custom?.disciplineSlug || taxNormDisc(item.disciplineSlug || item.discipline || "photography");
     const specSlug = custom?.specialtySlug || taxNormSpec(item.specialtySlug || item.subdiscipline || "fashion");
@@ -569,7 +640,7 @@ export function getMergedPhotoInventory(): PhotoInventoryItem[] {
       generate4PartPhotoCode(discSlug, specSlug, projSlug, idx + 1);
     const canonicalPath = buildPhotoUrl(discSlug, specSlug, projSlug, standardCode);
 
-    return {
+    const mergedItem: PhotoInventoryItem = {
       ...item,
       ...custom,
       code: standardCode,
@@ -579,9 +650,39 @@ export function getMergedPhotoInventory(): PhotoInventoryItem[] {
       projectSlug: projSlug,
       canonicalPath,
     };
+
+    const key = getPhotoDedupeKey(mergedItem);
+
+    // Also check if any existing item in resultMap matches by standardCode, legacy code, or project+image stem
+    let matchedExistingKey: string | null = null;
+    if (resultMap.has(key)) {
+      matchedExistingKey = key;
+    } else {
+      for (const [existingKey, existingItem] of resultMap.entries()) {
+        if (
+          (existingItem.standardCode && existingItem.standardCode.toUpperCase() === standardCode.toUpperCase()) ||
+          (existingItem.code && existingItem.code.toUpperCase() === mergedItem.code.toUpperCase()) ||
+          (item.code && existingItem.code.toUpperCase() === item.code.toUpperCase()) ||
+          (taxNormProj(existingItem.projectSlug || existingItem.project) === projSlug &&
+            existingItem.imgSrc &&
+            mergedItem.imgSrc &&
+            getPhotoDedupeKey(existingItem) === key)
+        ) {
+          matchedExistingKey = existingKey;
+          break;
+        }
+      }
+    }
+
+    if (matchedExistingKey) {
+      const existing = resultMap.get(matchedExistingKey)!;
+      resultMap.set(matchedExistingKey, { ...existing, ...mergedItem });
+    } else {
+      resultMap.set(key, mergedItem);
+    }
   });
 
-  return [...staticMerged, ...mergedCustom];
+  return Array.from(resultMap.values());
 }
 
 export function getPhotoItemByCode(code: string): PhotoInventoryItem | undefined {
@@ -645,6 +746,15 @@ export function getPhotoItemBySlugOrCode(
     return stem === q;
   });
   if (byStem) return byStem;
+
+  // 5. Match by index in project if numeric (e.g., "1", "2")
+  if (projectSlug && /^\d+$/.test(q)) {
+    const index = parseInt(q, 10) - 1;
+    const inProj = all.filter((i) => taxNormProj(i.projectSlug || i.project) === taxNormProj(projectSlug));
+    if (index >= 0 && index < inProj.length) {
+      return inProj[index];
+    }
+  }
 
   return undefined;
 }

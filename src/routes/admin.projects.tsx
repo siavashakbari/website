@@ -458,17 +458,25 @@ function AdminProjectsView() {
 
     saveStudioProject(projectToSave);
 
-    // Register all imported images into custom photo assets with 4-part naming logic: PHOT-FASH-SEPI-0001
+    // Synchronize photos with inventory (deduplicating to prevent multiple copies)
     const normDiscSlug = normalizeDisciplineSlug(discipline);
     const normSpecSlug = normalizeSpecialtySlug(subDiscipline || category || "fashion");
     const normProjSlug = normalizeProjectSlug(title);
     const pCode = projectCode ? to4LetterCode(projectCode) : getProject4Code(title);
+    const currentInventory = getMergedPhotoInventory();
 
     images.forEach((img, idx) => {
-      const code = generate4PartPhotoCode(normDiscSlug, normSpecSlug, pCode, idx + 1);
-      const photoAsset: PhotoInventoryItem = {
+      const imgFileName = img.url.split(/[\\/]/).pop()?.toLowerCase().replace(/[-_]thumb\./i, ".");
+      const existingItem = currentInventory.find((inv) => {
+        const invFileName = inv.imgSrc?.split(/[\\/]/).pop()?.toLowerCase().replace(/[-_]thumb\./i, ".");
+        return (invFileName && imgFileName && invFileName === imgFileName) || inv.imgSrc === img.url;
+      });
+
+      const code = existingItem?.code || generate4PartPhotoCode(normDiscSlug, normSpecSlug, pCode, idx + 1);
+
+      const photoPatch: Partial<PhotoInventoryItem> & { code: string } = {
         code,
-        standardCode: code,
+        standardCode: existingItem?.standardCode || code,
         project: title.trim(),
         projectSlug: normProjSlug,
         discipline: selectedDiscObj?.label || discipline,
@@ -483,10 +491,15 @@ function AdminProjectsView() {
         date: year.trim() || "2026",
         keywords: seoKeywords.trim() || `${title}, Siavash Akbari`,
         caption: img.caption || caption.trim() || description.trim(),
-        title: img.alt || `${title} — ${String(idx + 1).padStart(4, "0")}`,
+        title: img.alt || existingItem?.title || `${title} — ${String(idx + 1).padStart(4, "0")}`,
         canonicalPath: buildPhotoUrl(normDiscSlug, normSpecSlug, normProjSlug, code),
       };
-      saveCustomPhotoAsset(photoAsset);
+
+      if (existingItem) {
+        savePhotoInventoryItem(photoPatch);
+      } else {
+        saveCustomPhotoAsset(photoPatch as PhotoInventoryItem);
+      }
     });
 
     setProjects(getStudioProjects());
