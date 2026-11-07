@@ -295,7 +295,7 @@ export function deleteInvoice(id: string): void {
 // 4. Photo Inventory Metadata Store (Matching PHOTO_INVENTORY_VIEWER.html)
 export const STORAGE_INVENTORY_KEY = "siavash_portfolio_inventory_v3";
 
-import { PHOTO_INVENTORY, type PhotoInventoryItem } from "@/data/photo-inventory";
+import { PHOTO_INVENTORY, computeItemSeoSlug, type PhotoInventoryItem } from "@/data/photo-inventory";
 
 export function getCustomPhotoMetadata(): Record<string, Partial<PhotoInventoryItem>> {
   if (typeof window === "undefined") return {};
@@ -323,6 +323,30 @@ export function getMergedPhotoInventory(): PhotoInventoryItem[] {
 export function getPhotoItemByCode(code: string): PhotoInventoryItem | undefined {
   const all = getMergedPhotoInventory();
   return all.find((i) => i.code.toUpperCase() === code.toUpperCase());
+}
+
+export function getPhotoItemBySlugOrCode(
+  slugOrCode: string,
+  disciplineSlug?: string,
+): PhotoInventoryItem | undefined {
+  if (!slugOrCode) return undefined;
+  const q = slugOrCode.toLowerCase().trim();
+  const all = getMergedPhotoInventory();
+
+  // 1. Direct match on code
+  const byCode = all.find((i) => i.code.toLowerCase() === q);
+  if (byCode) return byCode;
+
+  // 2. Direct match on explicit or computed seoSlug
+  const bySlug = all.find((i) => {
+    if (disciplineSlug && i.disciplineSlug !== disciplineSlug) return false;
+    if (i.seoSlug && i.seoSlug.toLowerCase() === q) return true;
+    const computed = computeItemSeoSlug(i);
+    return computed.toLowerCase() === q;
+  });
+  if (bySlug) return bySlug;
+
+  return undefined;
 }
 
 export function savePhotoInventoryItem(item: Partial<PhotoInventoryItem> & { code: string }): void {

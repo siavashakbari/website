@@ -74,6 +74,22 @@ function VisualIdentityProjectDetail() {
 
   const backDiscipline = DISCIPLINES.find((d) => d.slug === "visual-identity");
 
+  // Track GA4 event on case study view
+  useEffect(() => {
+    if (typeof window !== "undefined" && window.gtag) {
+      window.gtag("event", "view_portfolio_asset", {
+        content_group: "Visual Identity",
+        asset_code: `SA-VIDN-${(project.id || "GEN").toUpperCase().slice(0, 3)}-01`,
+        asset_title: project.title,
+        project_name: project.title,
+        sub_discipline: project.subDiscipline || "Brand Identity System",
+        client_name: project.client || project.title,
+        asset_year: String(project.year),
+        media_type: "image",
+      });
+    }
+  }, [project.id, project.title, project.year, project.client, project.subDiscipline]);
+
   const handleWheel = (e: React.WheelEvent<HTMLDivElement>) => {
     if (!isDesktop) return;
     const el = scrollRef.current;

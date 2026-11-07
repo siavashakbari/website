@@ -175,3 +175,141 @@ export function projectJsonLd(project: {
     },
   };
 }
+
+/**
+ * VisualArtwork + ImageObject (or VideoObject) + BreadcrumbList JSON-LD
+ * enables Google Images Licensable badges and Rich Creator attribution.
+ */
+export function visualAssetJsonLd(asset: {
+  assetCode: string;
+  title: string;
+  discipline: string;
+  disciplineSlug: string;
+  projectTitle: string;
+  seoSlug: string;
+  canonicalUrl: string;
+  imageUrl: string;
+  year: string | number;
+  subDiscipline?: string;
+  client?: string;
+  credits?: { role: string; name: string }[];
+  description?: string;
+  keywords?: string[];
+  mediaType?: "image" | "video";
+}) {
+  const url = asset.canonicalUrl.startsWith("http")
+    ? asset.canonicalUrl
+    : absoluteUrl(asset.canonicalUrl);
+
+  const rawImage = asset.imageUrl.startsWith("http")
+    ? asset.imageUrl
+    : absoluteUrl(asset.imageUrl);
+
+  const contributors = (asset.credits || []).map((c) => ({
+    "@type": "Person",
+    name: c.name,
+    roleName: c.role,
+  }));
+
+  const mainMediaObject =
+    asset.mediaType === "video"
+      ? {
+          "@type": "VideoObject",
+          name: asset.title,
+          description: asset.description || `${asset.title} video by ${SITE_NAME}`,
+          thumbnailUrl: rawImage,
+          contentUrl: rawImage,
+          uploadDate: `${asset.year}-01-01`,
+        }
+      : {
+          "@type": "ImageObject",
+          "@id": `${url}#image`,
+          name: asset.title,
+          headline: `${asset.projectTitle} — ${asset.assetCode}`,
+          description:
+            asset.description ||
+            `${asset.subDiscipline || asset.discipline} by ${SITE_NAME} (${asset.year})`,
+          contentUrl: rawImage,
+          url,
+          creator: {
+            "@type": "Person",
+            name: SITE_NAME,
+            jobTitle: "Photographer, Designer & Creative Director",
+            url: absoluteUrl("/about"),
+          },
+          copyrightHolder: {
+            "@type": "Person",
+            name: SITE_NAME,
+          },
+          copyrightNotice: `© ${asset.year} ${SITE_NAME} Studio. All rights reserved.`,
+          creditText: `${SITE_NAME} Studio`,
+          acquireLicensePage: absoluteUrl("/contact"),
+        };
+
+  return {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "BreadcrumbList",
+        itemListElement: [
+          {
+            "@type": "ListItem",
+            position: 1,
+            name: "Works",
+            item: absoluteUrl("/"),
+          },
+          {
+            "@type": "ListItem",
+            position: 2,
+            name: asset.discipline,
+            item: absoluteUrl(`/${asset.disciplineSlug}`),
+          },
+          {
+            "@type": "ListItem",
+            position: 3,
+            name: `${asset.projectTitle} — ${asset.assetCode}`,
+            item: url,
+          },
+        ],
+      },
+      {
+        "@type": ["VisualArtwork", asset.mediaType === "video" ? "VideoObject" : "ImageObject"],
+        "@id": `${url}#asset`,
+        identifier: asset.assetCode,
+        name: asset.title,
+        headline: `${asset.projectTitle} — ${asset.assetCode}`,
+        description:
+          asset.description ||
+          `${asset.title} — ${asset.subDiscipline || asset.discipline} work by ${SITE_NAME}.`,
+        contentUrl: rawImage,
+        url,
+        dateCreated: String(asset.year),
+        artMedium: asset.mediaType === "video" ? "Video / Motion" : "Digital Photography",
+        artform: asset.discipline,
+        genre: asset.subDiscipline || asset.discipline,
+        keywords: asset.keywords?.join(", ") || `${asset.projectTitle}, ${asset.discipline}, ${SITE_NAME}`,
+        creator: {
+          "@type": "Person",
+          name: SITE_NAME,
+          jobTitle: "Photographer, Designer & Creative Director",
+          url: absoluteUrl("/about"),
+        },
+        contributor: contributors.length > 0 ? contributors : undefined,
+        sourceOrganization: asset.client
+          ? {
+              "@type": "Organization",
+              name: asset.client,
+            }
+          : undefined,
+        copyrightHolder: {
+          "@type": "Person",
+          name: SITE_NAME,
+        },
+        copyrightNotice: `© ${asset.year} ${SITE_NAME} Studio. All rights reserved.`,
+        creditText: `${SITE_NAME} Studio`,
+        acquireLicensePage: absoluteUrl("/contact"),
+        ...mainMediaObject,
+      },
+    ],
+  };
+}

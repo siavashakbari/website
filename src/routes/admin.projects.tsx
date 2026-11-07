@@ -17,8 +17,9 @@ import {
   Layers,
   Database,
 } from "lucide-react";
-import { getStudioProjects, saveStudioProject, deleteStudioProject } from "@/lib/studio-store";
+import { getStudioProjects, saveStudioProject, deleteStudioProject, getMergedPhotoInventory } from "@/lib/studio-store";
 import type { StudioProjectItem } from "@/types/admin";
+import { DISCIPLINE_QUICK_TAGS, DISCIPLINE_ROLE_MATRIX } from "@/types/portfolio-schema";
 
 export const Route = createFileRoute("/admin/projects")({
   component: AdminProjectsView,
@@ -130,6 +131,49 @@ function AdminProjectsView() {
   // Video Formula calculator state
   const [videoDuration, setVideoDuration] = useState<number | null>(null);
   const [videoTargetMb, setVideoTargetMb] = useState<number | null>(null);
+
+  // Dynamic autocomplete memory from existing assets
+  const projectAutocomplete = useMemo(() => {
+    const clients = new Set<string>();
+    const modelsSet = new Set<string>();
+    const muas = new Set<string>();
+    const assistants = new Set<string>();
+
+    projects.forEach((p) => {
+      if (p.client?.trim()) clients.add(p.client.trim());
+      if (p.models?.trim()) modelsSet.add(p.models.trim());
+      if (p.makeupArtist?.trim()) muas.add(p.makeupArtist.trim());
+      if (p.assistant?.trim()) assistants.add(p.assistant.trim());
+    });
+
+    try {
+      const vault = getMergedPhotoInventory();
+      vault.forEach((v) => {
+        if (v.client?.trim()) clients.add(v.client.trim());
+        if (v.model?.trim()) modelsSet.add(v.model.trim());
+        if (v.makeupArtist?.trim()) muas.add(v.makeupArtist.trim());
+        if (v.assistant?.trim()) assistants.add(v.assistant.trim());
+      });
+    } catch (e) {
+      /* ignore */
+    }
+
+    return {
+      clients: Array.from(clients).sort(),
+      models: Array.from(modelsSet).sort(),
+      muas: Array.from(muas).sort(),
+      assistants: Array.from(assistants).sort(),
+    };
+  }, [projects]);
+
+  // Discipline-aware quick tags and role labels
+  const currentDisciplineTags = useMemo(() => {
+    return DISCIPLINE_QUICK_TAGS[discipline] || DISCIPLINE_QUICK_TAGS["fashion-photography"];
+  }, [discipline]);
+
+  const currentRoleMatrix = useMemo(() => {
+    return DISCIPLINE_ROLE_MATRIX[discipline] || DISCIPLINE_ROLE_MATRIX["fashion-photography"];
+  }, [discipline]);
 
   useEffect(() => {
     setProjects(getStudioProjects());
@@ -699,6 +743,29 @@ function AdminProjectsView() {
             </div>
 
             {/* Modal Form Scrollable Area */}
+            
+            {/* Autocomplete Datalists for Projects */}
+            <datalist id="client-suggestions">
+              {projectAutocomplete.clients.map((n) => (
+                <option key={n} value={n} />
+              ))}
+            </datalist>
+            <datalist id="model-suggestions">
+              {projectAutocomplete.models.map((n) => (
+                <option key={n} value={n} />
+              ))}
+            </datalist>
+            <datalist id="mua-suggestions">
+              {projectAutocomplete.muas.map((n) => (
+                <option key={n} value={n} />
+              ))}
+            </datalist>
+            <datalist id="assistant-suggestions">
+              {projectAutocomplete.assistants.map((n) => (
+                <option key={n} value={n} />
+              ))}
+            </datalist>
+
             <form onSubmit={handleSave} className="p-6 overflow-y-auto space-y-6 flex-1 text-xs">
               {/* BOX 1: CORE IDENTIFICATION & DISCIPLINE TARGET */}
               <div className="p-4 rounded-xl bg-black/40 border border-white/10 space-y-4">
@@ -804,7 +871,7 @@ function AdminProjectsView() {
                   <span className="text-[10px] text-neutral-400 self-center mr-1 font-mono">
                     Quick tags:
                   </span>
-                  {SUBDISCIPLINE_QUICK_TAGS.map((tag) => (
+                  {currentDisciplineTags.map((tag) => (
                     <button
                       key={tag}
                       type="button"
@@ -825,7 +892,7 @@ function AdminProjectsView() {
               <div className="p-4 rounded-xl bg-black/40 border border-white/10 space-y-4">
                 <div className="flex items-center justify-between border-b border-white/5 pb-2">
                   <span className="text-[11px] font-mono uppercase tracking-wider text-[#2CE3C0] font-bold">
-                    Box 3 · Credits & Production Team
+                    Box 3 · Discipline-Aware Credits & Production Team
                   </span>
                   <span className="text-[10px] text-neutral-500 font-mono">
                     ONLY NON-EMPTY FIELDS WILL DISPLAY

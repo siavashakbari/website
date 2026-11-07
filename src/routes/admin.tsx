@@ -420,8 +420,8 @@ function AdminLayout() {
 
   // Active Authenticated Studio Shell
   const navTabs = [
-    { label: "Case Study Projects", path: "/admin/projects", icon: Layers },
-    { label: "Photo & Visual Inventory", path: "/admin/inventory", icon: Database },
+    { label: "All Website Data", path: "/admin/projects", icon: Database },
+    { label: "Asset Vault", path: "/admin/inventory", icon: Layers },
     { label: "Blog & Editorial", path: "/admin/blog", icon: FileText },
     { label: "Invoice Studio", path: "/admin/invoices", icon: Receipt },
   ];
@@ -443,7 +443,10 @@ function AdminLayout() {
             <nav className="hidden md:flex items-center gap-1">
               {navTabs.map((tab) => {
                 const Icon = tab.icon;
-                const active = pathname.startsWith(tab.path);
+                const active =
+                  tab.path === "/admin/projects"
+                    ? pathname.startsWith("/admin/projects")
+                    : pathname.startsWith(tab.path);
                 return (
                   <Link
                     key={tab.path}

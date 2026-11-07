@@ -8,7 +8,7 @@ import { BackToTop } from "@/components/BackToTop";
 import { CoverTile } from "@/components/CoverTile";
 import { DISCIPLINES } from "@/data/disciplines";
 import { projects, type Project } from "@/data/projects";
-import { getPhotoByStem } from "@/data/photo-inventory";
+import { getPhotoByStem, computeItemSeoSlug } from "@/data/photo-inventory";
 import { pageHead } from "@/lib/seo";
 import { VideoPlayer } from "@/components/ui/video-player";
 import { metaFromSrc, assetStemFromSrc } from "@/lib/adaptive-image";
@@ -17,6 +17,7 @@ interface DisciplinePhoto {
   key: string;
   src: string;
   code: string;
+  seoSlug: string;
   disciplineSlug: string;
   imageName: string;
   title: string;
@@ -134,11 +135,13 @@ export const Route = createFileRoute("/$discipline/")({
         const stem = assetStemFromSrc(src);
         const inv = getPhotoByStem(stem);
         const code = inv?.code || `${project.id}-${String(idx + 1).padStart(2, "0")}`;
+        const seoSlug = inv ? computeItemSeoSlug(inv) : code.toLowerCase();
 
         items.push({
           key: `${project.id}-${idx}`,
           src,
           code,
+          seoSlug,
           disciplineSlug: discipline.slug,
           imageName: photoCaption(project.title, idx, gallery.length),
           title: project.title,
@@ -184,7 +187,7 @@ function PhotoMasonry({ items }: { items: DisciplinePhoto[] }) {
           <div key={item.key} className="relative mb-[4px] break-inside-avoid">
             <Link
               to="/$discipline/$photoId"
-              params={{ discipline: item.disciplineSlug, photoId: item.code }}
+              params={{ discipline: item.disciplineSlug, photoId: item.seoSlug || item.code }}
               className="group relative block w-full overflow-hidden bg-[#0F0F0F] transition-opacity hover:opacity-90 cursor-pointer"
             >
               <AdaptiveThumb

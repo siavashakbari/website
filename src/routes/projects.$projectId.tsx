@@ -99,6 +99,22 @@ function ProjectDetail() {
       d.match(project.category),
   );
 
+  // Track GA4 event on case study view
+  useEffect(() => {
+    if (typeof window !== "undefined" && window.gtag) {
+      window.gtag("event", "view_portfolio_asset", {
+        content_group: project.category || project.discipline,
+        asset_code: `SA-PROJ-${(project.id || "GEN").toUpperCase().slice(0, 3)}-01`,
+        asset_title: project.title,
+        project_name: project.title,
+        sub_discipline: project.subDiscipline || project.category,
+        client_name: project.client || project.title,
+        asset_year: String(project.year),
+        media_type: project.videoUrl ? "video" : "image",
+      });
+    }
+  }, [project.id, project.title, project.year, project.client, project.category, project.discipline, project.subDiscipline, project.videoUrl]);
+
   const handleWheel = (e: React.WheelEvent<HTMLDivElement>) => {
     if (!isDesktop) return;
     const el = scrollRef.current;

@@ -1,4 +1,6 @@
 // Auto-generated Photo Inventory Registry
+import type { CreditEntry } from "@/types/portfolio-schema";
+
 export interface PhotoInventoryItem {
   code: string;
   project: string;
@@ -13,6 +15,15 @@ export interface PhotoInventoryItem {
   date: string;
   keywords: string;
   caption?: string;
+  // Enhanced DAM & SEO Architecture fields:
+  seoSlug?: string;
+  canonicalPath?: string;
+  legacyCodePath?: string;
+  altText?: string;
+  metaTitle?: string;
+  metaDescription?: string;
+  credits?: CreditEntry[];
+  inheritProjectCredits?: boolean;
 }
 
 export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
@@ -4416,6 +4427,31 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
 
 const codeMap = new Map<string, PhotoInventoryItem>();
 const stemMap = new Map<string, PhotoInventoryItem>();
+const slugMap = new Map<string, PhotoInventoryItem>();
+
+function slugifyValue(text: string): string {
+  return text
+    .toString()
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, "-")
+    .replace(/[^\w\-]+/g, "")
+    .replace(/\-\-+/g, "-")
+    .replace(/^-+/, "")
+    .replace(/-+$/, "");
+}
+
+export function computeItemSeoSlug(item: PhotoInventoryItem): string {
+  if (item.seoSlug) return item.seoSlug;
+  const seqMatch = item.code.match(/(\d+)$/);
+  const seq = seqMatch ? seqMatch[1] : "01";
+  const projSlug = slugifyValue(item.project || "work");
+  const subSlug = slugifyValue(item.subdiscipline || "showcase");
+  if (projSlug.includes(subSlug)) {
+    return `${projSlug}-${seq}`;
+  }
+  return `${projSlug}-${subSlug}-${seq}`;
+}
 
 PHOTO_INVENTORY.forEach((item) => {
   codeMap.set(item.code.toUpperCase(), item);
@@ -4423,11 +4459,25 @@ PHOTO_INVENTORY.forEach((item) => {
   if (stem) {
     stemMap.set(stem.toLowerCase(), item);
   }
+  const computedSlug = computeItemSeoSlug(item);
+  slugMap.set(computedSlug.toLowerCase(), item);
+  // Also register composite key discipline:slug
+  slugMap.set(`${item.disciplineSlug}/${computedSlug}`.toLowerCase(), item);
 });
 
 export function getPhotoByCode(code: string): PhotoInventoryItem | undefined {
   if (!code) return undefined;
   return codeMap.get(code.toUpperCase());
+}
+
+export function getPhotoBySeoSlug(slugOrPath: string, disciplineSlug?: string): PhotoInventoryItem | undefined {
+  if (!slugOrPath) return undefined;
+  const clean = slugOrPath.toLowerCase().trim();
+  if (disciplineSlug) {
+    const composite = slugMap.get(`${disciplineSlug}/${clean}`.toLowerCase());
+    if (composite) return composite;
+  }
+  return slugMap.get(clean);
 }
 
 export function getPhotoByStem(stemOrSrc: string): PhotoInventoryItem | undefined {

@@ -3,6 +3,7 @@ import type {} from "@tanstack/react-start";
 import { DISCIPLINES } from "@/data/disciplines";
 import { projects } from "@/data/projects";
 import { BLOG_POSTS } from "@/data/blog-posts";
+import { PHOTO_INVENTORY, computeItemSeoSlug } from "@/data/photo-inventory";
 import { getSiteUrl } from "@/lib/seo";
 
 interface SitemapEntry {
@@ -10,9 +11,14 @@ interface SitemapEntry {
   lastmod?: string;
   changefreq?: "always" | "hourly" | "daily" | "weekly" | "monthly" | "yearly" | "never";
   priority?: string;
+  image?: {
+    loc: string;
+    title: string;
+    caption: string;
+  };
 }
 
-function buildEntries(): SitemapEntry[] {
+function buildEntries(baseUrl: string): SitemapEntry[] {
   const staticPages: SitemapEntry[] = [
     { path: "/", changefreq: "weekly", priority: "1.0" },
     { path: "/blog", changefreq: "weekly", priority: "0.9" },
@@ -44,7 +50,25 @@ function buildEntries(): SitemapEntry[] {
     lastmod: bp.publishedAt,
   }));
 
-  return [...staticPages, ...disciplinePages, ...projectPages, ...blogPages];
+  const assetPages: SitemapEntry[] = PHOTO_INVENTORY.map((item) => {
+    const seoSlug = computeItemSeoSlug(item);
+    const rawSrc = item.imgSrc.replace(/^src\//, "/");
+    const imageLoc = `${baseUrl}${rawSrc.startsWith("/") ? rawSrc : `/${rawSrc}`}`;
+
+    return {
+      path: `/${item.disciplineSlug}/${seoSlug}`,
+      changefreq: "monthly" as const,
+      priority: "0.75",
+      lastmod: item.date ? `${item.date}-01-01` : undefined,
+      image: {
+        loc: imageLoc,
+        title: `${item.project} — ${item.code}`,
+        caption: `${item.project} ${item.subdiscipline || item.discipline} by Siavash Akbari`,
+      },
+    };
+  });
+
+  return [...staticPages, ...disciplinePages, ...projectPages, ...blogPages, ...assetPages];
 }
 
 export const Route = createFileRoute("/sitemap.xml")({
@@ -52,7 +76,7 @@ export const Route = createFileRoute("/sitemap.xml")({
     handlers: {
       GET: async ({ request }) => {
         const baseUrl = getSiteUrl(request);
-        const entries = buildEntries();
+        const entries = buildEntries(baseUrl);
 
         const urls = entries.map((e) =>
           [
@@ -61,6 +85,9 @@ export const Route = createFileRoute("/sitemap.xml")({
             e.lastmod ? `    <lastmod>${e.lastmod}</lastmod>` : null,
             e.changefreq ? `    <changefreq>${e.changefreq}</changefreq>` : null,
             e.priority ? `    <priority>${e.priority}</priority>` : null,
+            e.image
+              ? `    <image:image>\n      <image:loc>${e.image.loc}</image:loc>\n      <image:title>${e.image.title.replace(/&/g, "&amp;")}</image:title>\n      <image:caption>${e.image.caption.replace(/&/g, "&amp;")}</image:caption>\n    </image:image>`
+              : null,
             `  </url>`,
           ]
             .filter(Boolean)
@@ -69,7 +96,7 @@ export const Route = createFileRoute("/sitemap.xml")({
 
         const xml = [
           `<?xml version="1.0" encoding="UTF-8"?>`,
-          `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">`,
+          `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">`,
           ...urls,
           `</urlset>`,
         ].join("\n");
