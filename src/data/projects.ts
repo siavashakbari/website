@@ -160,7 +160,6 @@ import atlasi11 from "../assets/fashion/atlasi/fashion-atlasi-11.jpg";
 import atlasi12 from "../assets/fashion/atlasi/fashion-atlasi-12.jpg";
 import atlasi13 from "../assets/fashion/atlasi/fashion-atlasi-13.jpg";
 import atlasi14 from "../assets/fashion/atlasi/fashion-atlasi-14.jpg";
-import atlasi16 from "../assets/fashion/atlasi/fashion-atlasi-16.jpg";
 import zeeen1 from "../assets/fashion/zeeen/fashion-zeeen-01.jpg";
 import zeeen2 from "../assets/fashion/zeeen/fashion-zeeen-02.jpg";
 import sepidar1 from "../assets/fashion/sepidar/fashion-sepidar-01.jpg";
@@ -392,13 +391,13 @@ export const projects: Project[] = [
     ],
   },
   {
-    id: "dodareh",
-    title: "Dobareh Accesories",
+    id: "dobareh",
+    title: "Dobareh",
     discipline: "graphic-design",
     category: "Visual Identity",
     year: "2025",
     description:
-      "Visual identity for Dobareh Accesories — a playful accessories brand built around sculptural letterforms.",
+      "Visual identity for Dobareh — a playful accessories brand built around sculptural letterforms.",
     image: dodareh2,
     aspect: "portrait",
     gallery: [dodareh2, dodareh1],
@@ -437,12 +436,12 @@ export const projects: Project[] = [
   },
   {
     id: "polarity",
-    title: "Polarity Atelier",
+    title: "Polarity",
     discipline: "graphic-design",
     category: "Visual Identity",
     year: "2025",
     description:
-      "Visual identity for Polarity Atelier — a sharp geometric wordmark that reads as both mark and attitude.",
+      "Visual identity for Polarity — a sharp geometric wordmark that reads as both mark and attitude.",
     image: polarity1,
     aspect: "landscape",
     gallery: [polarity1],
@@ -469,24 +468,24 @@ export const projects: Project[] = [
   },
   {
     id: "goats-coffee",
-    title: "Goat's Coffee",
+    title: "Goats Coffee",
     discipline: "graphic-design",
     category: "Visual Identity",
     year: "2025",
     description:
-      "Visual identity for Goat's Coffee — a coffee brand where a goat silhouette lives inside a bean mark, with quiet packaging and a memorable cut.",
+      "Visual identity for Goats Coffee — a coffee brand where a goat silhouette lives inside a bean mark, with quiet packaging and a memorable cut.",
     image: goats1,
     aspect: "portrait",
     gallery: [goats1, goats2, goats3, goats4, goats5],
   },
   {
-    id: "nozad-publication",
-    title: "Nozad Publications",
+    id: "nozad-publication-visual-identity",
+    title: "Nozad Publication Visual Identity",
     discipline: "graphic-design",
     category: "Visual Identity",
     year: "2025",
     description:
-      "Visual identity for Nozad Publications — a publishing brand with a sprout mark and modern Persian type.",
+      "Visual identity for Nozad Publication — a publishing brand with a sprout mark and modern Persian type.",
     image: nozadPublication1,
     aspect: "landscape",
     gallery: [
@@ -498,13 +497,13 @@ export const projects: Project[] = [
     ],
   },
   {
-    id: "on-swipe",
-    title: "On Swipe",
+    id: "onswipe",
+    title: "OnSwipe",
     discipline: "graphic-design",
     category: "Visual Identity",
     year: "2026",
     description:
-      "Visual identity for On Swipe — an AI-powered job-finding app — with open letterforms and a keyhole icon.",
+      "Visual identity for OnSwipe — an AI-powered job-finding app — with open letterforms and a keyhole icon.",
     image: onSwipe1,
     aspect: "landscape",
     gallery: [onSwipe1, onSwipe2],
@@ -625,13 +624,13 @@ export const projects: Project[] = [
     gallery: [awli1, awli2, awli3, awli4],
   },
   {
-    id: "book-covers",
-    title: "Book Covers",
+    id: "nozad-publications",
+    title: "Nozad Publications",
     discipline: "graphic-design",
-    category: "Book Covers",
+    category: "Book Covers & Posters",
     year: "2025",
     description:
-      "A series of book cover designs for Persian titles — typography-led covers where script, image, and restraint carry each story.",
+      "A comprehensive collection of book cover and poster designs for Nozad Publications — typography-led cultural publishing and wall compositions.",
     image: bookCovers1,
     aspect: "landscape",
     gallery: [
@@ -647,19 +646,6 @@ export const projects: Project[] = [
       bookCovers8,
       bookCovers2,
       bookCovers5,
-    ],
-  },
-  {
-    id: "posters",
-    title: "Posters",
-    discipline: "graphic-design",
-    category: "Posters",
-    year: "2025",
-    description:
-      "Poster designs for events, culture, and campaigns — bold composition, type, and image made for the wall.",
-    image: posters1,
-    aspect: "portrait",
-    gallery: [
       posters1,
       posters2,
       posters3,
@@ -704,6 +690,13 @@ export const projects: Project[] = [
       gastronomie22,
       gastronomie23,
       gastronomie24,
+      tasting1,
+      tasting2,
+      tasting3,
+      tasting5,
+      tasting6,
+      tasting7,
+      tasting9,
     ],
   },
   {
@@ -730,25 +723,6 @@ export const projects: Project[] = [
     ],
   },
   {
-    id: "tasting",
-    title: "Tasting",
-    discipline: "photography",
-    category: "Food Photography",
-    year: "2024",
-    description: "A tasting-menu story of color, glaze, and close-cropped appetite.",
-    image: tasting1,
-    aspect: "portrait",
-    gallery: [
-      tasting1,
-      tasting2,
-      tasting3,
-      tasting5,
-      tasting6,
-      tasting7,
-      tasting9,
-    ],
-  },
-  {
     id: "atlasi",
     title: "Atlasi",
     discipline: "photography",
@@ -772,7 +746,6 @@ export const projects: Project[] = [
       atlasi12,
       atlasi13,
       atlasi14,
-      atlasi16,
     ],
   },
   {

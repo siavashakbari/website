@@ -1,6 +1,6 @@
 // Pre-mapped asset URLs for all inventory items
 const assetModules: Record<string, string> = import.meta.glob(
-  "../assets/**/*.{jpg,jpeg,png,webp,gif}",
+  "../assets/**/*.{jpg,jpeg,png,webp,gif,mp4}",
   { eager: true, import: "default" }
 );
 

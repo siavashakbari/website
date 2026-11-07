@@ -64,6 +64,32 @@ export function getStudioProjects(): StudioProjectItem[] {
       if (raw) {
         const parsed: StudioProjectItem[] = JSON.parse(raw);
         parsed.forEach((item) => {
+          // Normalize legacy project titles & ids
+          const normId = item.id.toLowerCase();
+          const normTitle = (item.title || "").toLowerCase();
+
+          if (normId === "tasting" || normTitle === "tasting") return;
+          if (normId === "dodareh" || normTitle.includes("accesories") || normTitle.includes("accessories")) {
+            customMap["dobareh"] = { ...item, id: "dobareh", title: "Dobareh" };
+            return;
+          }
+          if (normId === "polarity-atelier" || normTitle === "polarity atelier") {
+            customMap["polarity"] = { ...item, id: "polarity", title: "Polarity" };
+            return;
+          }
+          if (normId === "shekarchian-honey" || normTitle.includes("shekarchian")) {
+            customMap["shekarchian-sweets"] = { ...item, id: "shekarchian-sweets", title: "Shekarchian Sweets" };
+            return;
+          }
+          if (normId === "on-swipe" || normTitle === "on swipe" || normTitle === "on-swipe") {
+            customMap["onswipe"] = { ...item, id: "onswipe", title: "OnSwipe" };
+            return;
+          }
+          if (normId === "goats-coffee" || normTitle.includes("goat")) {
+            customMap["goats-coffee"] = { ...item, id: "goats-coffee", title: "Goats Coffee" };
+            return;
+          }
+
           customMap[item.id] = item;
         });
       }
@@ -597,6 +623,17 @@ export function getMergedPhotoInventory(): PhotoInventoryItem[] {
     const specSlug = custom?.specialtySlug || inferItemSpecialty(item);
     const projSlug = custom?.projectSlug || taxNormProj(custom?.project || item.project);
 
+    let projName = custom?.project || item.project;
+    if (projSlug === "gastronomie") projName = "Gastronomie";
+    else if (projSlug === "dobareh") projName = "Dobareh";
+    else if (projSlug === "shekarchian-sweets") projName = "Shekarchian Sweets";
+    else if (projSlug === "onswipe") projName = "OnSwipe";
+    else if (projSlug === "polarity") projName = "Polarity";
+    else if (projSlug === "goats-coffee") projName = "Goats Coffee";
+    else if (projSlug === "nozad-publication-visual-identity") projName = "Nozad Publication Visual Identity";
+    else if (projSlug === "nozad-publications") projName = "Nozad Publications";
+    else if (projSlug === "echo-prime") projName = "Echo Prime";
+
     if (!projectSequenceMap[projSlug]) projectSequenceMap[projSlug] = 0;
     projectSequenceMap[projSlug] += 1;
     const seq = projectSequenceMap[projSlug];
@@ -610,13 +647,14 @@ export function getMergedPhotoInventory(): PhotoInventoryItem[] {
       custom?.standardCode ||
       (/^[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}-\d{4}$/i.test(item.code)
         ? item.code.toUpperCase()
-        : generate4PartPhotoCode(discSlug, specSlug, custom?.project || item.project, numInt));
+        : generate4PartPhotoCode(discSlug, specSlug, projName, numInt));
 
     const canonicalPath = buildPhotoUrl(discSlug, specSlug, projSlug, standardCode);
 
     const mergedItem: PhotoInventoryItem = {
       ...item,
       ...custom,
+      project: projName,
       code: standardCode,
       standardCode,
       legacyCode: item.code,
@@ -636,16 +674,29 @@ export function getMergedPhotoInventory(): PhotoInventoryItem[] {
     const discSlug = custom?.disciplineSlug || taxNormDisc(item.disciplineSlug || item.discipline || "photography");
     const specSlug = custom?.specialtySlug || taxNormSpec(item.specialtySlug || item.subdiscipline || "fashion");
     const projSlug = custom?.projectSlug || taxNormProj(custom?.project || item.project || "custom-project");
+
+    let projName = custom?.project || item.project || "custom-project";
+    if (projSlug === "gastronomie") projName = "Gastronomie";
+    else if (projSlug === "dobareh") projName = "Dobareh";
+    else if (projSlug === "shekarchian-sweets") projName = "Shekarchian Sweets";
+    else if (projSlug === "onswipe") projName = "OnSwipe";
+    else if (projSlug === "polarity") projName = "Polarity";
+    else if (projSlug === "goats-coffee") projName = "Goats Coffee";
+    else if (projSlug === "nozad-publication-visual-identity") projName = "Nozad Publication Visual Identity";
+    else if (projSlug === "nozad-publications") projName = "Nozad Publications";
+    else if (projSlug === "echo-prime") projName = "Echo Prime";
+
     const standardCode =
       custom?.standardCode ||
       item.standardCode ||
       item.code ||
-      generate4PartPhotoCode(discSlug, specSlug, projSlug, idx + 1);
+      generate4PartPhotoCode(discSlug, specSlug, projName, idx + 1);
     const canonicalPath = buildPhotoUrl(discSlug, specSlug, projSlug, standardCode);
 
     const mergedItem: PhotoInventoryItem = {
       ...item,
       ...custom,
+      project: projName,
       code: standardCode,
       standardCode,
       disciplineSlug: discSlug,
@@ -711,6 +762,12 @@ export function getPhotoItemBySlugOrCode(
   if (!slugOrCode) return undefined;
   const q = slugOrCode.toLowerCase().trim();
   const all = getMergedPhotoInventory();
+
+  // Alias for duplicate Atlasi 16 -> Atlasi 09
+  if (q === "phot-fash-atla-0016" || q === "sa-fash-atl-15" || q === "fashion-atlasi-16") {
+    const atla9 = all.find((i) => i.code.toUpperCase() === "PHOT-FASH-ATLA-0009" || (i.imgSrc && i.imgSrc.includes("fashion-atlasi-09")));
+    if (atla9) return atla9;
+  }
 
   // 1. Direct match on standard 4-part code (PHOT-FASH-SEPI-0001), code, or legacy code
   const byStandardCode = all.find(

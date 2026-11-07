@@ -69,21 +69,29 @@ export const PROJECT_4_MAP: Record<string, string> = {
   zeeen: "ZEEE",
   gastronomie: "GAST",
   cuisine: "CUIS",
-  tasting: "TAST",
+  tasting: "GAST",
   calligraphy: "CALL",
   photos: "PHOT",
   gaze: "GAZE",
   objects: "OBJE",
+  "shekarchian-sweets": "SHEK",
   shekarchian: "SHEK",
   "shekarchian-honey": "SHEK",
-  dodareh: "DODA",
+  dobareh: "DOBA",
+  dodareh: "DOBA",
+  "dobareh-accesories": "DOBA",
+  "dobareh-accessories": "DOBA",
   "ahura-cctv": "AHUR",
   femiq: "FEMI",
   polarity: "POLA",
+  "polarity-atelier": "POLA",
   "echo-supplements": "ECHO",
   goats: "GOAT",
   "goats-coffee": "GOAT",
+  "nozad-publication-visual-identity": "NOZA",
+  "nozad-publications": "NOZA",
   "nozad-publication": "NOZA",
+  onswipe: "ONSW",
   "on-swipe": "ONSW",
   "zen-studio": "ZENS",
   "zen-studio-products": "ZENS",
@@ -144,7 +152,15 @@ export function normalizeSpecialtySlug(specialty: string): string {
  * Maps any project name to its canonical URL slug (e.g. "Sepidar" -> "sepidar").
  */
 export function normalizeProjectSlug(project: string): string {
-  return slugify(project) || "project";
+  const base = slugify(project) || "project";
+  if (base === "tasting") return "gastronomie";
+  if (base === "dodareh" || base === "dobareh-accesories" || base === "dobareh-accessories") return "dobareh";
+  if (base === "shekarchian" || base === "shekarchian-honey") return "shekarchian-sweets";
+  if (base === "on-swipe") return "onswipe";
+  if (base === "polarity-atelier") return "polarity";
+  if (base === "nozad-publication") return "nozad-publication-visual-identity";
+  if (base === "goats") return "goats-coffee";
+  return base;
 }
 
 /**

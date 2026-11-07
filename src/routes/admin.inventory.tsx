@@ -203,11 +203,24 @@ function AdminAssetsManagementView() {
   // Unique project names for project dropdown (deduplicated & alphabetized)
   const allProjectNames = useMemo(() => {
     const set = new Set<string>();
+    const normalizeName = (name: string) => {
+      const clean = name.trim();
+      const lower = clean.toLowerCase();
+      if (lower === "tasting") return "Gastronomie";
+      if (lower === "dodareh" || lower.includes("accesories") || lower.includes("accessories")) return "Dobareh";
+      if (lower === "shekarchian honey" || lower === "shekarchian") return "Shekarchian Sweets";
+      if (lower === "polarity atelier") return "Polarity";
+      if (lower === "on swipe" || lower === "on-swipe") return "OnSwipe";
+      if (lower === "goat's coffee" || lower === "goats") return "Goats Coffee";
+      if (lower === "nozad publication") return "Nozad Publication Visual Identity";
+      return clean;
+    };
+
     projects.forEach((p) => {
-      if (p.title?.trim()) set.add(p.title.trim());
+      if (p.title?.trim()) set.add(normalizeName(p.title));
     });
     items.forEach((i) => {
-      if (i.project?.trim()) set.add(i.project.trim());
+      if (i.project?.trim()) set.add(normalizeName(i.project));
     });
     return Array.from(set).sort((a, b) => a.localeCompare(b));
   }, [projects, items]);
@@ -859,12 +872,23 @@ function AdminAssetsManagementView() {
                 {/* Card Header & Media Preview */}
                 <div>
                   <div className="relative aspect-[4/3] bg-black/60 overflow-hidden group flex items-center justify-center border-b border-white/10">
-                    <img
-                      src={resolvedSrc}
-                      alt={item.displayName || item.code}
-                      loading="lazy"
-                      className="w-full h-full object-contain p-2 group-hover:scale-105 transition-transform duration-500"
-                    />
+                    {item.imgSrc?.endsWith(".mp4") ? (
+                      <video
+                        src={resolvedSrc}
+                        autoPlay
+                        muted
+                        loop
+                        playsInline
+                        className="w-full h-full object-contain p-2"
+                      />
+                    ) : (
+                      <img
+                        src={resolvedSrc}
+                        alt={item.displayName || item.code}
+                        loading="lazy"
+                        className="w-full h-full object-contain p-2 group-hover:scale-105 transition-transform duration-500"
+                      />
+                    )}
 
                     {/* Top Overlay Bar */}
                     <div className="absolute top-3 inset-x-3 flex items-center justify-between">

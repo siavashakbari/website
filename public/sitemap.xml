@@ -93,7 +93,7 @@
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://www.siavashakbari.ir/projects/dodareh</loc>
+    <loc>https://www.siavashakbari.ir/projects/dobareh</loc>
     <lastmod>2025-01-01</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
@@ -129,13 +129,13 @@
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://www.siavashakbari.ir/projects/nozad-publication</loc>
+    <loc>https://www.siavashakbari.ir/projects/nozad-publication-visual-identity</loc>
     <lastmod>2025-01-01</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://www.siavashakbari.ir/projects/on-swipe</loc>
+    <loc>https://www.siavashakbari.ir/projects/onswipe</loc>
     <lastmod>2026-01-01</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
@@ -195,13 +195,7 @@
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://www.siavashakbari.ir/projects/book-covers</loc>
-    <lastmod>2025-01-01</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.siavashakbari.ir/projects/posters</loc>
+    <loc>https://www.siavashakbari.ir/projects/nozad-publications</loc>
     <lastmod>2025-01-01</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
@@ -214,12 +208,6 @@
   </url>
   <url>
     <loc>https://www.siavashakbari.ir/projects/cuisine</loc>
-    <lastmod>2024-01-01</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.siavashakbari.ir/projects/tasting</loc>
     <lastmod>2024-01-01</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
@@ -441,17 +429,6 @@
     <image:image>
       <image:loc>https://www.siavashakbari.ir/assets/fashion/atlasi/fashion-atlasi-14.jpg</image:loc>
       <image:title>Atlasi — SA-FASH-ATL-14</image:title>
-      <image:caption>Atlasi Textile &amp; Silhouette by Siavash Akbari</image:caption>
-    </image:image>
-  </url>
-  <url>
-    <loc>https://www.siavashakbari.ir/fashion-photography/atlasi-textile-silhouette-15</loc>
-    <lastmod>2024-01-01</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.75</priority>
-    <image:image>
-      <image:loc>https://www.siavashakbari.ir/assets/fashion/atlasi/fashion-atlasi-16.jpg</image:loc>
-      <image:title>Atlasi — SA-FASH-ATL-15</image:title>
       <image:caption>Atlasi Textile &amp; Silhouette by Siavash Akbari</image:caption>
     </image:image>
   </url>
@@ -1237,80 +1214,80 @@
     </image:image>
   </url>
   <url>
-    <loc>https://www.siavashakbari.ir/food-photography/tasting-tasting-menu-details-01</loc>
+    <loc>https://www.siavashakbari.ir/food-photography/gastronomie-tasting-menu-details-01</loc>
     <lastmod>2024-01-01</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.75</priority>
     <image:image>
       <image:loc>https://www.siavashakbari.ir/assets/food/tasting/food-tasting-01.jpg</image:loc>
-      <image:title>Tasting — SA-FOOD-TAS-01</image:title>
-      <image:caption>Tasting Tasting Menu &amp; Details by Siavash Akbari</image:caption>
+      <image:title>Gastronomie — SA-FOOD-TAS-01</image:title>
+      <image:caption>Gastronomie Tasting Menu &amp; Details by Siavash Akbari</image:caption>
     </image:image>
   </url>
   <url>
-    <loc>https://www.siavashakbari.ir/food-photography/tasting-tasting-menu-details-02</loc>
+    <loc>https://www.siavashakbari.ir/food-photography/gastronomie-tasting-menu-details-02</loc>
     <lastmod>2024-01-01</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.75</priority>
     <image:image>
       <image:loc>https://www.siavashakbari.ir/assets/food/tasting/food-tasting-02.jpg</image:loc>
-      <image:title>Tasting — SA-FOOD-TAS-02</image:title>
-      <image:caption>Tasting Tasting Menu &amp; Details by Siavash Akbari</image:caption>
+      <image:title>Gastronomie — SA-FOOD-TAS-02</image:title>
+      <image:caption>Gastronomie Tasting Menu &amp; Details by Siavash Akbari</image:caption>
     </image:image>
   </url>
   <url>
-    <loc>https://www.siavashakbari.ir/food-photography/tasting-tasting-menu-details-03</loc>
+    <loc>https://www.siavashakbari.ir/food-photography/gastronomie-tasting-menu-details-03</loc>
     <lastmod>2024-01-01</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.75</priority>
     <image:image>
       <image:loc>https://www.siavashakbari.ir/assets/food/tasting/food-tasting-03.jpg</image:loc>
-      <image:title>Tasting — SA-FOOD-TAS-03</image:title>
-      <image:caption>Tasting Tasting Menu &amp; Details by Siavash Akbari</image:caption>
+      <image:title>Gastronomie — SA-FOOD-TAS-03</image:title>
+      <image:caption>Gastronomie Tasting Menu &amp; Details by Siavash Akbari</image:caption>
     </image:image>
   </url>
   <url>
-    <loc>https://www.siavashakbari.ir/food-photography/tasting-tasting-menu-details-04</loc>
+    <loc>https://www.siavashakbari.ir/food-photography/gastronomie-tasting-menu-details-04</loc>
     <lastmod>2024-01-01</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.75</priority>
     <image:image>
       <image:loc>https://www.siavashakbari.ir/assets/food/tasting/food-tasting-05.jpg</image:loc>
-      <image:title>Tasting — SA-FOOD-TAS-04</image:title>
-      <image:caption>Tasting Tasting Menu &amp; Details by Siavash Akbari</image:caption>
+      <image:title>Gastronomie — SA-FOOD-TAS-04</image:title>
+      <image:caption>Gastronomie Tasting Menu &amp; Details by Siavash Akbari</image:caption>
     </image:image>
   </url>
   <url>
-    <loc>https://www.siavashakbari.ir/food-photography/tasting-tasting-menu-details-05</loc>
+    <loc>https://www.siavashakbari.ir/food-photography/gastronomie-tasting-menu-details-05</loc>
     <lastmod>2024-01-01</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.75</priority>
     <image:image>
       <image:loc>https://www.siavashakbari.ir/assets/food/tasting/food-tasting-06.jpg</image:loc>
-      <image:title>Tasting — SA-FOOD-TAS-05</image:title>
-      <image:caption>Tasting Tasting Menu &amp; Details by Siavash Akbari</image:caption>
+      <image:title>Gastronomie — SA-FOOD-TAS-05</image:title>
+      <image:caption>Gastronomie Tasting Menu &amp; Details by Siavash Akbari</image:caption>
     </image:image>
   </url>
   <url>
-    <loc>https://www.siavashakbari.ir/food-photography/tasting-tasting-menu-details-06</loc>
+    <loc>https://www.siavashakbari.ir/food-photography/gastronomie-tasting-menu-details-06</loc>
     <lastmod>2024-01-01</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.75</priority>
     <image:image>
       <image:loc>https://www.siavashakbari.ir/assets/food/tasting/food-tasting-07.jpg</image:loc>
-      <image:title>Tasting — SA-FOOD-TAS-06</image:title>
-      <image:caption>Tasting Tasting Menu &amp; Details by Siavash Akbari</image:caption>
+      <image:title>Gastronomie — SA-FOOD-TAS-06</image:title>
+      <image:caption>Gastronomie Tasting Menu &amp; Details by Siavash Akbari</image:caption>
     </image:image>
   </url>
   <url>
-    <loc>https://www.siavashakbari.ir/food-photography/tasting-tasting-menu-details-07</loc>
+    <loc>https://www.siavashakbari.ir/food-photography/gastronomie-tasting-menu-details-07</loc>
     <lastmod>2024-01-01</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.75</priority>
     <image:image>
       <image:loc>https://www.siavashakbari.ir/assets/food/tasting/food-tasting-09.jpg</image:loc>
-      <image:title>Tasting — SA-FOOD-TAS-07</image:title>
-      <image:caption>Tasting Tasting Menu &amp; Details by Siavash Akbari</image:caption>
+      <image:title>Gastronomie — SA-FOOD-TAS-07</image:title>
+      <image:caption>Gastronomie Tasting Menu &amp; Details by Siavash Akbari</image:caption>
     </image:image>
   </url>
   <url>
@@ -2612,91 +2589,91 @@
     </image:image>
   </url>
   <url>
-    <loc>https://www.siavashakbari.ir/visual-identity/shekarchian-honey-packaging-brand-identity-01</loc>
+    <loc>https://www.siavashakbari.ir/visual-identity/shekarchian-sweets-packaging-brand-identity-01</loc>
     <lastmod>2024-01-01</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.75</priority>
     <image:image>
       <image:loc>https://www.siavashakbari.ir/assets/graphic-design/shekarchian/graphic-design-shekarchian-01.jpg</image:loc>
-      <image:title>Shekarchian Honey — SA-VI-SHEK-01</image:title>
-      <image:caption>Shekarchian Honey Packaging &amp; Brand Identity by Siavash Akbari</image:caption>
+      <image:title>Shekarchian Sweets — SA-VI-SHEK-01</image:title>
+      <image:caption>Shekarchian Sweets Packaging &amp; Brand Identity by Siavash Akbari</image:caption>
     </image:image>
   </url>
   <url>
-    <loc>https://www.siavashakbari.ir/visual-identity/shekarchian-honey-packaging-brand-identity-02</loc>
+    <loc>https://www.siavashakbari.ir/visual-identity/shekarchian-sweets-packaging-brand-identity-02</loc>
     <lastmod>2024-01-01</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.75</priority>
     <image:image>
       <image:loc>https://www.siavashakbari.ir/assets/graphic-design/shekarchian/graphic-design-shekarchian-02.jpg</image:loc>
-      <image:title>Shekarchian Honey — SA-VI-SHEK-02</image:title>
-      <image:caption>Shekarchian Honey Packaging &amp; Brand Identity by Siavash Akbari</image:caption>
+      <image:title>Shekarchian Sweets — SA-VI-SHEK-02</image:title>
+      <image:caption>Shekarchian Sweets Packaging &amp; Brand Identity by Siavash Akbari</image:caption>
     </image:image>
   </url>
   <url>
-    <loc>https://www.siavashakbari.ir/visual-identity/shekarchian-honey-packaging-brand-identity-03</loc>
+    <loc>https://www.siavashakbari.ir/visual-identity/shekarchian-sweets-packaging-brand-identity-03</loc>
     <lastmod>2024-01-01</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.75</priority>
     <image:image>
       <image:loc>https://www.siavashakbari.ir/assets/graphic-design/shekarchian/graphic-design-shekarchian-03.jpg</image:loc>
-      <image:title>Shekarchian Honey — SA-VI-SHEK-03</image:title>
-      <image:caption>Shekarchian Honey Packaging &amp; Brand Identity by Siavash Akbari</image:caption>
+      <image:title>Shekarchian Sweets — SA-VI-SHEK-03</image:title>
+      <image:caption>Shekarchian Sweets Packaging &amp; Brand Identity by Siavash Akbari</image:caption>
     </image:image>
   </url>
   <url>
-    <loc>https://www.siavashakbari.ir/visual-identity/shekarchian-honey-packaging-brand-identity-04</loc>
+    <loc>https://www.siavashakbari.ir/visual-identity/shekarchian-sweets-packaging-brand-identity-04</loc>
     <lastmod>2024-01-01</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.75</priority>
     <image:image>
       <image:loc>https://www.siavashakbari.ir/assets/graphic-design/shekarchian/graphic-design-shekarchian-04.jpg</image:loc>
-      <image:title>Shekarchian Honey — SA-VI-SHEK-04</image:title>
-      <image:caption>Shekarchian Honey Packaging &amp; Brand Identity by Siavash Akbari</image:caption>
+      <image:title>Shekarchian Sweets — SA-VI-SHEK-04</image:title>
+      <image:caption>Shekarchian Sweets Packaging &amp; Brand Identity by Siavash Akbari</image:caption>
     </image:image>
   </url>
   <url>
-    <loc>https://www.siavashakbari.ir/visual-identity/shekarchian-honey-packaging-brand-identity-05</loc>
+    <loc>https://www.siavashakbari.ir/visual-identity/shekarchian-sweets-packaging-brand-identity-05</loc>
     <lastmod>2024-01-01</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.75</priority>
     <image:image>
       <image:loc>https://www.siavashakbari.ir/assets/graphic-design/shekarchian/graphic-design-shekarchian-05.jpg</image:loc>
-      <image:title>Shekarchian Honey — SA-VI-SHEK-05</image:title>
-      <image:caption>Shekarchian Honey Packaging &amp; Brand Identity by Siavash Akbari</image:caption>
+      <image:title>Shekarchian Sweets — SA-VI-SHEK-05</image:title>
+      <image:caption>Shekarchian Sweets Packaging &amp; Brand Identity by Siavash Akbari</image:caption>
     </image:image>
   </url>
   <url>
-    <loc>https://www.siavashakbari.ir/visual-identity/shekarchian-honey-packaging-brand-identity-06</loc>
+    <loc>https://www.siavashakbari.ir/visual-identity/shekarchian-sweets-packaging-brand-identity-06</loc>
     <lastmod>2024-01-01</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.75</priority>
     <image:image>
       <image:loc>https://www.siavashakbari.ir/assets/graphic-design/shekarchian/graphic-design-shekarchian-06.jpg</image:loc>
-      <image:title>Shekarchian Honey — SA-VI-SHEK-06</image:title>
-      <image:caption>Shekarchian Honey Packaging &amp; Brand Identity by Siavash Akbari</image:caption>
+      <image:title>Shekarchian Sweets — SA-VI-SHEK-06</image:title>
+      <image:caption>Shekarchian Sweets Packaging &amp; Brand Identity by Siavash Akbari</image:caption>
     </image:image>
   </url>
   <url>
-    <loc>https://www.siavashakbari.ir/visual-identity/dodareh-spatial-branding-signage-01</loc>
+    <loc>https://www.siavashakbari.ir/visual-identity/dobareh-spatial-branding-signage-01</loc>
     <lastmod>2024-01-01</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.75</priority>
     <image:image>
       <image:loc>https://www.siavashakbari.ir/assets/graphic-design/dodareh/graphic-design-dodareh-01.jpg</image:loc>
-      <image:title>Dodareh — SA-VI-DOD-01</image:title>
-      <image:caption>Dodareh Spatial Branding &amp; Signage by Siavash Akbari</image:caption>
+      <image:title>Dobareh — SA-VI-DOD-01</image:title>
+      <image:caption>Dobareh Spatial Branding &amp; Signage by Siavash Akbari</image:caption>
     </image:image>
   </url>
   <url>
-    <loc>https://www.siavashakbari.ir/visual-identity/dodareh-spatial-branding-signage-02</loc>
+    <loc>https://www.siavashakbari.ir/visual-identity/dobareh-spatial-branding-signage-02</loc>
     <lastmod>2024-01-01</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.75</priority>
     <image:image>
       <image:loc>https://www.siavashakbari.ir/assets/graphic-design/dodareh/graphic-design-dodareh-02.jpg</image:loc>
-      <image:title>Dodareh — SA-VI-DOD-02</image:title>
-      <image:caption>Dodareh Spatial Branding &amp; Signage by Siavash Akbari</image:caption>
+      <image:title>Dobareh — SA-VI-DOD-02</image:title>
+      <image:caption>Dobareh Spatial Branding &amp; Signage by Siavash Akbari</image:caption>
     </image:image>
   </url>
   <url>
@@ -3019,80 +2996,80 @@
     </image:image>
   </url>
   <url>
-    <loc>https://www.siavashakbari.ir/visual-identity/nozad-publication-publishing-house-identity-01</loc>
+    <loc>https://www.siavashakbari.ir/visual-identity/nozad-publication-visual-identity-publishing-house-identity-01</loc>
     <lastmod>2022-01-01</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.75</priority>
     <image:image>
       <image:loc>https://www.siavashakbari.ir/assets/graphic-design/nozad-publication/graphic-design-nozad-publication-01.jpg</image:loc>
-      <image:title>Nozad Publication — SA-VI-NOZ-01</image:title>
-      <image:caption>Nozad Publication Publishing House Identity by Siavash Akbari</image:caption>
+      <image:title>Nozad Publication Visual Identity — SA-VI-NOZ-01</image:title>
+      <image:caption>Nozad Publication Visual Identity Publishing House Identity by Siavash Akbari</image:caption>
     </image:image>
   </url>
   <url>
-    <loc>https://www.siavashakbari.ir/visual-identity/nozad-publication-publishing-house-identity-02</loc>
+    <loc>https://www.siavashakbari.ir/visual-identity/nozad-publication-visual-identity-publishing-house-identity-02</loc>
     <lastmod>2022-01-01</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.75</priority>
     <image:image>
       <image:loc>https://www.siavashakbari.ir/assets/graphic-design/nozad-publication/graphic-design-nozad-publication-02.jpg</image:loc>
-      <image:title>Nozad Publication — SA-VI-NOZ-02</image:title>
-      <image:caption>Nozad Publication Publishing House Identity by Siavash Akbari</image:caption>
+      <image:title>Nozad Publication Visual Identity — SA-VI-NOZ-02</image:title>
+      <image:caption>Nozad Publication Visual Identity Publishing House Identity by Siavash Akbari</image:caption>
     </image:image>
   </url>
   <url>
-    <loc>https://www.siavashakbari.ir/visual-identity/nozad-publication-publishing-house-identity-03</loc>
+    <loc>https://www.siavashakbari.ir/visual-identity/nozad-publication-visual-identity-publishing-house-identity-03</loc>
     <lastmod>2022-01-01</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.75</priority>
     <image:image>
       <image:loc>https://www.siavashakbari.ir/assets/graphic-design/nozad-publication/graphic-design-nozad-publication-03.jpg</image:loc>
-      <image:title>Nozad Publication — SA-VI-NOZ-03</image:title>
-      <image:caption>Nozad Publication Publishing House Identity by Siavash Akbari</image:caption>
+      <image:title>Nozad Publication Visual Identity — SA-VI-NOZ-03</image:title>
+      <image:caption>Nozad Publication Visual Identity Publishing House Identity by Siavash Akbari</image:caption>
     </image:image>
   </url>
   <url>
-    <loc>https://www.siavashakbari.ir/visual-identity/nozad-publication-publishing-house-identity-04</loc>
+    <loc>https://www.siavashakbari.ir/visual-identity/nozad-publication-visual-identity-publishing-house-identity-04</loc>
     <lastmod>2022-01-01</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.75</priority>
     <image:image>
       <image:loc>https://www.siavashakbari.ir/assets/graphic-design/nozad-publication/graphic-design-nozad-publication-04.jpg</image:loc>
-      <image:title>Nozad Publication — SA-VI-NOZ-04</image:title>
-      <image:caption>Nozad Publication Publishing House Identity by Siavash Akbari</image:caption>
+      <image:title>Nozad Publication Visual Identity — SA-VI-NOZ-04</image:title>
+      <image:caption>Nozad Publication Visual Identity Publishing House Identity by Siavash Akbari</image:caption>
     </image:image>
   </url>
   <url>
-    <loc>https://www.siavashakbari.ir/visual-identity/nozad-publication-publishing-house-identity-05</loc>
+    <loc>https://www.siavashakbari.ir/visual-identity/nozad-publication-visual-identity-publishing-house-identity-05</loc>
     <lastmod>2022-01-01</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.75</priority>
     <image:image>
       <image:loc>https://www.siavashakbari.ir/assets/graphic-design/nozad-publication/graphic-design-nozad-publication-05.jpg</image:loc>
-      <image:title>Nozad Publication — SA-VI-NOZ-05</image:title>
-      <image:caption>Nozad Publication Publishing House Identity by Siavash Akbari</image:caption>
+      <image:title>Nozad Publication Visual Identity — SA-VI-NOZ-05</image:title>
+      <image:caption>Nozad Publication Visual Identity Publishing House Identity by Siavash Akbari</image:caption>
     </image:image>
   </url>
   <url>
-    <loc>https://www.siavashakbari.ir/visual-identity/on-swipe-digital-platform-identity-01</loc>
+    <loc>https://www.siavashakbari.ir/visual-identity/onswipe-digital-platform-identity-01</loc>
     <lastmod>2023-01-01</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.75</priority>
     <image:image>
       <image:loc>https://www.siavashakbari.ir/assets/graphic-design/on-swipe/graphic-design-on-swipe-01.jpg</image:loc>
-      <image:title>On-Swipe — SA-VI-ONS-01</image:title>
-      <image:caption>On-Swipe Digital Platform Identity by Siavash Akbari</image:caption>
+      <image:title>OnSwipe — SA-VI-ONS-01</image:title>
+      <image:caption>OnSwipe Digital Platform Identity by Siavash Akbari</image:caption>
     </image:image>
   </url>
   <url>
-    <loc>https://www.siavashakbari.ir/visual-identity/on-swipe-digital-platform-identity-02</loc>
+    <loc>https://www.siavashakbari.ir/visual-identity/onswipe-digital-platform-identity-02</loc>
     <lastmod>2023-01-01</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.75</priority>
     <image:image>
       <image:loc>https://www.siavashakbari.ir/assets/graphic-design/on-swipe/graphic-design-on-swipe-02.jpg</image:loc>
-      <image:title>On-Swipe — SA-VI-ONS-02</image:title>
-      <image:caption>On-Swipe Digital Platform Identity by Siavash Akbari</image:caption>
+      <image:title>OnSwipe — SA-VI-ONS-02</image:title>
+      <image:caption>OnSwipe Digital Platform Identity by Siavash Akbari</image:caption>
     </image:image>
   </url>
   <url>
@@ -3525,223 +3502,256 @@
     </image:image>
   </url>
   <url>
-    <loc>https://www.siavashakbari.ir/book-covers/book-covers-editorial-typography-cover-01</loc>
+    <loc>https://www.siavashakbari.ir/book-covers/nozad-publications-editorial-typography-cover-01</loc>
     <lastmod>2025-01-01</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.75</priority>
     <image:image>
       <image:loc>https://www.siavashakbari.ir/assets/graphic-design/book-covers/graphic-design-book-covers-01.jpg</image:loc>
-      <image:title>Book Covers — SA-DES-BOK-01</image:title>
-      <image:caption>Book Covers Editorial Typography &amp; Cover by Siavash Akbari</image:caption>
+      <image:title>Nozad Publications — SA-DES-BOK-01</image:title>
+      <image:caption>Nozad Publications Editorial Typography &amp; Cover by Siavash Akbari</image:caption>
     </image:image>
   </url>
   <url>
-    <loc>https://www.siavashakbari.ir/book-covers/book-covers-editorial-typography-cover-02</loc>
+    <loc>https://www.siavashakbari.ir/book-covers/nozad-publications-editorial-typography-cover-02</loc>
     <lastmod>2025-01-01</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.75</priority>
     <image:image>
       <image:loc>https://www.siavashakbari.ir/assets/graphic-design/book-covers/graphic-design-book-covers-02.jpg</image:loc>
-      <image:title>Book Covers — SA-DES-BOK-02</image:title>
-      <image:caption>Book Covers Editorial Typography &amp; Cover by Siavash Akbari</image:caption>
+      <image:title>Nozad Publications — SA-DES-BOK-02</image:title>
+      <image:caption>Nozad Publications Editorial Typography &amp; Cover by Siavash Akbari</image:caption>
     </image:image>
   </url>
   <url>
-    <loc>https://www.siavashakbari.ir/book-covers/book-covers-editorial-typography-cover-03</loc>
+    <loc>https://www.siavashakbari.ir/book-covers/nozad-publications-editorial-typography-cover-03</loc>
     <lastmod>2025-01-01</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.75</priority>
     <image:image>
       <image:loc>https://www.siavashakbari.ir/assets/graphic-design/book-covers/graphic-design-book-covers-03.jpg</image:loc>
-      <image:title>Book Covers — SA-DES-BOK-03</image:title>
-      <image:caption>Book Covers Editorial Typography &amp; Cover by Siavash Akbari</image:caption>
+      <image:title>Nozad Publications — SA-DES-BOK-03</image:title>
+      <image:caption>Nozad Publications Editorial Typography &amp; Cover by Siavash Akbari</image:caption>
     </image:image>
   </url>
   <url>
-    <loc>https://www.siavashakbari.ir/book-covers/book-covers-editorial-typography-cover-04</loc>
+    <loc>https://www.siavashakbari.ir/book-covers/nozad-publications-editorial-typography-cover-04</loc>
     <lastmod>2025-01-01</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.75</priority>
     <image:image>
       <image:loc>https://www.siavashakbari.ir/assets/graphic-design/book-covers/graphic-design-book-covers-04.jpg</image:loc>
-      <image:title>Book Covers — SA-DES-BOK-04</image:title>
-      <image:caption>Book Covers Editorial Typography &amp; Cover by Siavash Akbari</image:caption>
+      <image:title>Nozad Publications — SA-DES-BOK-04</image:title>
+      <image:caption>Nozad Publications Editorial Typography &amp; Cover by Siavash Akbari</image:caption>
     </image:image>
   </url>
   <url>
-    <loc>https://www.siavashakbari.ir/book-covers/book-covers-editorial-typography-cover-05</loc>
+    <loc>https://www.siavashakbari.ir/book-covers/nozad-publications-editorial-typography-cover-05</loc>
     <lastmod>2025-01-01</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.75</priority>
     <image:image>
       <image:loc>https://www.siavashakbari.ir/assets/graphic-design/book-covers/graphic-design-book-covers-05.jpg</image:loc>
-      <image:title>Book Covers — SA-DES-BOK-05</image:title>
-      <image:caption>Book Covers Editorial Typography &amp; Cover by Siavash Akbari</image:caption>
+      <image:title>Nozad Publications — SA-DES-BOK-05</image:title>
+      <image:caption>Nozad Publications Editorial Typography &amp; Cover by Siavash Akbari</image:caption>
     </image:image>
   </url>
   <url>
-    <loc>https://www.siavashakbari.ir/book-covers/book-covers-editorial-typography-cover-06</loc>
+    <loc>https://www.siavashakbari.ir/book-covers/nozad-publications-editorial-typography-cover-06</loc>
     <lastmod>2025-01-01</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.75</priority>
     <image:image>
       <image:loc>https://www.siavashakbari.ir/assets/graphic-design/book-covers/graphic-design-book-covers-06.jpg</image:loc>
-      <image:title>Book Covers — SA-DES-BOK-06</image:title>
-      <image:caption>Book Covers Editorial Typography &amp; Cover by Siavash Akbari</image:caption>
+      <image:title>Nozad Publications — SA-DES-BOK-06</image:title>
+      <image:caption>Nozad Publications Editorial Typography &amp; Cover by Siavash Akbari</image:caption>
     </image:image>
   </url>
   <url>
-    <loc>https://www.siavashakbari.ir/book-covers/book-covers-editorial-typography-cover-07</loc>
+    <loc>https://www.siavashakbari.ir/book-covers/nozad-publications-editorial-typography-cover-07</loc>
     <lastmod>2025-01-01</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.75</priority>
     <image:image>
       <image:loc>https://www.siavashakbari.ir/assets/graphic-design/book-covers/graphic-design-book-covers-07.jpg</image:loc>
-      <image:title>Book Covers — SA-DES-BOK-07</image:title>
-      <image:caption>Book Covers Editorial Typography &amp; Cover by Siavash Akbari</image:caption>
+      <image:title>Nozad Publications — SA-DES-BOK-07</image:title>
+      <image:caption>Nozad Publications Editorial Typography &amp; Cover by Siavash Akbari</image:caption>
     </image:image>
   </url>
   <url>
-    <loc>https://www.siavashakbari.ir/book-covers/book-covers-editorial-typography-cover-08</loc>
+    <loc>https://www.siavashakbari.ir/book-covers/nozad-publications-editorial-typography-cover-08</loc>
     <lastmod>2025-01-01</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.75</priority>
     <image:image>
       <image:loc>https://www.siavashakbari.ir/assets/graphic-design/book-covers/graphic-design-book-covers-08.jpg</image:loc>
-      <image:title>Book Covers — SA-DES-BOK-08</image:title>
-      <image:caption>Book Covers Editorial Typography &amp; Cover by Siavash Akbari</image:caption>
+      <image:title>Nozad Publications — SA-DES-BOK-08</image:title>
+      <image:caption>Nozad Publications Editorial Typography &amp; Cover by Siavash Akbari</image:caption>
     </image:image>
   </url>
   <url>
-    <loc>https://www.siavashakbari.ir/book-covers/book-covers-editorial-typography-cover-09</loc>
+    <loc>https://www.siavashakbari.ir/book-covers/nozad-publications-editorial-typography-cover-09</loc>
     <lastmod>2025-01-01</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.75</priority>
     <image:image>
       <image:loc>https://www.siavashakbari.ir/assets/graphic-design/book-covers/graphic-design-book-covers-09.jpg</image:loc>
-      <image:title>Book Covers — SA-DES-BOK-09</image:title>
-      <image:caption>Book Covers Editorial Typography &amp; Cover by Siavash Akbari</image:caption>
+      <image:title>Nozad Publications — SA-DES-BOK-09</image:title>
+      <image:caption>Nozad Publications Editorial Typography &amp; Cover by Siavash Akbari</image:caption>
     </image:image>
   </url>
   <url>
-    <loc>https://www.siavashakbari.ir/book-covers/book-covers-editorial-typography-cover-10</loc>
+    <loc>https://www.siavashakbari.ir/book-covers/nozad-publications-editorial-typography-cover-10</loc>
     <lastmod>2025-01-01</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.75</priority>
     <image:image>
       <image:loc>https://www.siavashakbari.ir/assets/graphic-design/book-covers/graphic-design-book-covers-10.jpg</image:loc>
-      <image:title>Book Covers — SA-DES-BOK-10</image:title>
-      <image:caption>Book Covers Editorial Typography &amp; Cover by Siavash Akbari</image:caption>
+      <image:title>Nozad Publications — SA-DES-BOK-10</image:title>
+      <image:caption>Nozad Publications Editorial Typography &amp; Cover by Siavash Akbari</image:caption>
     </image:image>
   </url>
   <url>
-    <loc>https://www.siavashakbari.ir/book-covers/book-covers-editorial-typography-cover-11</loc>
+    <loc>https://www.siavashakbari.ir/book-covers/nozad-publications-editorial-typography-cover-11</loc>
     <lastmod>2025-01-01</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.75</priority>
     <image:image>
       <image:loc>https://www.siavashakbari.ir/assets/graphic-design/book-covers/graphic-design-book-covers-11.jpg</image:loc>
-      <image:title>Book Covers — SA-DES-BOK-11</image:title>
-      <image:caption>Book Covers Editorial Typography &amp; Cover by Siavash Akbari</image:caption>
+      <image:title>Nozad Publications — SA-DES-BOK-11</image:title>
+      <image:caption>Nozad Publications Editorial Typography &amp; Cover by Siavash Akbari</image:caption>
     </image:image>
   </url>
   <url>
-    <loc>https://www.siavashakbari.ir/book-covers/book-covers-editorial-typography-cover-12</loc>
+    <loc>https://www.siavashakbari.ir/book-covers/nozad-publications-editorial-typography-cover-12</loc>
     <lastmod>2025-01-01</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.75</priority>
     <image:image>
       <image:loc>https://www.siavashakbari.ir/assets/graphic-design/book-covers/graphic-design-book-covers-12.jpg</image:loc>
-      <image:title>Book Covers — SA-DES-BOK-12</image:title>
-      <image:caption>Book Covers Editorial Typography &amp; Cover by Siavash Akbari</image:caption>
+      <image:title>Nozad Publications — SA-DES-BOK-12</image:title>
+      <image:caption>Nozad Publications Editorial Typography &amp; Cover by Siavash Akbari</image:caption>
     </image:image>
   </url>
   <url>
-    <loc>https://www.siavashakbari.ir/posters/posters-cultural-exhibition-poster-01</loc>
+    <loc>https://www.siavashakbari.ir/posters/nozad-publications-cultural-exhibition-poster-01</loc>
     <lastmod>2025-01-01</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.75</priority>
     <image:image>
       <image:loc>https://www.siavashakbari.ir/assets/graphic-design/posters/graphic-design-posters-01.jpg</image:loc>
-      <image:title>Posters — SA-DES-POS-01</image:title>
-      <image:caption>Posters Cultural &amp; Exhibition Poster by Siavash Akbari</image:caption>
+      <image:title>Nozad Publications — SA-DES-POS-01</image:title>
+      <image:caption>Nozad Publications Cultural &amp; Exhibition Poster by Siavash Akbari</image:caption>
     </image:image>
   </url>
   <url>
-    <loc>https://www.siavashakbari.ir/posters/posters-cultural-exhibition-poster-02</loc>
+    <loc>https://www.siavashakbari.ir/posters/nozad-publications-cultural-exhibition-poster-02</loc>
     <lastmod>2025-01-01</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.75</priority>
     <image:image>
       <image:loc>https://www.siavashakbari.ir/assets/graphic-design/posters/graphic-design-posters-02.jpg</image:loc>
-      <image:title>Posters — SA-DES-POS-02</image:title>
-      <image:caption>Posters Cultural &amp; Exhibition Poster by Siavash Akbari</image:caption>
+      <image:title>Nozad Publications — SA-DES-POS-02</image:title>
+      <image:caption>Nozad Publications Cultural &amp; Exhibition Poster by Siavash Akbari</image:caption>
     </image:image>
   </url>
   <url>
-    <loc>https://www.siavashakbari.ir/posters/posters-cultural-exhibition-poster-03</loc>
+    <loc>https://www.siavashakbari.ir/posters/nozad-publications-cultural-exhibition-poster-03</loc>
     <lastmod>2025-01-01</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.75</priority>
     <image:image>
       <image:loc>https://www.siavashakbari.ir/assets/graphic-design/posters/graphic-design-posters-03.jpg</image:loc>
-      <image:title>Posters — SA-DES-POS-03</image:title>
-      <image:caption>Posters Cultural &amp; Exhibition Poster by Siavash Akbari</image:caption>
+      <image:title>Nozad Publications — SA-DES-POS-03</image:title>
+      <image:caption>Nozad Publications Cultural &amp; Exhibition Poster by Siavash Akbari</image:caption>
     </image:image>
   </url>
   <url>
-    <loc>https://www.siavashakbari.ir/posters/posters-cultural-exhibition-poster-04</loc>
+    <loc>https://www.siavashakbari.ir/posters/nozad-publications-cultural-exhibition-poster-04</loc>
     <lastmod>2025-01-01</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.75</priority>
     <image:image>
       <image:loc>https://www.siavashakbari.ir/assets/graphic-design/posters/graphic-design-posters-04.jpg</image:loc>
-      <image:title>Posters — SA-DES-POS-04</image:title>
-      <image:caption>Posters Cultural &amp; Exhibition Poster by Siavash Akbari</image:caption>
+      <image:title>Nozad Publications — SA-DES-POS-04</image:title>
+      <image:caption>Nozad Publications Cultural &amp; Exhibition Poster by Siavash Akbari</image:caption>
     </image:image>
   </url>
   <url>
-    <loc>https://www.siavashakbari.ir/posters/posters-cultural-exhibition-poster-05</loc>
+    <loc>https://www.siavashakbari.ir/posters/nozad-publications-cultural-exhibition-poster-05</loc>
     <lastmod>2025-01-01</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.75</priority>
     <image:image>
       <image:loc>https://www.siavashakbari.ir/assets/graphic-design/posters/graphic-design-posters-05.jpg</image:loc>
-      <image:title>Posters — SA-DES-POS-05</image:title>
-      <image:caption>Posters Cultural &amp; Exhibition Poster by Siavash Akbari</image:caption>
+      <image:title>Nozad Publications — SA-DES-POS-05</image:title>
+      <image:caption>Nozad Publications Cultural &amp; Exhibition Poster by Siavash Akbari</image:caption>
     </image:image>
   </url>
   <url>
-    <loc>https://www.siavashakbari.ir/posters/posters-cultural-exhibition-poster-06</loc>
+    <loc>https://www.siavashakbari.ir/posters/nozad-publications-cultural-exhibition-poster-06</loc>
     <lastmod>2025-01-01</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.75</priority>
     <image:image>
       <image:loc>https://www.siavashakbari.ir/assets/graphic-design/posters/graphic-design-posters-06.jpg</image:loc>
-      <image:title>Posters — SA-DES-POS-06</image:title>
-      <image:caption>Posters Cultural &amp; Exhibition Poster by Siavash Akbari</image:caption>
+      <image:title>Nozad Publications — SA-DES-POS-06</image:title>
+      <image:caption>Nozad Publications Cultural &amp; Exhibition Poster by Siavash Akbari</image:caption>
     </image:image>
   </url>
   <url>
-    <loc>https://www.siavashakbari.ir/posters/posters-cultural-exhibition-poster-07</loc>
+    <loc>https://www.siavashakbari.ir/posters/nozad-publications-cultural-exhibition-poster-07</loc>
     <lastmod>2025-01-01</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.75</priority>
     <image:image>
       <image:loc>https://www.siavashakbari.ir/assets/graphic-design/posters/graphic-design-posters-07.jpg</image:loc>
-      <image:title>Posters — SA-DES-POS-07</image:title>
-      <image:caption>Posters Cultural &amp; Exhibition Poster by Siavash Akbari</image:caption>
+      <image:title>Nozad Publications — SA-DES-POS-07</image:title>
+      <image:caption>Nozad Publications Cultural &amp; Exhibition Poster by Siavash Akbari</image:caption>
     </image:image>
   </url>
   <url>
-    <loc>https://www.siavashakbari.ir/posters/posters-cultural-exhibition-poster-08</loc>
+    <loc>https://www.siavashakbari.ir/posters/nozad-publications-cultural-exhibition-poster-08</loc>
     <lastmod>2025-01-01</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.75</priority>
     <image:image>
       <image:loc>https://www.siavashakbari.ir/assets/graphic-design/posters/graphic-design-posters-08.jpg</image:loc>
-      <image:title>Posters — SA-DES-POS-08</image:title>
-      <image:caption>Posters Cultural &amp; Exhibition Poster by Siavash Akbari</image:caption>
+      <image:title>Nozad Publications — SA-DES-POS-08</image:title>
+      <image:caption>Nozad Publications Cultural &amp; Exhibition Poster by Siavash Akbari</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://www.siavashakbari.ir/video/echo-prime-motion-vfx-01</loc>
+    <lastmod>2024-01-01</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.75</priority>
+    <image:image>
+      <image:loc>https://www.siavashakbari.ir/assets/video/echo-prime/video-echo-prime-01.mp4</image:loc>
+      <image:title>Echo Prime — SA-VID-ECH-01</image:title>
+      <image:caption>Echo Prime Motion &amp; VFX by Siavash Akbari</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://www.siavashakbari.ir/video/echo-prime-motion-vfx-02</loc>
+    <lastmod>2024-01-01</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.75</priority>
+    <image:image>
+      <image:loc>https://www.siavashakbari.ir/assets/video/echo-prime/video-echo-prime-02.mp4</image:loc>
+      <image:title>Echo Prime — SA-VID-ECH-02</image:title>
+      <image:caption>Echo Prime Motion &amp; VFX by Siavash Akbari</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://www.siavashakbari.ir/video/echo-prime-motion-vfx-03</loc>
+    <lastmod>2024-01-01</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.75</priority>
+    <image:image>
+      <image:loc>https://www.siavashakbari.ir/assets/video/echo-prime/video-echo-prime-03.mp4</image:loc>
+      <image:title>Echo Prime — SA-VID-ECH-03</image:title>
+      <image:caption>Echo Prime Motion &amp; VFX by Siavash Akbari</image:caption>
     </image:image>
   </url>
 </urlset>
