@@ -32,33 +32,44 @@ export const Route = createFileRoute("/projects/$projectId")({
     const project = projects.find((p) => p.id === params.projectId);
     if (!project) throw notFound({ routeId: rootRouteId });
 
-    // Visual Identity projects redirect to /visual-identity/:projectId
-    if (
-      project.discipline === "graphic-design" &&
-      project.category.toLowerCase().includes("visual identity")
-    ) {
-      throw redirect({
-        to: "/visual-identity/$projectId",
-        params: { projectId: project.id },
-      });
-    }
-
-    // Photography projects have no dedicated project case study; redirect to discipline gallery
     const cat = project.category.toLowerCase();
+    let discSlug = "photography";
+    let specSlug = "fashion";
+
     if (cat.includes("fashion")) {
-      throw redirect({ to: "/$discipline", params: { discipline: "fashion-photography" } });
-    }
-    if (cat.includes("food")) {
-      throw redirect({ to: "/$discipline", params: { discipline: "food-photography" } });
-    }
-    if (cat.includes("portrait")) {
-      throw redirect({ to: "/$discipline", params: { discipline: "portrait-photography" } });
-    }
-    if (cat.includes("product")) {
-      throw redirect({ to: "/$discipline", params: { discipline: "product-photography" } });
+      discSlug = "photography";
+      specSlug = "fashion";
+    } else if (cat.includes("food")) {
+      discSlug = "photography";
+      specSlug = "food";
+    } else if (cat.includes("portrait")) {
+      discSlug = "photography";
+      specSlug = "portrait";
+    } else if (cat.includes("product") || cat.includes("object")) {
+      discSlug = "photography";
+      specSlug = "product";
+    } else if (cat.includes("visual identity") || cat.includes("brand")) {
+      discSlug = "graphic-design";
+      specSlug = "visual-identity";
+    } else if (cat.includes("book")) {
+      discSlug = "graphic-design";
+      specSlug = "book-covers";
+    } else if (cat.includes("poster")) {
+      discSlug = "graphic-design";
+      specSlug = "posters";
+    } else if (cat.includes("video") || project.discipline === "video") {
+      discSlug = "video";
+      specSlug = "videos";
     }
 
-    return { project };
+    throw redirect({
+      to: "/$discipline/$specialty/$project",
+      params: {
+        discipline: discSlug,
+        specialty: specSlug,
+        project: project.id,
+      },
+    });
   },
   head: ({ loaderData }) => {
     const p = loaderData?.project;

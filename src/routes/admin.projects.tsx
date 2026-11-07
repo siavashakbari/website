@@ -16,10 +16,37 @@ import {
   Copy,
   Layers,
   Database,
+  ArrowRight,
+  FolderPlus,
 } from "lucide-react";
-import { getStudioProjects, saveStudioProject, deleteStudioProject, getMergedPhotoInventory } from "@/lib/studio-store";
+import {
+  getStudioProjects,
+  saveStudioProject,
+  deleteStudioProject,
+  getMergedPhotoInventory,
+  getTaxonomyDisciplines,
+  getTaxonomySpecialties,
+  addCustomDiscipline,
+  addCustomSpecialty,
+  saveCustomPhotoAsset,
+  type TaxonomyDiscipline,
+  type TaxonomySpecialty,
+} from "@/lib/studio-store";
 import type { StudioProjectItem } from "@/types/admin";
 import { DISCIPLINE_QUICK_TAGS, DISCIPLINE_ROLE_MATRIX } from "@/types/portfolio-schema";
+import {
+  generate4PartPhotoCode,
+  getDiscipline4Code,
+  getSpecialty4Code,
+  getProject4Code,
+  to4LetterCode,
+  normalizeDisciplineSlug,
+  normalizeSpecialtySlug,
+  normalizeProjectSlug,
+  buildPhotoUrl,
+  buildProjectUrl,
+} from "@/lib/taxonomy";
+import type { PhotoInventoryItem } from "@/data/photo-inventory";
 
 export const Route = createFileRoute("/admin/projects")({
   component: AdminProjectsView,
@@ -101,14 +128,25 @@ function AdminProjectsView() {
   const [isEditorOpen, setIsEditorOpen] = useState(false);
   const [editingProject, setEditingProject] = useState<StudioProjectItem | null>(null);
 
+  // Taxonomy & 4-Letter Routing States
+  const [taxonomyDisciplines, setTaxonomyDisciplines] = useState<TaxonomyDiscipline[]>([]);
+  const [taxonomySpecialties, setTaxonomySpecialties] = useState<TaxonomySpecialty[]>([]);
+  const [projectCode, setProjectCode] = useState("");
+  const [showAddDisc, setShowAddDisc] = useState(false);
+  const [newDiscName, setNewDiscName] = useState("");
+  const [newDiscCode, setNewDiscCode] = useState("");
+  const [showAddSpec, setShowAddSpec] = useState(false);
+  const [newSpecName, setNewSpecName] = useState("");
+  const [newSpecCode, setNewSpecCode] = useState("");
+
   // Form states
   const [title, setTitle] = useState("");
   const [titleFa, setTitleFa] = useState("");
   const [client, setClient] = useState("");
   const [year, setYear] = useState("2026");
-  const [discipline, setDiscipline] = useState("fashion-photography");
-  const [category, setCategory] = useState("Fashion Photography");
-  const [subDiscipline, setSubDiscipline] = useState("");
+  const [discipline, setDiscipline] = useState("photography");
+  const [category, setCategory] = useState("Fashion");
+  const [subDiscipline, setSubDiscipline] = useState("Fashion");
   const [models, setModels] = useState("");
   const [makeupArtist, setMakeupArtist] = useState("");
   const [assistant, setAssistant] = useState("");
@@ -131,6 +169,50 @@ function AdminProjectsView() {
   // Video Formula calculator state
   const [videoDuration, setVideoDuration] = useState<number | null>(null);
   const [videoTargetMb, setVideoTargetMb] = useState<number | null>(null);
+
+  const refreshTaxonomy = () => {
+    const discs = getTaxonomyDisciplines();
+    setTaxonomyDisciplines(discs);
+    const specs = getTaxonomySpecialties(discipline);
+    setTaxonomySpecialties(specs);
+  };
+
+  useEffect(() => {
+    setProjects(getStudioProjects());
+    refreshTaxonomy();
+  }, []);
+
+  useEffect(() => {
+    const specs = getTaxonomySpecialties(discipline);
+    setTaxonomySpecialties(specs);
+  }, [discipline]);
+
+  useEffect(() => {
+    if (!editingProject && title.trim()) {
+      setProjectCode(to4LetterCode(title));
+    }
+  }, [title, editingProject]);
+
+  const handleAddNewDiscipline = () => {
+    if (!newDiscName.trim()) return;
+    const created = addCustomDiscipline(newDiscName, newDiscCode);
+    refreshTaxonomy();
+    setDiscipline(created.slug);
+    setNewDiscName("");
+    setNewDiscCode("");
+    setShowAddDisc(false);
+  };
+
+  const handleAddNewSpecialty = () => {
+    if (!newSpecName.trim()) return;
+    const created = addCustomSpecialty(discipline, newSpecName, newSpecCode);
+    refreshTaxonomy();
+    setSubDiscipline(created.label);
+    setCategory(created.label);
+    setNewSpecName("");
+    setNewSpecCode("");
+    setShowAddSpec(false);
+  };
 
   // Dynamic autocomplete memory from existing assets
   const projectAutocomplete = useMemo(() => {
@@ -375,6 +457,38 @@ function AdminProjectsView() {
     };
 
     saveStudioProject(projectToSave);
+
+    // Register all imported images into custom photo assets with 4-part naming logic: PHOT-FASH-SEPI-0001
+    const normDiscSlug = normalizeDisciplineSlug(discipline);
+    const normSpecSlug = normalizeSpecialtySlug(subDiscipline || category || "fashion");
+    const normProjSlug = normalizeProjectSlug(title);
+    const pCode = projectCode ? to4LetterCode(projectCode) : getProject4Code(title);
+
+    images.forEach((img, idx) => {
+      const code = generate4PartPhotoCode(normDiscSlug, normSpecSlug, pCode, idx + 1);
+      const photoAsset: PhotoInventoryItem = {
+        code,
+        standardCode: code,
+        project: title.trim(),
+        projectSlug: normProjSlug,
+        discipline: selectedDiscObj?.label || discipline,
+        disciplineSlug: normDiscSlug,
+        specialtySlug: normSpecSlug,
+        subdiscipline: subDiscipline.trim() || category.trim(),
+        imgSrc: img.url,
+        model: models.trim(),
+        client: client.trim(),
+        makeupArtist: makeupArtist.trim(),
+        assistant: assistant.trim(),
+        date: year.trim() || "2026",
+        keywords: seoKeywords.trim() || `${title}, Siavash Akbari`,
+        caption: img.caption || caption.trim() || description.trim(),
+        title: img.alt || `${title} — ${String(idx + 1).padStart(4, "0")}`,
+        canonicalPath: buildPhotoUrl(normDiscSlug, normSpecSlug, normProjSlug, code),
+      };
+      saveCustomPhotoAsset(photoAsset);
+    });
+
     setProjects(getStudioProjects());
     setSaveSuccess(true);
     setTimeout(() => {
@@ -767,50 +881,163 @@ function AdminProjectsView() {
             </datalist>
 
             <form onSubmit={handleSave} className="p-6 overflow-y-auto space-y-6 flex-1 text-xs">
-              {/* BOX 1: CORE IDENTIFICATION & DISCIPLINE TARGET */}
+              {/* BOX 1: CORE IDENTIFICATION, DISCIPLINE & SPECIALTY (ROUTING SYSTEM) */}
               <div className="p-4 rounded-xl bg-black/40 border border-white/10 space-y-4">
                 <div className="flex items-center justify-between border-b border-white/5 pb-2">
-                  <span className="text-[11px] font-mono uppercase tracking-wider text-[#2CE3C0] font-bold">
-                    Box 1 · Core Identity & Destination
+                  <span className="text-[11px] font-mono uppercase tracking-wider text-[#2CE3C0] font-bold flex items-center gap-1.5">
+                    <Layers className="w-3.5 h-3.5" />
+                    Box 1 · Discipline & Specialty Routing Architecture
                   </span>
-                  <span className="text-[10px] text-neutral-500 font-mono">
-                    WHERE WILL THIS APPEAR
+                  <span className="text-[10px] text-neutral-400 font-mono">
+                    CHOOSE OR ADD NEW
                   </span>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {/* Discipline Selector */}
                   <div>
-                    <label className="block text-neutral-300 font-medium mb-1">
-                      Target Discipline Gallery *
-                    </label>
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="text-neutral-300 font-medium">
+                        1. Discipline *
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() => setShowAddDisc(!showAddDisc)}
+                        className="text-[10px] text-[#2CE3C0] hover:underline flex items-center gap-0.5 cursor-pointer"
+                      >
+                        <Plus className="w-3 h-3" /> Add New Discipline
+                      </button>
+                    </div>
+
+                    {showAddDisc && (
+                      <div className="mb-2 p-2.5 rounded-lg bg-[#2CE3C0]/10 border border-[#2CE3C0]/30 space-y-2">
+                        <div className="text-[10px] font-mono uppercase text-[#2CE3C0] font-bold">
+                          Create Custom Discipline
+                        </div>
+                        <div className="grid grid-cols-2 gap-2">
+                          <input
+                            type="text"
+                            placeholder="Name (e.g. Architecture)"
+                            value={newDiscName}
+                            onChange={(e) => setNewDiscName(e.target.value)}
+                            className="bg-black/60 border border-white/20 rounded px-2 py-1 text-white text-xs"
+                          />
+                          <input
+                            type="text"
+                            placeholder="4-Letter Code (e.g. ARCH)"
+                            maxLength={4}
+                            value={newDiscCode}
+                            onChange={(e) => setNewDiscCode(e.target.value.toUpperCase())}
+                            className="bg-black/60 border border-white/20 rounded px-2 py-1 text-white text-xs font-mono"
+                          />
+                        </div>
+                        <div className="flex gap-2 justify-end">
+                          <button
+                            type="button"
+                            onClick={() => setShowAddDisc(false)}
+                            className="px-2 py-1 text-[10px] text-neutral-400 hover:text-white"
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            type="button"
+                            onClick={handleAddNewDiscipline}
+                            className="px-2.5 py-1 text-[10px] bg-[#2CE3C0] text-black font-bold rounded cursor-pointer"
+                          >
+                            Save Discipline
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
                     <select
                       value={discipline}
                       onChange={(e) => setDiscipline(e.target.value)}
                       className="w-full bg-[#181818] border border-white/15 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-[#2CE3C0]"
                     >
-                      {DISCIPLINE_OPTIONS.map((d) => (
+                      {taxonomyDisciplines.map((d) => (
                         <option key={d.slug} value={d.slug}>
-                          {d.label} (/{d.slug})
+                          {d.label} [{d.code}] (/{d.slug})
                         </option>
                       ))}
                     </select>
                   </div>
 
+                  {/* Specialty Selector */}
                   <div>
-                    <label className="block text-neutral-300 font-medium mb-1">
-                      Category Tag (e.g. Visual Identity Proposal, Editorial)
-                    </label>
-                    <input
-                      type="text"
-                      value={category}
-                      onChange={(e) => setCategory(e.target.value)}
-                      placeholder="e.g. Fashion Photography / Visual Identity"
-                      className="w-full bg-black/50 border border-white/10 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-[#2CE3C0]"
-                    />
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="text-neutral-300 font-medium">
+                        2. Specialty (under {discipline}) *
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() => setShowAddSpec(!showAddSpec)}
+                        className="text-[10px] text-[#FFD166] hover:underline flex items-center gap-0.5 cursor-pointer"
+                      >
+                        <Plus className="w-3 h-3" /> Add New Specialty
+                      </button>
+                    </div>
+
+                    {showAddSpec && (
+                      <div className="mb-2 p-2.5 rounded-lg bg-[#FFD166]/10 border border-[#FFD166]/30 space-y-2">
+                        <div className="text-[10px] font-mono uppercase text-[#FFD166] font-bold">
+                          Create Custom Specialty under {discipline}
+                        </div>
+                        <div className="grid grid-cols-2 gap-2">
+                          <input
+                            type="text"
+                            placeholder="Specialty (e.g. Lookbook)"
+                            value={newSpecName}
+                            onChange={(e) => setNewSpecName(e.target.value)}
+                            className="bg-black/60 border border-white/20 rounded px-2 py-1 text-white text-xs"
+                          />
+                          <input
+                            type="text"
+                            placeholder="4-Letter Code (e.g. LOOK)"
+                            maxLength={4}
+                            value={newSpecCode}
+                            onChange={(e) => setNewSpecCode(e.target.value.toUpperCase())}
+                            className="bg-black/60 border border-white/20 rounded px-2 py-1 text-white text-xs font-mono"
+                          />
+                        </div>
+                        <div className="flex gap-2 justify-end">
+                          <button
+                            type="button"
+                            onClick={() => setShowAddSpec(false)}
+                            className="px-2 py-1 text-[10px] text-neutral-400 hover:text-white"
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            type="button"
+                            onClick={handleAddNewSpecialty}
+                            className="px-2.5 py-1 text-[10px] bg-[#FFD166] text-black font-bold rounded cursor-pointer"
+                          >
+                            Save Specialty
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
+                    <select
+                      value={subDiscipline || category}
+                      onChange={(e) => {
+                        setSubDiscipline(e.target.value);
+                        setCategory(e.target.value);
+                      }}
+                      className="w-full bg-[#181818] border border-white/15 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-[#FFD166]"
+                    >
+                      {taxonomySpecialties.map((s) => (
+                        <option key={s.slug} value={s.label}>
+                          {s.label} [{s.code}] (/{s.disciplineSlug}/{s.slug})
+                        </option>
+                      ))}
+                    </select>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                {/* Project Title & 4-Letter Code */}
+                <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
                   <div className="sm:col-span-2">
                     <label className="block text-neutral-300 font-medium mb-1">
                       Project Title (English) *
@@ -819,9 +1046,23 @@ function AdminProjectsView() {
                       type="text"
                       value={title}
                       onChange={(e) => setTitle(e.target.value)}
-                      placeholder="e.g. Atlasi Fashion Series"
+                      placeholder="e.g. Sepidar / Atlasi"
                       required
                       className="w-full bg-black/50 border border-white/10 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-[#2CE3C0]"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-neutral-300 font-medium mb-1">
+                      4-Letter Project Code *
+                    </label>
+                    <input
+                      type="text"
+                      maxLength={4}
+                      value={projectCode}
+                      onChange={(e) => setProjectCode(e.target.value.toUpperCase())}
+                      placeholder="e.g. SEPI"
+                      className="w-full bg-black/50 border border-[#2CE3C0]/40 rounded-lg px-3 py-2 text-[#2CE3C0] font-mono text-xs uppercase font-bold focus:outline-none focus:border-[#2CE3C0]"
                     />
                   </div>
 
@@ -834,9 +1075,29 @@ function AdminProjectsView() {
                       dir="rtl"
                       value={titleFa}
                       onChange={(e) => setTitleFa(e.target.value)}
-                      placeholder="مثلاً مجموعه مد اطلسی"
+                      placeholder="مثلاً سپیدار"
                       className="w-full bg-black/50 border border-white/10 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-[#2CE3C0]"
                     />
+                  </div>
+                </div>
+
+                {/* Live Hierarchy & Photo Naming Preview Card */}
+                <div className="p-3 rounded-lg bg-white/[0.03] border border-white/10 space-y-1.5 text-xs font-mono">
+                  <div className="text-[10px] uppercase tracking-wider text-neutral-400">
+                    Routing & Naming Logic Preview:
+                  </div>
+                  <div className="text-muted-foreground flex flex-wrap gap-x-2">
+                    <span>Project URL:</span>
+                    <span className="text-[#2CE3C0] font-bold">
+                      siavashakbari.ir/{normalizeDisciplineSlug(discipline)}/{normalizeSpecialtySlug(subDiscipline || category)}/{normalizeProjectSlug(title || "project")}
+                    </span>
+                  </div>
+                  <div className="text-muted-foreground flex flex-wrap gap-x-2">
+                    <span>Photo Naming & URL Formula:</span>
+                    <span className="text-[#FFD166] font-bold">
+                      {generate4PartPhotoCode(discipline, subDiscipline || category, projectCode || title || "PROJ", 1)}
+                    </span>
+                    <span className="text-neutral-500 text-[10px]">(Dedicated photo page & photoname match)</span>
                   </div>
                 </div>
               </div>
@@ -1183,9 +1444,20 @@ function AdminProjectsView() {
                     </div>
 
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                      {images.map((img) => {
+                      {images.map((img, idx) => {
                         const isCover = coverImage === img.url;
                         const isVid = img.url.startsWith("data:video") || img.url.endsWith(".mp4");
+                        const normDisc = normalizeDisciplineSlug(discipline);
+                        const normSpec = normalizeSpecialtySlug(subDiscipline || category);
+                        const pCode = projectCode ? to4LetterCode(projectCode) : getProject4Code(title || "PROJ");
+                        const photoCode = generate4PartPhotoCode(normDisc, normSpec, pCode, idx + 1);
+                        const photoLiveUrl = buildPhotoUrl(
+                          normDisc,
+                          normSpec,
+                          normalizeProjectSlug(title || "project"),
+                          photoCode,
+                        );
+
                         return (
                           <div
                             key={img.id}
@@ -1206,12 +1478,20 @@ function AdminProjectsView() {
                             )}
 
                             {isCover && (
-                              <span className="absolute top-1.5 left-1.5 bg-[#2CE3C0] text-black font-bold text-[9px] px-1.5 py-0.5 rounded shadow">
+                              <span className="absolute top-1.5 left-1.5 bg-[#2CE3C0] text-black font-bold text-[9px] px-1.5 py-0.5 rounded shadow z-10">
                                 COVER
                               </span>
                             )}
 
-                            <div className="absolute inset-0 bg-black/75 opacity-0 group-hover:opacity-100 flex flex-col items-center justify-center gap-1.5 transition-opacity p-2">
+                            {/* 4-Part Code Badge */}
+                            <span className="absolute bottom-1.5 left-1.5 right-1.5 bg-black/80 backdrop-blur-md text-[#2CE3C0] font-mono text-[9px] px-1.5 py-0.5 rounded border border-[#2CE3C0]/30 font-bold truncate z-10 text-center">
+                              {photoCode}
+                            </span>
+
+                            <div className="absolute inset-0 bg-black/85 opacity-0 group-hover:opacity-100 flex flex-col items-center justify-center gap-1.5 transition-opacity p-2 z-20">
+                              <span className="text-[10px] text-[#FFD166] font-mono font-bold truncate max-w-full">
+                                #{idx + 1}: {photoCode}
+                              </span>
                               {!isCover && (
                                 <button
                                   type="button"

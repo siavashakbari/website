@@ -148,7 +148,15 @@ const navLinkClass =
 const navFont = { fontFamily: "Satoshi, system-ui, sans-serif" } as const;
 
 function isDisciplinePath(pathname: string) {
-  return DISCIPLINES.some((d) => pathname === `/${d.slug}`);
+  return (
+    pathname === "/photography" ||
+    pathname.startsWith("/photography/") ||
+    pathname === "/graphic-design" ||
+    pathname.startsWith("/graphic-design/") ||
+    pathname === "/video" ||
+    pathname.startsWith("/video/") ||
+    DISCIPLINES.some((d) => pathname === d.path || pathname === `/${d.slug}`)
+  );
 }
 
 function WorksDropdown({ active }: { active: boolean }) {
@@ -169,24 +177,50 @@ function WorksDropdown({ active }: { active: boolean }) {
       <DropdownMenuContent
         align="start"
         sideOffset={0}
-        className="z-[210] min-w-[14rem] rounded-none border-foreground/10 bg-background p-1 shadow-none"
+        className="z-[210] min-w-[16rem] rounded-none border-foreground/10 bg-background p-2 shadow-xl"
       >
+        <div className="px-3 py-1.5 text-[10px] font-mono uppercase tracking-[0.2em] text-muted-foreground/60">
+          Specialties
+        </div>
         {DISCIPLINES.map((discipline) => (
           <DropdownMenuItem
-            key={discipline.slug}
+            key={discipline.path || discipline.slug}
             asChild
             className="rounded-none p-0 focus:bg-foreground/5"
           >
             <Link
-              to="/$discipline"
-              params={{ discipline: discipline.slug }}
+              to={discipline.path as any}
               style={navFont}
-              className="block cursor-pointer px-3 py-2.5 text-xs font-normal uppercase tracking-widest text-foreground transition-colors hover:text-secondary data-[status=active]:font-bold data-[status=active]:text-secondary"
+              className="block cursor-pointer px-3 py-2 text-xs font-normal uppercase tracking-widest text-foreground transition-colors hover:text-secondary data-[status=active]:font-bold data-[status=active]:text-secondary"
             >
               {discipline.label}
             </Link>
           </DropdownMenuItem>
         ))}
+        <div className="my-1.5 border-t border-foreground/10" />
+        <div className="px-3 py-1.5 text-[10px] font-mono uppercase tracking-[0.2em] text-muted-foreground/60">
+          All Disciplines
+        </div>
+        <DropdownMenuItem asChild className="rounded-none p-0 focus:bg-foreground/5">
+          <Link
+            to="/$discipline"
+            params={{ discipline: "photography" }}
+            style={navFont}
+            className="block cursor-pointer px-3 py-2 text-xs font-normal uppercase tracking-widest text-foreground/80 transition-colors hover:text-secondary data-[status=active]:font-bold data-[status=active]:text-secondary"
+          >
+            All Photography
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuItem asChild className="rounded-none p-0 focus:bg-foreground/5">
+          <Link
+            to="/$discipline"
+            params={{ discipline: "graphic-design" }}
+            style={navFont}
+            className="block cursor-pointer px-3 py-2 text-xs font-normal uppercase tracking-widest text-foreground/80 transition-colors hover:text-secondary data-[status=active]:font-bold data-[status=active]:text-secondary"
+          >
+            All Graphic Design
+          </Link>
+        </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );
@@ -335,11 +369,13 @@ function MobileNav() {
               >
                 <div className="overflow-hidden">
                   <div className="flex flex-col gap-3 pt-4 pl-1">
+                    <span className="text-[10px] font-mono uppercase tracking-[0.2em] text-muted-foreground/60">
+                      Specialties
+                    </span>
                     {DISCIPLINES.map((discipline) => (
                       <Link
-                        key={discipline.slug}
-                        to="/$discipline"
-                        params={{ discipline: discipline.slug }}
+                        key={discipline.path || discipline.slug}
+                        to={discipline.path as any}
                         onClick={() => setOpen(false)}
                         className="text-base font-normal uppercase tracking-widest text-foreground/80 transition-colors hover:text-secondary data-[status=active]:font-bold data-[status=active]:text-secondary"
                         style={navFont}
@@ -347,6 +383,27 @@ function MobileNav() {
                         {discipline.label}
                       </Link>
                     ))}
+                    <span className="pt-2 text-[10px] font-mono uppercase tracking-[0.2em] text-muted-foreground/60">
+                      Disciplines
+                    </span>
+                    <Link
+                      to="/$discipline"
+                      params={{ discipline: "photography" }}
+                      onClick={() => setOpen(false)}
+                      className="text-base font-normal uppercase tracking-widest text-foreground/80 transition-colors hover:text-secondary data-[status=active]:font-bold data-[status=active]:text-secondary"
+                      style={navFont}
+                    >
+                      All Photography
+                    </Link>
+                    <Link
+                      to="/$discipline"
+                      params={{ discipline: "graphic-design" }}
+                      onClick={() => setOpen(false)}
+                      className="text-base font-normal uppercase tracking-widest text-foreground/80 transition-colors hover:text-secondary data-[status=active]:font-bold data-[status=active]:text-secondary"
+                      style={navFont}
+                    >
+                      All Graphic Design
+                    </Link>
                   </div>
                 </div>
               </div>

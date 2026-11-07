@@ -16,6 +16,11 @@ export interface PhotoInventoryItem {
   keywords: string;
   caption?: string;
   // Enhanced DAM & SEO Architecture fields:
+  standardCode?: string;
+  specialty?: string;
+  specialtySlug?: string;
+  projectSlug?: string;
+  title?: string;
   seoSlug?: string;
   canonicalPath?: string;
   legacyCodePath?: string;

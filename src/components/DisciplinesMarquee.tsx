@@ -10,9 +10,8 @@ export function DisciplinesMarquee() {
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
         {DISCIPLINES.map((discipline) => (
           <CoverTile
-            key={discipline.slug}
-            to="/$discipline"
-            params={{ discipline: discipline.slug }}
+            key={discipline.path || discipline.slug}
+            href={discipline.path}
             label={discipline.label}
             image={discipline.image}
           />

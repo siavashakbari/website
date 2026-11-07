@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { createFileRoute, Link, notFound, rootRouteId } from "@tanstack/react-router";
+import { createFileRoute, Link, notFound, redirect, rootRouteId } from "@tanstack/react-router";
 import { ArrowLeft } from "lucide-react";
 import { DISCIPLINES } from "@/data/disciplines";
 import { projects } from "@/data/projects";
@@ -30,13 +30,14 @@ function useIsDesktop() {
 
 export const Route = createFileRoute("/visual-identity/$projectId")({
   loader: ({ params }) => {
-    const project =
-      getProjectById(params.projectId) || projects.find((p) => p.id === params.projectId);
-
-    // Only Visual Identity projects are served on this route
-    if (!project) throw notFound({ routeId: rootRouteId });
-
-    return { project };
+    throw redirect({
+      to: "/$discipline/$specialty/$project",
+      params: {
+        discipline: "graphic-design",
+        specialty: "visual-identity",
+        project: params.projectId,
+      },
+    });
   },
   head: ({ loaderData }) => {
     const p = loaderData?.project;

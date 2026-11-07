@@ -4,20 +4,19 @@ type CoverTileProps = {
   label: string;
   image?: string;
   ariaLabel?: string;
-} & (
-  | { to: "/$discipline"; params: { discipline: string } }
-  | { to: "/projects/$projectId"; params: { projectId: string } }
-  | { to: "/visual-identity/$projectId"; params: { projectId: string } }
-);
+  href?: string;
+  to?: any;
+  params?: any;
+};
 
 /**
  * Shared cover card used by homepage disciplines and Visual Identity project cards.
  */
-export function CoverTile({ to, params, label, image, ariaLabel }: CoverTileProps) {
+export function CoverTile({ to, params, href, label, image, ariaLabel }: CoverTileProps) {
+  const linkProps = href ? { to: href as any } : { to: to as any, params };
   return (
     <Link
-      to={to}
-      params={params}
+      {...linkProps}
       aria-label={ariaLabel ?? `View ${label}`}
       className="group relative isolate block aspect-[3/4] cursor-pointer overflow-hidden rounded-[3px] no-underline [clip-path:inset(0_round_3px)]"
     >

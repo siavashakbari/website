@@ -14,9 +14,6 @@ import { Route as AboutRouteImport } from './routes/about'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as BrandDiscoveryRouteImport } from './routes/brand-discovery'
 import { Route as ContactRouteImport } from './routes/contact'
-import { Route as GraphicDesignRouteImport } from './routes/graphic-design'
-import { Route as PhotographyRouteImport } from './routes/photography'
-import { Route as ProductDesignRouteImport } from './routes/product-design'
 import { Route as RobotsDottxtRouteImport } from './routes/robots[.]txt'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as DisciplineIndexRouteImport } from './routes/$discipline.index'
@@ -32,6 +29,9 @@ import { Route as BlogIndexRouteImport } from './routes/blog.index'
 import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
 import { Route as ProjectsProjectIdRouteImport } from './routes/projects.$projectId'
 import { Route as VisualIdentityProjectIdRouteImport } from './routes/visual-identity.$projectId'
+import { Route as DisciplineSpecialtyIndexRouteImport } from './routes/$discipline.$specialty.index'
+import { Route as DisciplineSpecialtyProjectIndexRouteImport } from './routes/$discipline.$specialty.$project.index'
+import { Route as DisciplineSpecialtyProjectPhotoIdRouteImport } from './routes/$discipline.$specialty.$project.$photoId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -56,21 +56,6 @@ const BrandDiscoveryRoute = BrandDiscoveryRouteImport.update({
 const ContactRoute = ContactRouteImport.update({
   id: '/contact',
   path: '/contact',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const GraphicDesignRoute = GraphicDesignRouteImport.update({
-  id: '/graphic-design',
-  path: '/graphic-design',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PhotographyRoute = PhotographyRouteImport.update({
-  id: '/photography',
-  path: '/photography',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ProductDesignRoute = ProductDesignRouteImport.update({
-  id: '/product-design',
-  path: '/product-design',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RobotsDottxtRoute = RobotsDottxtRouteImport.update({
@@ -148,6 +133,24 @@ const VisualIdentityProjectIdRoute = VisualIdentityProjectIdRouteImport.update({
   path: '/visual-identity/$projectId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DisciplineSpecialtyIndexRoute =
+  DisciplineSpecialtyIndexRouteImport.update({
+    id: '/$discipline/$specialty/',
+    path: '/$discipline/$specialty/',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const DisciplineSpecialtyProjectIndexRoute =
+  DisciplineSpecialtyProjectIndexRouteImport.update({
+    id: '/$discipline/$specialty/$project/',
+    path: '/$discipline/$specialty/$project/',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const DisciplineSpecialtyProjectPhotoIdRoute =
+  DisciplineSpecialtyProjectPhotoIdRouteImport.update({
+    id: '/$discipline/$specialty/$project/$photoId',
+    path: '/$discipline/$specialty/$project/$photoId',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -155,9 +158,6 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AdminRouteWithChildren
   '/brand-discovery': typeof BrandDiscoveryRoute
   '/contact': typeof ContactRoute
-  '/graphic-design': typeof GraphicDesignRoute
-  '/photography': typeof PhotographyRoute
-  '/product-design': typeof ProductDesignRoute
   '/robots.txt': typeof RobotsDottxtRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/$discipline/$photoId': typeof DisciplinePhotoIdRoute
@@ -173,15 +173,15 @@ export interface FileRoutesByFullPath {
   '/$discipline/': typeof DisciplineIndexRoute
   '/admin/': typeof AdminIndexRoute
   '/blog/': typeof BlogIndexRoute
+  '/$discipline/$specialty/': typeof DisciplineSpecialtyIndexRoute
+  '/$discipline/$specialty/$project/$photoId': typeof DisciplineSpecialtyProjectPhotoIdRoute
+  '/$discipline/$specialty/$project/': typeof DisciplineSpecialtyProjectIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/brand-discovery': typeof BrandDiscoveryRoute
   '/contact': typeof ContactRoute
-  '/graphic-design': typeof GraphicDesignRoute
-  '/photography': typeof PhotographyRoute
-  '/product-design': typeof ProductDesignRoute
   '/robots.txt': typeof RobotsDottxtRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/$discipline/$photoId': typeof DisciplinePhotoIdRoute
@@ -197,6 +197,9 @@ export interface FileRoutesByTo {
   '/$discipline': typeof DisciplineIndexRoute
   '/admin': typeof AdminIndexRoute
   '/blog': typeof BlogIndexRoute
+  '/$discipline/$specialty': typeof DisciplineSpecialtyIndexRoute
+  '/$discipline/$specialty/$project/$photoId': typeof DisciplineSpecialtyProjectPhotoIdRoute
+  '/$discipline/$specialty/$project': typeof DisciplineSpecialtyProjectIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -205,9 +208,6 @@ export interface FileRoutesById {
   '/admin': typeof AdminRouteWithChildren
   '/brand-discovery': typeof BrandDiscoveryRoute
   '/contact': typeof ContactRoute
-  '/graphic-design': typeof GraphicDesignRoute
-  '/photography': typeof PhotographyRoute
-  '/product-design': typeof ProductDesignRoute
   '/robots.txt': typeof RobotsDottxtRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/$discipline/$photoId': typeof DisciplinePhotoIdRoute
@@ -223,6 +223,9 @@ export interface FileRoutesById {
   '/$discipline/': typeof DisciplineIndexRoute
   '/admin/': typeof AdminIndexRoute
   '/blog/': typeof BlogIndexRoute
+  '/$discipline/$specialty/': typeof DisciplineSpecialtyIndexRoute
+  '/$discipline/$specialty/$project/$photoId': typeof DisciplineSpecialtyProjectPhotoIdRoute
+  '/$discipline/$specialty/$project/': typeof DisciplineSpecialtyProjectIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -232,9 +235,6 @@ export interface FileRouteTypes {
     | '/admin'
     | '/brand-discovery'
     | '/contact'
-    | '/graphic-design'
-    | '/photography'
-    | '/product-design'
     | '/robots.txt'
     | '/sitemap.xml'
     | '/$discipline/$photoId'
@@ -250,15 +250,15 @@ export interface FileRouteTypes {
     | '/$discipline/'
     | '/admin/'
     | '/blog/'
+    | '/$discipline/$specialty/'
+    | '/$discipline/$specialty/$project/$photoId'
+    | '/$discipline/$specialty/$project/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/about'
     | '/brand-discovery'
     | '/contact'
-    | '/graphic-design'
-    | '/photography'
-    | '/product-design'
     | '/robots.txt'
     | '/sitemap.xml'
     | '/$discipline/$photoId'
@@ -274,6 +274,9 @@ export interface FileRouteTypes {
     | '/$discipline'
     | '/admin'
     | '/blog'
+    | '/$discipline/$specialty'
+    | '/$discipline/$specialty/$project/$photoId'
+    | '/$discipline/$specialty/$project'
   id:
     | '__root__'
     | '/'
@@ -281,9 +284,6 @@ export interface FileRouteTypes {
     | '/admin'
     | '/brand-discovery'
     | '/contact'
-    | '/graphic-design'
-    | '/photography'
-    | '/product-design'
     | '/robots.txt'
     | '/sitemap.xml'
     | '/$discipline/$photoId'
@@ -299,6 +299,9 @@ export interface FileRouteTypes {
     | '/$discipline/'
     | '/admin/'
     | '/blog/'
+    | '/$discipline/$specialty/'
+    | '/$discipline/$specialty/$project/$photoId'
+    | '/$discipline/$specialty/$project/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -307,9 +310,6 @@ export interface RootRouteChildren {
   AdminRoute: typeof AdminRouteWithChildren
   BrandDiscoveryRoute: typeof BrandDiscoveryRoute
   ContactRoute: typeof ContactRoute
-  GraphicDesignRoute: typeof GraphicDesignRoute
-  PhotographyRoute: typeof PhotographyRoute
-  ProductDesignRoute: typeof ProductDesignRoute
   RobotsDottxtRoute: typeof RobotsDottxtRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   DisciplinePhotoIdRoute: typeof DisciplinePhotoIdRoute
@@ -320,6 +320,9 @@ export interface RootRouteChildren {
   VisualIdentityProjectIdRoute: typeof VisualIdentityProjectIdRoute
   DisciplineIndexRoute: typeof DisciplineIndexRoute
   BlogIndexRoute: typeof BlogIndexRoute
+  DisciplineSpecialtyIndexRoute: typeof DisciplineSpecialtyIndexRoute
+  DisciplineSpecialtyProjectPhotoIdRoute: typeof DisciplineSpecialtyProjectPhotoIdRoute
+  DisciplineSpecialtyProjectIndexRoute: typeof DisciplineSpecialtyProjectIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -357,27 +360,6 @@ declare module '@tanstack/react-router' {
       path: '/contact'
       fullPath: '/contact'
       preLoaderRoute: typeof ContactRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/graphic-design': {
-      id: '/graphic-design'
-      path: '/graphic-design'
-      fullPath: '/graphic-design'
-      preLoaderRoute: typeof GraphicDesignRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/photography': {
-      id: '/photography'
-      path: '/photography'
-      fullPath: '/photography'
-      preLoaderRoute: typeof PhotographyRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/product-design': {
-      id: '/product-design'
-      path: '/product-design'
-      fullPath: '/product-design'
-      preLoaderRoute: typeof ProductDesignRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/robots.txt': {
@@ -485,6 +467,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof VisualIdentityProjectIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/$discipline/$specialty/': {
+      id: '/$discipline/$specialty/'
+      path: '/$discipline/$specialty'
+      fullPath: '/$discipline/$specialty/'
+      preLoaderRoute: typeof DisciplineSpecialtyIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/$discipline/$specialty/$project/': {
+      id: '/$discipline/$specialty/$project/'
+      path: '/$discipline/$specialty/$project'
+      fullPath: '/$discipline/$specialty/$project/'
+      preLoaderRoute: typeof DisciplineSpecialtyProjectIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/$discipline/$specialty/$project/$photoId': {
+      id: '/$discipline/$specialty/$project/$photoId'
+      path: '/$discipline/$specialty/$project/$photoId'
+      fullPath: '/$discipline/$specialty/$project/$photoId'
+      preLoaderRoute: typeof DisciplineSpecialtyProjectPhotoIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -512,9 +515,6 @@ const rootRouteChildren: RootRouteChildren = {
   AdminRoute: AdminRouteWithChildren,
   BrandDiscoveryRoute: BrandDiscoveryRoute,
   ContactRoute: ContactRoute,
-  GraphicDesignRoute: GraphicDesignRoute,
-  PhotographyRoute: PhotographyRoute,
-  ProductDesignRoute: ProductDesignRoute,
   RobotsDottxtRoute: RobotsDottxtRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   DisciplinePhotoIdRoute: DisciplinePhotoIdRoute,
@@ -525,6 +525,10 @@ const rootRouteChildren: RootRouteChildren = {
   VisualIdentityProjectIdRoute: VisualIdentityProjectIdRoute,
   DisciplineIndexRoute: DisciplineIndexRoute,
   BlogIndexRoute: BlogIndexRoute,
+  DisciplineSpecialtyIndexRoute: DisciplineSpecialtyIndexRoute,
+  DisciplineSpecialtyProjectPhotoIdRoute:
+    DisciplineSpecialtyProjectPhotoIdRoute,
+  DisciplineSpecialtyProjectIndexRoute: DisciplineSpecialtyProjectIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

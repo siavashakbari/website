@@ -294,8 +294,189 @@ export function deleteInvoice(id: string): void {
 
 // 4. Photo Inventory Metadata Store (Matching PHOTO_INVENTORY_VIEWER.html)
 export const STORAGE_INVENTORY_KEY = "siavash_portfolio_inventory_v3";
+export const STORAGE_CUSTOM_PHOTOS_KEY = "siavash_custom_photo_assets_v2";
+export const STORAGE_TAXONOMY_KEY = "siavash_custom_taxonomy_v2";
 
 import { PHOTO_INVENTORY, computeItemSeoSlug, type PhotoInventoryItem } from "@/data/photo-inventory";
+import {
+  generate4PartPhotoCode,
+  getDiscipline4Code,
+  getSpecialty4Code,
+  getProject4Code,
+  normalizeDisciplineSlug as taxNormDisc,
+  normalizeSpecialtySlug as taxNormSpec,
+  normalizeProjectSlug as taxNormProj,
+  buildPhotoUrl,
+  to4LetterCode,
+  slugify,
+} from "@/lib/taxonomy";
+
+// -------------------------------------------------------------
+// Dynamic Taxonomy Models & Defaults
+// -------------------------------------------------------------
+
+export interface TaxonomyDiscipline {
+  slug: string;
+  label: string;
+  code: string;
+}
+
+export interface TaxonomySpecialty {
+  slug: string;
+  label: string;
+  disciplineSlug: string;
+  code: string;
+}
+
+export interface TaxonomyProject {
+  slug: string;
+  title: string;
+  disciplineSlug: string;
+  specialtySlug: string;
+  code: string;
+  client?: string;
+  year?: string;
+  description?: string;
+}
+
+export const DEFAULT_TAXONOMY_DISCIPLINES: TaxonomyDiscipline[] = [
+  { slug: "photography", label: "Photography", code: "PHOT" },
+  { slug: "graphic-design", label: "Graphic Design", code: "DSGN" },
+  { slug: "video", label: "Video", code: "VIDO" },
+];
+
+export const DEFAULT_TAXONOMY_SPECIALTIES: TaxonomySpecialty[] = [
+  { slug: "fashion", label: "Fashion Photography", disciplineSlug: "photography", code: "FASH" },
+  { slug: "food", label: "Food Photography", disciplineSlug: "photography", code: "FOOD" },
+  { slug: "portrait", label: "Portrait Photography", disciplineSlug: "photography", code: "PORT" },
+  { slug: "product", label: "Product Photography", disciplineSlug: "photography", code: "PROD" },
+  { slug: "visual-identity", label: "Visual Identity", disciplineSlug: "graphic-design", code: "VIID" },
+  { slug: "book-covers", label: "Book Covers", disciplineSlug: "graphic-design", code: "BOOK" },
+  { slug: "posters", label: "Posters", disciplineSlug: "graphic-design", code: "POST" },
+  { slug: "videos", label: "Videos", disciplineSlug: "video", code: "VIDO" },
+];
+
+interface CustomTaxonomyState {
+  disciplines: TaxonomyDiscipline[];
+  specialties: TaxonomySpecialty[];
+  projects: TaxonomyProject[];
+}
+
+export function getCustomTaxonomy(): CustomTaxonomyState {
+  if (typeof window === "undefined") {
+    return { disciplines: [], specialties: [], projects: [] };
+  }
+  try {
+    const raw = localStorage.getItem(STORAGE_TAXONOMY_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch (e) {
+    console.error("Error reading custom taxonomy:", e);
+  }
+  return { disciplines: [], specialties: [], projects: [] };
+}
+
+export function saveCustomTaxonomy(state: CustomTaxonomyState): void {
+  if (typeof window === "undefined") return;
+  localStorage.setItem(STORAGE_TAXONOMY_KEY, JSON.stringify(state));
+}
+
+export function getTaxonomyDisciplines(): TaxonomyDiscipline[] {
+  const custom = getCustomTaxonomy().disciplines;
+  const list = [...DEFAULT_TAXONOMY_DISCIPLINES];
+  custom.forEach((c) => {
+    if (!list.some((d) => d.slug === c.slug)) {
+      list.push(c);
+    }
+  });
+  return list;
+}
+
+export function getTaxonomySpecialties(disciplineSlug?: string): TaxonomySpecialty[] {
+  const custom = getCustomTaxonomy().specialties;
+  const list = [...DEFAULT_TAXONOMY_SPECIALTIES];
+  custom.forEach((c) => {
+    if (!list.some((s) => s.slug === c.slug && s.disciplineSlug === c.disciplineSlug)) {
+      list.push(c);
+    }
+  });
+  if (disciplineSlug) {
+    const norm = taxNormDisc(disciplineSlug);
+    return list.filter((s) => taxNormDisc(s.disciplineSlug) === norm);
+  }
+  return list;
+}
+
+export function addCustomDiscipline(title: string, code?: string, slug?: string): TaxonomyDiscipline {
+  const discSlug = slug || slugify(title);
+  const discCode = code ? to4LetterCode(code) : getDiscipline4Code(discSlug);
+  const newDisc: TaxonomyDiscipline = {
+    slug: discSlug,
+    label: title.trim(),
+    code: discCode,
+  };
+  const tax = getCustomTaxonomy();
+  if (!tax.disciplines.some((d) => d.slug === discSlug)) {
+    tax.disciplines.push(newDisc);
+    saveCustomTaxonomy(tax);
+  }
+  return newDisc;
+}
+
+export function addCustomSpecialty(
+  disciplineSlug: string,
+  title: string,
+  code?: string,
+  slug?: string,
+): TaxonomySpecialty {
+  const dSlug = taxNormDisc(disciplineSlug);
+  const sSlug = slug || slugify(title);
+  const sCode = code ? to4LetterCode(code) : getSpecialty4Code(sSlug);
+  const newSpec: TaxonomySpecialty = {
+    slug: sSlug,
+    label: title.trim(),
+    disciplineSlug: dSlug,
+    code: sCode,
+  };
+  const tax = getCustomTaxonomy();
+  if (!tax.specialties.some((s) => s.slug === sSlug && s.disciplineSlug === dSlug)) {
+    tax.specialties.push(newSpec);
+    saveCustomTaxonomy(tax);
+  }
+  return newSpec;
+}
+
+// -------------------------------------------------------------
+// Custom Photos & Merged Inventory (with 4-Part Standard Codes)
+// -------------------------------------------------------------
+
+export function getCustomPhotoAssets(): PhotoInventoryItem[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = localStorage.getItem(STORAGE_CUSTOM_PHOTOS_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch (e) {
+    console.error("Error reading custom photos:", e);
+  }
+  return [];
+}
+
+export function saveCustomPhotoAsset(photo: PhotoInventoryItem): void {
+  if (typeof window === "undefined") return;
+  const list = getCustomPhotoAssets();
+  const idx = list.findIndex((p) => p.code === photo.code || p.standardCode === photo.standardCode);
+  if (idx >= 0) {
+    list[idx] = photo;
+  } else {
+    list.unshift(photo);
+  }
+  localStorage.setItem(STORAGE_CUSTOM_PHOTOS_KEY, JSON.stringify(list));
+}
+
+export function deleteCustomPhotoAsset(code: string): void {
+  if (typeof window === "undefined") return;
+  const list = getCustomPhotoAssets().filter((p) => p.code !== code && p.standardCode !== code);
+  localStorage.setItem(STORAGE_CUSTOM_PHOTOS_KEY, JSON.stringify(list));
+}
 
 export function getCustomPhotoMetadata(): Record<string, Partial<PhotoInventoryItem>> {
   if (typeof window === "undefined") return {};
@@ -308,55 +489,233 @@ export function getCustomPhotoMetadata(): Record<string, Partial<PhotoInventoryI
   return {};
 }
 
+/**
+ * Infers normalized specialty slug for a static photo item.
+ */
+function inferItemSpecialty(item: PhotoInventoryItem): string {
+  if (item.specialtySlug) return item.specialtySlug;
+  const combined = `${item.disciplineSlug} ${item.discipline} ${item.subdiscipline} ${item.project}`.toLowerCase();
+  if (combined.includes("fashion")) return "fashion";
+  if (combined.includes("food")) return "food";
+  if (combined.includes("portrait")) return "portrait";
+  if (combined.includes("product") || combined.includes("object")) return "product";
+  if (combined.includes("visual identity") || combined.includes("brand") || combined.includes("identity")) return "visual-identity";
+  if (combined.includes("book cover") || combined.includes("book")) return "book-covers";
+  if (combined.includes("poster")) return "posters";
+  if (combined.includes("video") || combined.includes("motion")) return "videos";
+  return "fashion";
+}
+
+/**
+ * Returns complete photo inventory:
+ * 1. Static items enriched with standard 4-part code (e.g. PHOT-FASH-SEPI-0001)
+ * 2. Overrides from custom metadata
+ * 3. User-created imported photos
+ */
 export function getMergedPhotoInventory(): PhotoInventoryItem[] {
-  const customMap = getCustomPhotoMetadata();
-  return PHOTO_INVENTORY.map((item) => {
-    const custom = customMap[item.code];
-    if (!custom) return item;
+  const customMetadataMap = getCustomPhotoMetadata();
+  const customPhotos = getCustomPhotoAssets();
+
+  // Track sequence per project to assign standard 4-digit numbers if needed
+  const projectSequenceMap: Record<string, number> = {};
+
+  const staticMerged = PHOTO_INVENTORY.map((item) => {
+    const custom = customMetadataMap[item.code] || customMetadataMap[item.standardCode || ""];
+
+    const discSlug = custom?.disciplineSlug || taxNormDisc(item.disciplineSlug || item.discipline);
+    const specSlug = custom?.specialtySlug || inferItemSpecialty(item);
+    const projSlug = custom?.projectSlug || taxNormProj(custom?.project || item.project);
+
+    // Track sequence
+    if (!projectSequenceMap[projSlug]) projectSequenceMap[projSlug] = 0;
+    projectSequenceMap[projSlug] += 1;
+    const seq = projectSequenceMap[projSlug];
+
+    // Check if filename has number (e.g. "...-01.jpg")
+    const matchNum = item.imgSrc?.match(/[-_](\d+)(?:-thumb)?\.[a-z0-9]+$/i) || item.code?.match(/[-_](\d+)$/);
+    const numInt = matchNum ? parseInt(matchNum[1], 10) : seq;
+
+    // Standard 4-part code: PHOT-FASH-SEPI-0001
+    const standardCode =
+      custom?.standardCode ||
+      (/^[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}-\d{4}$/i.test(item.code)
+        ? item.code.toUpperCase()
+        : generate4PartPhotoCode(discSlug, specSlug, custom?.project || item.project, numInt));
+
+    const canonicalPath = buildPhotoUrl(discSlug, specSlug, projSlug, standardCode);
+
     return {
       ...item,
       ...custom,
+      code: standardCode, // Photo name and code match standard
+      standardCode,
+      disciplineSlug: discSlug,
+      specialtySlug: specSlug,
+      projectSlug: projSlug,
+      canonicalPath,
     };
   });
+
+  // Merge any custom user-imported photos
+  const mergedCustom = customPhotos.map((item, idx) => {
+    const custom = customMetadataMap[item.code] || customMetadataMap[item.standardCode || ""];
+    const discSlug = custom?.disciplineSlug || taxNormDisc(item.disciplineSlug || item.discipline || "photography");
+    const specSlug = custom?.specialtySlug || taxNormSpec(item.specialtySlug || item.subdiscipline || "fashion");
+    const projSlug = custom?.projectSlug || taxNormProj(custom?.project || item.project || "custom-project");
+    const standardCode =
+      custom?.standardCode ||
+      item.standardCode ||
+      item.code ||
+      generate4PartPhotoCode(discSlug, specSlug, projSlug, idx + 1);
+    const canonicalPath = buildPhotoUrl(discSlug, specSlug, projSlug, standardCode);
+
+    return {
+      ...item,
+      ...custom,
+      code: standardCode,
+      standardCode,
+      disciplineSlug: discSlug,
+      specialtySlug: specSlug,
+      projectSlug: projSlug,
+      canonicalPath,
+    };
+  });
+
+  return [...staticMerged, ...mergedCustom];
 }
 
 export function getPhotoItemByCode(code: string): PhotoInventoryItem | undefined {
+  if (!code) return undefined;
+  const q = code.toUpperCase().trim();
   const all = getMergedPhotoInventory();
-  return all.find((i) => i.code.toUpperCase() === code.toUpperCase());
+  return all.find(
+    (i) =>
+      i.code.toUpperCase() === q ||
+      (i.standardCode && i.standardCode.toUpperCase() === q),
+  );
 }
 
+/**
+ * Universal lookup for photos matching 4-part code, legacy code, slug, or stem.
+ */
 export function getPhotoItemBySlugOrCode(
   slugOrCode: string,
   disciplineSlug?: string,
+  specialtySlug?: string,
+  projectSlug?: string,
 ): PhotoInventoryItem | undefined {
   if (!slugOrCode) return undefined;
   const q = slugOrCode.toLowerCase().trim();
   const all = getMergedPhotoInventory();
 
-  // 1. Direct match on code
-  const byCode = all.find((i) => i.code.toLowerCase() === q);
-  if (byCode) return byCode;
+  // 1. Direct match on standard 4-part code (PHOT-FASH-SEPI-0001) or code
+  const byStandardCode = all.find(
+    (i) =>
+      (i.standardCode && i.standardCode.toLowerCase() === q) ||
+      i.code.toLowerCase() === q,
+  );
+  if (byStandardCode) return byStandardCode;
 
-  // 2. Direct match on explicit or computed seoSlug
+  // 2. Filtered match with project/specialty context
+  if (projectSlug) {
+    const normProj = taxNormProj(projectSlug);
+    const inProj = all.filter((i) => taxNormProj(i.projectSlug || i.project) === normProj);
+    const foundInProj = inProj.find(
+      (i) =>
+        i.code.toLowerCase() === q ||
+        (i.standardCode && i.standardCode.toLowerCase() === q) ||
+        (i.seoSlug && i.seoSlug.toLowerCase() === q),
+    );
+    if (foundInProj) return foundInProj;
+  }
+
+  // 3. Match on explicit or computed seoSlug
   const bySlug = all.find((i) => {
-    if (disciplineSlug && i.disciplineSlug !== disciplineSlug) return false;
+    if (disciplineSlug && taxNormDisc(i.disciplineSlug) !== taxNormDisc(disciplineSlug)) return false;
+    if (specialtySlug && taxNormSpec(i.specialtySlug || "") !== taxNormSpec(specialtySlug)) return false;
     if (i.seoSlug && i.seoSlug.toLowerCase() === q) return true;
     const computed = computeItemSeoSlug(i);
     return computed.toLowerCase() === q;
   });
   if (bySlug) return bySlug;
 
+  // 4. Match on filename stem (e.g. "fashion-sepidar-01")
+  const byStem = all.find((i) => {
+    const stem = i.imgSrc?.split("/").pop()?.replace(/\.[^.]+$/, "").toLowerCase() || "";
+    return stem === q;
+  });
+  if (byStem) return byStem;
+
   return undefined;
 }
 
-export function savePhotoInventoryItem(item: Partial<PhotoInventoryItem> & { code: string }): void {
+export function getPhotosByDiscipline(disciplineSlug: string): PhotoInventoryItem[] {
+  const norm = taxNormDisc(disciplineSlug);
+  return getMergedPhotoInventory().filter((i) => taxNormDisc(i.disciplineSlug) === norm);
+}
+
+export function getPhotosBySpecialty(
+  specialtySlug: string,
+  disciplineSlug?: string,
+): PhotoInventoryItem[] {
+  const sNorm = taxNormSpec(specialtySlug);
+  const dNorm = disciplineSlug ? taxNormDisc(disciplineSlug) : null;
+  return getMergedPhotoInventory().filter((i) => {
+    if (dNorm && taxNormDisc(i.disciplineSlug) !== dNorm) return false;
+    return taxNormSpec(i.specialtySlug || "") === sNorm;
+  });
+}
+
+export function getPhotosByProject(projectSlug: string): PhotoInventoryItem[] {
+  const norm = taxNormProj(projectSlug);
+  return getMergedPhotoInventory().filter((i) => taxNormProj(i.projectSlug || i.project) === norm);
+}
+
+export function savePhotoInventoryItem(
+  item: Partial<PhotoInventoryItem> & { code: string },
+  previousCode?: string,
+): void {
   if (typeof window === "undefined") return;
+
+  // 1. Update in custom photo assets if present
+  const customList = getCustomPhotoAssets();
+  const cIdx = customList.findIndex(
+    (p) =>
+      p.code === item.code ||
+      (previousCode && p.code === previousCode) ||
+      p.standardCode === item.code ||
+      (previousCode && p.standardCode === previousCode),
+  );
+  if (cIdx >= 0) {
+    customList[cIdx] = {
+      ...customList[cIdx],
+      ...item,
+    };
+    localStorage.setItem(STORAGE_CUSTOM_PHOTOS_KEY, JSON.stringify(customList));
+  }
+
+  // 2. Update custom metadata overlay
   const map = getCustomPhotoMetadata();
-  map[item.code] = {
-    ...(map[item.code] || {}),
-    ...item,
-  };
+  if (previousCode && previousCode !== item.code && map[previousCode]) {
+    map[item.code] = { ...map[previousCode], ...item };
+    delete map[previousCode];
+  } else {
+    map[item.code] = {
+      ...(map[item.code] || {}),
+      ...item,
+    };
+  }
   localStorage.setItem(STORAGE_INVENTORY_KEY, JSON.stringify(map));
+}
+
+export function deletePhotoInventoryItem(code: string): void {
+  if (typeof window === "undefined") return;
+  deleteCustomPhotoAsset(code);
+  const map = getCustomPhotoMetadata();
+  if (map[code]) {
+    delete map[code];
+    localStorage.setItem(STORAGE_INVENTORY_KEY, JSON.stringify(map));
+  }
 }
 
 export function saveBulkPhotoInventory(items: Record<string, Partial<PhotoInventoryItem>>): void {

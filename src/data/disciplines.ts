@@ -11,12 +11,15 @@ import videoCover from "../assets/video/echo-prime/video-echo-prime-01.mp4";
 
 export interface DisciplineCard {
   slug: string;
+  disciplineSlug: string;
+  specialtySlug: string;
+  path: string;
   label: string;
   image?: string;
   disciplines?: Discipline[];
   match: (category: string) => boolean;
   blurb: string;
-  /** When true, /$discipline lists project cards linking to /projects/$id instead of a flat photo gallery. */
+  /** When true, lists project cards linking to project page instead of a flat photo gallery. */
   browseByProject?: boolean;
   /** Layout for the photo view. "scroll" = full-height horizontal side-scrolling strip. Default = masonry grid. */
   layout?: "scroll";
@@ -24,7 +27,10 @@ export interface DisciplineCard {
 
 export const DISCIPLINES: DisciplineCard[] = [
   {
-    slug: "fashion-photography",
+    slug: "fashion",
+    disciplineSlug: "photography",
+    specialtySlug: "fashion",
+    path: "/photography/fashion",
     label: "Fashion Photography",
     image: fashionAsset,
     disciplines: ["photography"],
@@ -32,7 +38,10 @@ export const DISCIPLINES: DisciplineCard[] = [
     blurb: "Studio fashion stories — silhouette, texture, and quiet gesture.",
   },
   {
-    slug: "food-photography",
+    slug: "food",
+    disciplineSlug: "photography",
+    specialtySlug: "food",
+    path: "/photography/food",
     label: "Food Photography",
     image: foodImg,
     disciplines: ["photography"],
@@ -40,7 +49,10 @@ export const DISCIPLINES: DisciplineCard[] = [
     blurb: "Culinary narratives built from light, shadow, and the ritual of the plate.",
   },
   {
-    slug: "portrait-photography",
+    slug: "portrait",
+    disciplineSlug: "photography",
+    specialtySlug: "portrait",
+    path: "/photography/portrait",
     label: "Portrait Photography",
     image: portraitAsset,
     disciplines: ["photography"],
@@ -48,7 +60,10 @@ export const DISCIPLINES: DisciplineCard[] = [
     blurb: "Portraits that hold a person still enough to be seen.",
   },
   {
-    slug: "product-photography",
+    slug: "product",
+    disciplineSlug: "photography",
+    specialtySlug: "product",
+    path: "/photography/product",
     label: "Product Photography",
     image: productImg,
     disciplines: ["photography"],
@@ -57,6 +72,9 @@ export const DISCIPLINES: DisciplineCard[] = [
   },
   {
     slug: "visual-identity",
+    disciplineSlug: "graphic-design",
+    specialtySlug: "visual-identity",
+    path: "/graphic-design/visual-identity",
     label: "Visual Identity",
     image: visualIdentityImg,
     disciplines: ["graphic-design"],
@@ -66,6 +84,9 @@ export const DISCIPLINES: DisciplineCard[] = [
   },
   {
     slug: "book-covers",
+    disciplineSlug: "graphic-design",
+    specialtySlug: "book-covers",
+    path: "/graphic-design/book-covers",
     label: "Book Covers",
     image: bookCoverImg,
     disciplines: ["graphic-design"],
@@ -75,6 +96,9 @@ export const DISCIPLINES: DisciplineCard[] = [
   },
   {
     slug: "posters",
+    disciplineSlug: "graphic-design",
+    specialtySlug: "posters",
+    path: "/graphic-design/posters",
     label: "Posters",
     image: postersImg,
     disciplines: ["graphic-design"],
@@ -84,6 +108,9 @@ export const DISCIPLINES: DisciplineCard[] = [
   },
   {
     slug: "videos",
+    disciplineSlug: "video",
+    specialtySlug: "videos",
+    path: "/video/videos",
     label: "Videos",
     image: videoCover,
     match: (c) => c.toLowerCase().includes("video"),

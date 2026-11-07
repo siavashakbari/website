@@ -20,6 +20,247 @@ export function slugify(text: string): string {
     .replace(/-+$/, "");            // Trim - from end of text
 }
 
+// -------------------------------------------------------------
+// 4-Letter Structured Hierarchy Coding (PHOT-FASH-SEPI-0001)
+// -------------------------------------------------------------
+
+export const DISCIPLINE_4_MAP: Record<string, string> = {
+  photography: "PHOT",
+  photo: "PHOT",
+  "fashion-photography": "PHOT",
+  "food-photography": "PHOT",
+  "portrait-photography": "PHOT",
+  "product-photography": "PHOT",
+  "graphic-design": "DSGN",
+  "graphic design": "DSGN",
+  graphics: "DSGN",
+  design: "DSGN",
+  video: "VIDO",
+  videos: "VIDO",
+  motion: "VIDO",
+};
+
+export const SPECIALTY_4_MAP: Record<string, string> = {
+  fashion: "FASH",
+  "fashion-photography": "FASH",
+  food: "FOOD",
+  "food-photography": "FOOD",
+  portrait: "PORT",
+  "portrait-photography": "PORT",
+  product: "PROD",
+  "product-photography": "PROD",
+  "visual-identity": "VIID",
+  "visual identity": "VIID",
+  branding: "VIID",
+  identity: "VIID",
+  "book-covers": "BOOK",
+  "book covers": "BOOK",
+  books: "BOOK",
+  posters: "POST",
+  poster: "POST",
+  videos: "VIDO",
+  video: "VIDO",
+  "brand-films": "FILM",
+};
+
+export const PROJECT_4_MAP: Record<string, string> = {
+  sepidar: "SEPI",
+  atlasi: "ATLA",
+  zeeen: "ZEEE",
+  gastronomie: "GAST",
+  cuisine: "CUIS",
+  tasting: "TAST",
+  calligraphy: "CALL",
+  photos: "PHOT",
+  gaze: "GAZE",
+  objects: "OBJE",
+  shekarchian: "SHEK",
+  "shekarchian-honey": "SHEK",
+  dodareh: "DODA",
+  "ahura-cctv": "AHUR",
+  femiq: "FEMI",
+  polarity: "POLA",
+  "echo-supplements": "ECHO",
+  goats: "GOAT",
+  "goats-coffee": "GOAT",
+  "nozad-publication": "NOZA",
+  "on-swipe": "ONSW",
+  "zen-studio": "ZENS",
+  "zen-studio-products": "ZENS",
+  artemis: "ARTE",
+  cichon: "CICH",
+  "farshid-rahimi": "FARS",
+  maanaar: "MAAN",
+  mamrezz: "MAMR",
+  "snow-snack": "SNOW",
+  "zeee-products": "ZEEE",
+  awli: "AWLI",
+  "echo-prime": "ECHO",
+};
+
+/**
+ * Standardizes any string to a 4-letter uppercase code.
+ */
+export function to4LetterCode(text: string, fallback = "GENR"): string {
+  if (!text) return fallback;
+  const clean = text.replace(/[^a-zA-Z0-9]/g, "").toUpperCase();
+  if (!clean) return fallback;
+  if (clean.length < 4) {
+    return (clean + "XXXX").slice(0, 4);
+  }
+  return clean.slice(0, 4);
+}
+
+/**
+ * Maps any discipline text to its canonical URL slug (e.g. "Photography" -> "photography").
+ */
+export function normalizeDisciplineSlug(discipline: string): string {
+  const q = (discipline || "").toLowerCase().trim();
+  if (q.includes("photo")) return "photography";
+  if (q.includes("graphic") || q.includes("design") || q.includes("identity") || q.includes("book") || q.includes("poster")) {
+    return "graphic-design";
+  }
+  if (q.includes("video") || q.includes("motion")) return "video";
+  return slugify(discipline) || "photography";
+}
+
+/**
+ * Maps any specialty text to its canonical URL slug (e.g. "Fashion Photography" -> "fashion").
+ */
+export function normalizeSpecialtySlug(specialty: string): string {
+  const q = (specialty || "").toLowerCase().trim();
+  if (q.includes("fashion")) return "fashion";
+  if (q.includes("food")) return "food";
+  if (q.includes("portrait")) return "portrait";
+  if (q.includes("product")) return "product";
+  if (q.includes("visual") || q.includes("identity") || q.includes("brand")) return "visual-identity";
+  if (q.includes("book")) return "book-covers";
+  if (q.includes("poster")) return "posters";
+  if (q.includes("video")) return "videos";
+  return slugify(specialty) || "general";
+}
+
+/**
+ * Maps any project name to its canonical URL slug (e.g. "Sepidar" -> "sepidar").
+ */
+export function normalizeProjectSlug(project: string): string {
+  return slugify(project) || "project";
+}
+
+/**
+ * Resolves the 4-letter discipline code (e.g. "photography" -> "PHOT").
+ */
+export function getDiscipline4Code(discipline: string): string {
+  const slug = normalizeDisciplineSlug(discipline);
+  return DISCIPLINE_4_MAP[slug] || to4LetterCode(discipline, "PHOT");
+}
+
+/**
+ * Resolves the 4-letter specialty code (e.g. "fashion" -> "FASH").
+ */
+export function getSpecialty4Code(specialty: string): string {
+  const slug = normalizeSpecialtySlug(specialty);
+  return SPECIALTY_4_MAP[slug] || to4LetterCode(specialty, "SPEC");
+}
+
+/**
+ * Resolves the 4-letter project code (e.g. "Sepidar" -> "SEPI").
+ */
+export function getProject4Code(project: string): string {
+  const slug = normalizeProjectSlug(project);
+  return PROJECT_4_MAP[slug] || to4LetterCode(project, "PROJ");
+}
+
+/**
+ * Generates the standardized 4-part photo naming code:
+ * [DISC 4 letters]-[SPEC 4 letters]-[PROJ 4 letters]-[NUM 4 digits]
+ * e.g., PHOT-FASH-SEPI-0001
+ */
+export function generate4PartPhotoCode(
+  discipline: string,
+  specialty: string,
+  project: string,
+  sequenceNumber: number | string,
+): string {
+  const discCode = getDiscipline4Code(discipline);
+  const specCode = getSpecialty4Code(specialty);
+  const projCode = getProject4Code(project);
+  const num = String(sequenceNumber).padStart(4, "0");
+  return `${discCode}-${specCode}-${projCode}-${num}`;
+}
+
+/**
+ * Parses a 4-part photo code into its segments.
+ */
+export function parse4PartPhotoCode(code: string): {
+  discCode: string;
+  specCode: string;
+  projCode: string;
+  num: string;
+} | null {
+  if (!code) return null;
+  const parts = code.trim().toUpperCase().split("-");
+  if (parts.length === 4) {
+    return {
+      discCode: parts[0],
+      specCode: parts[1],
+      projCode: parts[2],
+      num: parts[3],
+    };
+  }
+  return null;
+}
+
+/**
+ * Builds canonical photo URL:
+ * /Photography/Fashion/Sepidar/PHOT-FASH-SEPI-0001
+ */
+export function buildPhotoUrl(
+  discipline: string,
+  specialty: string,
+  project: string,
+  photoCode: string,
+): string {
+  const dSlug = normalizeDisciplineSlug(discipline);
+  const sSlug = normalizeSpecialtySlug(specialty);
+  const pSlug = normalizeProjectSlug(project);
+  return `/${dSlug}/${sSlug}/${pSlug}/${photoCode}`;
+}
+
+/**
+ * Builds canonical project URL:
+ * /Photography/Fashion/Sepidar
+ */
+export function buildProjectUrl(
+  discipline: string,
+  specialty: string,
+  project: string,
+): string {
+  const dSlug = normalizeDisciplineSlug(discipline);
+  const sSlug = normalizeSpecialtySlug(specialty);
+  const pSlug = normalizeProjectSlug(project);
+  return `/${dSlug}/${sSlug}/${pSlug}`;
+}
+
+/**
+ * Builds canonical specialty URL:
+ * /Photography/Fashion
+ */
+export function buildSpecialtyUrl(discipline: string, specialty: string): string {
+  const dSlug = normalizeDisciplineSlug(discipline);
+  const sSlug = normalizeSpecialtySlug(specialty);
+  return `/${dSlug}/${sSlug}`;
+}
+
+/**
+ * Builds canonical discipline URL:
+ * /Photography
+ */
+export function buildDisciplineUrl(discipline: string): string {
+  const dSlug = normalizeDisciplineSlug(discipline);
+  return `/${dSlug}`;
+}
+
 /**
  * Computes a standardized 3-letter project code from title (e.g., "Atlasi" -> "ATL", "Echo Supplements" -> "ECH").
  */
