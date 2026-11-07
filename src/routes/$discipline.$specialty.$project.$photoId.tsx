@@ -55,6 +55,7 @@ export const Route = createFileRoute("/$discipline/$specialty/$project/$photoId"
     const makeupArtist = photo.makeupArtist || parentProject?.makeupArtist || "";
     const assistant = photo.assistant || parentProject?.assistant || "";
     const year = photo.date || parentProject?.year || "2024";
+    const projectDescription = parentProject?.description || "";
 
     const resolvedPhoto: PhotoInventoryItem = {
       ...photo,
@@ -87,6 +88,7 @@ export const Route = createFileRoute("/$discipline/$specialty/$project/$photoId"
       specialtySlug,
       projectSlug,
       photo: resolvedPhoto,
+      projectDescription,
       resolvedImage,
       prevPhoto,
       nextPhoto,
@@ -98,9 +100,11 @@ export const Route = createFileRoute("/$discipline/$specialty/$project/$photoId"
     const photo = loaderData?.photo;
     const photoCode = photo?.code || "PHOTO";
     const projectTitle = photo?.project || "Project";
-    const title = `${photoCode} — ${projectTitle} | Siavash Akbari`;
+    const displayHeading = photo?.displayName || photo?.title || photoCode;
+    const title = `${displayHeading} — ${projectTitle} | Siavash Akbari`;
     const description =
       photo?.caption ||
+      loaderData?.projectDescription ||
       `Explore photo ${photoCode} from ${projectTitle} (${photo?.date || "2024"}), creative showcase by multidisciplinary designer & photographer Siavash Akbari.`;
 
     const canonicalPath =
@@ -130,6 +134,7 @@ function DedicatedPhotoView() {
     specialtySlug,
     projectSlug,
     photo,
+    projectDescription,
     resolvedImage,
     prevPhoto,
     nextPhoto,
@@ -224,9 +229,30 @@ function DedicatedPhotoView() {
         {/* Right Side: Text & Info Column */}
         <div className="w-full md:w-[380px] lg:w-[440px] shrink-0 h-full overflow-y-auto border-t md:border-t-0 md:border-l border-white/10 p-6 md:p-8 flex flex-col justify-between space-y-6 bg-[#0F0F0F]">
           <div className="space-y-6">
+            {/* Top Project Context & Description */}
+            <div className="space-y-2 pb-4 border-b border-white/10">
+              <div className="flex items-center justify-between">
+                <Link
+                  to={`/${disciplineSlug}/${specialtySlug}/${projectSlug}` as any}
+                  className="group inline-flex items-center gap-1.5 text-xs font-mono uppercase tracking-wider text-[#2CE3C0] hover:text-white transition-colors"
+                >
+                  <span className="font-semibold">{photo.project}</span>
+                  <ExternalLink className="w-3 h-3 text-[#2CE3C0] group-hover:text-white" />
+                </Link>
+                <span className="text-[10px] font-mono text-neutral-500 uppercase tracking-widest">
+                  {photo.discipline}
+                </span>
+              </div>
+              {projectDescription && (
+                <p className="text-xs text-neutral-300 leading-relaxed bg-white/[0.03] border border-white/5 p-3 rounded-xl mt-1.5">
+                  {projectDescription}
+                </p>
+              )}
+            </div>
+
             <div>
               <h1 className="font-display text-xl md:text-2xl font-normal leading-snug tracking-tight text-white">
-                {photo.caption?.trim() || `${photo.project} — Frame ${photo.code.split("-").pop() || "01"}`}
+                {photo.displayName || photo.caption?.trim() || `${photo.project} — Frame ${photo.code.split("-").pop() || "01"}`}
               </h1>
             </div>
 
@@ -279,7 +305,11 @@ function DedicatedPhotoView() {
               </div>
 
               {/* Credits */}
-              {(photo.client || photo.model || photo.makeupArtist || photo.assistant) && (
+              {(photo.client ||
+                photo.model ||
+                photo.makeupArtist ||
+                photo.assistant ||
+                (photo.customFields && photo.customFields.length > 0)) && (
                 <div className="grid grid-cols-1 sm:grid-cols-[110px_1fr] py-3.5 gap-2 sm:gap-4 items-baseline">
                   <div className="text-neutral-500 font-mono uppercase tracking-wider text-xs">
                     Credits
@@ -317,6 +347,12 @@ function DedicatedPhotoView() {
                         Assistant: <strong className="text-white font-medium">{photo.assistant}</strong>
                       </div>
                     )}
+                    {photo.customFields &&
+                      photo.customFields.map((cf) => (
+                        <div key={cf.id || cf.label}>
+                          {cf.label}: <strong className="text-white font-medium">{cf.value}</strong>
+                        </div>
+                      ))}
                   </div>
                 </div>
               )}

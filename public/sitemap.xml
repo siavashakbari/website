@@ -41,22 +41,22 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.siavashakbari.ir/fashion-photography</loc>
+    <loc>https://www.siavashakbari.ir/fashion</loc>
     <changefreq>weekly</changefreq>
     <priority>0.85</priority>
   </url>
   <url>
-    <loc>https://www.siavashakbari.ir/food-photography</loc>
+    <loc>https://www.siavashakbari.ir/food</loc>
     <changefreq>weekly</changefreq>
     <priority>0.85</priority>
   </url>
   <url>
-    <loc>https://www.siavashakbari.ir/portrait-photography</loc>
+    <loc>https://www.siavashakbari.ir/portrait</loc>
     <changefreq>weekly</changefreq>
     <priority>0.85</priority>
   </url>
   <url>
-    <loc>https://www.siavashakbari.ir/product-photography</loc>
+    <loc>https://www.siavashakbari.ir/product</loc>
     <changefreq>weekly</changefreq>
     <priority>0.85</priority>
   </url>

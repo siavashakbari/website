@@ -183,7 +183,7 @@ function ProjectCaseStudyPage() {
           </Link>
         )}
 
-        <p className="col-start-1 mt-2 text-sm md:text-base leading-relaxed text-muted-foreground max-w-3xl line-clamp-3">
+        <p className="col-start-1 mt-2 text-sm md:text-base leading-relaxed text-muted-foreground max-w-3xl">
           {data.description}
         </p>
 

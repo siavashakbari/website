@@ -1,6 +1,12 @@
 // Auto-generated Photo Inventory Registry
 import type { CreditEntry } from "@/types/portfolio-schema";
 
+export interface CustomCreditField {
+  id: string;
+  label: string;
+  value: string;
+}
+
 export interface PhotoInventoryItem {
   code: string;
   project: string;
@@ -21,6 +27,8 @@ export interface PhotoInventoryItem {
   specialtySlug?: string;
   projectSlug?: string;
   title?: string;
+  displayName?: string; // photo display name separate from routing system
+  customFields?: CustomCreditField[]; // card-specific custom metadata (e.g., Collaborator, Fabric, etc.)
   seoSlug?: string;
   canonicalPath?: string;
   legacyCodePath?: string;

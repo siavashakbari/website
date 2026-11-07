@@ -9,6 +9,7 @@ import {
   CheckCircle2,
   Shield,
   Database,
+  FolderPlus,
 } from "lucide-react";
 import {
   getStudioProjects,
@@ -92,55 +93,77 @@ function AdminDashboard() {
         </div>
       )}
 
-      {/* 3 Core Workspace Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* Workspace 1: All Website Data */}
+      {/* 4 Core Workspace Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {/* Workspace 1: Projects Page */}
         <div className="rounded-2xl border border-white/10 bg-[#121212] p-6 flex flex-col justify-between hover:border-[#2CE3C0]/50 transition-all group">
           <div className="space-y-4">
             <div className="w-12 h-12 rounded-xl bg-[#2CE3C0]/10 border border-[#2CE3C0]/20 flex items-center justify-center text-[#2CE3C0] group-hover:scale-105 transition-transform">
-              <Database className="w-6 h-6" />
+              <FolderPlus className="w-6 h-6" />
             </div>
             <div>
               <div className="text-xs font-mono uppercase tracking-wider text-neutral-500">
                 Workspace 01
               </div>
-              <h3 className="text-lg font-bold text-white mt-1">All Website Data</h3>
+              <h3 className="text-lg font-bold text-white mt-1">Projects Page</h3>
               <p className="text-xs text-neutral-400 mt-1 leading-relaxed">
-                Unified repository for case study projects, photo & visual asset inventory, credits, and video specifications.
+                Create new showcase projects (e.g. Atlasi) with automatic canonical routing and dedicated header descriptions for photos.
               </p>
             </div>
-            <div className="pt-2 flex items-center gap-4 text-white">
-              <div>
-                <span className="text-2xl font-bold font-mono">{projectCount}</span>{" "}
-                <span className="text-xs text-neutral-500">Projects</span>
-              </div>
-              <div className="text-neutral-600">·</div>
-              <div>
-                <span className="text-2xl font-bold font-mono text-[#FFD166]">{inventoryCount}</span>{" "}
-                <span className="text-xs text-neutral-500">Photo Assets</span>
-              </div>
+            <div className="pt-2 text-2xl font-bold font-mono text-white">
+              {projectCount}{" "}
+              <span className="text-xs font-normal text-neutral-500 font-sans">
+                Active Projects
+              </span>
             </div>
           </div>
 
-          <div className="pt-6 flex flex-col gap-2">
+          <div className="pt-6">
             <Link
               to="/admin/projects"
               className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-white/5 hover:bg-[#2CE3C0] hover:text-black text-white text-xs font-semibold transition-all"
             >
-              <span>Case Studies & Projects</span>
+              <span>Manage Projects</span>
               <ArrowUpRight className="w-4 h-4" />
-            </Link>
-            <Link
-              to="/admin/inventory"
-              className="w-full inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-[#2CE3C0]/10 border border-[#2CE3C0]/20 hover:bg-[#2CE3C0] hover:text-black text-[#2CE3C0] text-xs font-semibold transition-all"
-            >
-              <Database className="w-3.5 h-3.5" />
-              <span>Open Asset Vault (314+ Items)</span>
             </Link>
           </div>
         </div>
 
-        {/* Workspace 2: Blog */}
+        {/* Workspace 2: Assets */}
+        <div className="rounded-2xl border border-white/10 bg-[#121212] p-6 flex flex-col justify-between hover:border-[#2CE3C0]/50 transition-all group">
+          <div className="space-y-4">
+            <div className="w-12 h-12 rounded-xl bg-[#FFD166]/10 border border-[#FFD166]/20 flex items-center justify-center text-[#FFD166] group-hover:scale-105 transition-transform">
+              <Layers className="w-6 h-6" />
+            </div>
+            <div>
+              <div className="text-xs font-mono uppercase tracking-wider text-neutral-500">
+                Workspace 02
+              </div>
+              <h3 className="text-lg font-bold text-white mt-1">Assets</h3>
+              <p className="text-xs text-neutral-400 mt-1 leading-relaxed">
+                Manage visual assets, link to projects, customize display names, configure disciplines, and add card-specific custom metadata.
+              </p>
+            </div>
+            <div className="pt-2 text-2xl font-bold font-mono text-[#FFD166]">
+              {inventoryCount}{" "}
+              <span className="text-xs font-normal text-neutral-500 font-sans">
+                Visual Assets
+              </span>
+            </div>
+          </div>
+
+          <div className="pt-6">
+            <Link
+              to="/admin/inventory"
+              className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[#FFD166]/10 border border-[#FFD166]/20 hover:bg-[#FFD166] hover:text-black text-[#FFD166] text-xs font-semibold transition-all"
+            >
+              <span>Manage Assets</span>
+              <ArrowUpRight className="w-4 h-4" />
+            </Link>
+          </div>
+        </div>
+
+        {/* Workspace 3: Blog */}
         <div className="rounded-2xl border border-white/10 bg-[#121212] p-6 flex flex-col justify-between hover:border-[#2CE3C0]/50 transition-all group">
           <div className="space-y-4">
             <div className="w-12 h-12 rounded-xl bg-[#2CE3C0]/10 border border-[#2CE3C0]/20 flex items-center justify-center text-[#2CE3C0] group-hover:scale-105 transition-transform">
@@ -148,7 +171,7 @@ function AdminDashboard() {
             </div>
             <div>
               <div className="text-xs font-mono uppercase tracking-wider text-neutral-500">
-                Workspace 02
+                Workspace 03
               </div>
               <h3 className="text-lg font-bold text-white mt-1">Blog & Editorial</h3>
               <p className="text-xs text-neutral-400 mt-1 leading-relaxed">
@@ -175,7 +198,7 @@ function AdminDashboard() {
           </div>
         </div>
 
-        {/* Workspace 3: Invoice Studio */}
+        {/* Workspace 4: Invoice Studio */}
         <div className="rounded-2xl border border-white/10 bg-[#121212] p-6 flex flex-col justify-between hover:border-[#2CE3C0]/50 transition-all group">
           <div className="space-y-4">
             <div className="w-12 h-12 rounded-xl bg-[#2CE3C0]/10 border border-[#2CE3C0]/20 flex items-center justify-center text-[#2CE3C0] group-hover:scale-105 transition-transform">
@@ -183,7 +206,7 @@ function AdminDashboard() {
             </div>
             <div>
               <div className="text-xs font-mono uppercase tracking-wider text-neutral-500">
-                Workspace 03
+                Workspace 04
               </div>
               <h3 className="text-lg font-bold text-white mt-1">Invoice Studio</h3>
               <p className="text-xs text-neutral-400 mt-1 leading-relaxed">

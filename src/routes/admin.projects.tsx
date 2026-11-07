@@ -575,7 +575,7 @@ function AdminProjectsView() {
         <div>
           <div className="flex items-center gap-2 mb-1">
             <span className="text-xs font-mono uppercase tracking-widest text-[#2CE3C0] bg-[#2CE3C0]/10 border border-[#2CE3C0]/20 px-2 py-0.5 rounded">
-              SHOWCASE STUDIO
+              PROJECTS STUDIO
             </span>
             <span className="text-xs text-neutral-500">·</span>
             <Link
@@ -583,18 +583,18 @@ function AdminProjectsView() {
               className="text-xs text-neutral-400 hover:text-[#FFD166] flex items-center gap-1 transition-colors"
             >
               <Database className="w-3.5 h-3.5" />
-              <span>Go to Photo & Visual Asset Inventory</span>
+              <span>Go to Assets Management</span>
             </Link>
           </div>
           <h1 className="text-2xl font-bold tracking-tight text-white flex items-center gap-2.5">
-            <span>Case Study Projects</span>
+            <span>Projects Page</span>
             <span className="text-[10px] font-mono uppercase tracking-widest bg-[#2CE3C0]/15 text-[#2CE3C0] border border-[#2CE3C0]/30 px-2 py-0.5 rounded-full">
               {projects.length} PROJECTS
             </span>
           </h1>
           <p className="text-xs text-neutral-400 mt-1 max-w-3xl leading-relaxed">
-            Create and edit major portfolio case studies, bilingual story narratives, production
-            credits, and 1080p video showcases.
+            Create showcase projects (e.g. Atlasi) that generate canonical routes following your portfolio
+            structure, and write project descriptions that appear prominently on top of photos dedicated pages.
           </p>
         </div>
 
@@ -788,17 +788,32 @@ function AdminProjectsView() {
                     )}
                   </div>
 
+                  {/* Canonical Route Display */}
+                  <div className="font-mono text-[10px] text-[#2CE3C0] bg-black/40 px-2.5 py-1.5 rounded-lg border border-white/5 truncate flex items-center justify-between">
+                    <span className="truncate">
+                      {buildProjectUrl(
+                        project.discipline,
+                        project.subDiscipline || project.category || "general",
+                        project.title,
+                      )}
+                    </span>
+                  </div>
+
                   {/* Card Actions */}
-                  <div className="pt-3 border-t border-white/5 flex items-center justify-between">
-                    <Link
-                      to="/projects/$projectId"
-                      params={{ projectId: project.id }}
+                  <div className="pt-2 border-t border-white/5 flex items-center justify-between">
+                    <a
+                      href={buildProjectUrl(
+                        project.discipline,
+                        project.subDiscipline || project.category || "general",
+                        project.title,
+                      )}
                       target="_blank"
+                      rel="noreferrer"
                       className="text-xs text-neutral-400 hover:text-[#2CE3C0] flex items-center gap-1 transition-colors"
                     >
-                      <span>View Live Page</span>
+                      <span>View Live Route</span>
                       <ExternalLink className="w-3 h-3" />
-                    </Link>
+                    </a>
 
                     <div className="flex items-center gap-1.5">
                       <button
@@ -1080,6 +1095,35 @@ function AdminProjectsView() {
                     />
                   </div>
                 </div>
+
+                {/* Generated Canonical Route Architecture Preview */}
+                <div className="p-3.5 rounded-lg bg-white/[0.03] border border-[#2CE3C0]/30 space-y-1.5">
+                  <div className="flex items-center justify-between text-[11px]">
+                    <span className="font-mono uppercase tracking-wider text-[#2CE3C0] font-semibold flex items-center gap-1.5">
+                      <ExternalLink className="w-3.5 h-3.5" />
+                      Generated Route Architecture (Following Studio Structure)
+                    </span>
+                    <span className="text-[10px] text-neutral-400 font-mono">Auto-generated</span>
+                  </div>
+                  <div className="font-mono text-xs text-white bg-black/60 px-3 py-2 rounded-lg border border-white/10 break-all flex items-center justify-between">
+                    <span>
+                      {buildProjectUrl(
+                        discipline,
+                        subDiscipline || category || "general",
+                        title || "project",
+                      )}
+                    </span>
+                    <span className="text-[10px] text-[#2CE3C0] font-normal ml-2">
+                      Primary Canonical Route
+                    </span>
+                  </div>
+                  <div className="text-[11px] text-neutral-400 flex items-center gap-2">
+                    <span>Also aliased to:</span>
+                    <code className="text-[#FFD166] font-mono">
+                      /projects/{normalizeProjectSlug(title || "project")}
+                    </code>
+                  </div>
+                </div>
               </div>
 
               {/* BOX 2: SUB-DISCIPLINE & SPECIFIC SPECIALTY */}
@@ -1262,15 +1306,16 @@ function AdminProjectsView() {
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-neutral-400 text-[11px] mb-1">
-                      Short Overview (English)
+                    <label className="block text-neutral-300 text-[11px] font-semibold mb-1 flex items-center justify-between">
+                      <span>Project Description (Appears on top of photos dedicated page & gallery) *</span>
+                      <span className="text-[10px] text-[#2CE3C0] font-mono">Public Header Description</span>
                     </label>
                     <textarea
-                      rows={2}
+                      rows={3}
                       value={description}
                       onChange={(e) => setDescription(e.target.value)}
-                      placeholder="Executive summary of the project..."
-                      className="w-full bg-neutral-900 border border-white/10 rounded px-3 py-2 text-white"
+                      placeholder="Write a clear description for this project. It will appear at the top of the photos dedicated page and gallery..."
+                      className="w-full bg-neutral-900 border border-white/10 rounded px-3 py-2 text-white text-xs leading-relaxed focus:outline-none focus:border-[#2CE3C0]"
                     />
                   </div>
 

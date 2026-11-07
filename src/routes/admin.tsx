@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import {
   ShieldCheck,
   Layers,
+  FolderPlus,
   Database,
   FileText,
   Receipt,
@@ -420,8 +421,8 @@ function AdminLayout() {
 
   // Active Authenticated Studio Shell
   const navTabs = [
-    { label: "All Website Data", path: "/admin/projects", icon: Database },
-    { label: "Asset Vault", path: "/admin/inventory", icon: Layers },
+    { label: "Projects", path: "/admin/projects", icon: FolderPlus },
+    { label: "Assets", path: "/admin/inventory", icon: Layers },
     { label: "Blog & Editorial", path: "/admin/blog", icon: FileText },
     { label: "Invoice Studio", path: "/admin/invoices", icon: Receipt },
   ];

@@ -3,6 +3,8 @@ import { createFileRoute, Link, notFound, redirect, rootRouteId } from "@tanstac
 import { ArrowLeft } from "lucide-react";
 import { DISCIPLINES } from "@/data/disciplines";
 import { projects } from "@/data/projects";
+import { getStudioProjects } from "@/lib/studio-store";
+import { normalizeDisciplineSlug, normalizeSpecialtySlug, normalizeProjectSlug } from "@/lib/taxonomy";
 import { jsonLdScript, pageHead, projectJsonLd } from "@/lib/seo";
 
 // Desktop: outline by default, green + glow on hover.
@@ -29,45 +31,37 @@ function useIsDesktop() {
 
 export const Route = createFileRoute("/projects/$projectId")({
   loader: ({ params }) => {
-    const project = projects.find((p) => p.id === params.projectId);
+    const rawParam = params.projectId;
+    const normParam = normalizeProjectSlug(rawParam);
+
+    const allStudio = getStudioProjects();
+    const studioFound = allStudio.find(
+      (p) =>
+        normalizeProjectSlug(p.title) === normParam ||
+        p.id === rawParam ||
+        normalizeProjectSlug(p.id) === normParam,
+    );
+    const staticFound = projects.find(
+      (p) =>
+        normalizeProjectSlug(p.title) === normParam ||
+        p.id === rawParam ||
+        normalizeProjectSlug(p.id) === normParam,
+    );
+    const project = studioFound || staticFound;
     if (!project) throw notFound({ routeId: rootRouteId });
 
-    const cat = project.category.toLowerCase();
-    let discSlug = "photography";
-    let specSlug = "fashion";
-
-    if (cat.includes("fashion")) {
-      discSlug = "photography";
-      specSlug = "fashion";
-    } else if (cat.includes("food")) {
-      discSlug = "photography";
-      specSlug = "food";
-    } else if (cat.includes("portrait")) {
-      discSlug = "photography";
-      specSlug = "portrait";
-    } else if (cat.includes("product") || cat.includes("object")) {
-      discSlug = "photography";
-      specSlug = "product";
-    } else if (cat.includes("visual identity") || cat.includes("brand")) {
-      discSlug = "graphic-design";
-      specSlug = "visual-identity";
-    } else if (cat.includes("book")) {
-      discSlug = "graphic-design";
-      specSlug = "book-covers";
-    } else if (cat.includes("poster")) {
-      discSlug = "graphic-design";
-      specSlug = "posters";
-    } else if (cat.includes("video") || project.discipline === "video") {
-      discSlug = "video";
-      specSlug = "videos";
-    }
+    const disc = (project.discipline || "").toLowerCase();
+    const cat = (project.subDiscipline || project.category || "").toLowerCase();
+    const discSlug = normalizeDisciplineSlug(disc || cat);
+    const specSlug = normalizeSpecialtySlug(cat || disc);
+    const projSlug = normalizeProjectSlug(project.title || project.id);
 
     throw redirect({
       to: "/$discipline/$specialty/$project",
       params: {
         discipline: discSlug,
         specialty: specSlug,
-        project: project.id,
+        project: projSlug,
       },
     });
   },
