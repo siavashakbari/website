@@ -44,16 +44,18 @@
 }
 @font-face {
   font-family: "Peyda";
-  src: url("./assets/fonts/peyda/peyda-medium.woff2") format("woff2"),
-       url("./assets/fonts/peyda/peyda-medium.ttf") format("truetype");
+  src:
+    url("./assets/fonts/peyda/peyda-medium.woff2") format("woff2"),
+    url("./assets/fonts/peyda/peyda-medium.ttf") format("truetype");
   font-weight: 500;
   font-style: normal;
   font-display: optional;
 }
 @font-face {
   font-family: "Peyda";
-  src: url("./assets/fonts/peyda/peyda-semibold.woff2") format("woff2"),
-       url("./assets/fonts/peyda/peyda-semibold.ttf") format("truetype");
+  src:
+    url("./assets/fonts/peyda/peyda-semibold.woff2") format("woff2"),
+    url("./assets/fonts/peyda/peyda-semibold.ttf") format("truetype");
   font-weight: 600;
   font-style: normal;
   font-display: optional;
@@ -110,17 +112,6 @@
   --font-sans: var(--font-body);
   --font-serif: var(--font-display);
   --font-farsi: "Peyda", "Satoshi", system-ui, sans-serif;
-
-  --animate-cursor-breathe: cursor-breathe 2.4s ease-in-out infinite;
-}
-
-@keyframes cursor-breathe {
-  0%, 100% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.2);
-  }
 }
 
 @keyframes home-scroll-blink {
@@ -336,16 +327,11 @@
     font-weight: 500;
   }
 
-  .invert-cursor-active,
-  .invert-cursor-active *,
-  .invert-cursor-active *::before,
-  .invert-cursor-active *::after {
-    cursor: none !important;
-  }
-
   .back-to-top {
     border: 1px solid color-mix(in oklab, #efefef 18%, transparent);
-    transition: box-shadow 0.35s ease, border-color 0.35s ease;
+    transition:
+      box-shadow 0.35s ease,
+      border-color 0.35s ease;
   }
 
   /* Larger circular hit area — keeps the visible control a circle */

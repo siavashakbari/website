@@ -32,9 +32,6 @@ import {
   siteJsonLd,
 } from "@/lib/seo";
 
-const InvertCursor = lazy(() =>
-  import("@/components/InvertCursor").then((m) => ({ default: m.InvertCursor })),
-);
 const HoverFooter = lazy(() =>
   import("@/components/HoverFooter").then((m) => ({ default: m.HoverFooter })),
 );
@@ -392,50 +389,6 @@ function MobileNav() {
   );
 }
 
-/** Custom cursor only — keep it out of the first paint path and disabled completely on admin pages. */
-function DeferredCursor() {
-  const router = useRouter();
-  const pathname = router.state.location.pathname;
-  const isAdmin = pathname.startsWith("/admin");
-
-  const [ready, setReady] = useState(false);
-
-  useEffect(() => {
-    if (isAdmin) return;
-    let idleId = 0;
-    let timeoutId = 0;
-    const enable = () => setReady(true);
-
-    const win = window as unknown as {
-      requestIdleCallback?: (cb: () => void, opts?: { timeout: number }) => number;
-      cancelIdleCallback?: (id: number) => void;
-      setTimeout: (cb: () => void, ms: number) => number;
-      clearTimeout: (id: number) => void;
-    };
-
-    if (typeof window !== "undefined" && typeof win.requestIdleCallback === "function") {
-      idleId = win.requestIdleCallback(enable, { timeout: 1800 });
-    } else if (typeof window !== "undefined") {
-      timeoutId = win.setTimeout(enable, 250);
-    }
-
-    return () => {
-      if (idleId && typeof win.cancelIdleCallback === "function") {
-        win.cancelIdleCallback(idleId);
-      }
-      if (timeoutId) win.clearTimeout(timeoutId);
-    };
-  }, [isAdmin]);
-
-  if (isAdmin || !ready) return null;
-
-  return (
-    <Suspense fallback={null}>
-      <InvertCursor />
-    </Suspense>
-  );
-}
-
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const router = useRouter();
@@ -519,7 +472,6 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <DeferredCursor />
       <div
         className={`flex flex-col bg-background ${
           lockProjectScroll ? "h-dvh overflow-hidden overscroll-none" : "min-h-screen"

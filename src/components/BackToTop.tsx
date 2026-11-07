@@ -26,7 +26,6 @@ export function BackToTop() {
     <button
       type="button"
       aria-label="Back to top"
-      data-cursor-magnet=""
       onClick={scrollToTop}
       className="back-to-top fixed bottom-6 right-6 z-40 flex h-11 w-11 items-center justify-center rounded-full bg-[#0F0F0F] md:bottom-8 md:right-8"
     >
