@@ -1054,7 +1054,7 @@ function AdminProjectsView() {
 
                   <div>
                     <label className="block text-neutral-300 font-medium mb-1">
-                      4-Letter Project Code *
+                      4-Letter Code
                     </label>
                     <input
                       type="text"
@@ -1078,26 +1078,6 @@ function AdminProjectsView() {
                       placeholder="مثلاً سپیدار"
                       className="w-full bg-black/50 border border-white/10 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-[#2CE3C0]"
                     />
-                  </div>
-                </div>
-
-                {/* Live Hierarchy & Photo Naming Preview Card */}
-                <div className="p-3 rounded-lg bg-white/[0.03] border border-white/10 space-y-1.5 text-xs font-mono">
-                  <div className="text-[10px] uppercase tracking-wider text-neutral-400">
-                    Routing & Naming Logic Preview:
-                  </div>
-                  <div className="text-muted-foreground flex flex-wrap gap-x-2">
-                    <span>Project URL:</span>
-                    <span className="text-[#2CE3C0] font-bold">
-                      siavashakbari.ir/{normalizeDisciplineSlug(discipline)}/{normalizeSpecialtySlug(subDiscipline || category)}/{normalizeProjectSlug(title || "project")}
-                    </span>
-                  </div>
-                  <div className="text-muted-foreground flex flex-wrap gap-x-2">
-                    <span>Photo Naming & URL Formula:</span>
-                    <span className="text-[#FFD166] font-bold">
-                      {generate4PartPhotoCode(discipline, subDiscipline || category, projectCode || title || "PROJ", 1)}
-                    </span>
-                    <span className="text-neutral-500 text-[10px]">(Dedicated photo page & photoname match)</span>
                   </div>
                 </div>
               </div>
@@ -1444,20 +1424,9 @@ function AdminProjectsView() {
                     </div>
 
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                      {images.map((img, idx) => {
+                      {images.map((img) => {
                         const isCover = coverImage === img.url;
                         const isVid = img.url.startsWith("data:video") || img.url.endsWith(".mp4");
-                        const normDisc = normalizeDisciplineSlug(discipline);
-                        const normSpec = normalizeSpecialtySlug(subDiscipline || category);
-                        const pCode = projectCode ? to4LetterCode(projectCode) : getProject4Code(title || "PROJ");
-                        const photoCode = generate4PartPhotoCode(normDisc, normSpec, pCode, idx + 1);
-                        const photoLiveUrl = buildPhotoUrl(
-                          normDisc,
-                          normSpec,
-                          normalizeProjectSlug(title || "project"),
-                          photoCode,
-                        );
-
                         return (
                           <div
                             key={img.id}
@@ -1478,20 +1447,12 @@ function AdminProjectsView() {
                             )}
 
                             {isCover && (
-                              <span className="absolute top-1.5 left-1.5 bg-[#2CE3C0] text-black font-bold text-[9px] px-1.5 py-0.5 rounded shadow z-10">
+                              <span className="absolute top-1.5 left-1.5 bg-[#2CE3C0] text-black font-bold text-[9px] px-1.5 py-0.5 rounded shadow">
                                 COVER
                               </span>
                             )}
 
-                            {/* 4-Part Code Badge */}
-                            <span className="absolute bottom-1.5 left-1.5 right-1.5 bg-black/80 backdrop-blur-md text-[#2CE3C0] font-mono text-[9px] px-1.5 py-0.5 rounded border border-[#2CE3C0]/30 font-bold truncate z-10 text-center">
-                              {photoCode}
-                            </span>
-
-                            <div className="absolute inset-0 bg-black/85 opacity-0 group-hover:opacity-100 flex flex-col items-center justify-center gap-1.5 transition-opacity p-2 z-20">
-                              <span className="text-[10px] text-[#FFD166] font-mono font-bold truncate max-w-full">
-                                #{idx + 1}: {photoCode}
-                              </span>
+                            <div className="absolute inset-0 bg-black/75 opacity-0 group-hover:opacity-100 flex flex-col items-center justify-center gap-1.5 transition-opacity p-2">
                               {!isCover && (
                                 <button
                                   type="button"

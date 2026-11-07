@@ -1,261 +1,402 @@
-import { useState, useMemo } from "react";
-import { createFileRoute, notFound, redirect, rootRouteId, Link } from "@tanstack/react-router";
-import { ArrowLeft, Filter, Tag, Layers, Sparkles } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { createFileRoute, Link, notFound, rootRouteId } from "@tanstack/react-router";
+import { createPortal } from "react-dom";
+import { Play } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
+import { AdaptiveThumb, GalleryLoadProvider } from "@/components/AdaptiveThumb";
+import { BackToTop } from "@/components/BackToTop";
+import { CoverTile } from "@/components/CoverTile";
 import { DISCIPLINES } from "@/data/disciplines";
-import {
-  getPhotosByDiscipline,
-  getTaxonomySpecialties,
-  type PhotoInventoryItem,
-} from "@/lib/studio-store";
-import { resolveInventoryImage } from "@/lib/inventory-assets";
-import {
-  normalizeDisciplineSlug,
-  normalizeSpecialtySlug,
-  normalizeProjectSlug,
-  buildPhotoUrl,
-  buildSpecialtyUrl,
-  buildDisciplineUrl,
-} from "@/lib/taxonomy";
+import { projects, type Project } from "@/data/projects";
+import { getMergedPhotoInventory, getPhotosByDiscipline } from "@/lib/studio-store";
 import { pageHead } from "@/lib/seo";
+import { VideoPlayer } from "@/components/ui/video-player";
+import { metaFromSrc, assetStemFromSrc } from "@/lib/adaptive-image";
+import { normalizeDisciplineSlug, buildPhotoUrl } from "@/lib/taxonomy";
+
+interface DisciplinePhoto {
+  key: string;
+  src: string;
+  code: string;
+  canonicalPath: string;
+  disciplineSlug: string;
+  specialtySlug: string;
+  projectSlug: string;
+  imageName: string;
+  title: string;
+  year: string;
+  category: string;
+  description: string;
+  client?: string;
+  credits?: string[];
+  photoIndex: number;
+  photoTotal: number;
+}
+
+interface ProjectCardItem {
+  id: string;
+  title: string;
+  image: string;
+  year: string;
+  href?: string;
+}
+
+function photoCaption(title: string, index: number, total: number): string {
+  if (total <= 1) return title;
+  return `${title} — ${String(index + 1).padStart(2, "0")}`;
+}
+
+function useIsDesktop() {
+  const [isDesktop, setIsDesktop] = useState(false);
+
+  useEffect(() => {
+    const media = window.matchMedia("(min-width: 1024px)");
+    const update = () => setIsDesktop(media.matches);
+    update();
+    media.addEventListener("change", update);
+    return () => media.removeEventListener("change", update);
+  }, []);
+
+  return isDesktop;
+}
 
 export const Route = createFileRoute("/$discipline/")({
   loader: ({ params }) => {
-    const raw = (params.discipline || "").toLowerCase().trim();
+    const normSlug = normalizeDisciplineSlug(params.discipline);
+    const discipline =
+      DISCIPLINES.find((d) => d.slug === params.discipline) ||
+      DISCIPLINES.find((d) => normalizeDisciplineSlug(d.slug) === normSlug) ||
+      {
+        slug: normSlug,
+        label: normSlug.charAt(0).toUpperCase() + normSlug.slice(1).replace("-", " "),
+        blurb: `${normSlug} portfolio by Siavash Akbari.`,
+        browseByProject: normSlug === "graphic-design",
+        layout: null,
+      };
 
-    // 1. Handle legacy specialty slugs that were previously at the root
-    if (raw === "fashion-photography" || raw === "fashion") {
-      throw redirect({ to: "/$discipline/$specialty", params: { discipline: "photography", specialty: "fashion" } });
-    }
-    if (raw === "food-photography" || raw === "food") {
-      throw redirect({ to: "/$discipline/$specialty", params: { discipline: "photography", specialty: "food" } });
-    }
-    if (raw === "portrait-photography" || raw === "portrait") {
-      throw redirect({ to: "/$discipline/$specialty", params: { discipline: "photography", specialty: "portrait" } });
-    }
-    if (raw === "product-photography" || raw === "product" || raw === "product-design") {
-      throw redirect({ to: "/$discipline/$specialty", params: { discipline: "photography", specialty: "product" } });
-    }
-    if (raw === "visual-identity") {
-      throw redirect({ to: "/$discipline/$specialty", params: { discipline: "graphic-design", specialty: "visual-identity" } });
-    }
-    if (raw === "book-covers") {
-      throw redirect({ to: "/$discipline/$specialty", params: { discipline: "graphic-design", specialty: "book-covers" } });
-    }
-    if (raw === "posters") {
-      throw redirect({ to: "/$discipline/$specialty", params: { discipline: "graphic-design", specialty: "posters" } });
-    }
-    if (raw === "videos") {
-      throw redirect({ to: "/$discipline/$specialty", params: { discipline: "video", specialty: "videos" } });
-    }
-
-    const disciplineSlug = normalizeDisciplineSlug(raw);
-    const photos = getPhotosByDiscipline(disciplineSlug);
-
-    const specialties = getTaxonomySpecialties(disciplineSlug);
-
-    const labels: Record<string, { title: string; blurb: string }> = {
-      photography: {
-        title: "Photography",
-        blurb: "Editorial photography across fashion, food, portrait, and product stories — shaped by light, texture, and quiet gesture.",
-      },
-      "graphic-design": {
-        title: "Graphic Design",
-        blurb: "Visual identity, book covers, and poster systems built from typographic precision and lasting visual hierarchy.",
-      },
-      video: {
-        title: "Video & Motion",
-        blurb: "Moving image work, brand films, and motion sequences — rhythm, atmosphere, and story in time.",
-      },
+    const meta = {
+      slug: normSlug,
+      label: discipline.label,
+      blurb: discipline.blurb,
+      browseByProject: Boolean(discipline.browseByProject),
+      layout: discipline.layout ?? null,
     };
 
-    const info = labels[disciplineSlug] || {
-      title: disciplineSlug.charAt(0).toUpperCase() + disciplineSlug.slice(1).replace("-", " "),
-      blurb: `Creative work across ${disciplineSlug} by Siavash Akbari.`,
-    };
+    // If discipline browses by project (e.g. graphic-design)
+    if (discipline.browseByProject) {
+      const matching = projects.filter(
+        (p) => p.discipline === normSlug || p.discipline === "graphic-design",
+      );
+      const projectCards: ProjectCardItem[] = matching.map((project) => ({
+        id: project.id,
+        title: project.title,
+        image: project.image,
+        year: project.year,
+        href: `/graphic-design/visual-identity/${project.id}`,
+      }));
+      return { discipline: meta, items: [] as DisciplinePhoto[], projectCards };
+    }
 
-    return {
-      disciplineSlug,
-      title: info.title,
-      blurb: info.blurb,
-      specialties,
-      photos,
-    };
+    // Otherwise, show all images in this discipline
+    const photos = getPhotosByDiscipline(normSlug);
+    const items: DisciplinePhoto[] = photos.map((p, idx) => ({
+      key: `${p.code}-${idx}`,
+      src: p.imgSrc,
+      code: p.standardCode || p.code,
+      canonicalPath:
+        p.canonicalPath ||
+        buildPhotoUrl(
+          normSlug,
+          p.specialtySlug || "fashion",
+          p.projectSlug || "project",
+          p.standardCode || p.code,
+        ),
+      disciplineSlug: normSlug,
+      specialtySlug: p.specialtySlug || "fashion",
+      projectSlug: p.projectSlug || "project",
+      imageName: p.title || photoCaption(p.project, idx, photos.length),
+      title: p.project,
+      year: p.date || "2026",
+      category: p.subdiscipline || p.discipline,
+      description: p.caption || "",
+      client: p.client,
+      photoIndex: idx + 1,
+      photoTotal: photos.length,
+    }));
+
+    return { discipline: meta, items, projectCards: [] as ProjectCardItem[] };
   },
   head: ({ loaderData }) => {
-    const title = loaderData?.title ?? "Photography";
-    const desc = loaderData?.blurb ?? `Explore ${title} portfolio by Siavash Akbari.`;
-    const canonicalPath = `/${loaderData?.disciplineSlug}`;
-
+    const label = loaderData?.discipline.label ?? "Discipline";
+    const blurb =
+      loaderData?.discipline.blurb ??
+      `${label} work by Siavash Akbari.`;
+    const slug = loaderData?.discipline.slug ?? "";
     return pageHead({
-      title: `${title} — Siavash Akbari`,
-      description: desc,
-      path: canonicalPath,
-      type: "article",
+      title: `${label} — Siavash Akbari`,
+      description: `${blurb} Browse the ${label.toLowerCase()} portfolio of Siavash Akbari.`,
+      path: slug ? `/${slug}` : "/",
     });
   },
-  component: DisciplineAllPhotosPage,
+  component: DisciplinePage,
   errorComponent: ({ error }) => (
     <div className="mx-auto max-w-3xl px-6 py-32 text-center">
-      <h1 className="font-display text-4xl">Discipline Not Found</h1>
+      <h1 className="font-display text-4xl">Something went wrong</h1>
       <p className="mt-4 text-muted-foreground">{error.message}</p>
-      <div className="mt-6">
-        <Link
-          to="/"
-          className="inline-flex items-center gap-2 rounded-full border border-foreground/20 px-4 py-2 text-xs uppercase tracking-widest text-foreground hover:bg-foreground hover:text-background transition-colors"
-        >
-          Return Home
-        </Link>
-      </div>
     </div>
   ),
 });
 
-function DisciplineAllPhotosPage() {
-  const { disciplineSlug, title, blurb, specialties, photos } = Route.useLoaderData();
-  const [activeSpecialtyFilter, setActiveSpecialtyFilter] = useState("all");
+function PhotoMasonry({ items }: { items: DisciplinePhoto[] }) {
+  return (
+    <GalleryLoadProvider total={items.length}>
+      <div className="columns-1 gap-x-[4px] px-[13px] sm:columns-2 lg:columns-3">
+        {items.map((item, index) => (
+          <div key={item.key} className="relative mb-[4px] break-inside-avoid">
+            <Link
+              to={item.canonicalPath as any}
+              className="group relative block w-full overflow-hidden bg-[#0F0F0F] transition-opacity hover:opacity-90 cursor-pointer"
+            >
+              <AdaptiveThumb
+                src={item.src}
+                index={index}
+                alt={item.imageName}
+                className="block h-auto w-full transition-transform duration-500 ease-out group-hover:scale-[1.02]"
+              />
+            </Link>
+          </div>
+        ))}
+      </div>
+    </GalleryLoadProvider>
+  );
+}
 
-  const filteredPhotos = useMemo(() => {
-    if (activeSpecialtyFilter === "all") return photos;
-    return photos.filter(
-      (p) => normalizeSpecialtySlug(p.specialtySlug || p.subdiscipline || "") === activeSpecialtyFilter,
-    );
-  }, [photos, activeSpecialtyFilter]);
+function VideoGallery({ items }: { items: DisciplinePhoto[] }) {
+  const [activeVideo, setActiveVideo] = useState<DisciplinePhoto | null>(null);
+  const [videoRatio, setVideoRatio] = useState<number | null>(null);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const handleSelectVideo = (item: DisciplinePhoto) => {
+    const initialRatio = metaFromSrc(item.src).ratio || 0.5625;
+    setVideoRatio(initialRatio);
+    setActiveVideo(item);
+  };
+
+  useEffect(() => {
+    if (!activeVideo) return;
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setActiveVideo(null);
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.body.style.overflow = prevOverflow;
+      window.removeEventListener("keydown", onKeyDown);
+    };
+  }, [activeVideo]);
+
+  const currentRatio =
+    videoRatio || (activeVideo ? metaFromSrc(activeVideo.src).ratio : 0.5625) || 0.5625;
 
   return (
-    <div className="min-h-screen bg-[#0A0A0A] text-foreground selection:bg-secondary selection:text-secondary-foreground pb-24">
-      {/* Top Breadcrumb Bar */}
-      <div className="sticky top-14 z-30 border-b border-foreground/10 bg-[#0A0A0A]/90 backdrop-blur-md px-6 py-3.5">
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4">
-          <div className="flex items-center gap-2 text-xs font-mono tracking-wider overflow-x-auto whitespace-nowrap">
-            <Link to="/" className="inline-flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors mr-2 pr-3 border-r border-foreground/15">
-              <ArrowLeft className="h-3.5 w-3.5" />
-              <span>Back Home</span>
-            </Link>
-
-            <Link to="/" className="text-muted-foreground hover:text-foreground transition-colors">
-              Home
-            </Link>
-            <span className="text-muted-foreground/40">/</span>
-            <span className="text-secondary font-bold capitalize">{disciplineSlug.replace("-", " ")}</span>
-          </div>
-
-          <div className="text-xs font-mono text-muted-foreground">
-            <span className="text-foreground font-bold">{filteredPhotos.length}</span> images across discipline
-          </div>
-        </div>
-      </div>
-
-      {/* Discipline Header Section */}
-      <div className="mx-auto max-w-7xl px-6 pt-12 pb-8">
-        <div className="flex items-center gap-2 mb-3">
-          <span className="text-xs font-mono uppercase tracking-[0.2em] text-secondary bg-secondary/10 px-2.5 py-1 rounded border border-secondary/20">
-            Discipline Archive
-          </span>
-          <span className="text-xs font-mono text-muted-foreground uppercase tracking-widest">
-            All Works
-          </span>
-        </div>
-
-        <h1 className="font-display text-4xl sm:text-6xl md:text-7xl font-bold tracking-tight text-foreground">
-          {title}
-        </h1>
-
-        <p className="mt-4 max-w-3xl text-base md:text-lg leading-relaxed text-muted-foreground">
-          {blurb}
-        </p>
-
-        {/* Specialty Navigation Tabs */}
-        <div className="mt-8 flex flex-wrap items-center gap-2 pt-6 border-t border-white/5">
-          <span className="text-xs font-mono uppercase tracking-wider text-muted-foreground/60 mr-2 flex items-center gap-1">
-            <Layers className="w-3.5 h-3.5" /> Specialties:
-          </span>
-
-          <button
-            onClick={() => setActiveSpecialtyFilter("all")}
-            className={`px-3.5 py-1.5 rounded-full text-xs font-mono tracking-wider transition-all cursor-pointer ${
-              activeSpecialtyFilter === "all"
-                ? "bg-secondary text-secondary-foreground font-bold shadow-[0_0_12px_rgba(44,227,192,0.3)]"
-                : "bg-white/5 text-muted-foreground hover:text-foreground hover:bg-white/10"
-            }`}
-          >
-            All Images ({photos.length})
-          </button>
-
-          {specialties.map((spec) => {
-            const count = photos.filter(
-              (p) => normalizeSpecialtySlug(p.specialtySlug || p.subdiscipline || "") === spec.slug,
-            ).length;
-            const active = activeSpecialtyFilter === spec.slug;
-            const specialtyUrl = buildSpecialtyUrl(disciplineSlug, spec.slug);
-
-            return (
-              <div key={spec.slug} className="flex items-center">
-                <button
-                  onClick={() => setActiveSpecialtyFilter(spec.slug)}
-                  className={`px-3 py-1.5 rounded-l-full text-xs font-mono tracking-wider transition-all cursor-pointer ${
-                    active
-                      ? "bg-secondary text-secondary-foreground font-bold shadow-[0_0_12px_rgba(44,227,192,0.3)]"
-                      : "bg-white/5 text-muted-foreground hover:text-foreground hover:bg-white/10"
-                  }`}
-                >
-                  {spec.label} {count > 0 ? `(${count})` : ""}
-                </button>
-                <Link
-                  to={specialtyUrl as any}
-                  className="px-2 py-1.5 rounded-r-full bg-white/10 text-muted-foreground hover:text-secondary text-[10px] font-mono border-l border-white/10 transition-colors"
-                  title={`Open dedicated ${spec.label} page`}
-                >
-                  Go &rarr;
-                </Link>
+    <div className="w-full px-[13px] sm:px-[20px]">
+      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        {items.map((item) => {
+          const itemRatio = metaFromSrc(item.src).ratio || 0.5625;
+          return (
+            <div
+              key={item.key}
+              onClick={() => handleSelectVideo(item)}
+              style={{ aspectRatio: `${itemRatio}` }}
+              className="group relative cursor-pointer overflow-hidden rounded-[20px] bg-[#141414] transition-all duration-300 hover:scale-[1.015] hover:shadow-2xl border border-white/5 flex items-center justify-center"
+            >
+              <video
+                src={item.src}
+                muted
+                loop
+                playsInline
+                preload="metadata"
+                className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+                onMouseEnter={(e) => e.currentTarget.play().catch(() => {})}
+                onMouseLeave={(e) => {
+                  e.currentTarget.pause();
+                  e.currentTarget.currentTime = 0;
+                }}
+              />
+              <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/20 opacity-40 transition-opacity duration-300 group-hover:opacity-20" />
+              <div className="pointer-events-none absolute top-4 right-4 flex h-9 w-9 items-center justify-center rounded-full bg-black/60 text-white backdrop-blur-md border border-white/10 transition-transform duration-300 group-hover:scale-110">
+                <Play className="h-4 w-4 fill-white translate-x-[1px]" />
               </div>
-            );
-          })}
-        </div>
+              <div className="pointer-events-none absolute bottom-4 left-4 right-4">
+                <span className="text-[11px] font-mono uppercase tracking-wider text-[#FFD166] block">
+                  {item.category}
+                </span>
+                <span className="text-sm font-medium text-white truncate block">
+                  {item.title}
+                </span>
+              </div>
+            </div>
+          );
+        })}
       </div>
 
-      {/* Discipline All Images Grid */}
-      <div className="mx-auto max-w-7xl px-6 pt-4">
-        {filteredPhotos.length === 0 ? (
-          <div className="py-24 text-center text-muted-foreground font-mono text-sm">
-            No photos found in this discipline yet.
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
-            {filteredPhotos.map((photo, idx) => {
-              const resolvedSrc = resolveInventoryImage(photo.imgSrc);
-              const specSlug = normalizeSpecialtySlug(photo.specialtySlug || photo.subdiscipline || "fashion");
-              const projSlug = normalizeProjectSlug(photo.projectSlug || photo.project);
-              const photoUrl = buildPhotoUrl(disciplineSlug, specSlug, projSlug, photo.code);
-
-              return (
-                <Link
-                  key={photo.code || idx}
-                  to={photoUrl as any}
-                  className="group relative flex flex-col rounded-md overflow-hidden bg-[#111] border border-white/5 hover:border-secondary/40 transition-all duration-300 shadow-md hover:shadow-secondary/10"
+      {mounted &&
+        createPortal(
+          <AnimatePresence>
+            {activeVideo && (
+              <div
+                className="fixed inset-0 z-[200] flex items-center justify-center p-4 sm:p-8"
+                onClick={() => setActiveVideo(null)}
+              >
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="absolute inset-0 bg-black/90 backdrop-blur-xl"
+                />
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.94, y: 15 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.94, y: 15 }}
+                  transition={{ type: "spring", stiffness: 350, damping: 28 }}
+                  style={{
+                    aspectRatio: `${currentRatio}`,
+                    maxWidth: `min(90vw, calc(86vh * ${currentRatio}))`,
+                    maxHeight: "86vh",
+                  }}
+                  className="relative z-10 w-full rounded-[34px] overflow-hidden bg-black shadow-[0_25px_60px_-15px_rgba(0,0,0,0.95)] border border-white/10 flex items-center justify-center"
+                  onClick={(e) => e.stopPropagation()}
                 >
-                  <div className="aspect-[3/4] w-full overflow-hidden bg-black/40">
-                    <img
-                      src={resolvedSrc}
-                      alt={photo.altText || `${photo.project} — ${photo.code}`}
-                      className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-105"
-                      loading="lazy"
-                    />
-                  </div>
-
-                  <div className="p-3 bg-[#111]/90 flex items-center justify-between text-xs font-mono">
-                    <span className="font-bold text-foreground group-hover:text-secondary transition-colors">
-                      {photo.code}
-                    </span>
-                    <span className="text-[11px] text-muted-foreground">
-                      {photo.project}
-                    </span>
-                  </div>
-                </Link>
-              );
-            })}
-          </div>
+                  <VideoPlayer
+                    src={activeVideo.src}
+                    title={activeVideo.title}
+                    autoPlay
+                    loop
+                    onClose={() => setActiveVideo(null)}
+                    onRatioChange={(r) => setVideoRatio(r)}
+                    className="w-full h-full"
+                  />
+                </motion.div>
+              </div>
+            )}
+          </AnimatePresence>,
+          document.body,
         )}
-      </div>
     </div>
+  );
+}
+
+function DisciplinePage() {
+  const { discipline, items, projectCards } = Route.useLoaderData();
+  const isDesktop = useIsDesktop();
+  const isEmpty = discipline.browseByProject
+    ? projectCards.length === 0
+    : items.length === 0;
+
+  const useSideScroll = discipline.layout === "scroll" && isDesktop;
+
+  return (
+    <section
+      className={`relative w-full bg-background ${
+        useSideScroll ? "overflow-hidden pt-3 md:pt-3.5" : "pb-40 pt-3 md:pt-3.5"
+      }`}
+      aria-labelledby="discipline-heading"
+    >
+      <h1 id="discipline-heading" className="sr-only">
+        {discipline.label} — Siavash Akbari
+      </h1>
+      {isEmpty ? (
+        <p className="mx-auto max-w-3xl px-6 text-center text-muted-foreground">
+          More coming soon.
+        </p>
+      ) : useSideScroll ? (
+        <ScrollGallery items={items} label={discipline.label} />
+      ) : discipline.browseByProject ? (
+        <div className="w-full px-[20px]">
+          <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4">
+            {projectCards.map((project) => (
+              <CoverTile
+                key={project.id}
+                to={project.href || `/projects/${project.id}`}
+                label={project.title}
+                image={project.image}
+                ariaLabel={`View ${project.title}`}
+              />
+            ))}
+          </div>
+        </div>
+      ) : discipline.slug === "videos" || discipline.slug === "video" ? (
+        <VideoGallery items={items} />
+      ) : (
+        <PhotoMasonry items={items} />
+      )}
+      <BackToTop />
+    </section>
+  );
+}
+
+function ScrollGallery({ items, label }: { items: DisciplinePhoto[]; label: string }) {
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [activeIndex, setActiveIndex] = useState<number | null>(null);
+
+  const handleWheel = (e: React.WheelEvent<HTMLDivElement>) => {
+    const el = scrollRef.current;
+    if (!el) return;
+    if (e.deltaY === 0) return;
+    e.preventDefault();
+    el.scrollLeft += e.deltaY;
+  };
+
+  useEffect(() => {
+    if (activeIndex === null) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setActiveIndex(null);
+    };
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [activeIndex]);
+
+  return (
+    <>
+      <div
+        ref={scrollRef}
+        onWheel={handleWheel}
+        className="scrollbar-hide flex h-[calc(100svh-3.5rem-1.5rem)] min-h-0 items-center gap-6 overflow-x-auto overflow-y-hidden px-[20px]"
+      >
+        {items.map((item, i) => (
+          <figure
+            key={item.key}
+            className="shrink-0 h-full max-h-full cursor-zoom-in py-4"
+            onClick={() => setActiveIndex(i)}
+          >
+            <img
+              src={item.src}
+              alt={item.imageName || `${label} — image ${i + 1}`}
+              loading={i < 2 ? "eager" : "lazy"}
+              decoding="async"
+              className="h-full w-auto max-w-none rounded-[3px] bg-card object-contain"
+            />
+          </figure>
+        ))}
+      </div>
+
+      {activeIndex !== null && (
+        <div
+          className="fixed inset-0 z-50 flex cursor-zoom-out items-center justify-center bg-[#0F0F0F] p-6"
+          onClick={() => setActiveIndex(null)}
+        >
+          <img
+            src={items[activeIndex].src}
+            alt={items[activeIndex].imageName || `${label} — full view`}
+            className="max-h-full max-w-full object-contain"
+          />
+        </div>
+      )}
+    </>
   );
 }

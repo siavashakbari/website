@@ -1,267 +1,378 @@
-import { createFileRoute, notFound, rootRouteId, Link } from "@tanstack/react-router";
-import { ArrowLeft, Calendar, Layers, User, Sparkles, Tag, Edit, ExternalLink } from "lucide-react";
-import { getStudioProjects, getPhotosByProject, type PhotoInventoryItem } from "@/lib/studio-store";
-import { resolveInventoryImage } from "@/lib/inventory-assets";
-import { projects, type Project } from "@/data/projects";
-import {
-  normalizeDisciplineSlug,
-  normalizeSpecialtySlug,
-  normalizeProjectSlug,
-  buildPhotoUrl,
-  buildSpecialtyUrl,
-  buildDisciplineUrl,
-} from "@/lib/taxonomy";
+import { useEffect, useRef, useState } from "react";
+import { createFileRoute, Link, notFound, rootRouteId } from "@tanstack/react-router";
+import { ArrowLeft } from "lucide-react";
+import { projects } from "@/data/projects";
+import { getStudioProjects, getPhotosByProject, type StudioProjectItem } from "@/lib/studio-store";
 import { pageHead, jsonLdScript, projectJsonLd } from "@/lib/seo";
+import { normalizeDisciplineSlug, normalizeSpecialtySlug, normalizeProjectSlug } from "@/lib/taxonomy";
+
+// Desktop: outline by default, green + glow on hover.
+const backBtnClass =
+  "inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-full border border-[#EFEFEF] bg-transparent px-5 text-sm font-medium text-[#EFEFEF] shadow-none transition-[background-color,border-color,color,box-shadow] duration-300 ease-out hover:border-transparent hover:bg-secondary hover:text-secondary-foreground hover:shadow-[0_0_8px_color-mix(in_oklab,var(--secondary)_42%,transparent),0_0_17px_color-mix(in_oklab,var(--secondary)_24%,transparent),0_0_25px_color-mix(in_oklab,var(--secondary)_12%,transparent)]";
+
+// Phones have no hover, so show the green + glow state permanently, at 80% size.
+const backBtnMobileClass =
+  "inline-flex h-11 shrink-0 scale-[0.8] items-center justify-center gap-2 whitespace-nowrap rounded-full border border-transparent bg-secondary px-5 text-sm font-medium text-secondary-foreground shadow-[0_0_8px_color-mix(in_oklab,var(--secondary)_42%,transparent),0_0_17px_color-mix(in_oklab,var(--secondary)_24%,transparent),0_0_25px_color-mix(in_oklab,var(--secondary)_12%,transparent)]";
+
+function useIsDesktop() {
+  const [isDesktop, setIsDesktop] = useState(false);
+
+  useEffect(() => {
+    const media = window.matchMedia("(min-width: 1024px)");
+    const update = () => setIsDesktop(media.matches);
+    update();
+    media.addEventListener("change", update);
+    return () => media.removeEventListener("change", update);
+  }, []);
+
+  return isDesktop;
+}
 
 export const Route = createFileRoute("/$discipline/$specialty/$project/")({
   loader: ({ params }) => {
-    const disciplineSlug = normalizeDisciplineSlug(params.discipline);
-    const specialtySlug = normalizeSpecialtySlug(params.specialty);
-    const projectSlug = normalizeProjectSlug(params.project);
+    const normDisc = normalizeDisciplineSlug(params.discipline);
+    const normSpec = normalizeSpecialtySlug(params.specialty);
+    const normProj = normalizeProjectSlug(params.project);
 
-    // 1. Find project details
-    const allStudioProjects = getStudioProjects();
-    const project =
-      allStudioProjects.find((p) => normalizeProjectSlug(p.title) === projectSlug || p.id === projectSlug) ||
-      projects.find((p) => normalizeProjectSlug(p.title) === projectSlug || p.id === projectSlug);
+    // Find in studio projects or default static projects
+    const allStudio = getStudioProjects();
+    const studioFound = allStudio.find(
+      (p) => normalizeProjectSlug(p.title) === normProj || p.id === normProj,
+    );
+    const staticFound = projects.find(
+      (p) => normalizeProjectSlug(p.title) === normProj || p.id === normProj,
+    );
 
-    // 2. Find all photos for this project
-    let photos = getPhotosByProject(projectSlug);
+    const project = studioFound || staticFound;
 
-    // If no inventory photos found, fall back to project gallery
-    if (photos.length === 0 && project) {
-      const gallery = project.gallery ?? [project.image];
-      photos = gallery.map((src, idx) => ({
-        code: `${disciplineSlug.slice(0, 4).toUpperCase()}-${specialtySlug.slice(0, 4).toUpperCase()}-${projectSlug.slice(0, 4).toUpperCase()}-${String(idx + 1).padStart(4, "0")}`,
-        project: project.title,
-        discipline: project.discipline,
-        disciplineSlug,
-        specialtySlug,
-        projectSlug,
-        imgSrc: src,
-        subdiscipline: project.subDiscipline || project.category || "",
-        model: Array.isArray(project.models) ? project.models.join(", ") : project.models || "",
-        client: project.client || "",
-        makeupArtist: project.makeupArtist || "",
-        assistant: project.assistant || "",
-        date: project.year || "2024",
-        keywords: `${project.title}, ${specialtySlug}, Siavash Akbari`,
-        caption: project.caption || project.description || "",
-      }));
-    }
+    // Also look up all photos in this project from merged inventory
+    const projectPhotos = getPhotosByProject(normProj);
+    const images: string[] =
+      project?.images && project.images.length > 0
+        ? project.images.map((im) => im.url)
+        : projectPhotos.length > 0
+          ? projectPhotos.map((p) => p.imgSrc)
+          : project?.gallery && project.gallery.length > 0
+            ? project.gallery
+            : project?.image
+              ? [project.image]
+              : [];
 
-    if (!project && photos.length === 0) {
-      throw notFound({ routeId: rootRouteId });
-    }
-
-    const title = project?.title || photos[0]?.project || params.project;
+    const title = project?.title || params.project;
+    const year = project?.year ? String(project.year) : "2026";
+    const category = project?.subDiscipline || project?.category || normSpec;
+    const description = project?.description || `${title} creative showcase.`;
+    const client = project?.client;
+    const models = project?.models;
+    const makeupArtist = project?.makeupArtist;
+    const assistant = project?.assistant;
+    const stylist = project?.stylist;
+    const location = project?.location;
+    const caption = project?.caption;
 
     return {
-      disciplineSlug,
-      specialtySlug,
-      projectSlug,
-      project,
+      disciplineSlug: normDisc,
+      specialtySlug: normSpec,
+      projectSlug: normProj,
       title,
-      photos,
+      year,
+      category,
+      description,
+      client,
+      models,
+      makeupArtist,
+      assistant,
+      stylist,
+      location,
+      caption,
+      images,
+      coverImage: images[0] || "",
     };
   },
   head: ({ loaderData }) => {
     const title = loaderData?.title ?? "Project";
-    const desc = loaderData?.project?.description || `Explore ${title} portfolio project by Siavash Akbari.`;
-    const canonicalPath = `/${loaderData?.disciplineSlug}/${loaderData?.specialtySlug}/${loaderData?.projectSlug}`;
-
+    const desc = loaderData?.description ?? "Case study by Siavash Akbari";
+    const path = `/${loaderData?.disciplineSlug}/${loaderData?.specialtySlug}/${loaderData?.projectSlug}`;
     return pageHead({
       title: `${title} — Siavash Akbari`,
       description: desc,
-      path: canonicalPath,
-      image: loaderData?.project?.coverImage || loaderData?.project?.image,
+      path,
+      image: loaderData?.coverImage,
       type: "article",
     });
   },
   component: ProjectCaseStudyPage,
   errorComponent: ({ error }) => (
     <div className="mx-auto max-w-3xl px-6 py-32 text-center">
-      <h1 className="font-display text-4xl">Project Not Found</h1>
+      <h1 className="font-display text-4xl">Something went wrong</h1>
       <p className="mt-4 text-muted-foreground">{error.message}</p>
-      <div className="mt-6">
-        <Link
-          to="/"
-          className="inline-flex items-center gap-2 rounded-full border border-foreground/20 px-4 py-2 text-xs uppercase tracking-widest text-foreground hover:bg-foreground hover:text-background transition-colors"
-        >
-          Return Home
-        </Link>
-      </div>
     </div>
   ),
 });
 
 function ProjectCaseStudyPage() {
-  const { disciplineSlug, specialtySlug, projectSlug, project, title, photos } = Route.useLoaderData();
+  const data = Route.useLoaderData();
+  const images = data.images;
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [activeIndex, setActiveIndex] = useState<number | null>(null);
+  const isDesktop = useIsDesktop();
 
-  const specialtyUrl = buildSpecialtyUrl(disciplineSlug, specialtySlug);
-  const disciplineUrl = buildDisciplineUrl(disciplineSlug);
+  const handleWheel = (e: React.WheelEvent<HTMLDivElement>) => {
+    if (!isDesktop) return;
+    const el = scrollRef.current;
+    if (!el) return;
+    if (e.deltaY === 0) return;
+    e.preventDefault();
+    el.scrollLeft += e.deltaY;
+  };
+
+  useEffect(() => {
+    if (!isDesktop) return;
+    const el = scrollRef.current;
+    if (!el) return;
+
+    const onWheel = (e: WheelEvent) => {
+      if (activeIndex !== null) return;
+      if (e.deltaY === 0) return;
+      e.preventDefault();
+      el.scrollLeft += e.deltaY;
+    };
+
+    window.addEventListener("wheel", onWheel, { passive: false });
+    return () => window.removeEventListener("wheel", onWheel);
+  }, [isDesktop, activeIndex]);
+
+  useEffect(() => {
+    if (activeIndex === null) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setActiveIndex(null);
+    };
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [activeIndex]);
+
+  const hasCredits =
+    Boolean(data.client) ||
+    Boolean(data.models) ||
+    Boolean(data.makeupArtist) ||
+    Boolean(data.assistant) ||
+    Boolean(data.stylist) ||
+    Boolean(data.location);
+
+  const backUrl = `/${data.disciplineSlug}/${data.specialtySlug}`;
 
   return (
-    <div className="min-h-screen bg-[#0A0A0A] text-foreground selection:bg-secondary selection:text-secondary-foreground pb-24">
-      {/* Top Breadcrumbs Bar */}
-      <div className="sticky top-14 z-30 border-b border-foreground/10 bg-[#0A0A0A]/90 backdrop-blur-md px-6 py-3.5">
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4">
-          <div className="flex items-center gap-2 text-xs font-mono tracking-wider overflow-x-auto whitespace-nowrap">
-            <Link
-              to={specialtyUrl as any}
-              className="inline-flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors mr-2 pr-3 border-r border-foreground/15"
-            >
-              <ArrowLeft className="h-3.5 w-3.5" />
-              <span>Back to {specialtySlug.replace("-", " ")}</span>
-            </Link>
-
-            <Link to="/" className="text-muted-foreground hover:text-foreground transition-colors">
-              Home
-            </Link>
-            <span className="text-muted-foreground/40">/</span>
-            <Link
-              to={disciplineUrl as any}
-              className="capitalize text-muted-foreground hover:text-foreground transition-colors"
-            >
-              {disciplineSlug.replace("-", " ")}
-            </Link>
-            <span className="text-muted-foreground/40">/</span>
-            <Link
-              to={specialtyUrl as any}
-              className="capitalize text-muted-foreground hover:text-foreground transition-colors"
-            >
-              {specialtySlug.replace("-", " ")}
-            </Link>
-            <span className="text-muted-foreground/40">/</span>
-            <span className="text-secondary font-bold">{title}</span>
-          </div>
-
-          <Link
-            to="/admin/projects"
-            className="inline-flex items-center gap-1.5 rounded-full border border-[#2CE3C0]/40 bg-[#2CE3C0]/10 px-3 py-1.5 text-xs font-mono text-[#2CE3C0] hover:bg-[#2CE3C0]/20 transition-colors"
-          >
-            <Edit className="h-3.5 w-3.5" />
-            <span className="hidden sm:inline">Edit in Studio</span>
-          </Link>
-        </div>
-      </div>
-
-      {/* Project Header / Meta Section */}
-      <div className="mx-auto max-w-7xl px-6 pt-12 pb-10 border-b border-white/10">
-        <div className="flex flex-wrap items-center gap-2.5 mb-4">
-          <span className="text-xs font-mono uppercase tracking-widest text-secondary bg-secondary/10 px-2.5 py-1 rounded border border-secondary/20">
-            {disciplineSlug.replace("-", " ")}
-          </span>
-          <span className="text-xs font-mono uppercase tracking-widest text-white/80 bg-white/5 px-2.5 py-1 rounded border border-white/10">
-            {specialtySlug.replace("-", " ")}
-          </span>
-          {project?.year && (
-            <span className="text-xs font-mono text-muted-foreground px-1">
-              {project.year}
-            </span>
-          )}
-        </div>
-
-        <h1 className="font-display text-4xl sm:text-6xl md:text-7xl font-bold tracking-tight text-foreground">
-          {title}
+    <article
+      className={isDesktop ? "flex min-h-0 flex-1 flex-col overflow-hidden" : "flex flex-col pb-16"}
+    >
+      <div className="mx-auto grid w-full max-w-6xl shrink-0 grid-cols-[minmax(0,48rem)_auto] gap-x-4 px-3 pt-8 pb-4">
+        <p className="col-start-1 text-xs font-semibold uppercase tracking-[0.25em] text-secondary">
+          {data.category} · {data.year}
+        </p>
+        <h1 className="col-start-1 mt-4 font-display text-5xl font-medium text-foreground md:text-7xl">
+          {data.title}
         </h1>
-        {project?.titleFa && (
-          <p className="mt-2 text-xl font-sans text-muted-foreground" dir="rtl">
-            {project.titleFa}
-          </p>
+
+        {isDesktop && (
+          <Link
+            to={backUrl as any}
+            className={`${backBtnClass} col-start-2 row-start-2 self-center justify-self-end translate-y-[5px]`}
+          >
+            <ArrowLeft className="h-4 w-4" />
+            <span className="capitalize">Back to {data.specialtySlug.replace("-", " ")}</span>
+          </Link>
         )}
 
-        {project?.description && (
-          <p className="mt-6 max-w-3xl text-base md:text-lg leading-relaxed text-muted-foreground">
-            {project.description}
-          </p>
-        )}
+        <p className="col-start-1 mt-4 text-base leading-relaxed text-muted-foreground">
+          {data.description}
+        </p>
 
-        {/* Project Credits Grid */}
-        <div className="mt-8 grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs font-mono pt-6 border-t border-white/5">
-          {project?.client && (
-            <div>
-              <span className="block text-muted-foreground/60 uppercase text-[10px] tracking-wider">Client</span>
-              <span className="text-foreground font-medium mt-0.5 block">{project.client}</span>
-            </div>
-          )}
-          {project?.models && (
-            <div>
-              <span className="block text-muted-foreground/60 uppercase text-[10px] tracking-wider">Model(s)</span>
-              <span className="text-foreground font-medium mt-0.5 block">
-                {Array.isArray(project.models) ? project.models.join(", ") : project.models}
-              </span>
-            </div>
-          )}
-          {project?.makeupArtist && (
-            <div>
-              <span className="block text-muted-foreground/60 uppercase text-[10px] tracking-wider">MUA</span>
-              <span className="text-foreground font-medium mt-0.5 block">{project.makeupArtist}</span>
-            </div>
-          )}
-          {project?.stylist && (
-            <div>
-              <span className="block text-muted-foreground/60 uppercase text-[10px] tracking-wider">Stylist</span>
-              <span className="text-foreground font-medium mt-0.5 block">{project.stylist}</span>
-            </div>
-          )}
-          {project?.assistant && (
-            <div>
-              <span className="block text-muted-foreground/60 uppercase text-[10px] tracking-wider">Assistant</span>
-              <span className="text-foreground font-medium mt-0.5 block">{project.assistant}</span>
-            </div>
-          )}
-          <div>
-            <span className="block text-muted-foreground/60 uppercase text-[10px] tracking-wider">Total Photos</span>
-            <span className="text-secondary font-bold mt-0.5 block">{photos.length} Frames</span>
+        {/* METADATA CREDITS MATRIX */}
+        {hasCredits && (
+          <div className="col-start-1 mt-6 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 p-5 rounded-2xl bg-[#141414] border border-white/10 text-xs">
+            {data.client && (
+              <div>
+                <span className="text-[10px] uppercase font-bold tracking-wider text-secondary block mb-1">
+                  Client
+                </span>
+                <span className="text-white font-medium">{data.client}</span>
+              </div>
+            )}
+            {data.models && (
+              <div>
+                <span className="text-[10px] uppercase font-bold tracking-wider text-secondary block mb-1">
+                  Model(s)
+                </span>
+                <span className="text-white font-medium">
+                  {Array.isArray(data.models) ? data.models.join(", ") : data.models}
+                </span>
+              </div>
+            )}
+            {data.makeupArtist && (
+              <div>
+                <span className="text-[10px] uppercase font-bold tracking-wider text-secondary block mb-1">
+                  Makeup Artist
+                </span>
+                <span className="text-white font-medium">{data.makeupArtist}</span>
+              </div>
+            )}
+            {data.stylist && (
+              <div>
+                <span className="text-[10px] uppercase font-bold tracking-wider text-secondary block mb-1">
+                  Stylist
+                </span>
+                <span className="text-white font-medium">{data.stylist}</span>
+              </div>
+            )}
+            {data.assistant && (
+              <div>
+                <span className="text-[10px] uppercase font-bold tracking-wider text-secondary block mb-1">
+                  Assistant
+                </span>
+                <span className="text-white font-medium">{data.assistant}</span>
+              </div>
+            )}
+            {data.location && (
+              <div>
+                <span className="text-[10px] uppercase font-bold tracking-wider text-secondary block mb-1">
+                  Location
+                </span>
+                <span className="text-white font-medium">{data.location}</span>
+              </div>
+            )}
           </div>
-        </div>
+        )}
+
+        {/* LONG-FORM STORY BOX */}
+        {data.caption?.trim() && (
+          <div className="col-start-1 mt-6 p-6 rounded-2xl bg-[#141414] border border-white/10 text-neutral-300">
+            <span className="text-[10px] uppercase font-mono tracking-widest text-[#2CE3C0] block mb-2 font-bold">
+              Project Story & Curatorial Notes
+            </span>
+            <div className="text-sm leading-relaxed whitespace-pre-wrap font-sans text-neutral-300">
+              {data.caption}
+            </div>
+          </div>
+        )}
       </div>
 
-      {/* Project Photos Gallery */}
-      <div className="mx-auto max-w-7xl px-6 pt-12">
-        <div className="mb-6 flex items-center justify-between">
-          <h2 className="text-xs font-mono uppercase tracking-[0.2em] text-muted-foreground">
-            Project Gallery ({photos.length} frames)
-          </h2>
-          <span className="text-[11px] font-mono text-muted-foreground/60">
-            Click frame for dedicated photo details & specs
-          </span>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
-          {photos.map((item, idx) => {
-            const resolvedSrc = resolveInventoryImage(item.imgSrc);
-            const photoUrl = buildPhotoUrl(disciplineSlug, specialtySlug, projectSlug, item.code);
-
+      {/* Media Presentation */}
+      {isDesktop ? (
+        <div
+          ref={scrollRef}
+          onWheel={handleWheel}
+          className="scrollbar-hide flex min-h-0 flex-1 gap-6 overflow-x-auto overflow-y-hidden px-6 pb-4"
+        >
+          {images.map((src: string, i: number) => {
+            const isVideo = src.endsWith(".mp4");
             return (
-              <Link
-                key={item.code || idx}
-                to={photoUrl as any}
-                className="group relative flex flex-col rounded-md overflow-hidden bg-[#111] border border-white/5 hover:border-secondary/40 transition-all duration-300 shadow-md hover:shadow-secondary/10"
+              <figure
+                key={src}
+                className="flex h-full shrink-0 cursor-zoom-in items-center justify-center"
+                onClick={() => setActiveIndex(i)}
               >
-                <div className="aspect-[3/4] w-full overflow-hidden bg-black/40">
-                  <img
-                    src={resolvedSrc}
-                    alt={item.altText || `${title} — ${item.code}`}
-                    className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-105"
-                    loading="lazy"
+                {isVideo ? (
+                  <video
+                    src={src}
+                    autoPlay
+                    muted
+                    loop
+                    playsInline
+                    draggable={false}
+                    className="h-full w-auto max-w-none select-none bg-card object-contain"
                   />
-                </div>
-
-                <div className="p-3 bg-[#111]/90 flex items-center justify-between text-xs font-mono">
-                  <span className="font-bold text-foreground group-hover:text-secondary transition-colors">
-                    {item.code}
-                  </span>
-                  <span className="text-[10px] text-muted-foreground/60">
-                    #{String(idx + 1).padStart(2, "0")}
-                  </span>
-                </div>
-              </Link>
+                ) : (
+                  <img
+                    src={src}
+                    alt={`${data.title} — image ${i + 1}`}
+                    loading={i < 2 ? "eager" : "lazy"}
+                    draggable={false}
+                    className="h-full w-auto max-w-none select-none bg-card object-contain"
+                  />
+                )}
+              </figure>
             );
           })}
         </div>
-      </div>
-    </div>
+      ) : (
+        <div className="flex flex-col gap-4 px-3 pt-6">
+          {images.map((src: string, i: number) => {
+            const isVideo = src.endsWith(".mp4");
+            return (
+              <figure
+                key={src}
+                className="w-full cursor-zoom-in overflow-hidden bg-card"
+                onClick={() => setActiveIndex(i)}
+              >
+                {isVideo ? (
+                  <video
+                    src={src}
+                    autoPlay
+                    muted
+                    loop
+                    playsInline
+                    className="w-full object-contain"
+                  />
+                ) : (
+                  <img
+                    src={src}
+                    alt={`${data.title} — image ${i + 1}`}
+                    loading={i < 2 ? "eager" : "lazy"}
+                    className="w-full object-contain"
+                  />
+                )}
+              </figure>
+            );
+          })}
+        </div>
+      )}
+
+      {!isDesktop && (
+        <div className="mx-auto mt-6 flex w-full max-w-6xl justify-center px-3">
+          <Link to={backUrl as any} className={backBtnMobileClass}>
+            <ArrowLeft className="h-4 w-4" />
+            <span className="capitalize">Back to {data.specialtySlug.replace("-", " ")}</span>
+          </Link>
+        </div>
+      )}
+
+      {/* Lightbox Modal */}
+      {activeIndex !== null && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="Image preview"
+          onClick={() => setActiveIndex(null)}
+          className="fixed inset-0 z-50 flex items-center justify-center bg-background/90 p-4 backdrop-blur-md"
+        >
+          <button
+            type="button"
+            onClick={() => setActiveIndex(null)}
+            className="absolute top-6 right-6 z-10 text-muted-foreground hover:text-foreground cursor-pointer"
+            aria-label="Close image preview"
+          >
+            ✕
+          </button>
+          {images[activeIndex]?.endsWith(".mp4") ? (
+            <video
+              src={images[activeIndex]}
+              autoPlay
+              controls
+              loop
+              playsInline
+              onClick={(e) => e.stopPropagation()}
+              className="max-h-[90vh] max-w-[90vw] object-contain shadow-2xl"
+            />
+          ) : (
+            <img
+              src={images[activeIndex]}
+              alt={`${data.title} — enlarged preview`}
+              onClick={(e) => e.stopPropagation()}
+              className="max-h-[90vh] max-w-[90vw] object-contain shadow-2xl"
+            />
+          )}
+        </div>
+      )}
+    </article>
   );
 }
