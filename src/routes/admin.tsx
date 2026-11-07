@@ -1,28 +1,29 @@
 import { createFileRoute, Outlet, Link, useLocation } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
-import { 
-  ShieldCheck, 
-  Layers, 
-  FileText, 
-  Receipt, 
-  LogOut, 
-  ExternalLink, 
-  Lock, 
-  Key, 
-  Smartphone, 
-  CheckCircle2, 
+import {
+  ShieldCheck,
+  Layers,
+  Database,
+  FileText,
+  Receipt,
+  LogOut,
+  ExternalLink,
+  Lock,
+  Key,
+  Smartphone,
+  CheckCircle2,
   AlertCircle,
   QrCode,
   Copy,
-  Check
+  Check,
 } from "lucide-react";
-import { 
-  getAdminSession, 
-  loginAdmin, 
-  completeMfaEnrollment, 
-  logoutAdmin, 
+import {
+  getAdminSession,
+  loginAdmin,
+  completeMfaEnrollment,
+  logoutAdmin,
   isSupabaseConfigured,
-  type MfaEnrollmentData 
+  type MfaEnrollmentData,
 } from "@/lib/admin-auth";
 import type { AdminSession } from "@/types/admin";
 import { Logo } from "@/components/Logo";
@@ -79,8 +80,9 @@ function AdminLayout() {
       } else {
         setLoginError(res.error || "Authentication failed. Check credentials.");
       }
-    } catch (err: any) {
-      setLoginError(err.message || "An unexpected error occurred during login.");
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "An unexpected error occurred during login.";
+      setLoginError(msg);
     } finally {
       setIsSubmitting(false);
     }
@@ -106,8 +108,10 @@ function AdminLayout() {
       } else {
         setLoginError(res.error || "Invalid 6-digit code. Please check your authenticator app.");
       }
-    } catch (err: any) {
-      setLoginError(err.message || "Failed to confirm Authenticator app enrollment.");
+    } catch (err: unknown) {
+      const msg =
+        err instanceof Error ? err.message : "Failed to confirm Authenticator app enrollment.";
+      setLoginError(msg);
     } finally {
       setIsSubmitting(false);
     }
@@ -165,7 +169,6 @@ function AdminLayout() {
         {/* Auth Modal Container */}
         <div className="max-w-md w-full mx-auto my-8 z-10">
           <div className="bg-[#121212]/95 border border-white/10 rounded-2xl p-7 sm:p-8 backdrop-blur-xl shadow-2xl relative">
-            
             {/* SCREEN 1: QR CODE ENROLLMENT SCREEN (Triggered automatically when user logs in first time) */}
             {enrollmentData ? (
               <div className="space-y-6">
@@ -177,7 +180,8 @@ function AdminLayout() {
                     Connect Google Authenticator
                   </h1>
                   <p className="text-xs text-neutral-400 leading-relaxed">
-                    Scan the QR code below using <strong>Google Authenticator</strong>, <strong>Apple Passwords</strong>, or <strong>1Password</strong> on your phone.
+                    Scan the QR code below using <strong>Google Authenticator</strong>,{" "}
+                    <strong>Apple Passwords</strong>, or <strong>1Password</strong> on your phone.
                   </p>
                 </div>
 
@@ -281,7 +285,8 @@ function AdminLayout() {
                     Studio Management Portal
                   </h1>
                   <p className="text-xs text-neutral-400 leading-relaxed">
-                    Multi-factor encrypted authentication protocol. Requires username, primary key, secondary security key, and dynamic authenticator code.
+                    Multi-factor encrypted authentication protocol. Requires username, primary key,
+                    secondary security key, and dynamic authenticator code.
                   </p>
                 </div>
 
@@ -377,7 +382,8 @@ function AdminLayout() {
                       />
                     </div>
                     <p className="mt-1 text-[11px] text-neutral-500">
-                      If this is your first time, leave empty and click Authorize to generate your QR Code!
+                      If this is your first time, leave empty and click Authorize to generate your
+                      QR Code!
                     </p>
                   </div>
 
@@ -414,7 +420,8 @@ function AdminLayout() {
 
   // Active Authenticated Studio Shell
   const navTabs = [
-    { label: "Content & Projects", path: "/admin/projects", icon: Layers },
+    { label: "Case Study Projects", path: "/admin/projects", icon: Layers },
+    { label: "Photo & Visual Inventory", path: "/admin/inventory", icon: Database },
     { label: "Blog & Editorial", path: "/admin/blog", icon: FileText },
     { label: "Invoice Studio", path: "/admin/invoices", icon: Receipt },
   ];
@@ -425,7 +432,7 @@ function AdminLayout() {
       <header className="border-b border-white/10 bg-[#0F0F0F]/80 backdrop-blur-md sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-6">
-            <Link to="/" className="flex items-center gap-3 group">
+            <Link to="/admin" className="flex items-center gap-3 group">
               <Logo className="h-5 w-auto text-white group-hover:text-[#2CE3C0] transition-colors" />
               <span className="text-xs font-mono uppercase tracking-widest text-[#2CE3C0] bg-[#2CE3C0]/10 px-2 py-0.5 rounded border border-[#2CE3C0]/20">
                 ADMIN STUDIO
@@ -436,10 +443,7 @@ function AdminLayout() {
             <nav className="hidden md:flex items-center gap-1">
               {navTabs.map((tab) => {
                 const Icon = tab.icon;
-                const active =
-                  tab.path === "/admin/projects"
-                    ? pathname === "/admin" || pathname === "/admin/" || pathname.startsWith("/admin/projects")
-                    : pathname.startsWith(tab.path);
+                const active = pathname.startsWith(tab.path);
                 return (
                   <Link
                     key={tab.path}
@@ -484,7 +488,9 @@ function AdminLayout() {
             const Icon = tab.icon;
             const active =
               tab.path === "/admin/projects"
-                ? pathname === "/admin" || pathname === "/admin/" || pathname.startsWith("/admin/projects")
+                ? pathname === "/admin" ||
+                  pathname === "/admin/" ||
+                  pathname.startsWith("/admin/projects")
                 : pathname.startsWith(tab.path);
             return (
               <Link

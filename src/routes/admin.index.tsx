@@ -1,7 +1,21 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Layers, FileText, Receipt, Plus, ArrowUpRight, CheckCircle2, Shield } from "lucide-react";
-import { getStudioProjects, getStudioBlogPosts, getSavedInvoices } from "@/lib/studio-store";
+import {
+  Layers,
+  FileText,
+  Receipt,
+  Plus,
+  ArrowUpRight,
+  CheckCircle2,
+  Shield,
+  Database,
+} from "lucide-react";
+import {
+  getStudioProjects,
+  getStudioBlogPosts,
+  getSavedInvoices,
+  getMergedPhotoInventory,
+} from "@/lib/studio-store";
 import { isSupabaseConfigured } from "@/lib/admin-auth";
 
 export const Route = createFileRoute("/admin/")({
@@ -10,11 +24,13 @@ export const Route = createFileRoute("/admin/")({
 
 function AdminDashboard() {
   const [projectCount, setProjectCount] = useState(0);
+  const [inventoryCount, setInventoryCount] = useState(0);
   const [blogCount, setBlogCount] = useState(0);
   const [invoiceCount, setInvoiceCount] = useState(0);
 
   useEffect(() => {
     setProjectCount(getStudioProjects().length);
+    setInventoryCount(getMergedPhotoInventory().length);
     setBlogCount(getStudioBlogPosts().length);
     setInvoiceCount(getSavedInvoices().length);
   }, []);
@@ -30,11 +46,11 @@ function AdminDashboard() {
             <Shield className="w-3.5 h-3.5" />
             <span>ENCRYPTED COMMAND CENTER</span>
           </div>
-          <h1 className="text-3xl font-bold tracking-tight text-white">
-            Welcome, Siavash.
-          </h1>
+          <h1 className="text-3xl font-bold tracking-tight text-white">Welcome, Siavash.</h1>
           <p className="text-sm text-neutral-400 leading-relaxed">
-            Manage your showcase projects across disciplines, publish high-impact editorial essays with AI search visibility, and generate pixel-perfect client invoices matching your Illustrator master artwork.
+            Manage your showcase projects across disciplines, curate your visual photography
+            inventory, publish editorial essays with AI search visibility, and generate client
+            invoices.
           </p>
         </div>
 
@@ -51,7 +67,8 @@ function AdminDashboard() {
               <span>Supabase Cloud Authentication Connected</span>
             </h4>
             <p className="text-[11px] text-neutral-300">
-              Cloud authentication, Google Authenticator MFA, and remote database sync are online on <span className="font-mono text-white">mysxozqpunbzharompho.supabase.co</span>.
+              Cloud authentication, Google Authenticator MFA, and remote database sync are online on{" "}
+              <span className="font-mono text-white">mysxozqpunbzharompho.supabase.co</span>.
             </p>
           </div>
           <span className="shrink-0 text-[11px] font-mono bg-[#2CE3C0] text-black font-bold px-3 py-1 rounded-md">
@@ -65,7 +82,8 @@ function AdminDashboard() {
               Supabase Cloud Authentication Pending Connection
             </h4>
             <p className="text-xs text-amber-200/70">
-              The panel is currently operating in offline zero-trust vault mode. Add your Supabase project keys to activate 100% free cloud sync and Google Authenticator MFA.
+              The panel is currently operating in offline zero-trust vault mode. Add your Supabase
+              project keys to activate 100% free cloud sync and Google Authenticator MFA.
             </p>
           </div>
           <span className="shrink-0 text-xs font-mono bg-amber-400 text-black font-semibold px-3 py-1.5 rounded-lg">
@@ -74,8 +92,8 @@ function AdminDashboard() {
         </div>
       )}
 
-      {/* 3 Core Workspace Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      {/* 4 Core Workspace Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
         {/* Workspace 1: Projects */}
         <div className="rounded-2xl border border-white/10 bg-[#121212] p-6 flex flex-col justify-between hover:border-[#2CE3C0]/50 transition-all group">
           <div className="space-y-4">
@@ -86,14 +104,16 @@ function AdminDashboard() {
               <div className="text-xs font-mono uppercase tracking-wider text-neutral-500">
                 Workspace 01
               </div>
-              <h3 className="text-lg font-bold text-white mt-1">Content & Projects</h3>
+              <h3 className="text-lg font-bold text-white mt-1">Case Study Projects</h3>
               <p className="text-xs text-neutral-400 mt-1 leading-relaxed">
-                Add new projects, upload photo sets, write bilingual descriptions, and assign discipline galleries.
+                Add showcase case studies, edit narrative captions, and configure 1080p video specs.
               </p>
             </div>
             <div className="pt-2 text-2xl font-bold font-mono text-white">
               {projectCount}{" "}
-              <span className="text-xs font-normal text-neutral-500 font-sans">Active Showcases</span>
+              <span className="text-xs font-normal text-neutral-500 font-sans">
+                Active Showcases
+              </span>
             </div>
           </div>
 
@@ -108,7 +128,40 @@ function AdminDashboard() {
           </div>
         </div>
 
-        {/* Workspace 2: Blog */}
+        {/* Workspace 2: Visual Inventory */}
+        <div className="rounded-2xl border border-white/10 bg-[#121212] p-6 flex flex-col justify-between hover:border-[#2CE3C0]/50 transition-all group">
+          <div className="space-y-4">
+            <div className="w-12 h-12 rounded-xl bg-[#FFD166]/10 border border-[#FFD166]/20 flex items-center justify-center text-[#FFD166] group-hover:scale-105 transition-transform">
+              <Database className="w-6 h-6" />
+            </div>
+            <div>
+              <div className="text-xs font-mono uppercase tracking-wider text-neutral-500">
+                Workspace 02
+              </div>
+              <h3 className="text-lg font-bold text-white mt-1">Photo & Visual Inventory</h3>
+              <p className="text-xs text-neutral-400 mt-1 leading-relaxed">
+                Filter and edit metadata, sub-disciplines, credits, and keywords across your 350+
+                asset database.
+              </p>
+            </div>
+            <div className="pt-2 text-2xl font-bold font-mono text-white">
+              {inventoryCount}{" "}
+              <span className="text-xs font-normal text-neutral-500 font-sans">Indexed Assets</span>
+            </div>
+          </div>
+
+          <div className="pt-6">
+            <Link
+              to="/admin/inventory"
+              className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-white/5 hover:bg-[#FFD166] hover:text-black text-white text-xs font-semibold transition-all"
+            >
+              <span>Open Inventory</span>
+              <ArrowUpRight className="w-4 h-4" />
+            </Link>
+          </div>
+        </div>
+
+        {/* Workspace 3: Blog */}
         <div className="rounded-2xl border border-white/10 bg-[#121212] p-6 flex flex-col justify-between hover:border-[#2CE3C0]/50 transition-all group">
           <div className="space-y-4">
             <div className="w-12 h-12 rounded-xl bg-[#2CE3C0]/10 border border-[#2CE3C0]/20 flex items-center justify-center text-[#2CE3C0] group-hover:scale-105 transition-transform">
@@ -116,16 +169,19 @@ function AdminDashboard() {
             </div>
             <div>
               <div className="text-xs font-mono uppercase tracking-wider text-neutral-500">
-                Workspace 02
+                Workspace 03
               </div>
               <h3 className="text-lg font-bold text-white mt-1">Blog & Editorial</h3>
               <p className="text-xs text-neutral-400 mt-1 leading-relaxed">
-                Draft architectural studies, case studies, and studio insights with AI search & GEO summaries.
+                Draft architectural studies, case studies, and studio insights with AI search & GEO
+                summaries.
               </p>
             </div>
             <div className="pt-2 text-2xl font-bold font-mono text-white">
               {blogCount}{" "}
-              <span className="text-xs font-normal text-neutral-500 font-sans">Published Articles</span>
+              <span className="text-xs font-normal text-neutral-500 font-sans">
+                Published Articles
+              </span>
             </div>
           </div>
 
@@ -140,7 +196,7 @@ function AdminDashboard() {
           </div>
         </div>
 
-        {/* Workspace 3: Invoice Studio */}
+        {/* Workspace 4: Invoice Studio */}
         <div className="rounded-2xl border border-white/10 bg-[#121212] p-6 flex flex-col justify-between hover:border-[#2CE3C0]/50 transition-all group">
           <div className="space-y-4">
             <div className="w-12 h-12 rounded-xl bg-[#2CE3C0]/10 border border-[#2CE3C0]/20 flex items-center justify-center text-[#2CE3C0] group-hover:scale-105 transition-transform">
@@ -148,16 +204,19 @@ function AdminDashboard() {
             </div>
             <div>
               <div className="text-xs font-mono uppercase tracking-wider text-neutral-500">
-                Workspace 03
+                Workspace 04
               </div>
               <h3 className="text-lg font-bold text-white mt-1">Invoice Studio</h3>
               <p className="text-xs text-neutral-400 mt-1 leading-relaxed">
-                Replicate Illustrator receipts with sandboxed Gotham typography, auto-computed IRR balances, and vector PDF export.
+                Replicate Illustrator receipts with sandboxed Gotham typography, auto-computed IRR
+                balances, and vector PDF export.
               </p>
             </div>
             <div className="pt-2 text-2xl font-bold font-mono text-white">
               {invoiceCount}{" "}
-              <span className="text-xs font-normal text-neutral-500 font-sans">Generated Invoices</span>
+              <span className="text-xs font-normal text-neutral-500 font-sans">
+                Generated Invoices
+              </span>
             </div>
           </div>
 
