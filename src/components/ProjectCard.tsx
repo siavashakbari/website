@@ -32,19 +32,19 @@ export function ProjectCard({ project, index = 0, aspectRatio }: ProjectCardProp
 
   if (!isVisualIdentity) {
     if (cat.includes("fashion")) {
-      linkProps = { to: "/$discipline", params: { discipline: "fashion-photography" } };
+      linkProps = { to: "/$discipline/$specialty", params: { discipline: "photography", specialty: "fashion" } };
     } else if (cat.includes("food")) {
-      linkProps = { to: "/$discipline", params: { discipline: "food-photography" } };
+      linkProps = { to: "/$discipline/$specialty", params: { discipline: "photography", specialty: "food" } };
     } else if (cat.includes("portrait")) {
-      linkProps = { to: "/$discipline", params: { discipline: "portrait-photography" } };
+      linkProps = { to: "/$discipline/$specialty", params: { discipline: "photography", specialty: "portrait" } };
     } else if (cat.includes("product")) {
-      linkProps = { to: "/$discipline", params: { discipline: "product-photography" } };
-    } else if (cat.includes("book cover")) {
-      linkProps = { to: "/$discipline", params: { discipline: "book-covers" } };
+      linkProps = { to: "/$discipline/$specialty", params: { discipline: "photography", specialty: "product" } };
+    } else if (cat.includes("book cover") || cat.includes("book")) {
+      linkProps = { to: "/$discipline/$specialty", params: { discipline: "graphic-design", specialty: "book-covers" } };
     } else if (cat.includes("poster")) {
-      linkProps = { to: "/$discipline", params: { discipline: "posters" } };
+      linkProps = { to: "/$discipline/$specialty", params: { discipline: "graphic-design", specialty: "posters" } };
     } else if (project.discipline === "video" || cat.includes("video")) {
-      linkProps = { to: "/$discipline", params: { discipline: "videos" } };
+      linkProps = { to: "/$discipline/$specialty", params: { discipline: "video", specialty: "videos" } };
     }
   }
 

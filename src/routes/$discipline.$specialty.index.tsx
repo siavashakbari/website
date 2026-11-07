@@ -12,6 +12,7 @@ import { getPhotosBySpecialty } from "@/lib/studio-store";
 import { pageHead } from "@/lib/seo";
 import { VideoPlayer } from "@/components/ui/video-player";
 import { metaFromSrc } from "@/lib/adaptive-image";
+import { resolveInventoryImage } from "@/lib/inventory-assets";
 import {
   normalizeDisciplineSlug,
   normalizeSpecialtySlug,
@@ -112,7 +113,7 @@ export const Route = createFileRoute("/$discipline/$specialty/")({
     const photos = getPhotosBySpecialty(normSpec, normDisc);
     const items: SpecialtyPhoto[] = photos.map((p, idx) => ({
       key: `${p.code}-${idx}`,
-      src: p.imgSrc,
+      src: resolveInventoryImage(p.imgSrc) || p.imgSrc,
       code: p.standardCode || p.code,
       canonicalPath:
         p.canonicalPath ||

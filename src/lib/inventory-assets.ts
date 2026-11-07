@@ -6,6 +6,15 @@ const assetModules: Record<string, string> = import.meta.glob(
 
 export function resolveInventoryImage(relPath: string): string {
   if (!relPath) return "";
+  if (
+    relPath.startsWith("/assets/") ||
+    relPath.startsWith("http://") ||
+    relPath.startsWith("https://") ||
+    relPath.startsWith("data:") ||
+    relPath.startsWith("blob:")
+  ) {
+    return relPath;
+  }
   // relPath is e.g. "src/assets/fashion/atlasi/fashion-atlasi-01.jpg"
   const norm = relPath.replace(/^src\//, "../");
   if (assetModules[norm]) return assetModules[norm];
@@ -16,9 +25,13 @@ export function resolveInventoryImage(relPath: string): string {
 
   // Fallback to stem search
   const file = relPath.split("/").pop() || "";
-  const stem = file.replace(/\.[^.]+$/, "");
+  let stem = file.replace(/\.[^.]+$/, "").toLowerCase();
+  // Strip vite hash if present
+  stem = stem.replace(/[-_][a-zA-Z0-9]{8,10}$/, "");
+
   for (const [k, v] of Object.entries(assetModules)) {
-    if (k.endsWith(`/${file}`) || k.includes(`/${stem}.`)) {
+    const kStem = (k.split("/").pop() || "").replace(/\.[^.]+$/, "").toLowerCase();
+    if (k.endsWith(`/${file}`) || kStem === stem || k.includes(`/${stem}.`)) {
       return v;
     }
   }

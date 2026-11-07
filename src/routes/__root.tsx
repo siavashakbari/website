@@ -458,7 +458,11 @@ function RootComponent() {
     (pathname.startsWith("/projects/") && pathname.length > "/projects/".length) ||
     (pathname.startsWith("/visual-identity/") && pathname.length > "/visual-identity/".length) ||
     pathParts.length === 3;
-  const isSideScrollDiscipline = pathname === "/book-covers" || pathname === "/posters";
+  const isSideScrollDiscipline =
+    pathname === "/book-covers" ||
+    pathname === "/posters" ||
+    pathname === "/graphic-design/book-covers" ||
+    pathname === "/graphic-design/posters";
   const [isDesktop, setIsDesktop] = useState(false);
 
   useEffect(() => {

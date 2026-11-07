@@ -16,6 +16,7 @@ import {
   buildPhotoUrl,
 } from "@/lib/taxonomy";
 import { resolveInventoryImage } from "@/lib/inventory-assets";
+import { assetStemFromSrc } from "@/lib/adaptive-image";
 
 // Desktop: outline by default, green + glow on hover.
 const backBtnClass =
@@ -196,15 +197,24 @@ function ProjectCaseStudyPage() {
     const projectPhotos = getPhotosByProject(data.projectSlug);
     const cleanSrc = src.replace(/^file:/, "").toLowerCase();
     const filename = cleanSrc.split("/").pop() || "";
+    const stem = assetStemFromSrc(cleanSrc).toLowerCase();
 
     const matched = projectPhotos.find((p) => {
       const pSrc = (p.imgSrc || "").replace(/^file:/, "").toLowerCase();
-      return pSrc === cleanSrc || pSrc.endsWith(filename) || cleanSrc.endsWith(pSrc.split("/").pop() || "");
+      const pStem = assetStemFromSrc(pSrc).toLowerCase();
+      return (
+        pStem === stem ||
+        pSrc === cleanSrc ||
+        pSrc.endsWith(filename) ||
+        cleanSrc.endsWith(pSrc.split("/").pop() || "")
+      );
     });
 
     const photoIdentifier =
       matched?.standardCode ||
       matched?.code ||
+      projectPhotos[i]?.standardCode ||
+      projectPhotos[i]?.code ||
       matched?.seoSlug ||
       `${data.projectSlug}-${i + 1}`;
 
@@ -306,6 +316,7 @@ function ProjectCaseStudyPage() {
           {images.map((src: string, i: number) => {
             const isVideo = src.endsWith(".mp4");
             const photoUrl = getPhotoUrlForIndex(src, i);
+            const resolvedSrc = resolveInventoryImage(src) || src;
             return (
               <Link
                 key={src}
@@ -315,7 +326,7 @@ function ProjectCaseStudyPage() {
               >
                 {isVideo ? (
                   <video
-                    src={src}
+                    src={resolvedSrc}
                     autoPlay
                     muted
                     loop
@@ -325,7 +336,7 @@ function ProjectCaseStudyPage() {
                   />
                 ) : (
                   <img
-                    src={src}
+                    src={resolvedSrc}
                     alt={`${data.title} — image ${i + 1}`}
                     loading={i < 2 ? "eager" : "lazy"}
                     draggable={false}
@@ -341,6 +352,7 @@ function ProjectCaseStudyPage() {
           {images.map((src: string, i: number) => {
             const isVideo = src.endsWith(".mp4");
             const photoUrl = getPhotoUrlForIndex(src, i);
+            const resolvedSrc = resolveInventoryImage(src) || src;
             return (
               <Link
                 key={src}
@@ -350,7 +362,7 @@ function ProjectCaseStudyPage() {
               >
                 {isVideo ? (
                   <video
-                    src={src}
+                    src={resolvedSrc}
                     autoPlay
                     muted
                     loop
@@ -359,7 +371,7 @@ function ProjectCaseStudyPage() {
                   />
                 ) : (
                   <img
-                    src={src}
+                    src={resolvedSrc}
                     alt={`${data.title} — image ${i + 1}`}
                     loading={i < 2 ? "eager" : "lazy"}
                     className="w-full object-contain"

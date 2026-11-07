@@ -8,11 +8,12 @@ import { BackToTop } from "@/components/BackToTop";
 import { CoverTile } from "@/components/CoverTile";
 import { DISCIPLINES } from "@/data/disciplines";
 import { projects, type Project } from "@/data/projects";
-import { getMergedPhotoInventory, getPhotosByDiscipline } from "@/lib/studio-store";
+import { getMergedPhotoInventory, getPhotosByDiscipline, getPhotosBySpecialty } from "@/lib/studio-store";
 import { pageHead } from "@/lib/seo";
 import { VideoPlayer } from "@/components/ui/video-player";
 import { metaFromSrc, assetStemFromSrc } from "@/lib/adaptive-image";
-import { normalizeDisciplineSlug, buildPhotoUrl } from "@/lib/taxonomy";
+import { normalizeDisciplineSlug, normalizeSpecialtySlug, buildPhotoUrl } from "@/lib/taxonomy";
+import { resolveInventoryImage } from "@/lib/inventory-assets";
 
 interface DisciplinePhoto {
   key: string;
@@ -82,8 +83,8 @@ export const Route = createFileRoute("/$discipline/")({
       layout: discipline.layout ?? null,
     };
 
-    // If discipline browses by project (e.g. graphic-design)
-    if (discipline.browseByProject) {
+    // If discipline browses by project (e.g. graphic-design without a specialty)
+    if (discipline.browseByProject && params.discipline === "graphic-design") {
       const matching = projects.filter(
         (p) => p.discipline === normSlug || p.discipline === "graphic-design",
       );
@@ -97,22 +98,30 @@ export const Route = createFileRoute("/$discipline/")({
       return { discipline: meta, items: [] as DisciplinePhoto[], projectCards };
     }
 
-    // Otherwise, show all images in this discipline
-    const photos = getPhotosByDiscipline(normSlug);
+    // If param is a specialty (e.g. book-covers, posters, videos), load only that specialty
+    const isSpecialty = Boolean(
+      discipline.specialtySlug &&
+      (discipline.slug === params.discipline || params.discipline === discipline.specialtySlug)
+    );
+
+    const photos = isSpecialty
+      ? getPhotosBySpecialty(discipline.specialtySlug!, discipline.disciplineSlug)
+      : getPhotosByDiscipline(normSlug);
+
     const items: DisciplinePhoto[] = photos.map((p, idx) => ({
       key: `${p.code}-${idx}`,
-      src: p.imgSrc,
+      src: resolveInventoryImage(p.imgSrc) || p.imgSrc,
       code: p.standardCode || p.code,
       canonicalPath:
         p.canonicalPath ||
         buildPhotoUrl(
-          normSlug,
-          p.specialtySlug || "fashion",
+          discipline.disciplineSlug || normSlug,
+          p.specialtySlug || discipline.specialtySlug || "fashion",
           p.projectSlug || "project",
           p.standardCode || p.code,
         ),
-      disciplineSlug: normSlug,
-      specialtySlug: p.specialtySlug || "fashion",
+      disciplineSlug: discipline.disciplineSlug || normSlug,
+      specialtySlug: p.specialtySlug || discipline.specialtySlug || "fashion",
       projectSlug: p.projectSlug || "project",
       imageName: p.title || photoCaption(p.project, idx, photos.length),
       title: p.project,
@@ -330,7 +339,7 @@ function DisciplinePage() {
             ))}
           </div>
         </div>
-      ) : discipline.slug === "videos" || discipline.slug === "video" ? (
+      ) : discipline.slug === "videos" || discipline.slug === "video" || meta.slug === "video" || items.some((i) => i.src.endsWith(".mp4")) ? (
         <VideoGallery items={items} />
       ) : (
         <PhotoMasonry items={items} />

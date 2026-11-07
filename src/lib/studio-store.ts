@@ -803,18 +803,31 @@ export function getPhotoItemBySlugOrCode(
   if (bySlug) return bySlug;
 
   // 4. Match on filename stem (e.g. "fashion-sepidar-01")
+  const cleanQ = q.replace(/[-_][a-z0-9]{8,10}$/, "");
   const byStem = all.find((i) => {
     const stem = i.imgSrc?.split("/").pop()?.replace(/\.[^.]+$/, "").toLowerCase() || "";
-    return stem === q;
+    return stem === q || stem === cleanQ;
   });
   if (byStem) return byStem;
 
-  // 5. Match by index in project if numeric (e.g., "1", "2")
-  if (projectSlug && /^\d+$/.test(q)) {
-    const index = parseInt(q, 10) - 1;
-    const inProj = all.filter((i) => taxNormProj(i.projectSlug || i.project) === taxNormProj(projectSlug));
-    if (index >= 0 && index < inProj.length) {
-      return inProj[index];
+  // 5. Match by index in project if numeric (e.g., "1", "2") or project-prefixed (e.g., "zeeen-1", "zeeen-01")
+  if (projectSlug) {
+    const normP = taxNormProj(projectSlug);
+    let indexNum: number | null = null;
+    if (/^\d+$/.test(q)) {
+      indexNum = parseInt(q, 10);
+    } else if (q.startsWith(`${normP}-`)) {
+      const remainder = q.slice(normP.length + 1);
+      if (/^\d+$/.test(remainder)) {
+        indexNum = parseInt(remainder, 10);
+      }
+    }
+    if (indexNum !== null) {
+      const inProj = all.filter((i) => taxNormProj(i.projectSlug || i.project) === normP);
+      const index = indexNum - 1;
+      if (index >= 0 && index < inProj.length) {
+        return inProj[index];
+      }
     }
   }
 
