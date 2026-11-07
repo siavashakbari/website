@@ -32,6 +32,7 @@ export interface PhotoInventoryItem {
   seoSlug?: string;
   canonicalPath?: string;
   legacyCodePath?: string;
+  legacyCode?: string;
   altText?: string;
   metaTitle?: string;
   metaDescription?: string;

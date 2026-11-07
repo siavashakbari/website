@@ -448,31 +448,33 @@ export function addCustomSpecialty(
 // -------------------------------------------------------------
 // Custom Photos & Merged Inventory (with Robust Deduplication)
 // -------------------------------------------------------------
+// Custom Photos & Merged Inventory (with Robust Deduplication)
+// -------------------------------------------------------------
+
+export function extractAssetFilename(imgSrc?: string): string {
+  if (!imgSrc) return "";
+  const clean = imgSrc.split("?")[0].split("#")[0].trim();
+  let basename = clean.replace(/^.*[\\\/]/, "").toLowerCase();
+  basename = basename.replace(/[-_]thumb\./i, ".");
+  // Vite 8-character build hash right before file extension
+  basename = basename.replace(/[-_][a-zA-Z0-9]{8}(\.[a-z0-9]+)$/i, "$1");
+  return basename;
+}
 
 export function getPhotoDedupeKey(item: Partial<PhotoInventoryItem>): string {
-  // If we have an image source, strip path, directory, vite hash, thumb suffix, query params
-  if (item.imgSrc) {
-    const rawNoQuery = item.imgSrc.split("?")[0].split("#")[0];
-    const rawFile = rawNoQuery.replace(/^.*[\\\/]/, "").toLowerCase().trim();
-    // Strip thumb indicator: e.g. -thumb
-    const noThumb = rawFile.replace(/[-_]thumb\./i, ".");
-    // Strip Vite asset hash: e.g. fashion-zeeen-01-B4g9Z1qa.jpg -> fashion-zeeen-01.jpg
-    const noHash = noThumb.replace(/[-_][a-zA-Z0-9_-]{6,16}(\.[a-z0-9]+)$/i, "$1");
-    // Remove extension
-    const stem = noHash.replace(/\.[a-z0-9]+$/i, "");
-    if (stem && stem.length > 2 && stem !== "placeholder") {
-      return `file:${stem}`;
-    }
+  const filename = extractAssetFilename(item.imgSrc);
+  if (filename && filename.length > 3 && filename !== "placeholder.svg") {
+    return `file:${filename}`;
   }
 
   const stdCode = (item.standardCode || "").toUpperCase().trim();
   if (/^[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}-\d{4}$/i.test(stdCode)) {
-    return `std:${stdCode}`;
+    return `code:${stdCode}`;
   }
 
   const code = (item.code || "").toUpperCase().trim();
   if (/^[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}-\d{4}$/i.test(code)) {
-    return `std:${code}`;
+    return `code:${code}`;
   }
 
   if (code.startsWith("SA-")) {
@@ -483,7 +485,7 @@ export function getPhotoDedupeKey(item: Partial<PhotoInventoryItem>): string {
     return `proj:${taxNormProj(item.project)}:${(item.displayName || item.title || "").toLowerCase()}`;
   }
 
-  return `item:${item.title || Math.random()}`;
+  return `item:${item.title || item.code || Math.random()}`;
 }
 
 export function getCustomPhotoAssets(): PhotoInventoryItem[] {
@@ -617,6 +619,7 @@ export function getMergedPhotoInventory(): PhotoInventoryItem[] {
       ...custom,
       code: standardCode,
       standardCode,
+      legacyCode: item.code,
       disciplineSlug: discSlug,
       specialtySlug: specSlug,
       projectSlug: projSlug,
@@ -709,11 +712,12 @@ export function getPhotoItemBySlugOrCode(
   const q = slugOrCode.toLowerCase().trim();
   const all = getMergedPhotoInventory();
 
-  // 1. Direct match on standard 4-part code (PHOT-FASH-SEPI-0001) or code
+  // 1. Direct match on standard 4-part code (PHOT-FASH-SEPI-0001), code, or legacy code
   const byStandardCode = all.find(
     (i) =>
       (i.standardCode && i.standardCode.toLowerCase() === q) ||
-      i.code.toLowerCase() === q,
+      i.code.toLowerCase() === q ||
+      (i.legacyCode && i.legacyCode.toLowerCase() === q),
   );
   if (byStandardCode) return byStandardCode;
 
@@ -725,6 +729,7 @@ export function getPhotoItemBySlugOrCode(
       (i) =>
         i.code.toLowerCase() === q ||
         (i.standardCode && i.standardCode.toLowerCase() === q) ||
+        (i.legacyCode && i.legacyCode.toLowerCase() === q) ||
         (i.seoSlug && i.seoSlug.toLowerCase() === q),
     );
     if (foundInProj) return foundInProj;
