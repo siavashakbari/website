@@ -204,7 +204,7 @@ function DedicatedPhotoView() {
     }
   }, [loaderData.photo.code, loaderData.projectSlug]);
 
-  const backUrl = `/${disciplineSlug}/${specialtySlug}`;
+  const backUrl = `/${disciplineSlug}/${specialtySlug}/${projectSlug}`;
 
   // Track GA4 event
   useEffect(() => {
@@ -246,7 +246,7 @@ function DedicatedPhotoView() {
           className="inline-flex items-center gap-2 text-xs font-mono uppercase tracking-widest text-[#2CE3C0] hover:text-white transition-colors px-3 py-1.5 rounded-full border border-[#2CE3C0]/30 hover:border-white bg-[#2CE3C0]/10 hover:bg-white/10"
         >
           <ArrowLeft className="w-3.5 h-3.5" />
-          <span className="capitalize">Back to {specialtySlug.replace(/-/g, " ")}</span>
+          <span className="capitalize">Back to {photo.project || projectSlug.replace(/-/g, " ")}</span>
         </Link>
 
         <div className="flex items-center gap-2.5">
