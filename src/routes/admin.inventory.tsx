@@ -39,6 +39,7 @@ import {
   getTaxonomySpecialties,
   saveCustomPhotoAsset,
   subscribeToStudioStore,
+  getDeletedProjectIds,
   type StudioProjectItem,
   type TaxonomyDiscipline,
   type TaxonomySpecialty,
@@ -215,7 +216,7 @@ function AdminAssetsManagementView() {
       const lower = clean.toLowerCase();
       if (lower === "tasting") return "Gastronomie";
       if (lower === "dodareh" || lower.includes("accesories") || lower.includes("accessories")) return "Dobareh";
-      if (lower === "shekarchian honey" || lower === "shekarchian") return "Shekarchian Sweets";
+      if (lower.includes("shekarchian")) return "Shekarchian Sweets";
       if (lower === "polarity atelier") return "Polarity";
       if (lower === "on swipe" || lower === "on-swipe") return "OnSwipe";
       if (lower === "goat's coffee" || lower === "goats") return "Goats Coffee";
@@ -223,11 +224,24 @@ function AdminAssetsManagementView() {
       return clean;
     };
 
+    const deletedSet = getDeletedProjectIds();
     projects.forEach((p) => {
-      if (p.title?.trim()) set.add(normalizeName(p.title));
+      if (p.title?.trim()) {
+        const clean = normalizeName(p.title);
+        const slug = normalizeProjectSlug(clean);
+        if (!deletedSet.has(slug) && !deletedSet.has(clean.toLowerCase())) {
+          set.add(clean);
+        }
+      }
     });
     items.forEach((i) => {
-      if (i.project?.trim()) set.add(normalizeName(i.project));
+      if (i.project?.trim()) {
+        const clean = normalizeName(i.project);
+        const slug = normalizeProjectSlug(clean);
+        if (!deletedSet.has(slug) && !deletedSet.has(clean.toLowerCase())) {
+          set.add(clean);
+        }
+      }
     });
     return Array.from(set).sort((a, b) => a.localeCompare(b));
   }, [projects, items]);

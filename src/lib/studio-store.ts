@@ -3,8 +3,21 @@ import type { InvoiceData } from "@/types/invoice";
 import { INITIAL_INVOICE_DATA } from "@/types/invoice";
 import { BLOG_POSTS } from "@/data/blog-posts";
 import { projects as DEFAULT_PROJECTS, type Project } from "@/data/projects";
+import {
+  generate4PartPhotoCode,
+  getDiscipline4Code,
+  getSpecialty4Code,
+  getProject4Code,
+  normalizeDisciplineSlug as taxNormDisc,
+  normalizeSpecialtySlug as taxNormSpec,
+  normalizeProjectSlug as taxNormProj,
+  buildPhotoUrl,
+  to4LetterCode,
+  slugify,
+} from "@/lib/taxonomy";
 
 const STORAGE_PROJECTS_KEY = "siavash_studio_custom_projects";
+export const STORAGE_DELETED_PROJECTS_KEY = "siavash_studio_deleted_projects";
 const STORAGE_BLOG_KEY = "siavash_studio_custom_blogs";
 const STORAGE_INVOICES_KEY = "siavash_studio_invoices_archive";
 
@@ -90,42 +103,155 @@ function defaultProjectToStudioItem(p: Project): StudioProjectItem {
   };
 }
 
+export function getDeletedProjectIds(): Set<string> {
+  if (typeof window === "undefined") return new Set();
+  try {
+    const raw = localStorage.getItem(STORAGE_DELETED_PROJECTS_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) {
+        return new Set(parsed.map((s) => String(s).toLowerCase().trim()));
+      }
+    }
+  } catch (e) {
+    console.error("Error reading deleted projects:", e);
+  }
+  return new Set();
+}
+
+export function getCanonicalProjectSlug(item: { id: string; title?: string }): string {
+  const normTitle = (item.title || "").toLowerCase().trim();
+  const normId = (item.id || "").toLowerCase().trim();
+
+  if (normId.includes("shekarchian") || normTitle.includes("shekarchian")) {
+    return "shekarchian-sweets";
+  }
+  if (
+    normId.includes("dobareh") ||
+    normTitle.includes("dobareh") ||
+    normTitle.includes("accesories") ||
+    normTitle.includes("accessories") ||
+    normId === "dodareh"
+  ) {
+    return "dobareh";
+  }
+  if (normId.includes("polarity") || normTitle.includes("polarity")) {
+    return "polarity";
+  }
+  if (
+    normId.includes("onswipe") ||
+    normId === "on-swipe" ||
+    normTitle.includes("onswipe") ||
+    normTitle.includes("on swipe")
+  ) {
+    return "onswipe";
+  }
+  if (normId.includes("goat") || normTitle.includes("goat")) {
+    return "goats-coffee";
+  }
+  if (
+    normId === "tasting" ||
+    normTitle === "tasting" ||
+    normId === "gastronomie" ||
+    normTitle === "gastronomie"
+  ) {
+    return "gastronomie";
+  }
+  if (normId.includes("nozad") || normTitle.includes("nozad")) {
+    if (normTitle.includes("identity") || normId.includes("identity")) {
+      return "nozad-publication-visual-identity";
+    }
+    return "nozad-publications";
+  }
+  if (
+    normId.includes("echo-prime") ||
+    normTitle.includes("echo prime") ||
+    normTitle.includes("echo-prime")
+  ) {
+    return "echo-prime";
+  }
+
+  return taxNormProj(item.title || item.id);
+}
+
+export function isProjectDeleted(
+  item: { id: string; title?: string },
+  deletedSet: Set<string>
+): boolean {
+  if (!deletedSet || deletedSet.size === 0) return false;
+  const canonical = getCanonicalProjectSlug(item);
+  if (deletedSet.has(canonical)) return true;
+  if (deletedSet.has(item.id.toLowerCase().trim())) return true;
+  if (deletedSet.has(taxNormProj(item.id))) return true;
+  if (item.title) {
+    if (deletedSet.has(item.title.toLowerCase().trim())) return true;
+    if (deletedSet.has(taxNormProj(item.title))) return true;
+  }
+  return false;
+}
+
 // 1. Projects Store
 export function getStudioProjects(): StudioProjectItem[] {
-  let customMap: Record<string, StudioProjectItem> = {};
+  const deletedSet = getDeletedProjectIds();
+  const canonicalMap = new Map<string, StudioProjectItem>();
+
+  // 1. Process custom projects from localStorage
   if (typeof window !== "undefined") {
     try {
       const raw = localStorage.getItem(STORAGE_PROJECTS_KEY);
       if (raw) {
         const parsed: StudioProjectItem[] = JSON.parse(raw);
         parsed.forEach((item) => {
-          // Normalize legacy project titles & ids
-          const normId = item.id.toLowerCase();
-          const normTitle = (item.title || "").toLowerCase();
+          if (!item || !item.id) return;
+          if (isProjectDeleted(item, deletedSet)) return;
 
-          if (normId === "tasting" || normTitle === "tasting") return;
-          if (normId === "dodareh" || normTitle.includes("accesories") || normTitle.includes("accessories")) {
-            customMap["dobareh"] = { ...item, id: "dobareh", title: "Dobareh" };
-            return;
-          }
-          if (normId === "polarity-atelier" || normTitle === "polarity atelier") {
-            customMap["polarity"] = { ...item, id: "polarity", title: "Polarity" };
-            return;
-          }
-          if (normId === "shekarchian-honey" || normTitle.includes("shekarchian")) {
-            customMap["shekarchian-sweets"] = { ...item, id: "shekarchian-sweets", title: "Shekarchian Sweets" };
-            return;
-          }
-          if (normId === "on-swipe" || normTitle === "on swipe" || normTitle === "on-swipe") {
-            customMap["onswipe"] = { ...item, id: "onswipe", title: "OnSwipe" };
-            return;
-          }
-          if (normId === "goats-coffee" || normTitle.includes("goat")) {
-            customMap["goats-coffee"] = { ...item, id: "goats-coffee", title: "Goats Coffee" };
-            return;
+          const canonicalSlug = getCanonicalProjectSlug(item);
+          if (deletedSet.has(canonicalSlug)) return;
+
+          let cleanItem: StudioProjectItem = { ...item };
+          if (canonicalSlug === "shekarchian-sweets") {
+            cleanItem = { ...cleanItem, id: "shekarchian-sweets", title: "Shekarchian Sweets" };
+          } else if (canonicalSlug === "dobareh") {
+            cleanItem = { ...cleanItem, id: "dobareh", title: "Dobareh" };
+          } else if (canonicalSlug === "polarity") {
+            cleanItem = { ...cleanItem, id: "polarity", title: "Polarity" };
+          } else if (canonicalSlug === "onswipe") {
+            cleanItem = { ...cleanItem, id: "onswipe", title: "OnSwipe" };
+          } else if (canonicalSlug === "goats-coffee") {
+            cleanItem = { ...cleanItem, id: "goats-coffee", title: "Goats Coffee" };
+          } else if (canonicalSlug === "gastronomie") {
+            cleanItem = { ...cleanItem, id: "gastronomie", title: "Gastronomie" };
+          } else if (canonicalSlug === "echo-prime") {
+            cleanItem = { ...cleanItem, id: "echo-prime", title: "Echo Prime" };
           }
 
-          customMap[item.id] = item;
+          if (canonicalMap.has(canonicalSlug)) {
+            const existing = canonicalMap.get(canonicalSlug)!;
+            const existingImgs =
+              existing.images && existing.images.length > 0
+                ? existing.images
+                : existing.coverImage
+                ? [{ id: "c-1", url: existing.coverImage }]
+                : [];
+            const newImgs =
+              cleanItem.images && cleanItem.images.length > 0
+                ? cleanItem.images
+                : cleanItem.coverImage
+                ? [{ id: "c-2", url: cleanItem.coverImage }]
+                : [];
+            const betterImages =
+              newImgs.length >= existingImgs.length ? cleanItem.images : existing.images;
+            const betterCover = cleanItem.coverImage || existing.coverImage;
+
+            canonicalMap.set(canonicalSlug, {
+              ...existing,
+              ...cleanItem,
+              images: betterImages && betterImages.length > 0 ? betterImages : existing.images,
+              coverImage: betterCover || existing.coverImage,
+            });
+          } else {
+            canonicalMap.set(canonicalSlug, cleanItem);
+          }
         });
       }
     } catch (e) {
@@ -133,35 +259,45 @@ export function getStudioProjects(): StudioProjectItem[] {
     }
   }
 
+  // 2. Process defaults
   const defaults = DEFAULT_PROJECTS.map(defaultProjectToStudioItem);
-  const merged: StudioProjectItem[] = [];
-  const seenIds = new Set<string>();
-
-  // 1. Any newly created project not in defaults comes first
-  Object.values(customMap).forEach((custom) => {
-    if (!DEFAULT_PROJECTS.some((dp) => dp.id === custom.id)) {
-      merged.push(custom);
-      seenIds.add(custom.id);
-    }
-  });
-
-  // 2. Add defaults (or their custom overrides if edited in Studio)
   defaults.forEach((def) => {
-    if (customMap[def.id]) {
-      merged.push({ ...def, ...customMap[def.id] });
+    if (isProjectDeleted(def, deletedSet)) return;
+    const canonicalSlug = getCanonicalProjectSlug(def);
+    if (deletedSet.has(canonicalSlug)) return;
+
+    if (canonicalMap.has(canonicalSlug)) {
+      const custom = canonicalMap.get(canonicalSlug)!;
+      const hasCustomImages = custom.images && custom.images.length > 0;
+      canonicalMap.set(canonicalSlug, {
+        ...def,
+        ...custom,
+        images: hasCustomImages ? custom.images : def.images,
+        coverImage: custom.coverImage || def.coverImage,
+      });
     } else {
-      merged.push(def);
+      canonicalMap.set(canonicalSlug, def);
     }
-    seenIds.add(def.id);
   });
 
-  return merged;
+  const result = Array.from(canonicalMap.values());
+
+  // Scrub historical duplicates and deleted items from localStorage
+  if (typeof window !== "undefined") {
+    try {
+      localStorage.setItem(STORAGE_PROJECTS_KEY, JSON.stringify(result));
+    } catch (e) {
+      /* ignore */
+    }
+  }
+
+  return result;
 }
 
 export function getProjectById(id: string): Project | undefined {
   if (typeof window !== "undefined") {
     const list = getStudioProjects();
-    const found = list.find((p) => p.id === id);
+    const found = list.find((p) => p.id === id || getCanonicalProjectSlug(p) === taxNormProj(id));
     if (found) {
       const gallery = found.images && found.images.length > 0 ? found.images.map((im) => im.url) : [found.coverImage];
       return {
@@ -188,26 +324,132 @@ export function getProjectById(id: string): Project | undefined {
       };
     }
   }
-  return DEFAULT_PROJECTS.find((p) => p.id === id);
+  const deletedSet = getDeletedProjectIds();
+  const def = DEFAULT_PROJECTS.find((p) => p.id === id || taxNormProj(p.id) === taxNormProj(id));
+  if (def && !isProjectDeleted(def, deletedSet)) {
+    return def;
+  }
+  return undefined;
 }
 
 export function saveStudioProject(project: StudioProjectItem): void {
   if (typeof window === "undefined") return;
-  const list = getStudioProjects();
-  const index = list.findIndex((p) => p.id === project.id);
-  if (index >= 0) {
-    list[index] = project;
+
+  // Unmark from deleted set
+  const deletedSet = getDeletedProjectIds();
+  const canonical = getCanonicalProjectSlug(project);
+  deletedSet.delete(canonical);
+  deletedSet.delete(project.id.toLowerCase().trim());
+  deletedSet.delete(taxNormProj(project.id));
+  if (project.title) {
+    deletedSet.delete(project.title.toLowerCase().trim());
+    deletedSet.delete(taxNormProj(project.title));
+  }
+  localStorage.setItem(STORAGE_DELETED_PROJECTS_KEY, JSON.stringify(Array.from(deletedSet)));
+
+  let list: StudioProjectItem[] = [];
+  try {
+    const raw = localStorage.getItem(STORAGE_PROJECTS_KEY);
+    if (raw) {
+      list = JSON.parse(raw);
+    }
+  } catch (e) {
+    console.error("Error reading projects:", e);
+  }
+
+  const existingIdx = list.findIndex(
+    (p) => p.id === project.id || getCanonicalProjectSlug(p) === canonical
+  );
+
+  if (existingIdx >= 0) {
+    list[existingIdx] = { ...list[existingIdx], ...project };
   } else {
     list.unshift(project);
   }
+
+  // Deduplicate list so multiple projects of same canonical slug cannot coexist
+  list = list.filter((p, idx) => {
+    if (getCanonicalProjectSlug(p) === canonical) {
+      return idx === (existingIdx >= 0 ? existingIdx : 0);
+    }
+    return !isProjectDeleted(p, deletedSet);
+  });
+
   localStorage.setItem(STORAGE_PROJECTS_KEY, JSON.stringify(list));
   notifyStudioStoreUpdated({ type: "project_saved", id: project.id });
 }
 
 export function deleteStudioProject(id: string): void {
   if (typeof window === "undefined") return;
-  const list = getStudioProjects().filter((p) => p.id !== id);
-  localStorage.setItem(STORAGE_PROJECTS_KEY, JSON.stringify(list));
+
+  const allCurrent = getStudioProjects();
+  const target = allCurrent.find(
+    (p) =>
+      p.id === id ||
+      taxNormProj(p.id) === taxNormProj(id) ||
+      taxNormProj(p.title) === taxNormProj(id)
+  );
+
+  const deletedSet = getDeletedProjectIds();
+  const idNorm = id.toLowerCase().trim();
+  const idSlug = taxNormProj(id);
+  deletedSet.add(idNorm);
+  deletedSet.add(idSlug);
+
+  if (target) {
+    const canonical = getCanonicalProjectSlug(target);
+    deletedSet.add(canonical);
+    deletedSet.add(target.id.toLowerCase().trim());
+    deletedSet.add(taxNormProj(target.id));
+    if (target.title) {
+      deletedSet.add(target.title.toLowerCase().trim());
+      deletedSet.add(taxNormProj(target.title));
+    }
+  }
+
+  if (idNorm.includes("shekarchian") || target?.title?.toLowerCase().includes("shekarchian")) {
+    deletedSet.add("shekarchian");
+    deletedSet.add("shekarchian-honey");
+    deletedSet.add("shekarchian-sweets");
+    deletedSet.add("shekarchian sweets");
+  }
+  if (idNorm.includes("dobareh") || target?.title?.toLowerCase().includes("dobareh")) {
+    deletedSet.add("dobareh");
+    deletedSet.add("dobareh-accesories");
+    deletedSet.add("dobareh-accessories");
+    deletedSet.add("dodareh");
+  }
+
+  // Persist deletion tombstones
+  localStorage.setItem(STORAGE_DELETED_PROJECTS_KEY, JSON.stringify(Array.from(deletedSet)));
+
+  // Remove from custom projects store
+  try {
+    const raw = localStorage.getItem(STORAGE_PROJECTS_KEY);
+    if (raw) {
+      const parsed: StudioProjectItem[] = JSON.parse(raw);
+      const filtered = parsed.filter((p) => !isProjectDeleted(p, deletedSet) && p.id !== id);
+      localStorage.setItem(STORAGE_PROJECTS_KEY, JSON.stringify(filtered));
+    }
+  } catch (e) {
+    console.error("Error updating custom projects on delete:", e);
+  }
+
+  // Also remove custom photos belonging to this project
+  try {
+    const rawPhotos = localStorage.getItem(STORAGE_CUSTOM_PHOTOS_KEY);
+    if (rawPhotos) {
+      const parsedPhotos: PhotoInventoryItem[] = JSON.parse(rawPhotos);
+      const filteredPhotos = parsedPhotos.filter((item) => {
+        const itemProjSlug = taxNormProj(item.projectSlug || item.project || "");
+        return !deletedSet.has(itemProjSlug);
+      });
+      localStorage.setItem(STORAGE_CUSTOM_PHOTOS_KEY, JSON.stringify(filteredPhotos));
+    }
+  } catch (e) {
+    console.error("Error updating custom photos on project delete:", e);
+  }
+
   notifyStudioStoreUpdated({ type: "project_deleted", id });
 }
 
@@ -361,18 +603,6 @@ export const STORAGE_CUSTOM_PHOTOS_KEY = "siavash_custom_photo_assets_v2";
 export const STORAGE_TAXONOMY_KEY = "siavash_custom_taxonomy_v2";
 
 import { PHOTO_INVENTORY, computeItemSeoSlug, type PhotoInventoryItem } from "@/data/photo-inventory";
-import {
-  generate4PartPhotoCode,
-  getDiscipline4Code,
-  getSpecialty4Code,
-  getProject4Code,
-  normalizeDisciplineSlug as taxNormDisc,
-  normalizeSpecialtySlug as taxNormSpec,
-  normalizeProjectSlug as taxNormProj,
-  buildPhotoUrl,
-  to4LetterCode,
-  slugify,
-} from "@/lib/taxonomy";
 
 // -------------------------------------------------------------
 // Dynamic Taxonomy Models & Defaults

@@ -372,7 +372,7 @@ export const projects: Project[] = [
     gallery: [echoPrimeVid1, echoPrimeVid2, echoPrimeVid3],
   },
   {
-    id: "shekarchian",
+    id: "shekarchian-sweets",
     title: "Shekarchian Sweets",
     discipline: "graphic-design",
     category: "Visual Identity (Proposal)",
