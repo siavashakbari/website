@@ -48,12 +48,30 @@ export const Route = createFileRoute("/$discipline/$specialty/$project/")({
 
     // Find in studio projects or default static projects
     const allStudio = getStudioProjects();
-    const studioFound = allStudio.find(
-      (p) => normalizeProjectSlug(p.title) === normProj || p.id === normProj,
-    );
-    const staticFound = projects.find(
-      (p) => normalizeProjectSlug(p.title) === normProj || p.id === normProj,
-    );
+    const studioFound = allStudio.find((p) => {
+      const pSlug = normalizeProjectSlug(p.title);
+      const pId = (p.id || "").toLowerCase();
+      const pIdSlug = normalizeProjectSlug(p.id);
+      return (
+        pSlug === normProj ||
+        p.id === normProj ||
+        pIdSlug === normProj ||
+        pId.endsWith(`-${normProj}`) ||
+        pId.includes(normProj)
+      );
+    });
+    const staticFound = projects.find((p) => {
+      const pSlug = normalizeProjectSlug(p.title);
+      const pId = (p.id || "").toLowerCase();
+      const pIdSlug = normalizeProjectSlug(p.id);
+      return (
+        pSlug === normProj ||
+        p.id === normProj ||
+        pIdSlug === normProj ||
+        pId.endsWith(`-${normProj}`) ||
+        pId.includes(normProj)
+      );
+    });
 
     const project = studioFound || staticFound;
 
@@ -131,9 +149,18 @@ function ProjectCaseStudyPage() {
   // Client hydration for project updates saved in localStorage/admin
   useEffect(() => {
     const allStudio = getStudioProjects();
-    const found = allStudio.find(
-      (p) => normalizeProjectSlug(p.title) === loaderData.projectSlug || p.id === loaderData.projectSlug,
-    );
+    const found = allStudio.find((p) => {
+      const pSlug = normalizeProjectSlug(p.title);
+      const pId = (p.id || "").toLowerCase();
+      const pIdSlug = normalizeProjectSlug(p.id);
+      return (
+        pSlug === loaderData.projectSlug ||
+        p.id === loaderData.projectSlug ||
+        pIdSlug === loaderData.projectSlug ||
+        pId.endsWith(`-${loaderData.projectSlug}`) ||
+        pId.includes(loaderData.projectSlug)
+      );
+    });
     const projectPhotos = getPhotosByProject(loaderData.projectSlug);
 
     if (found || projectPhotos.length > 0) {
@@ -307,7 +334,13 @@ function ProjectCaseStudyPage() {
       </div>
 
       {/* Media Presentation */}
-      {isDesktop ? (
+      {images.length === 0 ? (
+        <div className="flex flex-1 items-center justify-center py-24 px-4 text-center">
+          <p className="text-sm font-light text-muted-foreground">
+            Photos for <span className="font-medium text-foreground">{data.title}</span> will appear here once linked in Assets.
+          </p>
+        </div>
+      ) : isDesktop ? (
         <div
           ref={scrollRef}
           onWheel={handleWheel}

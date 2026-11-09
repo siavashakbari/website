@@ -8,7 +8,7 @@ import { BackToTop } from "@/components/BackToTop";
 import { CoverTile } from "@/components/CoverTile";
 import { DISCIPLINES } from "@/data/disciplines";
 import { projects, type Project } from "@/data/projects";
-import { getPhotosBySpecialty } from "@/lib/studio-store";
+import { getPhotosBySpecialty, getStudioProjects } from "@/lib/studio-store";
 import { pageHead } from "@/lib/seo";
 import { VideoPlayer } from "@/components/ui/video-player";
 import { metaFromSrc } from "@/lib/adaptive-image";
@@ -16,6 +16,7 @@ import { resolveInventoryImage } from "@/lib/inventory-assets";
 import {
   normalizeDisciplineSlug,
   normalizeSpecialtySlug,
+  normalizeProjectSlug,
   buildPhotoUrl,
 } from "@/lib/taxonomy";
 
@@ -84,18 +85,34 @@ export const Route = createFileRoute("/$discipline/$specialty/")({
     const isVideo = normSpec === "videos" || normSpec === "video";
 
     if (isVisualIdentity) {
-      const matching = projects.filter(
-        (p) =>
-          p.category.toLowerCase().includes("identity") ||
-          p.discipline === "graphic-design",
-      );
-      const projectCards: ProjectCardItem[] = matching.map((project) => ({
-        id: project.id,
-        title: project.title,
-        image: project.image,
-        year: project.year,
-        href: `/${normDisc}/${normSpec}/${project.id}`,
-      }));
+      const allStudio = getStudioProjects();
+      const matching = allStudio.filter((p) => {
+        const disc = (p.discipline || "").toLowerCase();
+        const cat = (p.category || "").toLowerCase();
+        const sub = ((p as any).subDiscipline || "").toLowerCase();
+        return (
+          disc === "visual-identity" ||
+          disc === "graphic-design" ||
+          cat.includes("identity") ||
+          cat.includes("visual") ||
+          sub.includes("identity")
+        );
+      });
+      const projectCards: ProjectCardItem[] = matching.map((project) => {
+        const projSlug = normalizeProjectSlug(project.title || project.id);
+        const rawCover =
+          (project as any).coverImage ||
+          (project as any).image ||
+          (project.images && project.images[0]?.url) ||
+          "";
+        return {
+          id: project.id,
+          title: project.title,
+          image: resolveInventoryImage(rawCover) || rawCover,
+          year: String(project.year || "2026"),
+          href: `/${normDisc}/${normSpec}/${projSlug}`,
+        };
+      });
       return {
         disciplineSlug: normDisc,
         specialtySlug: normSpec,
@@ -164,8 +181,52 @@ export const Route = createFileRoute("/$discipline/$specialty/")({
 });
 
 function SpecialtyPage() {
-  const data = Route.useLoaderData();
+  const loaderData = Route.useLoaderData();
+  const [data, setData] = useState(loaderData);
   const isDesktop = useIsDesktop();
+
+  useEffect(() => {
+    setData(loaderData);
+  }, [loaderData]);
+
+  // Client hydration for projectCards (ensures newly created projects in admin like Meatlab show up immediately)
+  useEffect(() => {
+    if (loaderData.isVisualIdentity) {
+      const allStudio = getStudioProjects();
+      const matching = allStudio.filter((p) => {
+        const disc = (p.discipline || "").toLowerCase();
+        const cat = (p.category || "").toLowerCase();
+        const sub = ((p as any).subDiscipline || "").toLowerCase();
+        return (
+          disc === "visual-identity" ||
+          disc === "graphic-design" ||
+          cat.includes("identity") ||
+          cat.includes("visual") ||
+          sub.includes("identity")
+        );
+      });
+      const projectCards: ProjectCardItem[] = matching.map((project) => {
+        const projSlug = normalizeProjectSlug(project.title || project.id);
+        const rawCover =
+          (project as any).coverImage ||
+          (project as any).image ||
+          (project.images && project.images[0]?.url) ||
+          "";
+        return {
+          id: project.id,
+          title: project.title,
+          image: resolveInventoryImage(rawCover) || rawCover,
+          year: String(project.year || "2026"),
+          href: `/${loaderData.disciplineSlug}/${loaderData.specialtySlug}/${projSlug}`,
+        };
+      });
+      setData((prev) => ({
+        ...prev,
+        projectCards,
+      }));
+    }
+  }, [loaderData.isVisualIdentity, loaderData.disciplineSlug, loaderData.specialtySlug]);
+
   const isEmpty = data.isVisualIdentity
     ? data.projectCards.length === 0
     : data.items.length === 0;

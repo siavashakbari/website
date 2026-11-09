@@ -416,11 +416,8 @@ function AdminProjectsView() {
     if (!title.trim()) return;
 
     const projectId = editingProject
-      ? editingProject.id
-      : `proj-${Date.now()}-${title
-          .toLowerCase()
-          .replace(/[^a-z0-9]/g, "-")
-          .slice(0, 20)}`;
+      ? (editingProject.id.startsWith("proj-") ? normalizeProjectSlug(title) : editingProject.id)
+      : normalizeProjectSlug(title);
 
     const selectedDiscObj = DISCIPLINE_OPTIONS.find((d) => d.slug === discipline);
 

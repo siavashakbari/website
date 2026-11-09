@@ -1463,7 +1463,7 @@ function AdminAssetsManagementView() {
                   );
                   if (!existing) {
                     saveStudioProject({
-                      id: `proj-${Date.now()}-${pSlug}`,
+                      id: pSlug,
                       title: importProj.trim(),
                       year: importYearVal.trim() || "2026",
                       discipline: dSlug,
