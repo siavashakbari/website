@@ -387,7 +387,7 @@ function SpecialtyPage() {
   return (
     <section
       className={`relative w-full bg-background ${
-        useSideScroll ? "overflow-hidden pt-3 md:pt-3.5" : "pb-40 pt-3 md:pt-3.5"
+        useSideScroll ? "overflow-hidden pt-3 md:pt-3.5" : "min-h-screen pb-40 pt-3 md:pt-3.5"
       }`}
       aria-labelledby="specialty-heading"
     >

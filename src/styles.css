@@ -223,16 +223,31 @@
 @layer base {
   * {
     border-color: var(--color-border);
-    scrollbar-width: none;
-    -ms-overflow-style: none;
   }
 
-  *::-webkit-scrollbar {
-    display: none;
-  }
-
+  /* Standard, elegant scrollbar like any other modern site */
   html {
     scroll-behavior: smooth;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.28) transparent;
+  }
+
+  ::-webkit-scrollbar {
+    width: 7px;
+    height: 7px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.25);
+    border-radius: 9999px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.5);
   }
 
   /* Smooth scroll + rubber-banding fights mobile browsers at page ends */

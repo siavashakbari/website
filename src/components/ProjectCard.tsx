@@ -26,19 +26,19 @@ export function ProjectCard({ project, index = 0, aspectRatio }: ProjectCardProp
 
   const cat = project.category.toLowerCase();
   let linkProps: any = {
-    to: "/visual-identity/$projectId",
-    params: { projectId: project.id },
+    to: "/$discipline/$specialty/$project",
+    params: { discipline: "graphic-design", specialty: "visual-identity", project: project.id },
   };
 
   if (!isVisualIdentity) {
     if (cat.includes("fashion")) {
-      linkProps = { to: "/$discipline/$specialty", params: { discipline: "photography", specialty: "fashion" } };
+      linkProps = { to: "/$discipline/$specialty", params: { discipline: "photography", specialty: "fashion-photography" } };
     } else if (cat.includes("food")) {
-      linkProps = { to: "/$discipline/$specialty", params: { discipline: "photography", specialty: "food" } };
+      linkProps = { to: "/$discipline/$specialty", params: { discipline: "photography", specialty: "food-photography" } };
     } else if (cat.includes("portrait")) {
-      linkProps = { to: "/$discipline/$specialty", params: { discipline: "photography", specialty: "portrait" } };
+      linkProps = { to: "/$discipline/$specialty", params: { discipline: "photography", specialty: "portrait-photography" } };
     } else if (cat.includes("product")) {
-      linkProps = { to: "/$discipline/$specialty", params: { discipline: "photography", specialty: "product" } };
+      linkProps = { to: "/$discipline/$specialty", params: { discipline: "photography", specialty: "product-photography" } };
     } else if (cat.includes("book cover") || cat.includes("book")) {
       linkProps = { to: "/$discipline/$specialty", params: { discipline: "graphic-design", specialty: "book-covers" } };
     } else if (cat.includes("poster")) {

@@ -431,22 +431,24 @@ function RootComponent() {
   }, []);
 
   const isAdminPage = pathname.startsWith("/admin");
-  const lockProjectScroll = (isProjectPage || isPhotoPage || isSideScrollDiscipline) && isDesktop && !isAdminPage;
+  const lockProjectScroll = (isPhotoPage || isSideScrollDiscipline) && isDesktop && !isAdminPage;
   const hideFooter =
-    isAdminPage || isProjectPage || isPhotoPage || pathname === "/about" || (isSideScrollDiscipline && isDesktop);
+    isAdminPage || isPhotoPage || pathname === "/about" || (isSideScrollDiscipline && isDesktop);
 
   useEffect(() => {
-    if (!lockProjectScroll) return;
     const html = document.documentElement;
-    const prevHtmlOverflow = html.style.overflow;
-    const prevBodyOverflow = document.body.style.overflow;
-    html.style.overflow = "hidden";
-    document.body.style.overflow = "hidden";
+    if (lockProjectScroll) {
+      html.style.overflow = "hidden";
+      document.body.style.overflow = "hidden";
+    } else {
+      html.style.overflow = "";
+      document.body.style.overflow = "";
+    }
     return () => {
-      html.style.overflow = prevHtmlOverflow;
-      document.body.style.overflow = prevBodyOverflow;
+      html.style.overflow = "";
+      document.body.style.overflow = "";
     };
-  }, [lockProjectScroll]);
+  }, [lockProjectScroll, pathname]);
 
   useEffect(() => {
     if (pathname.startsWith("/admin")) return;
