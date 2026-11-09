@@ -410,7 +410,8 @@ function RootComponent() {
   const pathParts = pathname.split("/").filter(Boolean);
   const isPhotoPage =
     pathParts.length >= 4 ||
-    (pathParts.length === 2 && /^(PHOT|SA|DSGN|VIDO|[A-Z0-9]{4}-[A-Z0-9]{4})/i.test(pathParts[1]));
+    (pathParts.length === 2 &&
+      (/^([A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}-\d{4}|SA-[A-Z0-9-]+)$/i.test(pathParts[1])));
   const isProjectPage =
     (pathname.startsWith("/projects/") && pathname.length > "/projects/".length) ||
     (pathname.startsWith("/visual-identity/") && pathname.length > "/visual-identity/".length) ||
@@ -419,7 +420,8 @@ function RootComponent() {
     pathname === "/book-covers" ||
     pathname === "/posters" ||
     pathname === "/graphic-design/book-covers" ||
-    pathname === "/graphic-design/posters";
+    pathname === "/graphic-design/posters" ||
+    (pathname.startsWith("/product-design/") && pathParts.length === 2);
   const [isDesktop, setIsDesktop] = useState(false);
 
   useEffect(() => {
@@ -431,9 +433,9 @@ function RootComponent() {
   }, []);
 
   const isAdminPage = pathname.startsWith("/admin");
-  const lockProjectScroll = (isPhotoPage || isSideScrollDiscipline) && isDesktop && !isAdminPage;
+  const lockProjectScroll = (isProjectPage || isPhotoPage || isSideScrollDiscipline) && isDesktop && !isAdminPage;
   const hideFooter =
-    isAdminPage || isPhotoPage || pathname === "/about" || (isSideScrollDiscipline && isDesktop);
+    isAdminPage || (isProjectPage && isDesktop) || isPhotoPage || pathname === "/about" || (isSideScrollDiscipline && isDesktop);
 
   useEffect(() => {
     const html = document.documentElement;

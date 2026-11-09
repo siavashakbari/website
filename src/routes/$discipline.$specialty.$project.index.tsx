@@ -229,25 +229,13 @@ function ProjectCaseStudyPage() {
 
   const images = data.images;
 
-  const handleWheel = (e: React.WheelEvent<HTMLDivElement>) => {
-    if (!isDesktop) return;
-    const el = scrollRef.current;
-    if (!el) return;
-    if (e.deltaY === 0) return;
-    e.preventDefault();
-    el.scrollLeft += e.deltaY;
-  };
-
   useEffect(() => {
     if (!isDesktop) return;
     const el = scrollRef.current;
     if (!el) return;
 
     const onWheel = (e: WheelEvent) => {
-      if (e.deltaY === 0) return;
-      const canScrollLeft = el.scrollLeft > 0;
-      const canScrollRight = el.scrollLeft < el.scrollWidth - el.clientWidth - 2;
-      if ((e.deltaY > 0 && canScrollRight) || (e.deltaY < 0 && canScrollLeft)) {
+      if (e.deltaY !== 0) {
         e.preventDefault();
         el.scrollLeft += e.deltaY;
       }
@@ -297,7 +285,11 @@ function ProjectCaseStudyPage() {
 
   return (
     <article
-      className="flex min-h-[calc(100dvh-3.5rem)] flex-col pb-16"
+      className={
+        isDesktop
+          ? "flex h-[calc(100dvh-3.5rem)] max-h-[calc(100dvh-3.5rem)] flex-col overflow-hidden"
+          : "flex flex-col pb-16"
+      }
     >
       <div className="mx-auto grid w-full max-w-6xl shrink-0 grid-cols-[minmax(0,48rem)_auto] gap-x-4 px-4 pt-4 pb-2 md:pt-6 md:pb-3">
         <p className="col-start-1 text-xs font-semibold uppercase tracking-[0.25em] text-secondary">
@@ -380,7 +372,6 @@ function ProjectCaseStudyPage() {
       ) : isDesktop ? (
         <div
           ref={scrollRef}
-          onWheel={handleWheel}
           className="scrollbar-hide flex min-h-0 flex-1 items-center gap-6 overflow-x-auto overflow-y-hidden px-6 pb-4 pt-1"
         >
           {images.map((src: string, i: number) => {
