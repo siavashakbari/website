@@ -55,8 +55,10 @@ const baseUrl = "https://www.siavashakbari.ir";
 
 const staticPages = [
   { path: "/", changefreq: "weekly", priority: "1.0" },
-  { path: "/blog", changefreq: "weekly", priority: "0.9" },
+  { path: "/photography", changefreq: "weekly", priority: "0.9" },
+  { path: "/video", changefreq: "weekly", priority: "0.9" },
   { path: "/product-design", changefreq: "weekly", priority: "0.9" },
+  { path: "/blog", changefreq: "weekly", priority: "0.9" },
   { path: "/about", changefreq: "monthly", priority: "0.8" },
   { path: "/contact", changefreq: "monthly", priority: "0.8" },
   { path: "/brand-discovery", changefreq: "monthly", priority: "0.8" },
@@ -108,7 +110,7 @@ const assetPages = inventoryItems.map((item) => {
   };
 });
 
-const allEntries = [...staticPages, ...disciplinePages, ...projectPages, ...blogPages, ...assetPages];
+const allEntries = [...staticPages, ...disciplinePages, ...blogPages, ...assetPages];
 
 const urls = allEntries.map((e) => {
   const loc = `${baseUrl}${e.path === "/" ? "/" : e.path}`;

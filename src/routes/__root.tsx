@@ -155,6 +155,8 @@ function isDisciplinePath(pathname: string) {
     pathname.startsWith("/graphic-design/") ||
     pathname === "/video" ||
     pathname.startsWith("/video/") ||
+    pathname === "/product-design" ||
+    pathname.startsWith("/product-design/") ||
     DISCIPLINES.some((d) => pathname === d.path || pathname === `/${d.slug}`)
   );
 }

@@ -38,6 +38,8 @@ export const DISCIPLINE_4_MAP: Record<string, string> = {
   video: "VIDO",
   videos: "VIDO",
   motion: "VIDO",
+  "product-design": "PROD",
+  "product design": "PROD",
 };
 
 export const SPECIALTY_4_MAP: Record<string, string> = {
@@ -61,6 +63,8 @@ export const SPECIALTY_4_MAP: Record<string, string> = {
   videos: "VIDO",
   video: "VIDO",
   "brand-films": "FILM",
+  products: "PROD",
+  "product-design": "PROD",
 };
 
 export const PROJECT_4_MAP: Record<string, string> = {
@@ -124,8 +128,9 @@ export function to4LetterCode(text: string, fallback = "GENR"): string {
  */
 export function normalizeDisciplineSlug(discipline: string): string {
   const q = (discipline || "").toLowerCase().trim();
+  if (q.includes("product-design") || q.includes("product design")) return "product-design";
   if (q.includes("photo")) return "photography";
-  if (q.includes("graphic") || q.includes("design") || q.includes("identity") || q.includes("book") || q.includes("poster")) {
+  if (q.includes("graphic") || q.includes("identity") || q.includes("book") || q.includes("poster")) {
     return "graphic-design";
   }
   if (q.includes("video") || q.includes("motion")) return "video";
@@ -133,18 +138,19 @@ export function normalizeDisciplineSlug(discipline: string): string {
 }
 
 /**
- * Maps any specialty text to its canonical URL slug (e.g. "Fashion Photography" -> "fashion").
+ * Maps any specialty text to its canonical URL slug (e.g. "Fashion Photography" -> "fashion-photography").
  */
 export function normalizeSpecialtySlug(specialty: string): string {
   const q = (specialty || "").toLowerCase().trim();
-  if (q.includes("fashion")) return "fashion";
-  if (q.includes("food")) return "food";
-  if (q.includes("portrait")) return "portrait";
-  if (q.includes("product")) return "product";
+  if (q.includes("fashion")) return "fashion-photography";
+  if (q.includes("food")) return "food-photography";
+  if (q.includes("portrait")) return "portrait-photography";
+  if (q.includes("product") && !q.includes("design")) return "product-photography";
   if (q.includes("visual") || q.includes("identity") || q.includes("brand")) return "visual-identity";
   if (q.includes("book")) return "book-covers";
   if (q.includes("poster")) return "posters";
   if (q.includes("video")) return "videos";
+  if (q.includes("product-design") || q.includes("product design") || q.includes("products")) return "products";
   return slugify(specialty) || "general";
 }
 
@@ -229,7 +235,7 @@ export function parse4PartPhotoCode(code: string): {
 
 /**
  * Builds canonical photo URL:
- * /Photography/Fashion/Sepidar/PHOT-FASH-SEPI-0001
+ * /photography/fashion-photography/sepidar/PHOT-FASH-SEPI-0001
  */
 export function buildPhotoUrl(
   discipline: string,
@@ -240,12 +246,15 @@ export function buildPhotoUrl(
   const dSlug = normalizeDisciplineSlug(discipline);
   const sSlug = normalizeSpecialtySlug(specialty);
   const pSlug = normalizeProjectSlug(project);
+  if (dSlug === "product-design") {
+    return `/product-design/${pSlug}/${photoCode}`;
+  }
   return `/${dSlug}/${sSlug}/${pSlug}/${photoCode}`;
 }
 
 /**
  * Builds canonical project URL:
- * /Photography/Fashion/Sepidar
+ * /photography/fashion-photography/sepidar
  */
 export function buildProjectUrl(
   discipline: string,
@@ -255,6 +264,12 @@ export function buildProjectUrl(
   const dSlug = normalizeDisciplineSlug(discipline);
   const sSlug = normalizeSpecialtySlug(specialty);
   const pSlug = normalizeProjectSlug(project);
+  if (dSlug === "product-design") {
+    return `/product-design/${pSlug}`;
+  }
+  if (dSlug === "video") {
+    return `/video/${pSlug}`;
+  }
   return `/${dSlug}/${sSlug}/${pSlug}`;
 }
 

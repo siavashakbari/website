@@ -27,8 +27,6 @@ import { Route as ApiBrandDiscoveryRouteImport } from './routes/api.brand-discov
 import { Route as ApiContactRouteImport } from './routes/api.contact'
 import { Route as BlogIndexRouteImport } from './routes/blog.index'
 import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
-import { Route as ProjectsProjectIdRouteImport } from './routes/projects.$projectId'
-import { Route as VisualIdentityProjectIdRouteImport } from './routes/visual-identity.$projectId'
 import { Route as DisciplineSpecialtyIndexRouteImport } from './routes/$discipline.$specialty.index'
 import { Route as DisciplineSpecialtyProjectIndexRouteImport } from './routes/$discipline.$specialty.$project.index'
 import { Route as DisciplineSpecialtyProjectPhotoIdRouteImport } from './routes/$discipline.$specialty.$project.$photoId'
@@ -123,16 +121,6 @@ const BlogSlugRoute = BlogSlugRouteImport.update({
   path: '/blog/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ProjectsProjectIdRoute = ProjectsProjectIdRouteImport.update({
-  id: '/projects/$projectId',
-  path: '/projects/$projectId',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const VisualIdentityProjectIdRoute = VisualIdentityProjectIdRouteImport.update({
-  id: '/visual-identity/$projectId',
-  path: '/visual-identity/$projectId',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const DisciplineSpecialtyIndexRoute =
   DisciplineSpecialtyIndexRouteImport.update({
     id: '/$discipline/$specialty/',
@@ -168,8 +156,6 @@ export interface FileRoutesByFullPath {
   '/api/brand-discovery': typeof ApiBrandDiscoveryRoute
   '/api/contact': typeof ApiContactRoute
   '/blog/$slug': typeof BlogSlugRoute
-  '/projects/$projectId': typeof ProjectsProjectIdRoute
-  '/visual-identity/$projectId': typeof VisualIdentityProjectIdRoute
   '/$discipline/': typeof DisciplineIndexRoute
   '/admin/': typeof AdminIndexRoute
   '/blog/': typeof BlogIndexRoute
@@ -192,8 +178,6 @@ export interface FileRoutesByTo {
   '/api/brand-discovery': typeof ApiBrandDiscoveryRoute
   '/api/contact': typeof ApiContactRoute
   '/blog/$slug': typeof BlogSlugRoute
-  '/projects/$projectId': typeof ProjectsProjectIdRoute
-  '/visual-identity/$projectId': typeof VisualIdentityProjectIdRoute
   '/$discipline': typeof DisciplineIndexRoute
   '/admin': typeof AdminIndexRoute
   '/blog': typeof BlogIndexRoute
@@ -218,8 +202,6 @@ export interface FileRoutesById {
   '/api/brand-discovery': typeof ApiBrandDiscoveryRoute
   '/api/contact': typeof ApiContactRoute
   '/blog/$slug': typeof BlogSlugRoute
-  '/projects/$projectId': typeof ProjectsProjectIdRoute
-  '/visual-identity/$projectId': typeof VisualIdentityProjectIdRoute
   '/$discipline/': typeof DisciplineIndexRoute
   '/admin/': typeof AdminIndexRoute
   '/blog/': typeof BlogIndexRoute
@@ -245,8 +227,6 @@ export interface FileRouteTypes {
     | '/api/brand-discovery'
     | '/api/contact'
     | '/blog/$slug'
-    | '/projects/$projectId'
-    | '/visual-identity/$projectId'
     | '/$discipline/'
     | '/admin/'
     | '/blog/'
@@ -269,8 +249,6 @@ export interface FileRouteTypes {
     | '/api/brand-discovery'
     | '/api/contact'
     | '/blog/$slug'
-    | '/projects/$projectId'
-    | '/visual-identity/$projectId'
     | '/$discipline'
     | '/admin'
     | '/blog'
@@ -294,8 +272,6 @@ export interface FileRouteTypes {
     | '/api/brand-discovery'
     | '/api/contact'
     | '/blog/$slug'
-    | '/projects/$projectId'
-    | '/visual-identity/$projectId'
     | '/$discipline/'
     | '/admin/'
     | '/blog/'
@@ -316,8 +292,6 @@ export interface RootRouteChildren {
   ApiBrandDiscoveryRoute: typeof ApiBrandDiscoveryRoute
   ApiContactRoute: typeof ApiContactRoute
   BlogSlugRoute: typeof BlogSlugRoute
-  ProjectsProjectIdRoute: typeof ProjectsProjectIdRoute
-  VisualIdentityProjectIdRoute: typeof VisualIdentityProjectIdRoute
   DisciplineIndexRoute: typeof DisciplineIndexRoute
   BlogIndexRoute: typeof BlogIndexRoute
   DisciplineSpecialtyIndexRoute: typeof DisciplineSpecialtyIndexRoute
@@ -453,20 +427,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BlogSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/projects/$projectId': {
-      id: '/projects/$projectId'
-      path: '/projects/$projectId'
-      fullPath: '/projects/$projectId'
-      preLoaderRoute: typeof ProjectsProjectIdRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/visual-identity/$projectId': {
-      id: '/visual-identity/$projectId'
-      path: '/visual-identity/$projectId'
-      fullPath: '/visual-identity/$projectId'
-      preLoaderRoute: typeof VisualIdentityProjectIdRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/$discipline/$specialty/': {
       id: '/$discipline/$specialty/'
       path: '/$discipline/$specialty'
@@ -521,8 +481,6 @@ const rootRouteChildren: RootRouteChildren = {
   ApiBrandDiscoveryRoute: ApiBrandDiscoveryRoute,
   ApiContactRoute: ApiContactRoute,
   BlogSlugRoute: BlogSlugRoute,
-  ProjectsProjectIdRoute: ProjectsProjectIdRoute,
-  VisualIdentityProjectIdRoute: VisualIdentityProjectIdRoute,
   DisciplineIndexRoute: DisciplineIndexRoute,
   BlogIndexRoute: BlogIndexRoute,
   DisciplineSpecialtyIndexRoute: DisciplineSpecialtyIndexRoute,

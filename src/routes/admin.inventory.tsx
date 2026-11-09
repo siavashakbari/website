@@ -38,6 +38,7 @@ import {
   getTaxonomyDisciplines,
   getTaxonomySpecialties,
   saveCustomPhotoAsset,
+  subscribeToStudioStore,
   type StudioProjectItem,
   type TaxonomyDiscipline,
   type TaxonomySpecialty,
@@ -77,27 +78,30 @@ const CARDS_PER_PAGE = 32;
 
 const DISCIPLINE_FILTER_OPTIONS = [
   { slug: "all", label: "All Disciplines" },
-  { slug: "visual-identity", label: "Visual Identity" },
+  { slug: "photography", label: "Photography" },
   { slug: "fashion-photography", label: "Fashion Photography" },
   { slug: "food-photography", label: "Food Photography" },
   { slug: "portrait-photography", label: "Portrait Photography" },
   { slug: "product-photography", label: "Product Photography" },
+  { slug: "visual-identity", label: "Visual Identity" },
   { slug: "graphic-design", label: "Graphic Design" },
   { slug: "book-covers", label: "Book Covers" },
   { slug: "posters", label: "Posters" },
   { slug: "video", label: "Video & Motion" },
+  { slug: "product-design", label: "Product Design" },
 ];
 
 const CARD_DISCIPLINE_OPTIONS = [
+  { slug: "fashion-photography", label: "Fashion Photography", disciplineSlug: "photography", specialtySlug: "fashion-photography" },
+  { slug: "food-photography", label: "Food Photography", disciplineSlug: "photography", specialtySlug: "food-photography" },
+  { slug: "portrait-photography", label: "Portrait Photography", disciplineSlug: "photography", specialtySlug: "portrait-photography" },
+  { slug: "product-photography", label: "Product Photography", disciplineSlug: "photography", specialtySlug: "product-photography" },
   { slug: "visual-identity", label: "Visual Identity", disciplineSlug: "graphic-design", specialtySlug: "visual-identity" },
-  { slug: "fashion-photography", label: "Fashion Photography", disciplineSlug: "photography", specialtySlug: "fashion" },
-  { slug: "food-photography", label: "Food Photography", disciplineSlug: "photography", specialtySlug: "food" },
-  { slug: "portrait-photography", label: "Portrait Photography", disciplineSlug: "photography", specialtySlug: "portrait" },
-  { slug: "product-photography", label: "Product Photography", disciplineSlug: "photography", specialtySlug: "product" },
   { slug: "graphic-design", label: "Graphic Design", disciplineSlug: "graphic-design", specialtySlug: "visual-identity" },
   { slug: "book-covers", label: "Book Covers", disciplineSlug: "graphic-design", specialtySlug: "book-covers" },
   { slug: "posters", label: "Posters", disciplineSlug: "graphic-design", specialtySlug: "posters" },
   { slug: "video", label: "Video & Motion", disciplineSlug: "video", specialtySlug: "videos" },
+  { slug: "product-design", label: "Product Design", disciplineSlug: "product-design", specialtySlug: "products" },
 ];
 
 const COMMON_CUSTOM_LABELS = [
@@ -153,6 +157,9 @@ function AdminAssetsManagementView() {
 
   useEffect(() => {
     loadData();
+    return subscribeToStudioStore(() => {
+      loadData();
+    });
   }, []);
 
   useEffect(() => {

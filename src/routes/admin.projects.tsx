@@ -29,6 +29,7 @@ import {
   addCustomDiscipline,
   addCustomSpecialty,
   saveCustomPhotoAsset,
+  subscribeToStudioStore,
   type TaxonomyDiscipline,
   type TaxonomySpecialty,
 } from "@/lib/studio-store";
@@ -53,15 +54,17 @@ export const Route = createFileRoute("/admin/projects")({
 });
 
 const DISCIPLINE_OPTIONS = [
+  { slug: "photography", label: "Photography", category: "photography" },
   { slug: "fashion-photography", label: "Fashion Photography", category: "photography" },
   { slug: "food-photography", label: "Food Photography", category: "photography" },
   { slug: "portrait-photography", label: "Portrait Photography", category: "photography" },
   { slug: "product-photography", label: "Product Photography", category: "photography" },
   { slug: "visual-identity", label: "Visual Identity", category: "graphic-design" },
   { slug: "graphic-design", label: "Graphic Design", category: "graphic-design" },
-  { slug: "video", label: "Video & Motion", category: "video" },
   { slug: "book-covers", label: "Book Covers", category: "graphic-design" },
   { slug: "posters", label: "Posters", category: "graphic-design" },
+  { slug: "video", label: "Video & Motion", category: "video" },
+  { slug: "product-design", label: "Product Design", category: "product-design" },
 ];
 
 const SUBDISCIPLINE_QUICK_TAGS = [
@@ -180,7 +183,11 @@ function AdminProjectsView() {
   useEffect(() => {
     setProjects(getStudioProjects());
     refreshTaxonomy();
-  }, []);
+    return subscribeToStudioStore(() => {
+      setProjects(getStudioProjects());
+      refreshTaxonomy();
+    });
+  }, [discipline]);
 
   useEffect(() => {
     const specs = getTaxonomySpecialties(discipline);
@@ -267,9 +274,9 @@ function AdminProjectsView() {
     setTitleFa("");
     setClient("");
     setYear("2026");
-    setDiscipline("fashion-photography");
+    setDiscipline("photography");
     setCategory("Fashion Photography");
-    setSubDiscipline("");
+    setSubDiscipline("Fashion Photography");
     setModels("");
     setMakeupArtist("");
     setAssistant("");
@@ -294,9 +301,10 @@ function AdminProjectsView() {
     setTitleFa(proj.titleFa || "");
     setClient(proj.client || "");
     setYear(String(proj.year));
-    setDiscipline(proj.discipline);
-    setCategory(proj.category || proj.discipline);
-    setSubDiscipline(proj.subDiscipline || "");
+    const dSlug = normalizeDisciplineSlug(proj.discipline);
+    setDiscipline(dSlug);
+    setCategory(proj.category || "Fashion Photography");
+    setSubDiscipline(proj.subDiscipline || proj.category || "");
     setModels(proj.models || "");
     setMakeupArtist(proj.makeupArtist || "");
     setAssistant(proj.assistant || "");
@@ -519,25 +527,29 @@ function AdminProjectsView() {
     const counts: Record<string, number> = { all: projects.length };
     for (const d of DISCIPLINE_OPTIONS) {
       counts[d.slug] = projects.filter((p) => {
-        if (p.discipline === d.slug) return true;
-        if (d.slug === "graphic-design") {
-          return (
-            p.discipline === "visual-identity" ||
-            p.discipline === "book-covers" ||
-            p.discipline === "posters" ||
-            p.discipline === "graphic-design"
-          );
-        }
+        const pDisc = normalizeDisciplineSlug(p.discipline);
+        const pCat = (p.category || "").toLowerCase();
+        const pSub = (p.subDiscipline || "").toLowerCase();
+
         if (d.slug === "photography") {
-          return (
-            p.discipline === "fashion-photography" ||
-            p.discipline === "food-photography" ||
-            p.discipline === "portrait-photography" ||
-            p.discipline === "product-photography" ||
-            p.discipline === "photography"
-          );
+          return pDisc === "photography";
         }
-        return false;
+        if (d.slug === "graphic-design") {
+          return pDisc === "graphic-design";
+        }
+        if (d.slug === "video") {
+          return pDisc === "video" || pCat.includes("video");
+        }
+        if (d.slug === "product-design") {
+          return pDisc === "product-design" || pCat.includes("product design");
+        }
+        return (
+          p.discipline === d.slug ||
+          pCat.includes(d.slug.replace(/-/g, " ")) ||
+          pSub.includes(d.slug.replace(/-/g, " ")) ||
+          pCat.includes(d.slug) ||
+          pSub.includes(d.slug)
+        );
       }).length;
     }
     return counts;
@@ -557,20 +569,29 @@ function AdminProjectsView() {
         (p.subDiscipline && p.subDiscipline.toLowerCase().includes(q)) ||
         (p.models && p.models.toLowerCase().includes(q));
 
-      const matchesDiscipline =
-        filter === "all" ||
-        p.discipline === filter ||
-        (filter === "graphic-design" &&
-          (p.discipline === "visual-identity" ||
-            p.discipline === "book-covers" ||
-            p.discipline === "posters" ||
-            p.discipline === "graphic-design")) ||
-        (filter === "photography" &&
-          (p.discipline === "fashion-photography" ||
-            p.discipline === "food-photography" ||
-            p.discipline === "portrait-photography" ||
-            p.discipline === "product-photography" ||
-            p.discipline === "photography"));
+      const pDisc = normalizeDisciplineSlug(p.discipline);
+      const pCat = (p.category || "").toLowerCase();
+      const pSub = (p.subDiscipline || "").toLowerCase();
+
+      let matchesDiscipline = false;
+      if (filter === "all") {
+        matchesDiscipline = true;
+      } else if (filter === "photography") {
+        matchesDiscipline = pDisc === "photography";
+      } else if (filter === "graphic-design") {
+        matchesDiscipline = pDisc === "graphic-design";
+      } else if (filter === "video") {
+        matchesDiscipline = pDisc === "video" || pCat.includes("video");
+      } else if (filter === "product-design") {
+        matchesDiscipline = pDisc === "product-design" || pCat.includes("product design");
+      } else {
+        matchesDiscipline =
+          p.discipline === filter ||
+          pCat.includes(filter.replace(/-/g, " ")) ||
+          pSub.includes(filter.replace(/-/g, " ")) ||
+          pCat.includes(filter) ||
+          pSub.includes(filter);
+      }
 
       return matchesSearch && matchesDiscipline;
     });

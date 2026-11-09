@@ -5,6 +5,7 @@ import {
   getPhotoItemBySlugOrCode,
   getPhotosByProject,
   getStudioProjects,
+  subscribeToStudioStore,
   type PhotoInventoryItem,
 } from "@/lib/studio-store";
 import { resolveInventoryImage } from "@/lib/inventory-assets";
@@ -142,8 +143,7 @@ function DedicatedPhotoView() {
   const [projectDescription, setProjectDescription] = useState(loaderData.projectDescription);
   const [resolvedImage, setResolvedImage] = useState(loaderData.resolvedImage);
 
-  // Client hydration from localStorage / studio store
-  useEffect(() => {
+  const refreshPhotoData = () => {
     const currentPhoto =
       getPhotoItemBySlugOrCode(
         loaderData.photo.code,
@@ -202,9 +202,33 @@ function DedicatedPhotoView() {
       setPhoto(resolved);
       setResolvedImage(resolveInventoryImage(resolved.imgSrc));
     }
+  };
+
+  // Client hydration from localStorage / studio store
+  useEffect(() => {
+    refreshPhotoData();
   }, [loaderData.photo.code, loaderData.projectSlug]);
 
-  const backUrl = `/${disciplineSlug}/${specialtySlug}/${projectSlug}`;
+  useEffect(() => {
+    return subscribeToStudioStore(() => {
+      refreshPhotoData();
+    });
+  }, [loaderData.photo.code, loaderData.projectSlug]);
+
+  // Smart back link based on hierarchy
+  let backUrl = `/${disciplineSlug}/${specialtySlug}/${projectSlug}`;
+  let backLabel = `Back to ${photo.project || projectSlug.replace(/-/g, " ")}`;
+
+  if (disciplineSlug === "graphic-design" && specialtySlug === "posters") {
+    backUrl = "/graphic-design/posters";
+    backLabel = "Back to Posters";
+  } else if (disciplineSlug === "graphic-design" && specialtySlug === "book-covers") {
+    backUrl = "/graphic-design/book-covers";
+    backLabel = "Back to Book Covers";
+  } else if (disciplineSlug === "product-design") {
+    backUrl = `/product-design/${projectSlug}`;
+    backLabel = `Back to ${photo.project || projectSlug.replace(/-/g, " ")}`;
+  }
 
   // Track GA4 event
   useEffect(() => {
@@ -246,7 +270,7 @@ function DedicatedPhotoView() {
           className="inline-flex items-center gap-2 text-xs font-mono uppercase tracking-widest text-[#2CE3C0] hover:text-white transition-colors px-3 py-1.5 rounded-full border border-[#2CE3C0]/30 hover:border-white bg-[#2CE3C0]/10 hover:bg-white/10"
         >
           <ArrowLeft className="w-3.5 h-3.5" />
-          <span className="capitalize">Back to {photo.project || projectSlug.replace(/-/g, " ")}</span>
+          <span className="capitalize">{backLabel}</span>
         </Link>
 
         <div className="flex items-center gap-2.5">

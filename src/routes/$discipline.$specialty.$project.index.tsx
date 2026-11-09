@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState } from "react";
-import { createFileRoute, Link, notFound, rootRouteId } from "@tanstack/react-router";
+import { createFileRoute, Link, notFound, redirect, rootRouteId } from "@tanstack/react-router";
 import { ArrowLeft } from "lucide-react";
 import { projects } from "@/data/projects";
 import {
   getStudioProjects,
   getPhotosByProject,
+  subscribeToStudioStore,
   type StudioProjectItem,
 } from "@/lib/studio-store";
 import type { PhotoInventoryItem } from "@/data/photo-inventory";
@@ -45,6 +46,27 @@ export const Route = createFileRoute("/$discipline/$specialty/$project/")({
     const normDisc = normalizeDisciplineSlug(params.discipline);
     const normSpec = normalizeSpecialtySlug(params.specialty);
     const normProj = normalizeProjectSlug(params.project);
+
+    // Posters & Book Covers project-dedicated pages do not exist per specification
+    if (normDisc === "graphic-design" && (normSpec === "posters" || normSpec === "book-covers")) {
+      throw notFound({ routeId: rootRouteId });
+    }
+
+    // Video project page routes to /video/[project] (2 segments)
+    if (normDisc === "video") {
+      throw redirect({
+        to: "/$discipline/$specialty",
+        params: { discipline: "video", specialty: normProj },
+      });
+    }
+
+    // Product Design project page routes to /product-design/[project] (2 segments)
+    if (normDisc === "product-design") {
+      throw redirect({
+        to: "/$discipline/$specialty",
+        params: { discipline: "product-design", specialty: normProj },
+      });
+    }
 
     // Find in studio projects or default static projects
     const allStudio = getStudioProjects();
@@ -146,8 +168,7 @@ function ProjectCaseStudyPage() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const isDesktop = useIsDesktop();
 
-  // Client hydration for project updates saved in localStorage/admin
-  useEffect(() => {
+  const refreshProjectData = () => {
     const allStudio = getStudioProjects();
     const found = allStudio.find((p) => {
       const pSlug = normalizeProjectSlug(p.title);
@@ -192,6 +213,18 @@ function ProjectCaseStudyPage() {
         coverImage: updatedImages[0] || loaderData.coverImage,
       });
     }
+  };
+
+  // Client hydration for project updates saved in localStorage/admin
+  useEffect(() => {
+    refreshProjectData();
+  }, [loaderData.projectSlug]);
+
+  // Real-time listener: updates view as soon as admin edits anything
+  useEffect(() => {
+    return subscribeToStudioStore(() => {
+      refreshProjectData();
+    });
   }, [loaderData.projectSlug]);
 
   const images = data.images;

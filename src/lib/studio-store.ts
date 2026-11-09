@@ -8,19 +8,54 @@ const STORAGE_PROJECTS_KEY = "siavash_studio_custom_projects";
 const STORAGE_BLOG_KEY = "siavash_studio_custom_blogs";
 const STORAGE_INVOICES_KEY = "siavash_studio_invoices_archive";
 
+export const STUDIO_STORE_CHANGED_EVENT = "siavash_studio_store_changed";
+
+let studioBroadcastChannel: BroadcastChannel | null = null;
+if (typeof window !== "undefined" && "BroadcastChannel" in window) {
+  try {
+    studioBroadcastChannel = new BroadcastChannel("siavash_studio_bus");
+  } catch (e) {
+    /* ignore */
+  }
+}
+
+export function notifyStudioStoreUpdated(detail?: { type: string; id?: string }): void {
+  if (typeof window === "undefined") return;
+  try {
+    window.dispatchEvent(new CustomEvent(STUDIO_STORE_CHANGED_EVENT, { detail }));
+    window.dispatchEvent(new Event("storage"));
+    studioBroadcastChannel?.postMessage(detail || { type: "generic" });
+  } catch (e) {
+    console.error("Error broadcasting studio update:", e);
+  }
+}
+
+export function subscribeToStudioStore(callback: () => void): () => void {
+  if (typeof window === "undefined") return () => {};
+  const handler = () => callback();
+  window.addEventListener(STUDIO_STORE_CHANGED_EVENT, handler);
+  window.addEventListener("storage", handler);
+  if (studioBroadcastChannel) {
+    studioBroadcastChannel.onmessage = handler;
+  }
+  return () => {
+    window.removeEventListener(STUDIO_STORE_CHANGED_EVENT, handler);
+    window.removeEventListener("storage", handler);
+    if (studioBroadcastChannel) {
+      studioBroadcastChannel.onmessage = null;
+    }
+  };
+}
+
 function normalizeDisciplineSlug(discipline: string, category?: string): string {
-  const cat = (category || "").toLowerCase();
-  if (cat.includes("fashion")) return "fashion-photography";
-  if (cat.includes("food")) return "food-photography";
-  if (cat.includes("portrait")) return "portrait-photography";
-  if (cat.includes("product photo") || cat.includes("objects")) return "product-photography";
-  if (cat.includes("visual identity")) return "visual-identity";
-  if (cat.includes("book cover")) return "book-covers";
-  if (cat.includes("poster")) return "posters";
-  if (discipline === "video" || cat.includes("video")) return "video";
-  if (discipline === "product-design") return "product-photography";
-  if (discipline === "graphic-design") return "graphic-design";
-  return discipline || "fashion-photography";
+  const q = (discipline || "").toLowerCase().trim();
+  if (q.includes("product-design") || q.includes("product design")) return "product-design";
+  if (q.includes("photo")) return "photography";
+  if (q.includes("graphic") || q.includes("identity") || q.includes("book") || q.includes("poster")) {
+    return "graphic-design";
+  }
+  if (q.includes("video") || q.includes("motion")) return "video";
+  return discipline || "photography";
 }
 
 function defaultProjectToStudioItem(p: Project): StudioProjectItem {
@@ -36,9 +71,9 @@ function defaultProjectToStudioItem(p: Project): StudioProjectItem {
     titleFa: p.titleFa,
     client: p.client || "",
     year: p.year,
-    discipline: normalizeDisciplineSlug(p.discipline, p.category),
+    discipline: normalizeDisciplineSlug(p.discipline),
     category: p.category,
-    subDiscipline: p.subDiscipline || "",
+    subDiscipline: p.subDiscipline || p.category,
     models: p.models || "",
     makeupArtist: p.makeupArtist || "",
     assistant: p.assistant || "",
@@ -166,12 +201,14 @@ export function saveStudioProject(project: StudioProjectItem): void {
     list.unshift(project);
   }
   localStorage.setItem(STORAGE_PROJECTS_KEY, JSON.stringify(list));
+  notifyStudioStoreUpdated({ type: "project_saved", id: project.id });
 }
 
 export function deleteStudioProject(id: string): void {
   if (typeof window === "undefined") return;
   const list = getStudioProjects().filter((p) => p.id !== id);
   localStorage.setItem(STORAGE_PROJECTS_KEY, JSON.stringify(list));
+  notifyStudioStoreUpdated({ type: "project_deleted", id });
 }
 
 // 2. Blog Posts Store
@@ -369,17 +406,19 @@ export const DEFAULT_TAXONOMY_DISCIPLINES: TaxonomyDiscipline[] = [
   { slug: "photography", label: "Photography", code: "PHOT" },
   { slug: "graphic-design", label: "Graphic Design", code: "DSGN" },
   { slug: "video", label: "Video", code: "VIDO" },
+  { slug: "product-design", label: "Product Design", code: "PROD" },
 ];
 
 export const DEFAULT_TAXONOMY_SPECIALTIES: TaxonomySpecialty[] = [
-  { slug: "fashion", label: "Fashion Photography", disciplineSlug: "photography", code: "FASH" },
-  { slug: "food", label: "Food Photography", disciplineSlug: "photography", code: "FOOD" },
-  { slug: "portrait", label: "Portrait Photography", disciplineSlug: "photography", code: "PORT" },
-  { slug: "product", label: "Product Photography", disciplineSlug: "photography", code: "PROD" },
+  { slug: "fashion-photography", label: "Fashion Photography", disciplineSlug: "photography", code: "FASH" },
+  { slug: "food-photography", label: "Food Photography", disciplineSlug: "photography", code: "FOOD" },
+  { slug: "portrait-photography", label: "Portrait Photography", disciplineSlug: "photography", code: "PORT" },
+  { slug: "product-photography", label: "Product Photography", disciplineSlug: "photography", code: "PROD" },
   { slug: "visual-identity", label: "Visual Identity", disciplineSlug: "graphic-design", code: "VIID" },
   { slug: "book-covers", label: "Book Covers", disciplineSlug: "graphic-design", code: "BOOK" },
   { slug: "posters", label: "Posters", disciplineSlug: "graphic-design", code: "POST" },
   { slug: "videos", label: "Videos", disciplineSlug: "video", code: "VIDO" },
+  { slug: "products", label: "Products", disciplineSlug: "product-design", code: "PROD" },
 ];
 
 interface CustomTaxonomyState {
@@ -404,6 +443,7 @@ export function getCustomTaxonomy(): CustomTaxonomyState {
 export function saveCustomTaxonomy(state: CustomTaxonomyState): void {
   if (typeof window === "undefined") return;
   localStorage.setItem(STORAGE_TAXONOMY_KEY, JSON.stringify(state));
+  notifyStudioStoreUpdated({ type: "taxonomy_updated" });
 }
 
 export function getTaxonomyDisciplines(): TaxonomyDiscipline[] {
@@ -568,12 +608,14 @@ export function saveCustomPhotoAsset(photo: PhotoInventoryItem): void {
   });
 
   localStorage.setItem(STORAGE_CUSTOM_PHOTOS_KEY, JSON.stringify(cleanList));
+  notifyStudioStoreUpdated({ type: "photo_saved", id: photo.code });
 }
 
 export function deleteCustomPhotoAsset(code: string): void {
   if (typeof window === "undefined") return;
   const list = getCustomPhotoAssets().filter((p) => p.code !== code && p.standardCode !== code);
   localStorage.setItem(STORAGE_CUSTOM_PHOTOS_KEY, JSON.stringify(list));
+  notifyStudioStoreUpdated({ type: "photo_deleted", id: code });
 }
 
 export function getCustomPhotoMetadata(): Record<string, Partial<PhotoInventoryItem>> {
@@ -591,17 +633,18 @@ export function getCustomPhotoMetadata(): Record<string, Partial<PhotoInventoryI
  * Infers normalized specialty slug for a static photo item.
  */
 function inferItemSpecialty(item: PhotoInventoryItem): string {
-  if (item.specialtySlug) return item.specialtySlug;
+  if (item.specialtySlug) return taxNormSpec(item.specialtySlug);
   const combined = `${item.disciplineSlug} ${item.discipline} ${item.subdiscipline} ${item.project}`.toLowerCase();
-  if (combined.includes("fashion")) return "fashion";
-  if (combined.includes("food")) return "food";
-  if (combined.includes("portrait")) return "portrait";
-  if (combined.includes("product") || combined.includes("object")) return "product";
+  if (combined.includes("fashion")) return "fashion-photography";
+  if (combined.includes("food")) return "food-photography";
+  if (combined.includes("portrait")) return "portrait-photography";
+  if (combined.includes("product design") || combined.includes("product-design")) return "products";
+  if (combined.includes("product") || combined.includes("object")) return "product-photography";
   if (combined.includes("visual identity") || combined.includes("brand") || combined.includes("identity")) return "visual-identity";
   if (combined.includes("book cover") || combined.includes("book")) return "book-covers";
   if (combined.includes("poster")) return "posters";
   if (combined.includes("video") || combined.includes("motion")) return "videos";
-  return "fashion";
+  return "fashion-photography";
 }
 
 /**
@@ -836,7 +879,7 @@ export function getPhotoItemBySlugOrCode(
 
 export function getPhotosByDiscipline(disciplineSlug: string): PhotoInventoryItem[] {
   const norm = taxNormDisc(disciplineSlug);
-  return getMergedPhotoInventory().filter((i) => taxNormDisc(i.disciplineSlug) === norm);
+  return getMergedPhotoInventory().filter((i) => taxNormDisc(i.disciplineSlug || i.discipline) === norm);
 }
 
 export function getPhotosBySpecialty(
@@ -846,8 +889,9 @@ export function getPhotosBySpecialty(
   const sNorm = taxNormSpec(specialtySlug);
   const dNorm = disciplineSlug ? taxNormDisc(disciplineSlug) : null;
   return getMergedPhotoInventory().filter((i) => {
-    if (dNorm && taxNormDisc(i.disciplineSlug) !== dNorm) return false;
-    return taxNormSpec(i.specialtySlug || "") === sNorm;
+    if (dNorm && taxNormDisc(i.disciplineSlug || i.discipline) !== dNorm) return false;
+    const itemSpec = taxNormSpec(i.specialtySlug || i.subdiscipline || "");
+    return itemSpec === sNorm;
   });
 }
 
@@ -891,6 +935,7 @@ export function savePhotoInventoryItem(
     };
   }
   localStorage.setItem(STORAGE_INVENTORY_KEY, JSON.stringify(map));
+  notifyStudioStoreUpdated({ type: "inventory_item_saved", id: item.code });
 }
 
 export function deletePhotoInventoryItem(code: string): void {
@@ -901,6 +946,7 @@ export function deletePhotoInventoryItem(code: string): void {
     delete map[code];
     localStorage.setItem(STORAGE_INVENTORY_KEY, JSON.stringify(map));
   }
+  notifyStudioStoreUpdated({ type: "inventory_item_deleted", id: code });
 }
 
 export function saveBulkPhotoInventory(items: Record<string, Partial<PhotoInventoryItem>>): void {
@@ -908,4 +954,5 @@ export function saveBulkPhotoInventory(items: Record<string, Partial<PhotoInvent
   const current = getCustomPhotoMetadata();
   const merged = { ...current, ...items };
   localStorage.setItem(STORAGE_INVENTORY_KEY, JSON.stringify(merged));
+  notifyStudioStoreUpdated({ type: "bulk_inventory_saved" });
 }

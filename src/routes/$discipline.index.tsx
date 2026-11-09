@@ -13,6 +13,7 @@ import {
   getPhotosByDiscipline,
   getPhotosBySpecialty,
   getStudioProjects,
+  subscribeToStudioStore,
 } from "@/lib/studio-store";
 import { pageHead } from "@/lib/seo";
 import { VideoPlayer } from "@/components/ui/video-player";
@@ -73,52 +74,25 @@ function useIsDesktop() {
 
 export const Route = createFileRoute("/$discipline/")({
   loader: ({ params }) => {
-    if (params.discipline === "photography") {
-      throw redirect({
-        to: "/$discipline/$specialty",
-        params: { discipline: "photography", specialty: "fashion" },
-      });
-    }
+    // Graphic Design top route does not exist per specification
     if (params.discipline === "graphic-design") {
-      throw redirect({
-        to: "/$discipline/$specialty",
-        params: { discipline: "graphic-design", specialty: "visual-identity" },
-      });
+      throw notFound({ routeId: rootRouteId });
     }
 
     const normSlug = normalizeDisciplineSlug(params.discipline);
-    const discipline =
-      DISCIPLINES.find((d) => d.slug === params.discipline) ||
-      DISCIPLINES.find((d) => normalizeDisciplineSlug(d.slug) === normSlug) ||
-      {
-        slug: normSlug,
-        label: normSlug.charAt(0).toUpperCase() + normSlug.slice(1).replace("-", " "),
-        blurb: `${normSlug} portfolio by Siavash Akbari.`,
-        browseByProject: normSlug === "graphic-design",
-        layout: null,
-      };
 
-    const meta = {
-      slug: normSlug,
-      label: discipline.label,
-      blurb: discipline.blurb,
-      browseByProject: Boolean(discipline.browseByProject),
-      layout: discipline.layout ?? null,
-    };
-
-    // If discipline browses by project (e.g. graphic-design without a specialty)
-    if (discipline.browseByProject && params.discipline === "graphic-design") {
+    // 1. Product Design: shows all products as cards (same UI as Visual Identity)
+    if (normSlug === "product-design" || params.discipline === "product-design") {
       const allStudio = getStudioProjects();
       const matching = allStudio.filter((p) => {
         const disc = (p.discipline || "").toLowerCase();
         const cat = (p.category || "").toLowerCase();
         const sub = ((p as any).subDiscipline || "").toLowerCase();
         return (
-          disc === "visual-identity" ||
-          disc === "graphic-design" ||
-          cat.includes("identity") ||
-          cat.includes("visual") ||
-          sub.includes("identity")
+          disc === "product-design" ||
+          cat.includes("product design") ||
+          sub.includes("product design") ||
+          cat.includes("object")
         );
       });
       const projectCards: ProjectCardItem[] = matching.map((project) => {
@@ -133,11 +107,41 @@ export const Route = createFileRoute("/$discipline/")({
           title: project.title,
           image: resolveInventoryImage(rawCover) || rawCover,
           year: String(project.year || "2026"),
-          href: `/graphic-design/visual-identity/${projSlug}`,
+          href: `/product-design/${projSlug}`,
         };
       });
-      return { discipline: meta, items: [] as DisciplinePhoto[], projectCards };
+      return {
+        discipline: {
+          slug: "product-design",
+          label: "Product Design",
+          blurb: "Objects shaped by purpose, material, and quiet detail.",
+          browseByProject: true,
+          layout: null,
+        },
+        items: [] as DisciplinePhoto[],
+        projectCards,
+      };
     }
+
+    // 2. Photography / Video / Specialty Handling
+    const discipline =
+      DISCIPLINES.find((d) => d.slug === params.discipline) ||
+      DISCIPLINES.find((d) => normalizeDisciplineSlug(d.slug) === normSlug) ||
+      {
+        slug: normSlug,
+        label: normSlug.charAt(0).toUpperCase() + normSlug.slice(1).replace("-", " "),
+        blurb: `${normSlug} portfolio by Siavash Akbari.`,
+        browseByProject: false,
+        layout: null,
+      };
+
+    const meta = {
+      slug: normSlug,
+      label: discipline.label,
+      blurb: discipline.blurb,
+      browseByProject: Boolean(discipline.browseByProject),
+      layout: discipline.layout ?? null,
+    };
 
     // If param is a specialty (e.g. book-covers, posters, videos), load only that specialty
     const isSpecialty = Boolean(
@@ -157,12 +161,12 @@ export const Route = createFileRoute("/$discipline/")({
         p.canonicalPath ||
         buildPhotoUrl(
           discipline.disciplineSlug || normSlug,
-          p.specialtySlug || discipline.specialtySlug || "fashion",
+          p.specialtySlug || discipline.specialtySlug || "fashion-photography",
           p.projectSlug || "project",
           p.standardCode || p.code,
         ),
       disciplineSlug: discipline.disciplineSlug || normSlug,
-      specialtySlug: p.specialtySlug || discipline.specialtySlug || "fashion",
+      specialtySlug: p.specialtySlug || discipline.specialtySlug || "fashion-photography",
       projectSlug: p.projectSlug || "project",
       imageName: p.title || photoCaption(p.project, idx, photos.length),
       title: p.project,
@@ -346,12 +350,39 @@ function DisciplinePage() {
   const [data, setData] = useState(loaderData);
   const isDesktop = useIsDesktop();
 
-  useEffect(() => {
-    setData(loaderData);
-  }, [loaderData]);
+  const refreshData = () => {
+    if (loaderData.discipline.slug === "product-design") {
+      const allStudio = getStudioProjects();
+      const matching = allStudio.filter((p) => {
+        const disc = (p.discipline || "").toLowerCase();
+        const cat = (p.category || "").toLowerCase();
+        const sub = ((p as any).subDiscipline || "").toLowerCase();
+        return (
+          disc === "product-design" ||
+          cat.includes("product design") ||
+          sub.includes("product design") ||
+          cat.includes("object")
+        );
+      });
+      const projectCards: ProjectCardItem[] = matching.map((project) => {
+        const projSlug = normalizeProjectSlug(project.title || project.id);
+        const rawCover =
+          (project as any).coverImage ||
+          (project as any).image ||
+          (project.images && project.images[0]?.url) ||
+          "";
+        return {
+          id: project.id,
+          title: project.title,
+          image: resolveInventoryImage(rawCover) || rawCover,
+          year: String(project.year || "2026"),
+          href: `/product-design/${projSlug}`,
+        };
+      });
+      setData((prev) => ({ ...prev, projectCards }));
+      return;
+    }
 
-  // Client hydration for projectCards (ensures newly created projects in admin like Meatlab show up immediately)
-  useEffect(() => {
     if (loaderData.discipline.browseByProject) {
       const allStudio = getStudioProjects();
       const matching = allStudio.filter((p) => {
@@ -381,12 +412,51 @@ function DisciplinePage() {
           href: `/graphic-design/visual-identity/${projSlug}`,
         };
       });
-      setData((prev) => ({
-        ...prev,
-        projectCards,
-      }));
+      setData((prev) => ({ ...prev, projectCards }));
+    } else {
+      // Re-hydrate photo items dynamically
+      const photos = getPhotosByDiscipline(loaderData.discipline.slug);
+      if (photos.length > 0) {
+        const items: DisciplinePhoto[] = photos.map((p, idx) => ({
+          key: `${p.code}-${idx}`,
+          src: resolveInventoryImage(p.imgSrc) || p.imgSrc,
+          code: p.standardCode || p.code,
+          canonicalPath:
+            p.canonicalPath ||
+            buildPhotoUrl(
+              loaderData.discipline.slug,
+              p.specialtySlug || "fashion-photography",
+              p.projectSlug || "project",
+              p.standardCode || p.code,
+            ),
+          disciplineSlug: loaderData.discipline.slug,
+          specialtySlug: p.specialtySlug || "fashion-photography",
+          projectSlug: p.projectSlug || "project",
+          imageName: p.title || photoCaption(p.project, idx, photos.length),
+          title: p.project,
+          year: p.date || "2026",
+          category: p.subdiscipline || p.discipline,
+          description: p.caption || "",
+          client: p.client,
+          photoIndex: idx + 1,
+          photoTotal: photos.length,
+        }));
+        setData((prev) => ({ ...prev, items }));
+      }
     }
-  }, [loaderData.discipline.browseByProject]);
+  };
+
+  useEffect(() => {
+    setData(loaderData);
+    refreshData();
+  }, [loaderData]);
+
+  // Real-time listener: updates view as soon as admin edits anything
+  useEffect(() => {
+    return subscribeToStudioStore(() => {
+      refreshData();
+    });
+  }, [loaderData.discipline.slug]);
 
   const { discipline, items, projectCards } = data;
   const isEmpty = discipline.browseByProject

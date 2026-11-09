@@ -8,7 +8,12 @@ import { BackToTop } from "@/components/BackToTop";
 import { CoverTile } from "@/components/CoverTile";
 import { DISCIPLINES } from "@/data/disciplines";
 import { projects, type Project } from "@/data/projects";
-import { getPhotosBySpecialty, getStudioProjects } from "@/lib/studio-store";
+import {
+  getPhotosBySpecialty,
+  getPhotosByProject,
+  getStudioProjects,
+  subscribeToStudioStore,
+} from "@/lib/studio-store";
 import { pageHead } from "@/lib/seo";
 import { VideoPlayer } from "@/components/ui/video-player";
 import { metaFromSrc } from "@/lib/adaptive-image";
@@ -69,6 +74,92 @@ function useIsDesktop() {
 export const Route = createFileRoute("/$discipline/$specialty/")({
   loader: ({ params }) => {
     const normDisc = normalizeDisciplineSlug(params.discipline);
+
+    // 1. Video Project Dedicated Page: /video/[project]
+    // User request: "Video/Project-Dedicated-Page same UI as Video routed but shows all the videos under the project.
+    // Important: Videos don't have a video-dedicated page; only when clicked on the current pop-up shows and plays the video"
+    if (normDisc === "video") {
+      const normProj = normalizeProjectSlug(params.specialty);
+      const projPhotos = getPhotosByProject(normProj);
+      const allStudio = getStudioProjects();
+      const parentProject =
+        allStudio.find((p) => normalizeProjectSlug(p.title) === normProj || p.id === normProj) ||
+        projects.find((p) => normalizeProjectSlug(p.title) === normProj || p.id === normProj);
+
+      const items: SpecialtyPhoto[] = projPhotos.map((p, idx) => ({
+        key: `${p.code}-${idx}`,
+        src: resolveInventoryImage(p.imgSrc) || p.imgSrc,
+        code: p.standardCode || p.code,
+        canonicalPath: `/video/${normProj}`,
+        disciplineSlug: "video",
+        specialtySlug: normProj,
+        projectSlug: normProj,
+        imageName: p.title || photoCaption(p.project, idx, projPhotos.length),
+        title: p.project,
+        year: p.date || "2026",
+        category: p.subdiscipline || "Video",
+        description: p.caption || "",
+        client: p.client,
+        photoIndex: idx + 1,
+        photoTotal: projPhotos.length,
+      }));
+
+      const projLabel = parentProject?.title || normProj.charAt(0).toUpperCase() + normProj.slice(1);
+      return {
+        disciplineSlug: "video",
+        specialtySlug: normProj,
+        label: projLabel,
+        blurb: parentProject?.description || `${projLabel} video showcase.`,
+        isVisualIdentity: false,
+        isVideo: true,
+        layout: null,
+        items,
+        projectCards: [] as ProjectCardItem[],
+      };
+    }
+
+    // 2. Product Design Project Dedicated Page: /product-design/[project]
+    // User request: "Product-Design/Project-Dedicated-Page has the same UI as the Graphic-Design/Book-Covers shows all photos from a specific project"
+    if (normDisc === "product-design") {
+      const normProj = normalizeProjectSlug(params.specialty);
+      const projPhotos = getPhotosByProject(normProj);
+      const allStudio = getStudioProjects();
+      const parentProject =
+        allStudio.find((p) => normalizeProjectSlug(p.title) === normProj || p.id === normProj) ||
+        projects.find((p) => normalizeProjectSlug(p.title) === normProj || p.id === normProj);
+
+      const items: SpecialtyPhoto[] = projPhotos.map((p, idx) => ({
+        key: `${p.code}-${idx}`,
+        src: resolveInventoryImage(p.imgSrc) || p.imgSrc,
+        code: p.standardCode || p.code,
+        canonicalPath: buildPhotoUrl("product-design", "products", normProj, p.standardCode || p.code),
+        disciplineSlug: "product-design",
+        specialtySlug: normProj,
+        projectSlug: normProj,
+        imageName: p.title || photoCaption(p.project, idx, projPhotos.length),
+        title: p.project,
+        year: p.date || "2026",
+        category: p.subdiscipline || "Product Design",
+        description: p.caption || "",
+        client: p.client,
+        photoIndex: idx + 1,
+        photoTotal: projPhotos.length,
+      }));
+
+      const projLabel = parentProject?.title || normProj.charAt(0).toUpperCase() + normProj.slice(1);
+      return {
+        disciplineSlug: "product-design",
+        specialtySlug: normProj,
+        label: projLabel,
+        blurb: parentProject?.description || `${projLabel} product design showcase.`,
+        isVisualIdentity: false,
+        isVideo: false,
+        layout: "scroll" as const, // EXACT UI AS BOOK COVERS (Horizontal scroll)
+        items,
+        projectCards: [] as ProjectCardItem[],
+      };
+    }
+
     const normSpec = normalizeSpecialtySlug(params.specialty);
 
     const disciplineDef = DISCIPLINES.find(
@@ -190,7 +281,7 @@ function SpecialtyPage() {
   }, [loaderData]);
 
   // Client hydration for projectCards (ensures newly created projects in admin like Meatlab show up immediately)
-  useEffect(() => {
+  const refreshSpecialtyData = () => {
     if (loaderData.isVisualIdentity) {
       const allStudio = getStudioProjects();
       const matching = allStudio.filter((p) => {
@@ -224,8 +315,68 @@ function SpecialtyPage() {
         ...prev,
         projectCards,
       }));
+    } else if (loaderData.disciplineSlug === "product-design" || loaderData.disciplineSlug === "video") {
+      const projPhotos = getPhotosByProject(loaderData.specialtySlug);
+      if (projPhotos.length > 0) {
+        const items: SpecialtyPhoto[] = projPhotos.map((p, idx) => ({
+          key: `${p.code}-${idx}`,
+          src: resolveInventoryImage(p.imgSrc) || p.imgSrc,
+          code: p.standardCode || p.code,
+          canonicalPath:
+            loaderData.disciplineSlug === "video"
+              ? `/video/${loaderData.specialtySlug}`
+              : buildPhotoUrl("product-design", "products", loaderData.specialtySlug, p.standardCode || p.code),
+          disciplineSlug: loaderData.disciplineSlug,
+          specialtySlug: loaderData.specialtySlug,
+          projectSlug: loaderData.specialtySlug,
+          imageName: p.title || photoCaption(p.project, idx, projPhotos.length),
+          title: p.project,
+          year: p.date || "2026",
+          category: p.subdiscipline || loaderData.label,
+          description: p.caption || "",
+          client: p.client,
+          photoIndex: idx + 1,
+          photoTotal: projPhotos.length,
+        }));
+        setData((prev) => ({ ...prev, items }));
+      }
+    } else {
+      const photos = getPhotosBySpecialty(loaderData.specialtySlug, loaderData.disciplineSlug);
+      if (photos.length > 0) {
+        const items: SpecialtyPhoto[] = photos.map((p, idx) => ({
+          key: `${p.code}-${idx}`,
+          src: resolveInventoryImage(p.imgSrc) || p.imgSrc,
+          code: p.standardCode || p.code,
+          canonicalPath:
+            p.canonicalPath ||
+            buildPhotoUrl(loaderData.disciplineSlug, loaderData.specialtySlug, p.projectSlug || "project", p.standardCode || p.code),
+          disciplineSlug: loaderData.disciplineSlug,
+          specialtySlug: loaderData.specialtySlug,
+          projectSlug: p.projectSlug || "project",
+          imageName: p.title || photoCaption(p.project, idx, photos.length),
+          title: p.project,
+          year: p.date || "2026",
+          category: p.subdiscipline || loaderData.label,
+          description: p.caption || "",
+          client: p.client,
+          photoIndex: idx + 1,
+          photoTotal: photos.length,
+        }));
+        setData((prev) => ({ ...prev, items }));
+      }
     }
+  };
+
+  useEffect(() => {
+    refreshSpecialtyData();
   }, [loaderData.isVisualIdentity, loaderData.disciplineSlug, loaderData.specialtySlug]);
+
+  // Real-time listener: updates view as soon as admin edits anything
+  useEffect(() => {
+    return subscribeToStudioStore(() => {
+      refreshSpecialtyData();
+    });
+  }, [loaderData.disciplineSlug, loaderData.specialtySlug]);
 
   const isEmpty = data.isVisualIdentity
     ? data.projectCards.length === 0
