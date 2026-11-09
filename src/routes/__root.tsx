@@ -197,30 +197,6 @@ function WorksDropdown({ active }: { active: boolean }) {
             </Link>
           </DropdownMenuItem>
         ))}
-        <div className="my-1.5 border-t border-foreground/10" />
-        <div className="px-3 py-1.5 text-[10px] font-mono uppercase tracking-[0.2em] text-muted-foreground/60">
-          All Disciplines
-        </div>
-        <DropdownMenuItem asChild className="rounded-none p-0 focus:bg-foreground/5">
-          <Link
-            to="/$discipline"
-            params={{ discipline: "photography" }}
-            style={navFont}
-            className="block cursor-pointer px-3 py-2 text-xs font-normal uppercase tracking-widest text-foreground/80 transition-colors hover:text-secondary data-[status=active]:font-bold data-[status=active]:text-secondary"
-          >
-            All Photography
-          </Link>
-        </DropdownMenuItem>
-        <DropdownMenuItem asChild className="rounded-none p-0 focus:bg-foreground/5">
-          <Link
-            to="/$discipline"
-            params={{ discipline: "graphic-design" }}
-            style={navFont}
-            className="block cursor-pointer px-3 py-2 text-xs font-normal uppercase tracking-widest text-foreground/80 transition-colors hover:text-secondary data-[status=active]:font-bold data-[status=active]:text-secondary"
-          >
-            All Graphic Design
-          </Link>
-        </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );
@@ -383,27 +359,6 @@ function MobileNav() {
                         {discipline.label}
                       </Link>
                     ))}
-                    <span className="pt-2 text-[10px] font-mono uppercase tracking-[0.2em] text-muted-foreground/60">
-                      Disciplines
-                    </span>
-                    <Link
-                      to="/$discipline"
-                      params={{ discipline: "photography" }}
-                      onClick={() => setOpen(false)}
-                      className="text-base font-normal uppercase tracking-widest text-foreground/80 transition-colors hover:text-secondary data-[status=active]:font-bold data-[status=active]:text-secondary"
-                      style={navFont}
-                    >
-                      All Photography
-                    </Link>
-                    <Link
-                      to="/$discipline"
-                      params={{ discipline: "graphic-design" }}
-                      onClick={() => setOpen(false)}
-                      className="text-base font-normal uppercase tracking-widest text-foreground/80 transition-colors hover:text-secondary data-[status=active]:font-bold data-[status=active]:text-secondary"
-                      style={navFont}
-                    >
-                      All Graphic Design
-                    </Link>
                   </div>
                 </div>
               </div>

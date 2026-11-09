@@ -22,8 +22,6 @@ function buildEntries(baseUrl: string): SitemapEntry[] {
   const staticPages: SitemapEntry[] = [
     { path: "/", changefreq: "weekly", priority: "1.0" },
     { path: "/blog", changefreq: "weekly", priority: "0.9" },
-    { path: "/photography", changefreq: "weekly", priority: "0.9" },
-    { path: "/graphic-design", changefreq: "weekly", priority: "0.9" },
     { path: "/product-design", changefreq: "weekly", priority: "0.9" },
     { path: "/about", changefreq: "monthly", priority: "0.8" },
     { path: "/contact", changefreq: "monthly", priority: "0.8" },
@@ -31,7 +29,7 @@ function buildEntries(baseUrl: string): SitemapEntry[] {
   ];
 
   const disciplinePages: SitemapEntry[] = DISCIPLINES.map((d) => ({
-    path: `/${d.slug}`,
+    path: d.path || `/${d.slug}`,
     changefreq: "weekly" as const,
     priority: "0.85",
   }));

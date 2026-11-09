@@ -14,11 +14,11 @@ while ((match = projectRegex.exec(projectsFile)) !== null) {
   projectMatches.push({ id: match[1], year: match[2] });
 }
 
-// Extract discipline slugs
-const disciplineSlugs = [];
-const discRegex = /slug:\s*["']([^"']+)["']/g;
+// Extract discipline paths
+const disciplinePaths = [];
+const discRegex = /path:\s*["']([^"']+)["']/g;
 while ((match = discRegex.exec(disciplinesFile)) !== null) {
-  disciplineSlugs.push(match[1]);
+  disciplinePaths.push(match[1]);
 }
 
 // Extract blog post slugs & publish dates
@@ -56,16 +56,14 @@ const baseUrl = "https://www.siavashakbari.ir";
 const staticPages = [
   { path: "/", changefreq: "weekly", priority: "1.0" },
   { path: "/blog", changefreq: "weekly", priority: "0.9" },
-  { path: "/photography", changefreq: "weekly", priority: "0.9" },
-  { path: "/graphic-design", changefreq: "weekly", priority: "0.9" },
   { path: "/product-design", changefreq: "weekly", priority: "0.9" },
   { path: "/about", changefreq: "monthly", priority: "0.8" },
   { path: "/contact", changefreq: "monthly", priority: "0.8" },
   { path: "/brand-discovery", changefreq: "monthly", priority: "0.8" },
 ];
 
-const disciplinePages = disciplineSlugs.map((slug) => ({
-  path: `/${slug}`,
+const disciplinePages = disciplinePaths.map((path) => ({
+  path,
   changefreq: "weekly",
   priority: "0.85",
 }));
