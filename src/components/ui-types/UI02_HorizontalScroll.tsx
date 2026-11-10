@@ -1,6 +1,7 @@
 import React, { useRef, useState, useEffect } from "react";
 import { Link } from "@tanstack/react-router";
 import type { GalleryMediaItem } from "./UI01_VerticalScroll";
+import { useResolvedMediaSrc } from "@/lib/local-media-db";
 
 interface UI02_HorizontalScrollProps {
   items: GalleryMediaItem[];
@@ -54,67 +55,122 @@ export function UI02_HorizontalScroll({
         onWheel={handleWheel}
         className="flex flex-col gap-4 px-3 pt-4 pb-16 lg:scrollbar-hide lg:flex-row lg:h-[calc(100svh-4.5rem)] lg:min-h-0 lg:items-center lg:gap-6 lg:overflow-x-auto lg:overflow-y-hidden lg:px-[20px] lg:py-4"
       >
-        {items.map((item, i) => {
-          const isVideo = /\.(mp4|webm|mov)(\?|#|$)|^data:video\//i.test(item.src);
-          const mediaEl = isVideo ? (
-            <video
-              src={item.src}
-              autoPlay
-              muted
-              loop
-              playsInline
-              draggable={false}
-              className="w-full h-auto rounded-[4px] bg-[#121212] object-contain transition-transform duration-300 group-hover:scale-[1.01] lg:h-full lg:w-auto lg:max-w-none"
-            />
-          ) : (
-            <img
-              src={item.src}
-              alt={item.alt || item.title || `${label} — item ${i + 1}`}
-              loading={i < 4 ? "eager" : "lazy"}
-              decoding="async"
-              draggable={false}
-              className="w-full h-auto rounded-[4px] bg-[#121212] object-contain transition-transform duration-300 group-hover:scale-[1.01] lg:h-full lg:w-auto lg:max-w-none"
-            />
-          );
-
-          if (item.href) {
-            return (
-              <Link
-                key={item.id || i}
-                to={item.href as any}
-                className="w-full cursor-pointer overflow-hidden bg-card transition-opacity hover:opacity-95 group select-none lg:w-auto lg:shrink-0 lg:h-full lg:max-h-full lg:overflow-visible lg:bg-transparent lg:py-2 lg:hover:opacity-100"
-                title={item.alt || item.title || `${label} — item ${i + 1}`}
-              >
-                {mediaEl}
-              </Link>
-            );
-          }
-
-          return (
-            <figure
-              key={item.id || i}
-              className="w-full cursor-zoom-in overflow-hidden group select-none lg:w-auto lg:shrink-0 lg:h-full lg:max-h-full lg:overflow-visible lg:py-2"
-              onClick={() => setActiveIndex(i)}
-            >
-              {mediaEl}
-            </figure>
-          );
-        })}
+        {items.map((item, i) => (
+          <HorizontalMediaTile
+            key={item.id || i}
+            item={item}
+            index={i}
+            label={label}
+            onZoom={() => setActiveIndex(i)}
+          />
+        ))}
       </div>
 
       {/* Fullscreen Lightbox View */}
       {activeIndex !== null && (
-        <div
-          className="fixed inset-0 z-[200] flex cursor-zoom-out items-center justify-center bg-black/95 p-6 backdrop-blur-md"
-          onClick={() => setActiveIndex(null)}
-        >
-          <img
-            src={items[activeIndex].src}
-            alt={items[activeIndex].alt || items[activeIndex].title || `${label} — full view`}
-            className="max-h-full max-w-full object-contain select-none"
-          />
-        </div>
+        <HorizontalLightbox
+          item={items[activeIndex]}
+          label={label}
+          onClose={() => setActiveIndex(null)}
+        />
       )}
     </div>
   );
+}
+
+function HorizontalMediaTile({
+  item,
+  index,
+  label,
+  onZoom,
+}: {
+  item: GalleryMediaItem;
+  index: number;
+  label: string;
+  onZoom: () => void;
+}) {
+  const resolvedSrc = useResolvedMediaSrc(item.src);
+  const isVideo = /\.(mp4|webm|mov)(\?|#|$)|^data:video\//i.test(item.src);
+  const mediaEl = isVideo ? (
+    <video
+      src={resolvedSrc || undefined}
+      autoPlay
+      muted
+      loop
+      playsInline
+      draggable={false}
+      className="w-full h-auto rounded-[4px] bg-[#121212] object-contain transition-transform duration-300 group-hover:scale-[1.01] lg:h-full lg:w-auto lg:max-w-none"
+    />
+  ) : (
+    <img
+      src={resolvedSrc || undefined}
+      alt={item.alt || item.title || `${label} — item ${index + 1}`}
+      loading={index < 4 ? "eager" : "lazy"}
+      decoding="async"
+      draggable={false}
+      className="w-full h-auto rounded-[4px] bg-[#121212] object-contain transition-transform duration-300 group-hover:scale-[1.01] lg:h-full lg:w-auto lg:max-w-none"
+    />
+  );
+
+  if (item.href) {
+    return (
+      <Link
+        to={item.href as any}
+        className="w-full cursor-pointer overflow-hidden bg-card transition-opacity hover:opacity-95 group select-none lg:w-auto lg:shrink-0 lg:h-full lg:max-h-full lg:overflow-visible lg:bg-transparent lg:py-2 lg:hover:opacity-100"
+        title={item.alt || item.title || `${label} — item ${index + 1}`}
+      >
+        {mediaEl}
+      </Link>
+    );
+  }
+
+  return (
+    <figure
+      className="w-full cursor-zoom-in overflow-hidden group select-none lg:w-auto lg:shrink-0 lg:h-full lg:max-h-full lg:overflow-visible lg:py-2"
+      onClick={onZoom}
+    >
+      {mediaEl}
+    </figure>
+  );
+}
+
+function HorizontalLightbox({
+  item,
+  label,
+  onClose,
+}: {
+  item: GalleryMediaItem;
+  label: string;
+  onClose: () => void;
+}) {
+  const resolvedSrc = useResolvedMediaSrc(item.src);
+  const isVideo = /\.(mp4|webm|mov)(\?|#|$)|^data:video\//i.test(item.src);
+  return (
+    <div
+      className="fixed inset-0 z-[200] flex cursor-zoom-out items-center justify-center bg-black/95 p-6 backdrop-blur-md"
+      onClick={onClose}
+    >
+      {isVideo ? (
+        <video
+          src={resolvedSrc || undefined}
+          controls
+          autoPlay
+          loop
+          playsInline
+          className="max-h-full max-w-full object-contain"
+          onClick={(e) => e.stopPropagation()}
+        />
+      ) : (
+        <img
+          src={resolvedSrc || undefined}
+          alt={item.alt || itemsAlt(item, label)}
+          className="max-h-full max-w-full object-contain select-none"
+        />
+      )}
+    </div>
+  );
+}
+
+function itemsAlt(item: GalleryMediaItem, label: string) {
+  return item.alt || item.title || `${label} — full view`;
 }

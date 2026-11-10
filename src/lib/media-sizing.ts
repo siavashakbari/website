@@ -26,6 +26,9 @@ export interface SizedMediaResult {
   fullSizeKb: number;
   thumbSizeKb: number;
   isVideo: boolean;
+  blob?: Blob;
+  rawExt?: string;
+  storedInIndexedDb?: boolean;
 }
 
 /**
@@ -122,6 +125,7 @@ async function processImageFile(file: File): Promise<SizedMediaResult> {
           fullSizeKb,
           thumbSizeKb,
           isVideo: false,
+          rawExt: ".jpg",
         });
       };
       img.src = e.target?.result as string;
@@ -130,10 +134,19 @@ async function processImageFile(file: File): Promise<SizedMediaResult> {
   });
 }
 
+function getVideoExt(file: File): string {
+  const lower = file.name.toLowerCase();
+  if (lower.endsWith(".webm") || file.type === "video/webm") return ".webm";
+  if (lower.endsWith(".mov") || file.type === "video/quicktime") return ".mov";
+  return ".mp4";
+}
+
 /**
- * Extracts a video poster/thumbnail and returns video URL + thumbnail
+ * Extracts a video poster/thumbnail and returns video Blob/DataURL + thumbnail.
+ * Videos > 1.5MB avoid localStorage base64 limits by passing the binary Blob for IndexedDB storage.
  */
 async function processVideoFile(file: File): Promise<SizedMediaResult> {
+  const rawExt = getVideoExt(file);
   return new Promise((resolve, reject) => {
     const video = document.createElement("video");
     video.preload = "metadata";
@@ -143,37 +156,49 @@ async function processVideoFile(file: File): Promise<SizedMediaResult> {
     const fileUrl = URL.createObjectURL(file);
     video.src = fileUrl;
 
-    video.onloadeddata = () => {
-      video.currentTime = 0.5; // grab frame at 0.5s
-    };
+    let finished = false;
+    let seekTimer: ReturnType<typeof setTimeout> | null = null;
 
-    video.onseeked = () => {
+    const finishWithFrame = () => {
+      if (finished) return;
+      finished = true;
+      if (seekTimer) clearTimeout(seekTimer);
+
       const origW = video.videoWidth || 1920;
       const origH = video.videoHeight || 1080;
 
-      // Create thumbnail from frame
-      const MAX_THUMB_EDGE = 450;
-      let thumbW = origW;
-      let thumbH = origH;
-      if (origW >= origH) {
-        thumbW = MAX_THUMB_EDGE;
-        thumbH = Math.round((origH * MAX_THUMB_EDGE) / origW);
-      } else {
-        thumbH = MAX_THUMB_EDGE;
-        thumbW = Math.round((origW * MAX_THUMB_EDGE) / origH);
+      // Create thumbnail from frame when a decodable video frame exists
+      let thumbUrl = "";
+      let thumbSizeKb = 0;
+      if (video.videoWidth > 0 && video.videoHeight > 0) {
+        try {
+          const MAX_THUMB_EDGE = 450;
+          let thumbW = origW;
+          let thumbH = origH;
+          if (origW >= origH) {
+            thumbW = MAX_THUMB_EDGE;
+            thumbH = Math.round((origH * MAX_THUMB_EDGE) / origW);
+          } else {
+            thumbH = MAX_THUMB_EDGE;
+            thumbW = Math.round((origW * MAX_THUMB_EDGE) / origH);
+          }
+          const canvas = resizeCanvas(video, thumbW, thumbH);
+          thumbUrl = canvas.toDataURL("image/webp", 0.65);
+          if (!thumbUrl.startsWith("data:image/webp")) {
+            thumbUrl = canvas.toDataURL("image/jpeg", 0.65);
+          }
+          thumbSizeKb = Math.round((thumbUrl.length * 3) / 4 / 1024);
+        } catch {
+          thumbUrl = "";
+          thumbSizeKb = 0;
+        }
       }
 
-      const canvas = resizeCanvas(video, thumbW, thumbH);
-      let thumbUrl = canvas.toDataURL("image/webp", 0.65);
-      if (!thumbUrl.startsWith("data:image/webp")) {
-        thumbUrl = canvas.toDataURL("image/jpeg", 0.65);
-      }
-      const thumbSizeKb = Math.round((thumbUrl.length * 3) / 4 / 1024);
-
-      // Convert video to DataURL if under 15MB, otherwise use blob/object url
-      if (file.size <= 15 * 1024 * 1024) {
+      // Only inline tiny videos (<= 1.5MB) into localStorage; larger videos go into IndexedDB
+      if (file.size <= 1.5 * 1024 * 1024) {
         const reader = new FileReader();
         reader.onload = (e) => {
+          URL.revokeObjectURL(fileUrl);
           resolve({
             fullUrl: e.target?.result as string,
             thumbUrl,
@@ -182,6 +207,21 @@ async function processVideoFile(file: File): Promise<SizedMediaResult> {
             fullSizeKb: Math.round(file.size / 1024),
             thumbSizeKb,
             isVideo: true,
+            rawExt,
+          });
+        };
+        reader.onerror = () => {
+          resolve({
+            fullUrl: fileUrl,
+            thumbUrl,
+            width: origW,
+            height: origH,
+            fullSizeKb: Math.round(file.size / 1024),
+            thumbSizeKb,
+            isVideo: true,
+            blob: file,
+            rawExt,
+            storedInIndexedDb: true,
           });
         };
         reader.readAsDataURL(file);
@@ -194,12 +234,42 @@ async function processVideoFile(file: File): Promise<SizedMediaResult> {
           fullSizeKb: Math.round(file.size / 1024),
           thumbSizeKb,
           isVideo: true,
+          blob: file,
+          rawExt,
+          storedInIndexedDb: true,
         });
       }
     };
 
+    video.onloadeddata = () => {
+      const targetTime =
+        video.duration && isFinite(video.duration)
+          ? Math.min(0.5, Math.max(0, video.duration * 0.25))
+          : 0.1;
+      if (targetTime <= 0.02) {
+        finishWithFrame();
+        return;
+      }
+      seekTimer = setTimeout(finishWithFrame, 1200);
+      try {
+        video.currentTime = targetTime;
+      } catch {
+        finishWithFrame();
+      }
+    };
+
+    video.onseeked = finishWithFrame;
+
     video.onerror = () => {
-      reject(new Error("Failed to load video file"));
+      if (finished) return;
+      finished = true;
+      if (seekTimer) clearTimeout(seekTimer);
+      URL.revokeObjectURL(fileUrl);
+      reject(
+        new Error(
+          "Could not decode this video format in the browser. Use MP4 (H.264) / WebM, or paste a hosted video URL.",
+        ),
+      );
     };
   });
 }

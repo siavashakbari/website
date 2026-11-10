@@ -32,7 +32,7 @@ import {
 import { UI_TYPE_LIST, type UITypeCode } from "@/components/ui-types";
 import { PairedBoxesEditor, type KeyValuePair } from "@/components/vault/PairedBoxesEditor";
 import { processMediaUpload } from "@/lib/media-sizing";
-import { resolveInventoryImage } from "@/lib/inventory-assets";
+import { putMediaBlob, resolveVideoPoster, useResolvedMediaSrc } from "@/lib/local-media-db";
 import { normalizeProjectSlug } from "@/lib/taxonomy";
 
 function isVideoAssetUrl(url?: string): boolean {
@@ -49,6 +49,9 @@ function VaultPagesView() {
   const [collapsedSet, setCollapsedSet] = useState<Set<string>>(new Set());
   const [showAddModal, setShowAddModal] = useState(false);
   const [mediaPickerPageId, setMediaPickerPageId] = useState<string | null>(null);
+  const [pendingCoverPatches, setPendingCoverPatches] = useState<
+    Record<string, { url: string; nonce: number }>
+  >({});
 
   // Top-to-bottom hierarchical creation form state
   const [createTarget, setCreateTarget] = useState<"project" | "category" | "discipline">("project");
@@ -186,7 +189,12 @@ function VaultPagesView() {
     const target = pages.find((p) => p.id === pageId);
     if (!target) return;
     const updated: VaultPageItem = { ...target, ...updates };
-    saveVaultPage(updated);
+    try {
+      saveVaultPage(updated);
+    } catch (err: any) {
+      alert(err?.message || "Failed to update page.");
+      throw err;
+    }
   };
 
   const handleDeletePage = (pageId: string, pageName: string) => {
@@ -370,6 +378,7 @@ function VaultPagesView() {
               onUpdatePage={handleUpdatePage}
               onDeletePage={handleDeletePage}
               onOpenMediaPicker={(id) => setMediaPickerPageId(id)}
+              pendingCoverPatches={pendingCoverPatches}
               getChildrenOf={getChildrenOf}
               searchQuery={normalizedSearch}
               pageMatchesQuery={pageMatchesQuery}
@@ -386,7 +395,10 @@ function VaultPagesView() {
           pageId={mediaPickerPageId}
           onClose={() => setMediaPickerPageId(null)}
           onSelectCover={(url) => {
-            handleUpdatePage(mediaPickerPageId, { coverPhoto: url, coverModifiedByUser: true });
+            setPendingCoverPatches((prev) => ({
+              ...prev,
+              [mediaPickerPageId]: { url, nonce: Date.now() },
+            }));
             setMediaPickerPageId(null);
           }}
         />
@@ -664,6 +676,7 @@ interface PageNodeCardProps {
   onUpdatePage: (pageId: string, updates: Partial<VaultPageItem>) => void;
   onDeletePage: (pageId: string, pageName: string) => void;
   onOpenMediaPicker: (pageId: string) => void;
+  pendingCoverPatches?: Record<string, { url: string; nonce: number }>;
   getChildrenOf: (route: string) => VaultPageItem[];
   searchQuery: string;
   pageMatchesQuery: (page: VaultPageItem, q: string) => boolean;
@@ -680,6 +693,7 @@ function PageNodeCard({
   onUpdatePage,
   onDeletePage,
   onOpenMediaPicker,
+  pendingCoverPatches,
   getChildrenOf,
   searchQuery,
   pageMatchesQuery,
@@ -694,30 +708,118 @@ function PageNodeCard({
       : rawChildren;
   const hasChildren = children.length > 0;
   const isCollapsed = searchQuery ? false : collapsedSet.has(page.route);
-  const [routeDraft, setRouteDraft] = useState(page.route);
+
+  const [draft, setDraft] = useState<VaultPageItem>(page);
+  const [justSaved, setJustSaved] = useState(false);
+
+  const pageContentSig = [
+    page.id,
+    page.route,
+    page.name,
+    page.parentRoute,
+    page.uiType,
+    page.coverPhoto,
+    page.descriptionEn,
+    page.descriptionFa,
+    JSON.stringify(page.pairedBoxes || []),
+  ].join("|");
 
   useEffect(() => {
-    setRouteDraft(page.route);
-  }, [page.route]);
+    setDraft(page);
+  }, [pageContentSig]);
 
-  const commitRouteDraft = () => {
-    const cleaned = routeDraft.trim();
-    if (cleaned && cleaned !== page.route) {
-      onUpdatePage(page.id, { route: cleaned });
-    } else {
-      setRouteDraft(page.route);
+  const coverPatch = pendingCoverPatches?.[page.id];
+  useEffect(() => {
+    if (!coverPatch) return;
+    setDraft((prev) => ({
+      ...prev,
+      coverPhoto: coverPatch.url,
+      coverModifiedByUser: true,
+    }));
+    setJustSaved(false);
+  }, [coverPatch?.nonce]);
+
+  const isDirty = useMemo(() => {
+    return (
+      draft.route.trim() !== page.route ||
+      draft.name.trim() !== page.name ||
+      draft.parentRoute !== page.parentRoute ||
+      draft.uiType !== page.uiType ||
+      draft.coverPhoto !== page.coverPhoto ||
+      draft.descriptionEn !== page.descriptionEn ||
+      draft.descriptionFa !== page.descriptionFa ||
+      JSON.stringify(draft.pairedBoxes || []) !== JSON.stringify(page.pairedBoxes || [])
+    );
+  }, [draft, page]);
+
+  const handleSubmitChanges = () => {
+    const cleanedRoute = draft.route.trim();
+    const cleanedName = draft.name.trim();
+    if (!cleanedRoute) {
+      alert("Address (route) cannot be empty.");
+      return;
+    }
+    if (!cleanedName) {
+      alert("Page name cannot be empty.");
+      return;
+    }
+    try {
+      onUpdatePage(page.id, {
+        route: cleanedRoute,
+        name: cleanedName,
+        parentRoute: draft.parentRoute,
+        uiType: draft.uiType,
+        uiTypeModifiedByUser:
+          draft.uiType !== page.uiType ? true : draft.uiTypeModifiedByUser,
+        coverPhoto: draft.coverPhoto,
+        coverModifiedByUser:
+          draft.coverPhoto !== page.coverPhoto ? true : draft.coverModifiedByUser,
+        descriptionEn: draft.descriptionEn,
+        descriptionFa: draft.descriptionFa,
+        pairedBoxes: draft.pairedBoxes || [],
+      });
+      setJustSaved(true);
+      setTimeout(() => setJustSaved(false), 2500);
+    } catch {
+      /* alert already surfaced */
     }
   };
 
-  // File upload for cover photo
+  const handleDiscardChanges = () => {
+    setDraft(page);
+    setJustSaved(false);
+  };
+
+  // File upload for cover photo (updates card draft only; applied on Submit)
   const handleCoverUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     try {
       const sized = await processMediaUpload(file);
-      onUpdatePage(page.id, { coverPhoto: sized.fullUrl, coverModifiedByUser: true });
+      let finalCover = sized.fullUrl;
+      if (sized.blob) {
+        const extLower = (sized.rawExt || (sized.isVideo ? ".mp4" : ".jpg")).toLowerCase();
+        const idbKey = `idb://page-cover-${page.id}-${Date.now()}${extLower}`;
+        await putMediaBlob(idbKey, sized.blob);
+        if (sized.fullUrl.startsWith("blob:")) {
+          try {
+            URL.revokeObjectURL(sized.fullUrl);
+          } catch {
+            /* ignore */
+          }
+        }
+        finalCover = idbKey;
+      }
+      setDraft((prev) => ({
+        ...prev,
+        coverPhoto: finalCover,
+        coverModifiedByUser: true,
+      }));
+      setJustSaved(false);
     } catch (err: any) {
       alert(`Error uploading cover: ${err.message}`);
+    } finally {
+      e.target.value = "";
     }
   };
 
@@ -822,7 +924,7 @@ function PageNodeCard({
           </div>
         </div>
 
-        {/* Card Body - All 7 Required Fields */}
+        {/* Card Body - All 7 Required Fields (Buffered in draft until Submit Changes) */}
         <div className="p-4 sm:p-6 space-y-5">
           {/* Row 1: Address & Name (Editable) */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -832,13 +934,10 @@ function PageNodeCard({
               </label>
               <input
                 type="text"
-                value={routeDraft}
-                onChange={(e) => setRouteDraft(e.target.value)}
-                onBlur={commitRouteDraft}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    e.currentTarget.blur();
-                  }
+                value={draft.route}
+                onChange={(e) => {
+                  setDraft((prev) => ({ ...prev, route: e.target.value }));
+                  setJustSaved(false);
                 }}
                 className="w-full bg-black/60 border border-white/10 rounded-xl px-3.5 py-2.5 text-xs font-mono text-[#2CE3C0] focus:outline-none focus:border-[#2CE3C0]"
               />
@@ -848,13 +947,16 @@ function PageNodeCard({
               <label className="block text-[11px] font-mono uppercase tracking-wider text-neutral-400 mb-1 flex items-center justify-between">
                 <span>2. Name (Browser Tab Title)</span>
                 <span className="text-[10px] text-neutral-500 font-normal">
-                  Tab: Siavash Akbari - {page.name}
+                  Tab: Siavash Akbari - {draft.name || page.name}
                 </span>
               </label>
               <input
                 type="text"
-                value={page.name}
-                onChange={(e) => onUpdatePage(page.id, { name: e.target.value })}
+                value={draft.name}
+                onChange={(e) => {
+                  setDraft((prev) => ({ ...prev, name: e.target.value }));
+                  setJustSaved(false);
+                }}
                 className="w-full bg-black/60 border border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-[#2CE3C0]"
               />
             </div>
@@ -867,8 +969,11 @@ function PageNodeCard({
                 4. Parent Route (Collapsible Nesting)
               </label>
               <select
-                value={page.parentRoute}
-                onChange={(e) => onUpdatePage(page.id, { parentRoute: e.target.value })}
+                value={draft.parentRoute}
+                onChange={(e) => {
+                  setDraft((prev) => ({ ...prev, parentRoute: e.target.value }));
+                  setJustSaved(false);
+                }}
                 className="w-full bg-black/60 border border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-[#2CE3C0] font-mono"
               >
                 <option value="">None (Top-Level Root Field)</option>
@@ -887,13 +992,15 @@ function PageNodeCard({
                 5. UI Layout Type
               </label>
               <select
-                value={page.uiType}
-                onChange={(e) =>
-                  onUpdatePage(page.id, {
+                value={draft.uiType}
+                onChange={(e) => {
+                  setDraft((prev) => ({
+                    ...prev,
                     uiType: e.target.value as UITypeCode,
                     uiTypeModifiedByUser: true,
-                  })
-                }
+                  }));
+                  setJustSaved(false);
+                }}
                 className="w-full bg-black/60 border border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-[#2CE3C0]"
               >
                 {UI_TYPE_LIST.map((ui) => (
@@ -913,26 +1020,8 @@ function PageNodeCard({
                 3.1 Cover Photo
               </label>
               <div className="relative aspect-[16/10] rounded-xl overflow-hidden bg-black/60 border border-white/10 group flex items-center justify-center">
-                {page.coverPhoto ? (
-                  (() => {
-                    const resolvedCover = resolveInventoryImage(page.coverPhoto) || page.coverPhoto;
-                    return isVideoAssetUrl(resolvedCover) ? (
-                      <video
-                        src={resolvedCover}
-                        muted
-                        loop
-                        playsInline
-                        preload="metadata"
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <img
-                        src={resolvedCover}
-                        alt={page.name}
-                        className="w-full h-full object-cover"
-                      />
-                    );
-                  })()
+                {draft.coverPhoto ? (
+                  <VaultCoverPreview src={draft.coverPhoto} alt={draft.name || page.name} />
                 ) : (
                   <div className="flex flex-col items-center gap-1 text-neutral-500">
                     <ImageIcon className="w-6 h-6" />
@@ -974,8 +1063,11 @@ function PageNodeCard({
                   </label>
                   <textarea
                     rows={4}
-                    value={page.descriptionEn}
-                    onChange={(e) => onUpdatePage(page.id, { descriptionEn: e.target.value })}
+                    value={draft.descriptionEn}
+                    onChange={(e) => {
+                      setDraft((prev) => ({ ...prev, descriptionEn: e.target.value }));
+                      setJustSaved(false);
+                    }}
                     placeholder="Write English introductory blurb..."
                     className="w-full bg-black/60 border border-white/10 rounded-xl p-3 text-xs text-white placeholder:text-neutral-600 focus:outline-none focus:border-[#2CE3C0] leading-relaxed resize-y"
                   />
@@ -989,8 +1081,11 @@ function PageNodeCard({
                   <textarea
                     rows={4}
                     dir="rtl"
-                    value={page.descriptionFa}
-                    onChange={(e) => onUpdatePage(page.id, { descriptionFa: e.target.value })}
+                    value={draft.descriptionFa}
+                    onChange={(e) => {
+                      setDraft((prev) => ({ ...prev, descriptionFa: e.target.value }));
+                      setJustSaved(false);
+                    }}
                     placeholder="توضیحات مقدماتی فارسی را بنویسید..."
                     className="w-full bg-black/60 border border-white/10 rounded-xl p-3 text-xs text-white placeholder:text-neutral-600 focus:outline-none focus:border-[#2CE3C0] leading-relaxed resize-y font-sans"
                   />
@@ -1004,9 +1099,56 @@ function PageNodeCard({
             <PairedBoxesEditor
               title="7. Additional Paired Boxes"
               description="Metadata pairs for this page (e.g. Model : Sara, Year : 2020). Click button to turn into JSON code."
-              pairs={page.pairedBoxes || []}
-              onChange={(newPairs) => onUpdatePage(page.id, { pairedBoxes: newPairs })}
+              pairs={draft.pairedBoxes || []}
+              onChange={(newPairs) => {
+                setDraft((prev) => ({ ...prev, pairedBoxes: newPairs }));
+                setJustSaved(false);
+              }}
             />
+          </div>
+
+          {/* Card Footer Submit Bar */}
+          <div className="flex flex-wrap items-center justify-between gap-3 pt-4 border-t border-white/10">
+            <div className="text-[11px] font-mono">
+              {isDirty ? (
+                <span className="inline-flex items-center gap-1.5 text-amber-300">
+                  <span className="h-2 w-2 rounded-full bg-amber-400 animate-pulse" />
+                  Unsaved changes — click Submit Changes to apply
+                </span>
+              ) : justSaved ? (
+                <span className="inline-flex items-center gap-1.5 text-[#2CE3C0]">
+                  <Check className="w-3.5 h-3.5" />
+                  Changes submitted &amp; live
+                </span>
+              ) : (
+                <span className="text-neutral-500">All changes saved</span>
+              )}
+            </div>
+
+            <div className="flex items-center gap-2">
+              {isDirty && (
+                <button
+                  type="button"
+                  onClick={handleDiscardChanges}
+                  className="px-3.5 py-2 rounded-xl border border-white/10 text-xs font-mono text-neutral-300 hover:text-white hover:bg-white/5 transition-colors cursor-pointer"
+                >
+                  Discard
+                </button>
+              )}
+              <button
+                type="button"
+                disabled={!isDirty}
+                onClick={handleSubmitChanges}
+                className={`px-4 py-2 rounded-xl text-xs font-semibold font-mono transition-all flex items-center gap-1.5 ${
+                  isDirty
+                    ? "bg-[#2CE3C0] text-black hover:bg-[#2CE3C0]/90 shadow-[0_0_15px_rgba(44,227,192,0.3)] cursor-pointer"
+                    : "bg-white/5 text-neutral-500 border border-white/10 cursor-not-allowed"
+                }`}
+              >
+                <Check className="w-3.5 h-3.5" />
+                <span>Submit Changes</span>
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -1025,6 +1167,7 @@ function PageNodeCard({
               onUpdatePage={onUpdatePage}
               onDeletePage={onDeletePage}
               onOpenMediaPicker={onOpenMediaPicker}
+              pendingCoverPatches={pendingCoverPatches}
               getChildrenOf={getChildrenOf}
               searchQuery={searchQuery}
               pageMatchesQuery={pageMatchesQuery}
@@ -1088,39 +1231,62 @@ function MediaCoverPickerModal({
         />
 
         <div className="flex-1 overflow-y-auto grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2.5 p-1">
-          {filtered.map((item) => {
-            const resolvedThumb =
-              resolveInventoryImage(item.thumbSrc || item.imgSrc) || item.imgSrc;
-            const resolvedVideo = resolveInventoryImage(item.imgSrc) || item.imgSrc;
-            const itemIsVideo = item.isVideo || isVideoAssetUrl(resolvedVideo);
-            return (
-              <div
-                key={item.id}
-                onClick={() => onSelectCover(item.imgSrc)}
-                className="group aspect-square rounded-lg overflow-hidden bg-black border border-white/10 hover:border-[#2CE3C0] cursor-pointer transition-all relative"
-              >
-                {itemIsVideo ? (
-                  <video
-                    src={resolvedVideo}
-                    muted
-                    playsInline
-                    preload="metadata"
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <img
-                    src={resolvedThumb}
-                    alt={item.title}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-                  />
-                )}
-                <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                  <Check className="w-5 h-5 text-[#2CE3C0]" />
-                </div>
-              </div>
-            );
-          })}
+          {filtered.map((item) => (
+            <PickerMediaCell
+              key={item.id}
+              item={item}
+              onSelect={() => onSelectCover(item.imgSrc)}
+            />
+          ))}
         </div>
+      </div>
+    </div>
+  );
+}
+
+function VaultCoverPreview({ src, alt }: { src: string; alt: string }) {
+  const resolved = useResolvedMediaSrc(src);
+  return isVideoAssetUrl(src) || isVideoAssetUrl(resolved) ? (
+    <video
+      src={resolved || undefined}
+      muted
+      loop
+      playsInline
+      preload="metadata"
+      className="w-full h-full object-cover"
+    />
+  ) : (
+    <img src={resolved || undefined} alt={alt} className="w-full h-full object-cover" />
+  );
+}
+
+function PickerMediaCell({ item, onSelect }: { item: any; onSelect: () => void }) {
+  const resolvedThumb = useResolvedMediaSrc(item.thumbSrc || item.imgSrc);
+  const resolvedVideo = useResolvedMediaSrc(item.imgSrc);
+  const itemIsVideo = item.isVideo || isVideoAssetUrl(item.imgSrc);
+  return (
+    <div
+      onClick={onSelect}
+      className="group aspect-square rounded-lg overflow-hidden bg-black border border-white/10 hover:border-[#2CE3C0] cursor-pointer transition-all relative"
+    >
+      {itemIsVideo ? (
+        <video
+          src={resolvedVideo || undefined}
+          poster={resolveVideoPoster(item.thumbSrc)}
+          muted
+          playsInline
+          preload="metadata"
+          className="w-full h-full object-cover"
+        />
+      ) : (
+        <img
+          src={resolvedThumb || undefined}
+          alt={item.title}
+          className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+        />
+      )}
+      <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+        <Check className="w-5 h-5 text-[#2CE3C0]" />
       </div>
     </div>
   );

@@ -1,5 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import { useResolvedMediaSrc } from "@/lib/local-media-db";
 
 type CoverTileProps = {
   label: string;
@@ -17,12 +18,13 @@ type CoverTileProps = {
 export function CoverTile({ to, params, href, label, image, ariaLabel, index }: CoverTileProps) {
   const linkProps = href ? { to: href as any } : { to: to as any, params };
   const [imgFailed, setImgFailed] = useState(false);
+  const resolvedImage = useResolvedMediaSrc(image);
 
   useEffect(() => {
     setImgFailed(false);
   }, [image]);
 
-  const hasValidImage = Boolean(image && !imgFailed && !image.startsWith("blob:"));
+  const hasValidImage = Boolean(resolvedImage && !imgFailed && !(image && image.startsWith("blob:")));
   const isVideo = Boolean(image && /\.(mp4|webm|mov)(\?|#|$)|^data:video\//i.test(image));
 
   return (
@@ -34,7 +36,7 @@ export function CoverTile({ to, params, href, label, image, ariaLabel, index }: 
       {hasValidImage ? (
         isVideo ? (
           <video
-            src={image}
+            src={resolvedImage}
             muted
             loop
             playsInline
@@ -44,7 +46,7 @@ export function CoverTile({ to, params, href, label, image, ariaLabel, index }: 
           />
         ) : (
           <img
-            src={image}
+            src={resolvedImage}
             alt={label}
             width={480}
             height={640}

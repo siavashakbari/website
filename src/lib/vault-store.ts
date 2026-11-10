@@ -8,6 +8,7 @@ import { PHOTO_INVENTORY, type PhotoInventoryItem } from "@/data/photo-inventory
 import { projects as DEFAULT_PROJECTS } from "@/data/projects";
 import { DISCIPLINES } from "@/data/disciplines";
 import { resolveInventoryImage, resolveKnownAssetFile } from "@/lib/inventory-assets";
+import { deleteMediaBlob, isIndexedDbMediaUrl } from "@/lib/local-media-db";
 import type { UITypeCode } from "@/components/ui-types";
 import type { KeyValuePair } from "@/components/vault/PairedBoxesEditor";
 import {
@@ -99,7 +100,9 @@ function isVideoMediaSrc(imgSrc?: string): boolean {
 }
 
 export function filenameKeyFromSrc(src?: string): string {
-  if (!src || src.startsWith("data:") || src.startsWith("blob:")) return (src || "").toLowerCase();
+  if (!src || src.startsWith("data:") || src.startsWith("blob:") || isIndexedDbMediaUrl(src)) {
+    return (src || "").toLowerCase();
+  }
   const withoutOrigin = src.trim().replace(/^https?:\/\/[^/]+/i, "");
   const knownFile = resolveKnownAssetFile(withoutOrigin);
   if (knownFile) return knownFile;
@@ -929,7 +932,8 @@ export function getVaultPages(): VaultPageItem[] {
               if (discNorm === "photography") specNorm = "food-photography";
               else if (discNorm === "graphic-design") specNorm = "visual-identity";
             }
-            const projSlug = normalizeProjectSlug(cp.title || cp.id);
+            const cpRouteSlug = cp.route ? String(cp.route).split("/").filter(Boolean).pop() : "";
+            const projSlug = normalizeProjectSlug(cpRouteSlug || cp.id || cp.title);
             if (
               !projSlug ||
               NON_PROJECT_SLUGS.has(projSlug) ||
@@ -1185,14 +1189,23 @@ export function saveVaultPage(page: VaultPageItem): void {
   };
 
   const currentPages = getVaultPages();
-  const idx = currentPages.findIndex(
-    (p) => p.id === normalizedPage.id || p.route.toLowerCase() === normalizedPage.route.toLowerCase()
+  const idx = currentPages.findIndex((p) => p.id === normalizedPage.id);
+  const byRouteIdx =
+    idx >= 0
+      ? idx
+      : currentPages.findIndex((p) => p.route.toLowerCase() === normalizedPage.route.toLowerCase());
+
+  const routeConflict = currentPages.find(
+    (p, i) => i !== byRouteIdx && p.route.toLowerCase() === normalizedPage.route.toLowerCase()
   );
+  if (routeConflict) {
+    throw new Error(`Another page already uses route "${normalizedPage.route}".`);
+  }
 
   let oldRoute = "";
-  if (idx >= 0) {
-    oldRoute = currentPages[idx].route;
-    currentPages[idx] = { ...currentPages[idx], ...normalizedPage };
+  if (byRouteIdx >= 0) {
+    oldRoute = currentPages[byRouteIdx].route;
+    currentPages[byRouteIdx] = { ...currentPages[byRouteIdx], ...normalizedPage };
 
     // If route was changed, update any children parentRoute
     if (oldRoute && oldRoute.toLowerCase() !== normalizedPage.route.toLowerCase()) {
@@ -1208,6 +1221,45 @@ export function saveVaultPage(page: VaultPageItem): void {
 
   localStorage.setItem(STORAGE_VAULT_PAGES, JSON.stringify(currentPages));
 
+  const oldProjSlug = oldRoute ? normalizeProjectSlug(oldRoute.split("/").pop() || "") : "";
+
+  // Rebind assigned media if an existing page's route changed
+  if (oldRoute && oldRoute.toLowerCase() !== normalizedPage.route.toLowerCase()) {
+    try {
+      const oldNorm = normalizeRouteStr(oldRoute);
+      const newSegs = normRoute.split("/").filter(Boolean);
+      const newField = normalizeDisciplineSlug(newSegs[0] || "photography");
+      const newFlat = FLAT_FIELDS.has(newField);
+      const newCat = newFlat ? "" : normalizeSpecialtySlug(newSegs[1] || "");
+      const newProj = newSegs.length >= 3
+        ? normalizeProjectSlug(newSegs[2])
+        : newSegs.length === 2 && newFlat
+          ? normalizeProjectSlug(newSegs[1])
+          : "";
+      const currentMedia = getVaultMedia();
+      let mediaMoved = false;
+      const nextMedia = currentMedia.map((m) => {
+        if (normalizeRouteStr(m.assignedRoute) === oldNorm) {
+          mediaMoved = true;
+          return ensureMediaItemDynamicFields({
+            ...m,
+            field: newField,
+            category: newCat,
+            project: newProj,
+            assignedRoute: normRoute,
+            taxonomyModifiedByUser: true,
+          });
+        }
+        return m;
+      });
+      if (mediaMoved) {
+        localStorage.setItem(STORAGE_VAULT_MEDIA, JSON.stringify(nextMedia));
+      }
+    } catch {
+      /* ignore */
+    }
+  }
+
   // Sync to studio store custom projects ONLY for project-level routes
   // (Level-0 disciplines & Level-1 categories must NEVER be stored as studio projects)
   const normSegs = normRoute.split("/").filter(Boolean);
@@ -1220,17 +1272,31 @@ export function saveVaultPage(page: VaultPageItem): void {
       let studioList: any[] = rawStudio ? JSON.parse(rawStudio) : [];
       if (!Array.isArray(studioList)) studioList = [];
 
+      if (oldRoute && oldRoute.toLowerCase() !== normRoute.toLowerCase()) {
+        studioList = studioList.filter(
+          (p) =>
+            p &&
+            (p.route || "").toLowerCase() !== oldRoute.toLowerCase() &&
+            (!oldProjSlug || p.id !== oldProjSlug),
+        );
+      }
+
       const disc = normSegs[0];
       const spec = normSegs.length === 3 ? normSegs[1] : "";
       const projSlug = normalizeProjectSlug(normSegs[normSegs.length - 1] || page.name);
       if (projSlug && !NON_PROJECT_SLUGS.has(projSlug)) {
         const sIdx = studioList.findIndex(
-          (p) => normalizeProjectSlug(p.title || "") === projSlug || p.id === projSlug
+          (p) =>
+            (p.route || "").toLowerCase() === normRoute.toLowerCase() ||
+            p.id === projSlug ||
+            (oldProjSlug && p.id === oldProjSlug)
         );
 
         if (sIdx >= 0) {
           studioList[sIdx] = {
             ...studioList[sIdx],
+            id: projSlug,
+            route: normRoute,
             title: page.name,
             discipline: disc,
             category: spec || disc,
@@ -1243,6 +1309,7 @@ export function saveVaultPage(page: VaultPageItem): void {
         } else {
           studioList.push({
             id: projSlug,
+            route: normRoute,
             title: page.name,
             description: page.descriptionEn,
             descriptionFa: page.descriptionFa,
@@ -1276,6 +1343,7 @@ export function deleteVaultPage(id: string): void {
   if (target) {
     try {
       const targetProj = normalizeProjectSlug(target.route.split("/").pop() || target.name);
+      const targetRouteLower = target.route.toLowerCase();
       const rawStudio = localStorage.getItem("siavash_studio_custom_projects");
       if (rawStudio) {
         const studioList = JSON.parse(rawStudio);
@@ -1283,6 +1351,7 @@ export function deleteVaultPage(id: string): void {
           const filtered = studioList.filter(
             (cp: any) =>
               cp &&
+              (cp.route || "").toLowerCase() !== targetRouteLower &&
               cp.id !== targetProj &&
               normalizeProjectSlug(cp.title || "") !== targetProj
           );
@@ -1520,8 +1589,14 @@ export function getVaultMedia(): VaultMediaItem[] {
               makeupArtist: saved.makeupArtist !== undefined ? saved.makeupArtist : existing.makeupArtist,
               assistant: saved.assistant !== undefined ? saved.assistant : existing.assistant,
             });
-          } else if (saved.id?.startsWith("custom-media-") || sSrc.startsWith("data:")) {
-            // Valid user-uploaded media item added directly in Vault (ignore expired blob: uploads)
+          } else if (
+            saved.id?.startsWith("custom-media-") ||
+            sSrc.startsWith("data:") ||
+            sSrc.startsWith("idb://") ||
+            sSrc.startsWith("http://") ||
+            sSrc.startsWith("https://")
+          ) {
+            // Valid user-uploaded media item added directly in Vault (ignore expired raw blob: uploads)
             const key = (saved.imgSrc || saved.uniqueCode).toLowerCase();
             if (!sSrc.startsWith("blob:")) {
               mediaMap.set(key, {
@@ -1585,8 +1660,12 @@ export function getVaultMedia(): VaultMediaItem[] {
     }
   }
 
-  const result = Array.from(mediaMap.values()).map(ensureMediaItemDynamicFields);
-  return result;
+  const processed = Array.from(mediaMap.values()).map(ensureMediaItemDynamicFields);
+  const customUploads = processed
+    .filter((m) => m.id?.startsWith("custom-media-"))
+    .sort((a, b) => (b.createdAt || "").localeCompare(a.createdAt || ""));
+  const baseItems = processed.filter((m) => !m.id?.startsWith("custom-media-"));
+  return [...customUploads, ...baseItems];
 }
 
 export function ensureMediaItemDynamicFields(item: VaultMediaItem): VaultMediaItem {
@@ -1653,7 +1732,14 @@ export function saveVaultMedia(item: VaultMediaItem): void {
   } else {
     list.unshift(processed);
   }
-  localStorage.setItem(STORAGE_VAULT_MEDIA, JSON.stringify(list));
+  try {
+    localStorage.setItem(STORAGE_VAULT_MEDIA, JSON.stringify(list));
+  } catch (err) {
+    throw new Error(
+      "Could not save media metadata to browser localStorage (quota exceeded). Try deleting unused large inline uploads or use IndexedDB / hosted URLs.",
+      { cause: err },
+    );
+  }
   notifyVaultUpdated({ type: "media_saved", id: processed.id });
 }
 
@@ -1663,6 +1749,9 @@ export function deleteVaultMedia(idOrCode: string): void {
   const target = list.find((m) => m.id === idOrCode || m.uniqueCode === idOrCode);
   if (target) {
     if (target.id.startsWith("custom-media-")) {
+      if (target.imgSrc && isIndexedDbMediaUrl(target.imgSrc)) {
+        void deleteMediaBlob(target.imgSrc);
+      }
       const filtered = list.filter((m) => m.id !== idOrCode && m.uniqueCode !== idOrCode);
       localStorage.setItem(STORAGE_VAULT_MEDIA, JSON.stringify(filtered));
     } else {

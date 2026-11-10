@@ -25,6 +25,7 @@ import {
 import { HiddenPageNotice } from "@/components/ui-types";
 import { NotFoundPage } from "@/components/NotFoundPage";
 import { resolveInventoryImage } from "@/lib/inventory-assets";
+import { useResolvedMediaSrc } from "@/lib/local-media-db";
 import { pageHead } from "@/lib/seo";
 import { projects } from "@/data/projects";
 import {
@@ -632,6 +633,7 @@ export function DedicatedPhotoView({ loaderData }: { loaderData: DedicatedPhotoL
   const navigate = useNavigate();
   const [state, setState] = useState(() => computeInitialPhotoState(loaderData));
   const [clientChecked, setClientChecked] = useState(false);
+  const liveResolvedMedia = useResolvedMediaSrc(state.resolvedImage);
 
   const refreshPhotoData = () => {
     const next = computeClientPhotoState(loaderData);
@@ -798,7 +800,7 @@ export function DedicatedPhotoView({ loaderData }: { loaderData: DedicatedPhotoL
         <div className="flex-1 h-full min-h-0 relative flex items-center justify-center p-4 md:p-8 bg-black/40 group overflow-hidden">
           {isVideo ? (
             <video
-              src={resolvedImage}
+              src={liveResolvedMedia || undefined}
               controls
               autoPlay
               loop
@@ -807,7 +809,7 @@ export function DedicatedPhotoView({ loaderData }: { loaderData: DedicatedPhotoL
             />
           ) : (
             <img
-              src={resolvedImage}
+              src={liveResolvedMedia || undefined}
               alt={photo.caption || `${photo.project} — ${photo.code}`}
               className="max-h-full max-w-full w-auto h-auto object-contain rounded-sm shadow-2xl select-none"
               loading="eager"

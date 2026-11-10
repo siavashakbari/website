@@ -1,6 +1,7 @@
 import React from "react";
 import { Link } from "@tanstack/react-router";
 import { ArrowLeft, ChevronLeft, ChevronRight } from "lucide-react";
+import { useResolvedMediaSrc } from "@/lib/local-media-db";
 
 export interface DedicatedMediaDetail {
   code: string;
@@ -33,9 +34,11 @@ interface UI05_DedicatedMediaProps {
  * Approved from: https://www.siavashakbari.ir/photography/fashion-photography/sepidar/PHOT-FASH-SEPI-0003
  */
 export function UI05_DedicatedMedia({ media }: UI05_DedicatedMediaProps) {
+  const resolvedSrc = useResolvedMediaSrc(media.imgSrc);
   const isVideo =
     media.imgSrc.endsWith(".mp4") ||
     media.imgSrc.endsWith(".webm") ||
+    media.imgSrc.endsWith(".mov") ||
     media.imgSrc.startsWith("data:video");
 
   return (
@@ -91,7 +94,7 @@ export function UI05_DedicatedMedia({ media }: UI05_DedicatedMediaProps) {
         <div className="w-full flex justify-center mb-8">
           {isVideo ? (
             <video
-              src={media.imgSrc}
+              src={resolvedSrc || undefined}
               controls
               autoPlay
               loop
@@ -100,7 +103,7 @@ export function UI05_DedicatedMedia({ media }: UI05_DedicatedMediaProps) {
             />
           ) : (
             <img
-              src={media.imgSrc}
+              src={resolvedSrc || undefined}
               alt={media.title || media.code}
               className="max-h-[85vh] w-auto max-w-full rounded-lg shadow-2xl object-contain select-none"
             />

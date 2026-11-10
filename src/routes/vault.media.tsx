@@ -37,7 +37,7 @@ import {
 } from "@/lib/vault-store";
 import { PairedBoxesEditor, type KeyValuePair } from "@/components/vault/PairedBoxesEditor";
 import { processMediaUpload, type SizedMediaResult } from "@/lib/media-sizing";
-import { resolveInventoryImage } from "@/lib/inventory-assets";
+import { putMediaBlob, resolveVideoPoster, useResolvedMediaSrc } from "@/lib/local-media-db";
 
 export const Route = createFileRoute("/vault/media")({
   component: VaultMediaView,
@@ -68,7 +68,9 @@ function VaultMediaView() {
 
   // New media modal state
   const [uploadingFile, setUploadingFile] = useState(false);
+  const [savingMedia, setSavingMedia] = useState(false);
   const [newSizedMedia, setNewSizedMedia] = useState<SizedMediaResult | null>(null);
+  const [newExternalUrl, setNewExternalUrl] = useState("");
   const [newTitle, setNewTitle] = useState("");
   const [newField, setNewField] = useState("");
   const [newCategory, setNewCategory] = useState("");
@@ -200,64 +202,118 @@ function VaultMediaView() {
     setUploadingFile(true);
     try {
       const sized = await processMediaUpload(file);
+      if (newSizedMedia?.fullUrl?.startsWith("blob:")) {
+        try {
+          URL.revokeObjectURL(newSizedMedia.fullUrl);
+        } catch {
+          /* ignore */
+        }
+      }
       setNewSizedMedia(sized);
+      setNewExternalUrl("");
     } catch (err: any) {
-      alert(`Error processing media upload: ${err.message}`);
+      alert(`Error processing media upload: ${err?.message || "Unsupported file"}`);
     } finally {
       setUploadingFile(false);
+      e.target.value = "";
     }
   };
 
   // Save New Media
-  const handleCreateMedia = (e: React.FormEvent) => {
+  const handleCreateMedia = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newSizedMedia) {
-      alert("Please upload a media file first.");
+    const externalUrl = newExternalUrl.trim();
+    if (!newSizedMedia && !externalUrl) {
+      alert("Please upload a media file or enter a hosted HTTPS media URL.");
+      return;
+    }
+    if (!newSizedMedia && externalUrl && !/^https?:\/\//i.test(externalUrl)) {
+      alert("External media URL must start with https:// or http://");
       return;
     }
 
-    const usedCodes = getUsedMediaCodes();
-    const uniqueCode = getAvailable4DigitCode(usedCodes);
+    setSavingMedia(true);
+    try {
+      const usedCodes = getUsedMediaCodes();
+      const uniqueCode = getAvailable4DigitCode(usedCodes);
 
-    const field = newField || fieldPages[0]?.route.replace(/^\//, "") || "photography";
-    const isFlat = FLAT_FIELDS.has(field);
-    const category = isFlat ? "" : newCategory || "";
-    const project = newProject || "";
+      const field = newField || fieldPages[0]?.route.replace(/^\//, "") || "photography";
+      const isFlat = FLAT_FIELDS.has(field);
+      const category = isFlat ? "" : newCategory || "";
+      const project = newProject || "";
 
-    const assignedRoute = buildAssignedRoute(field, category, project);
-    const dynamicCode = buildDynamicMediaCode(uniqueCode, field, category, project);
+      const assignedRoute = buildAssignedRoute(field, category, project);
+      const dynamicCode = buildDynamicMediaCode(uniqueCode, field, category, project);
 
-    const ext = newSizedMedia.isVideo ? ".MP4" : extFromMediaSrc(newSizedMedia.fullUrl);
-    const dynamicTitle = newTitle.trim() || `${dynamicCode}${ext}`;
+      let imgSrc = "";
+      let thumbSrc = "";
+      let isVideo = false;
+      let ext = ".JPG";
 
-    const newMedia: VaultMediaItem = {
-      id: `custom-media-${uniqueCode}`,
-      uniqueCode,
-      dynamicCode,
-      imgSrc: newSizedMedia.fullUrl,
-      thumbSrc: newSizedMedia.thumbUrl,
-      field,
-      category,
-      project,
-      assignedRoute,
-      title: dynamicTitle,
-      year: new Date().getFullYear().toString(),
-      isHidden: false,
-      pairedBoxes: newPairs,
-      isVideo: newSizedMedia.isVideo,
-      taxonomyModifiedByUser: true,
-      createdAt: new Date().toISOString(),
-    };
+      if (newSizedMedia) {
+        isVideo = newSizedMedia.isVideo;
+        const rawExt = newSizedMedia.rawExt || (isVideo ? ".mp4" : ".jpg");
+        ext = rawExt.toUpperCase();
+        if (newSizedMedia.blob) {
+          const idbUrl = `idb://custom-media-${uniqueCode}${rawExt.toLowerCase()}`;
+          await putMediaBlob(idbUrl, newSizedMedia.blob);
+          if (newSizedMedia.fullUrl.startsWith("blob:")) {
+            try {
+              URL.revokeObjectURL(newSizedMedia.fullUrl);
+            } catch {
+              /* ignore */
+            }
+          }
+          imgSrc = idbUrl;
+          thumbSrc = newSizedMedia.thumbUrl || "";
+        } else {
+          imgSrc = newSizedMedia.fullUrl;
+          thumbSrc = newSizedMedia.thumbUrl;
+        }
+      } else {
+        isVideo = /\.(mp4|webm|mov)(\?|#|$)/i.test(externalUrl) || field === "video";
+        ext = isVideo ? extFromMediaSrc(externalUrl) || ".MP4" : extFromMediaSrc(externalUrl);
+        imgSrc = externalUrl;
+        thumbSrc = externalUrl;
+      }
 
-    saveVaultMedia(newMedia);
-    setShowAddModal(false);
-    // Reset form
-    setNewSizedMedia(null);
-    setNewTitle("");
-    setNewField("");
-    setNewCategory("");
-    setNewProject("");
-    setNewPairs([]);
+      const dynamicTitle = newTitle.trim() || `${dynamicCode}${ext}`;
+
+      const newMedia: VaultMediaItem = {
+        id: `custom-media-${uniqueCode}`,
+        uniqueCode,
+        dynamicCode,
+        imgSrc,
+        thumbSrc,
+        field,
+        category,
+        project,
+        assignedRoute,
+        title: dynamicTitle,
+        year: new Date().getFullYear().toString(),
+        isHidden: false,
+        pairedBoxes: newPairs,
+        isVideo,
+        taxonomyModifiedByUser: true,
+        createdAt: new Date().toISOString(),
+      };
+
+      saveVaultMedia(newMedia);
+      setCurrentPage(1);
+      setShowAddModal(false);
+      // Reset form
+      setNewSizedMedia(null);
+      setNewExternalUrl("");
+      setNewTitle("");
+      setNewField("");
+      setNewCategory("");
+      setNewProject("");
+      setNewPairs([]);
+    } catch (err: any) {
+      alert(`Error saving media: ${err?.message || "Unexpected error"}`);
+    } finally {
+      setSavingMedia(false);
+    }
   };
 
   // Filter & Search media
@@ -519,14 +575,21 @@ function VaultMediaView() {
                       </div>
                       <div className="space-y-1 font-mono text-[11px]">
                         <span className="text-[#2CE3C0] font-semibold block">
-                          Optimized Successfully!
+                          {newSizedMedia.storedInIndexedDb
+                            ? "Ready (Local IndexedDB Storage)"
+                            : "Optimized Successfully!"}
                         </span>
                         <span className="text-neutral-400 block">
                           Dimensions: {newSizedMedia.width}x{newSizedMedia.height}px
                         </span>
                         <span className="text-neutral-400 block">
-                          Full: {newSizedMedia.fullSizeKb} KB | Thumb: {newSizedMedia.thumbSizeKb} KB
+                          Full: {(newSizedMedia.fullSizeKb / 1024).toFixed(1)} MB ({newSizedMedia.fullSizeKb} KB) | Thumb: {newSizedMedia.thumbSizeKb} KB
                         </span>
+                        {newSizedMedia.storedInIndexedDb && (
+                          <span className="text-amber-300/90 text-[10px] leading-snug block">
+                            Large files (&gt;1.5 MB) are saved in this browser&apos;s IndexedDB and persist across reloads here. For all global visitors, host on a CDN/Vercel Blob and paste its URL below, or commit to src/assets/.
+                          </span>
+                        )}
                         <label className="text-xs text-[#2CE3C0] underline cursor-pointer inline-block pt-1">
                           Replace file
                           <input
@@ -542,10 +605,10 @@ function VaultMediaView() {
                     <label className="flex flex-col items-center gap-2 cursor-pointer py-4">
                       <Upload className="w-8 h-8 text-neutral-500" />
                       <span className="text-xs text-neutral-300 font-medium">
-                        Click to select image or video
+                        Click to select image or video (IndexedDB supports large videos)
                       </span>
                       <span className="text-[10px] text-neutral-500 font-mono">
-                        JPEG, PNG, WebP or MP4 · Max long edge 2000px · Auto WebP thumbnail
+                        JPEG, PNG, WebP or MP4/MOV/WebM · Auto thumbnail &amp; browser IndexedDB persistence
                       </span>
                       <input
                         type="file"
@@ -556,6 +619,23 @@ function VaultMediaView() {
                     </label>
                   )}
                 </div>
+              </div>
+
+              {/* Optional External URL (for globally hosted large videos / CDN assets) */}
+              <div>
+                <label className="block text-xs font-mono uppercase text-neutral-400 mb-1">
+                  Or Hosted Video / Image URL (Optional — Live on All Devices)
+                </label>
+                <input
+                  type="url"
+                  value={newExternalUrl}
+                  onChange={(e) => {
+                    setNewExternalUrl(e.target.value);
+                    if (e.target.value.trim()) setNewSizedMedia(null);
+                  }}
+                  placeholder="https://.../video.mp4 or https://.../image.jpg"
+                  className="w-full bg-black/60 border border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-[#2CE3C0]"
+                />
               </div>
 
               {/* Title */}
@@ -695,10 +775,10 @@ function VaultMediaView() {
                 </button>
                 <button
                   type="submit"
-                  disabled={!newSizedMedia}
+                  disabled={savingMedia || (!newSizedMedia && !newExternalUrl.trim())}
                   className="px-5 py-2.5 rounded-xl bg-[#2CE3C0] text-black font-semibold text-xs hover:bg-[#2CE3C0]/90 disabled:opacity-40 shadow-[0_0_15px_rgba(44,227,192,0.3)] cursor-pointer"
                 >
-                  Save Media
+                  {savingMedia ? "Saving..." : "Save Media"}
                 </button>
               </div>
             </form>
@@ -762,8 +842,8 @@ function MediaCard({
     );
   }, [pages, item.field, item.category, isFlatField]);
 
-  const resolvedFullVideoSrc = resolveInventoryImage(item.imgSrc) || item.imgSrc;
-  const resolvedSrc = resolveInventoryImage(item.thumbSrc || item.imgSrc) || item.imgSrc;
+  const resolvedFullVideoSrc = useResolvedMediaSrc(item.imgSrc);
+  const resolvedSrc = useResolvedMediaSrc(item.thumbSrc || item.imgSrc);
   const liveDetailHref = buildMediaLiveDetailUrl(item);
 
   return (
@@ -847,7 +927,8 @@ function MediaCard({
         <div className="relative aspect-[16/10] bg-black overflow-hidden flex items-center justify-center">
           {item.isVideo ? (
             <video
-              src={resolvedFullVideoSrc}
+              src={resolvedFullVideoSrc || undefined}
+              poster={resolveVideoPoster(item.thumbSrc)}
               muted
               loop
               playsInline
@@ -861,7 +942,7 @@ function MediaCard({
             />
           ) : (
             <img
-              src={resolvedSrc}
+              src={resolvedSrc || undefined}
               alt={item.title}
               loading="lazy"
               className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"

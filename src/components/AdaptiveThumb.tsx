@@ -10,6 +10,7 @@ import React, {
   type ReactNode,
 } from "react";
 import { getThumbSrc, loadRankForIndex, metaFromSrc } from "@/lib/adaptive-image";
+import { useResolvedMediaSrc } from "@/lib/local-media-db";
 import { cn } from "@/lib/utils";
 
 /** Images within the first visual rows load eagerly; the rest lazy-load natively. */
@@ -145,7 +146,7 @@ type AdaptiveThumbProps = {
  * 2. Once initial thumbnails are ready, sequentially upgrades images one by one from the top to full quality.
  */
 export function AdaptiveThumb({
-  src,
+  src: rawSrc,
   thumbSrc: thumbSrcProp,
   index,
   alt,
@@ -153,18 +154,20 @@ export function AdaptiveThumb({
   style,
   onRatio,
 }: AdaptiveThumbProps) {
+  const src = useResolvedMediaSrc(rawSrc);
+  const resolvedThumbProp = useResolvedMediaSrc(thumbSrcProp);
   const gallery = useGalleryLoad();
-  const meta = useMemo(() => metaFromSrc(src), [src]);
+  const meta = useMemo(() => metaFromSrc(rawSrc), [rawSrc]);
   const [naturalRatio, setNaturalRatio] = useState<number | null>(null);
   const [thumbFailed, setThumbFailed] = useState(false);
 
   const effectiveRatio = naturalRatio ?? meta.ratio;
   const rank = gallery ? gallery.rankOf(index) : index;
 
-  const isVideo = /\.(mp4|webm|mov)(\?|#|$)|^data:video\//i.test(src);
+  const isVideo = /\.(mp4|webm|mov)(\?|#|$)|^data:video\//i.test(rawSrc);
   const resolvedThumb = useMemo(
-    () => (isVideo ? src : thumbFailed ? src : thumbSrcProp || getThumbSrc(src)),
-    [isVideo, thumbFailed, thumbSrcProp, src],
+    () => (isVideo ? src : thumbFailed ? src : resolvedThumbProp || getThumbSrc(src)),
+    [isVideo, thumbFailed, resolvedThumbProp, src],
   );
 
   const shouldUpgrade = gallery ? gallery.isUnlockedForFull(index) : true;
