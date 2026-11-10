@@ -16,6 +16,7 @@ import { Route as BrandDiscoveryRouteImport } from './routes/brand-discovery'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as RobotsDottxtRouteImport } from './routes/robots[.]txt'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
+import { Route as VaultRouteImport } from './routes/vault'
 import { Route as DisciplineIndexRouteImport } from './routes/$discipline.index'
 import { Route as DisciplinePhotoIdRouteImport } from './routes/$discipline.$photoId'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
@@ -27,6 +28,11 @@ import { Route as ApiBrandDiscoveryRouteImport } from './routes/api.brand-discov
 import { Route as ApiContactRouteImport } from './routes/api.contact'
 import { Route as BlogIndexRouteImport } from './routes/blog.index'
 import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
+import { Route as VaultIndexRouteImport } from './routes/vault.index'
+import { Route as VaultBlogRouteImport } from './routes/vault.blog'
+import { Route as VaultInvoicesRouteImport } from './routes/vault.invoices'
+import { Route as VaultMediaRouteImport } from './routes/vault.media'
+import { Route as VaultPagesRouteImport } from './routes/vault.pages'
 import { Route as DisciplineSpecialtyIndexRouteImport } from './routes/$discipline.$specialty.index'
 import { Route as DisciplineSpecialtyProjectIndexRouteImport } from './routes/$discipline.$specialty.$project.index'
 import { Route as DisciplineSpecialtyProjectPhotoIdRouteImport } from './routes/$discipline.$specialty.$project.$photoId'
@@ -64,6 +70,11 @@ const RobotsDottxtRoute = RobotsDottxtRouteImport.update({
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
   path: '/sitemap.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VaultRoute = VaultRouteImport.update({
+  id: '/vault',
+  path: '/vault',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DisciplineIndexRoute = DisciplineIndexRouteImport.update({
@@ -121,6 +132,31 @@ const BlogSlugRoute = BlogSlugRouteImport.update({
   path: '/blog/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const VaultIndexRoute = VaultIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => VaultRoute,
+} as any)
+const VaultBlogRoute = VaultBlogRouteImport.update({
+  id: '/blog',
+  path: '/blog',
+  getParentRoute: () => VaultRoute,
+} as any)
+const VaultInvoicesRoute = VaultInvoicesRouteImport.update({
+  id: '/invoices',
+  path: '/invoices',
+  getParentRoute: () => VaultRoute,
+} as any)
+const VaultMediaRoute = VaultMediaRouteImport.update({
+  id: '/media',
+  path: '/media',
+  getParentRoute: () => VaultRoute,
+} as any)
+const VaultPagesRoute = VaultPagesRouteImport.update({
+  id: '/pages',
+  path: '/pages',
+  getParentRoute: () => VaultRoute,
+} as any)
 const DisciplineSpecialtyIndexRoute =
   DisciplineSpecialtyIndexRouteImport.update({
     id: '/$discipline/$specialty/',
@@ -148,6 +184,7 @@ export interface FileRoutesByFullPath {
   '/contact': typeof ContactRoute
   '/robots.txt': typeof RobotsDottxtRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/vault': typeof VaultRouteWithChildren
   '/$discipline/$photoId': typeof DisciplinePhotoIdRoute
   '/admin/blog': typeof AdminBlogRoute
   '/admin/inventory': typeof AdminInventoryRoute
@@ -156,9 +193,14 @@ export interface FileRoutesByFullPath {
   '/api/brand-discovery': typeof ApiBrandDiscoveryRoute
   '/api/contact': typeof ApiContactRoute
   '/blog/$slug': typeof BlogSlugRoute
+  '/vault/blog': typeof VaultBlogRoute
+  '/vault/invoices': typeof VaultInvoicesRoute
+  '/vault/media': typeof VaultMediaRoute
+  '/vault/pages': typeof VaultPagesRoute
   '/$discipline/': typeof DisciplineIndexRoute
   '/admin/': typeof AdminIndexRoute
   '/blog/': typeof BlogIndexRoute
+  '/vault/': typeof VaultIndexRoute
   '/$discipline/$specialty/': typeof DisciplineSpecialtyIndexRoute
   '/$discipline/$specialty/$project/$photoId': typeof DisciplineSpecialtyProjectPhotoIdRoute
   '/$discipline/$specialty/$project/': typeof DisciplineSpecialtyProjectIndexRoute
@@ -178,9 +220,14 @@ export interface FileRoutesByTo {
   '/api/brand-discovery': typeof ApiBrandDiscoveryRoute
   '/api/contact': typeof ApiContactRoute
   '/blog/$slug': typeof BlogSlugRoute
+  '/vault/blog': typeof VaultBlogRoute
+  '/vault/invoices': typeof VaultInvoicesRoute
+  '/vault/media': typeof VaultMediaRoute
+  '/vault/pages': typeof VaultPagesRoute
   '/$discipline': typeof DisciplineIndexRoute
   '/admin': typeof AdminIndexRoute
   '/blog': typeof BlogIndexRoute
+  '/vault': typeof VaultIndexRoute
   '/$discipline/$specialty': typeof DisciplineSpecialtyIndexRoute
   '/$discipline/$specialty/$project/$photoId': typeof DisciplineSpecialtyProjectPhotoIdRoute
   '/$discipline/$specialty/$project': typeof DisciplineSpecialtyProjectIndexRoute
@@ -194,6 +241,7 @@ export interface FileRoutesById {
   '/contact': typeof ContactRoute
   '/robots.txt': typeof RobotsDottxtRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/vault': typeof VaultRouteWithChildren
   '/$discipline/$photoId': typeof DisciplinePhotoIdRoute
   '/admin/blog': typeof AdminBlogRoute
   '/admin/inventory': typeof AdminInventoryRoute
@@ -202,9 +250,14 @@ export interface FileRoutesById {
   '/api/brand-discovery': typeof ApiBrandDiscoveryRoute
   '/api/contact': typeof ApiContactRoute
   '/blog/$slug': typeof BlogSlugRoute
+  '/vault/blog': typeof VaultBlogRoute
+  '/vault/invoices': typeof VaultInvoicesRoute
+  '/vault/media': typeof VaultMediaRoute
+  '/vault/pages': typeof VaultPagesRoute
   '/$discipline/': typeof DisciplineIndexRoute
   '/admin/': typeof AdminIndexRoute
   '/blog/': typeof BlogIndexRoute
+  '/vault/': typeof VaultIndexRoute
   '/$discipline/$specialty/': typeof DisciplineSpecialtyIndexRoute
   '/$discipline/$specialty/$project/$photoId': typeof DisciplineSpecialtyProjectPhotoIdRoute
   '/$discipline/$specialty/$project/': typeof DisciplineSpecialtyProjectIndexRoute
@@ -219,6 +272,7 @@ export interface FileRouteTypes {
     | '/contact'
     | '/robots.txt'
     | '/sitemap.xml'
+    | '/vault'
     | '/$discipline/$photoId'
     | '/admin/blog'
     | '/admin/inventory'
@@ -227,9 +281,14 @@ export interface FileRouteTypes {
     | '/api/brand-discovery'
     | '/api/contact'
     | '/blog/$slug'
+    | '/vault/blog'
+    | '/vault/invoices'
+    | '/vault/media'
+    | '/vault/pages'
     | '/$discipline/'
     | '/admin/'
     | '/blog/'
+    | '/vault/'
     | '/$discipline/$specialty/'
     | '/$discipline/$specialty/$project/$photoId'
     | '/$discipline/$specialty/$project/'
@@ -249,9 +308,14 @@ export interface FileRouteTypes {
     | '/api/brand-discovery'
     | '/api/contact'
     | '/blog/$slug'
+    | '/vault/blog'
+    | '/vault/invoices'
+    | '/vault/media'
+    | '/vault/pages'
     | '/$discipline'
     | '/admin'
     | '/blog'
+    | '/vault'
     | '/$discipline/$specialty'
     | '/$discipline/$specialty/$project/$photoId'
     | '/$discipline/$specialty/$project'
@@ -264,6 +328,7 @@ export interface FileRouteTypes {
     | '/contact'
     | '/robots.txt'
     | '/sitemap.xml'
+    | '/vault'
     | '/$discipline/$photoId'
     | '/admin/blog'
     | '/admin/inventory'
@@ -272,9 +337,14 @@ export interface FileRouteTypes {
     | '/api/brand-discovery'
     | '/api/contact'
     | '/blog/$slug'
+    | '/vault/blog'
+    | '/vault/invoices'
+    | '/vault/media'
+    | '/vault/pages'
     | '/$discipline/'
     | '/admin/'
     | '/blog/'
+    | '/vault/'
     | '/$discipline/$specialty/'
     | '/$discipline/$specialty/$project/$photoId'
     | '/$discipline/$specialty/$project/'
@@ -288,6 +358,7 @@ export interface RootRouteChildren {
   ContactRoute: typeof ContactRoute
   RobotsDottxtRoute: typeof RobotsDottxtRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
+  VaultRoute: typeof VaultRouteWithChildren
   DisciplinePhotoIdRoute: typeof DisciplinePhotoIdRoute
   ApiBrandDiscoveryRoute: typeof ApiBrandDiscoveryRoute
   ApiContactRoute: typeof ApiContactRoute
@@ -348,6 +419,13 @@ declare module '@tanstack/react-router' {
       path: '/sitemap.xml'
       fullPath: '/sitemap.xml'
       preLoaderRoute: typeof SitemapDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/vault': {
+      id: '/vault'
+      path: '/vault'
+      fullPath: '/vault'
+      preLoaderRoute: typeof VaultRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/$discipline/': {
@@ -427,6 +505,41 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BlogSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/vault/': {
+      id: '/vault/'
+      path: '/'
+      fullPath: '/vault/'
+      preLoaderRoute: typeof VaultIndexRouteImport
+      parentRoute: typeof VaultRoute
+    }
+    '/vault/blog': {
+      id: '/vault/blog'
+      path: '/blog'
+      fullPath: '/vault/blog'
+      preLoaderRoute: typeof VaultBlogRouteImport
+      parentRoute: typeof VaultRoute
+    }
+    '/vault/invoices': {
+      id: '/vault/invoices'
+      path: '/invoices'
+      fullPath: '/vault/invoices'
+      preLoaderRoute: typeof VaultInvoicesRouteImport
+      parentRoute: typeof VaultRoute
+    }
+    '/vault/media': {
+      id: '/vault/media'
+      path: '/media'
+      fullPath: '/vault/media'
+      preLoaderRoute: typeof VaultMediaRouteImport
+      parentRoute: typeof VaultRoute
+    }
+    '/vault/pages': {
+      id: '/vault/pages'
+      path: '/pages'
+      fullPath: '/vault/pages'
+      preLoaderRoute: typeof VaultPagesRouteImport
+      parentRoute: typeof VaultRoute
+    }
     '/$discipline/$specialty/': {
       id: '/$discipline/$specialty/'
       path: '/$discipline/$specialty'
@@ -469,6 +582,24 @@ const AdminRouteChildren: AdminRouteChildren = {
 
 const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
+interface VaultRouteChildren {
+  VaultBlogRoute: typeof VaultBlogRoute
+  VaultInvoicesRoute: typeof VaultInvoicesRoute
+  VaultMediaRoute: typeof VaultMediaRoute
+  VaultPagesRoute: typeof VaultPagesRoute
+  VaultIndexRoute: typeof VaultIndexRoute
+}
+
+const VaultRouteChildren: VaultRouteChildren = {
+  VaultBlogRoute: VaultBlogRoute,
+  VaultInvoicesRoute: VaultInvoicesRoute,
+  VaultMediaRoute: VaultMediaRoute,
+  VaultPagesRoute: VaultPagesRoute,
+  VaultIndexRoute: VaultIndexRoute,
+}
+
+const VaultRouteWithChildren = VaultRoute._addFileChildren(VaultRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
@@ -477,6 +608,7 @@ const rootRouteChildren: RootRouteChildren = {
   ContactRoute: ContactRoute,
   RobotsDottxtRoute: RobotsDottxtRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
+  VaultRoute: VaultRouteWithChildren,
   DisciplinePhotoIdRoute: DisciplinePhotoIdRoute,
   ApiBrandDiscoveryRoute: ApiBrandDiscoveryRoute,
   ApiContactRoute: ApiContactRoute,

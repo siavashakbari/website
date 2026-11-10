@@ -36,6 +36,12 @@ function buildEntries(baseUrl: string): SitemapEntry[] {
     priority: "0.85",
   }));
 
+  const projectPages: SitemapEntry[] = projects.map((p) => ({
+    path: `/projects/${p.id}`,
+    changefreq: "monthly" as const,
+    priority: "0.8",
+  }));
+
   const blogPages: SitemapEntry[] = BLOG_POSTS.map((bp) => ({
     path: `/blog/${bp.slug}`,
     changefreq: "weekly" as const,

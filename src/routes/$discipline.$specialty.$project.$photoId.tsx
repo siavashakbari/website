@@ -6,8 +6,10 @@ import {
   getPhotosByProject,
   getStudioProjects,
   subscribeToStudioStore,
-  type PhotoInventoryItem,
 } from "@/lib/studio-store";
+import type { PhotoInventoryItem } from "@/data/photo-inventory";
+import { getMediaByCode, subscribeToVaultStore } from "@/lib/vault-store";
+import { HiddenPageNotice } from "@/components/ui-types";
 import { resolveInventoryImage } from "@/lib/inventory-assets";
 import { pageHead } from "@/lib/seo";
 import { projects } from "@/data/projects";
@@ -44,17 +46,17 @@ export const Route = createFileRoute("/$discipline/$specialty/$project/$photoId"
       allProjects.find((p) => normalizeProjectSlug(p.title) === projectSlug || p.id === projectSlug) ||
       projects.find((p) => normalizeProjectSlug(p.title) === projectSlug || p.id === projectSlug);
 
-    const client = photo.client || parentProject?.client || "";
+    const client = photo.client || (parentProject as any)?.client || "";
     const model =
       photo.model ||
       (parentProject
-        ? Array.isArray(parentProject.models)
-          ? parentProject.models.join(", ")
-          : parentProject.models
+        ? Array.isArray((parentProject as any).models)
+          ? (parentProject as any).models.join(", ")
+          : (parentProject as any).models
         : "") ||
       "";
-    const makeupArtist = photo.makeupArtist || parentProject?.makeupArtist || "";
-    const assistant = photo.assistant || parentProject?.assistant || "";
+    const makeupArtist = photo.makeupArtist || (parentProject as any)?.makeupArtist || "";
+    const assistant = photo.assistant || (parentProject as any)?.assistant || "";
     const year = photo.date || parentProject?.year || "2024";
     const projectDescription = parentProject?.description || "";
 
@@ -65,8 +67,8 @@ export const Route = createFileRoute("/$discipline/$specialty/$project/$photoId"
       makeupArtist,
       assistant,
       date: String(year),
-      subdiscipline: photo.subdiscipline || parentProject?.subDiscipline || parentProject?.category || specialtySlug,
-      caption: photo.caption || parentProject?.caption || parentProject?.description || "",
+      subdiscipline: photo.subdiscipline || (parentProject as any)?.subDiscipline || parentProject?.category || specialtySlug,
+      caption: photo.caption || (parentProject as any)?.caption || parentProject?.description || "",
     };
 
     const resolvedImage = resolveInventoryImage(resolvedPhoto.imgSrc);
@@ -84,6 +86,9 @@ export const Route = createFileRoute("/$discipline/$specialty/$project/$photoId"
         ? projectPhotos[currentIndex + 1]
         : null;
 
+    const vaultMedia = getMediaByCode(rawPhotoId) || getMediaByCode(resolvedPhoto.code);
+    const isHidden = vaultMedia ? vaultMedia.isHidden : false;
+
     return {
       disciplineSlug,
       specialtySlug,
@@ -95,6 +100,7 @@ export const Route = createFileRoute("/$discipline/$specialty/$project/$photoId"
       nextPhoto,
       currentIndex: currentIndex >= 0 ? currentIndex + 1 : 1,
       totalPhotos: projectPhotos.length || 1,
+      isHidden,
     };
   },
   head: ({ loaderData }) => {
@@ -102,7 +108,7 @@ export const Route = createFileRoute("/$discipline/$specialty/$project/$photoId"
     const photoCode = photo?.code || "PHOTO";
     const projectTitle = photo?.project || "Project";
     const displayHeading = photo?.displayName || photo?.title || photoCode;
-    const title = `${displayHeading} — ${projectTitle} | Siavash Akbari`;
+    const title = `Siavash Akbari - ${displayHeading}`;
     const description =
       photo?.caption ||
       loaderData?.projectDescription ||
@@ -121,10 +127,10 @@ export const Route = createFileRoute("/$discipline/$specialty/$project/$photoId"
     });
   },
   component: DedicatedPhotoView,
-  errorComponent: ({ error }) => (
+  errorComponent: ({ error }: { error: any }) => (
     <div className="mx-auto max-w-3xl px-6 py-32 text-center">
       <h1 className="font-display text-4xl">Something went wrong</h1>
-      <p className="mt-4 text-muted-foreground">{error.message}</p>
+      <p className="mt-4 text-muted-foreground">{error?.message || String(error)}</p>
     </div>
   ),
 });
@@ -142,8 +148,13 @@ function DedicatedPhotoView() {
   const [photo, setPhoto] = useState(loaderData.photo);
   const [projectDescription, setProjectDescription] = useState(loaderData.projectDescription);
   const [resolvedImage, setResolvedImage] = useState(loaderData.resolvedImage);
+  const [isHidden, setIsHidden] = useState(loaderData.isHidden);
 
   const refreshPhotoData = () => {
+    const vMedia = getMediaByCode(loaderData.photo.code);
+    if (vMedia) {
+      setIsHidden(vMedia.isHidden);
+    }
     const currentPhoto =
       getPhotoItemBySlugOrCode(
         loaderData.photo.code,
@@ -172,17 +183,17 @@ function DedicatedPhotoView() {
     }
 
     if (currentPhoto) {
-      const client = currentPhoto.client || parentProject?.client || "";
+      const client = currentPhoto.client || (parentProject as any)?.client || "";
       const model =
         currentPhoto.model ||
         (parentProject
-          ? Array.isArray(parentProject.models)
-            ? parentProject.models.join(", ")
-            : parentProject.models
+          ? Array.isArray((parentProject as any).models)
+            ? (parentProject as any).models.join(", ")
+            : (parentProject as any).models
           : "") ||
         "";
-      const makeupArtist = currentPhoto.makeupArtist || parentProject?.makeupArtist || "";
-      const assistant = currentPhoto.assistant || parentProject?.assistant || "";
+      const makeupArtist = currentPhoto.makeupArtist || (parentProject as any)?.makeupArtist || "";
+      const assistant = currentPhoto.assistant || (parentProject as any)?.assistant || "";
       const year = currentPhoto.date || parentProject?.year || "2024";
 
       const resolved: PhotoInventoryItem = {
@@ -194,10 +205,10 @@ function DedicatedPhotoView() {
         date: String(year),
         subdiscipline:
           currentPhoto.subdiscipline ||
-          parentProject?.subDiscipline ||
+          (parentProject as any)?.subDiscipline ||
           parentProject?.category ||
           loaderData.specialtySlug,
-        caption: currentPhoto.caption || parentProject?.caption || parentProject?.description || "",
+        caption: currentPhoto.caption || (parentProject as any)?.caption || parentProject?.description || "",
       };
       setPhoto(resolved);
       setResolvedImage(resolveInventoryImage(resolved.imgSrc));
@@ -210,10 +221,22 @@ function DedicatedPhotoView() {
   }, [loaderData.photo.code, loaderData.projectSlug]);
 
   useEffect(() => {
-    return subscribeToStudioStore(() => {
-      refreshPhotoData();
-    });
+    const unsub1 = subscribeToStudioStore(() => refreshPhotoData());
+    const unsub2 = subscribeToVaultStore(() => refreshPhotoData());
+    return () => {
+      unsub1();
+      unsub2();
+    };
   }, [loaderData.photo.code, loaderData.projectSlug]);
+
+  if (isHidden) {
+    return (
+      <HiddenPageNotice
+        title={photo.displayName || photo.title || photo.code}
+        routePath={`/${disciplineSlug}/${specialtySlug}/${projectSlug}/${photo.code}`}
+      />
+    );
+  }
 
   // Smart back link based on hierarchy
   let backUrl = `/${disciplineSlug}/${specialtySlug}/${projectSlug}`;
@@ -232,7 +255,7 @@ function DedicatedPhotoView() {
 
   // Track GA4 event
   useEffect(() => {
-    const assetMeta: VisualAsset = {
+    const assetMeta: any = {
       assetCode: photo.code,
       title: photo.title || photo.code,
       projectTitle: photo.project,
@@ -247,14 +270,14 @@ function DedicatedPhotoView() {
         photo.assistant && { role: "Assistant", name: photo.assistant },
       ].filter(Boolean) as any,
       imageSrc: photo.imgSrc,
-      seoSlug: photo.seoSlug,
+      seoSlug: photo.seoSlug || photo.code,
     };
 
     trackPortfolioAssetView(assetMeta);
   }, [photo]);
 
   const handleCreditClick = (role: string, name: string) => {
-    trackCreditClick(role, name, photo.code, photo.project);
+    trackCreditClick(role, name, photo.code);
   };
 
   const handleCommissionClick = () => {

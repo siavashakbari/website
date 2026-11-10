@@ -1,4 +1,5 @@
 import type { StudioProjectItem, StudioBlogItem } from "@/types/admin";
+export type { StudioProjectItem, StudioBlogItem };
 import type { InvoiceData } from "@/types/invoice";
 import { INITIAL_INVOICE_DATA } from "@/types/invoice";
 import { BLOG_POSTS } from "@/data/blog-posts";
@@ -299,7 +300,7 @@ export function getProjectById(id: string): Project | undefined {
     const list = getStudioProjects();
     const found = list.find((p) => p.id === id || getCanonicalProjectSlug(p) === taxNormProj(id));
     if (found) {
-      const gallery = found.images && found.images.length > 0 ? found.images.map((im) => im.url) : [found.coverImage];
+      const gallery = found.images && found.images.length > 0 ? found.images.map((im: any) => im.url) : [found.coverImage];
       return {
         id: found.id,
         title: found.title,
@@ -314,7 +315,7 @@ export function getProjectById(id: string): Project | undefined {
         aspect: "portrait",
         gallery,
         client: found.client,
-        models: found.models,
+        models: Array.isArray(found.models) ? found.models.join(", ") : found.models,
         makeupArtist: found.makeupArtist,
         assistant: found.assistant,
         stylist: found.stylist,

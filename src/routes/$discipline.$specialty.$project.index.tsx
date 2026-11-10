@@ -8,6 +8,21 @@ import {
   subscribeToStudioStore,
   type StudioProjectItem,
 } from "@/lib/studio-store";
+import {
+  getPageByRoute,
+  getVaultMedia,
+  subscribeToVaultStore,
+  type VaultPageItem,
+} from "@/lib/vault-store";
+import {
+  UI01_VerticalScroll,
+  UI02_HorizontalScroll,
+  UI03_EqualCardsGrid,
+  UI04_VideoShowcase,
+  PageHeader,
+  HiddenPageNotice,
+  type UITypeCode,
+} from "@/components/ui-types";
 import type { PhotoInventoryItem } from "@/data/photo-inventory";
 import { pageHead, jsonLdScript, projectJsonLd } from "@/lib/seo";
 import {
@@ -99,15 +114,16 @@ export const Route = createFileRoute("/$discipline/$specialty/$project/")({
 
     // Also look up all photos in this project from merged inventory
     const projectPhotos = getPhotosByProject(normProj);
+    const pAny = project as any;
     const images: string[] =
-      project?.images && project.images.length > 0
-        ? project.images.map((im) => im.url)
+      pAny?.images && pAny.images.length > 0
+        ? pAny.images.map((im: any) => im.url)
         : projectPhotos.length > 0
           ? projectPhotos.map((p) => p.imgSrc)
-          : project?.gallery && project.gallery.length > 0
-            ? project.gallery
-            : project?.image
-              ? [project.image]
+          : pAny?.gallery && pAny.gallery.length > 0
+            ? pAny.gallery
+            : pAny?.image
+              ? [pAny.image]
               : [];
 
     const title = project?.title || params.project;
@@ -142,22 +158,26 @@ export const Route = createFileRoute("/$discipline/$specialty/$project/")({
     };
   },
   head: ({ loaderData }) => {
-    const title = loaderData?.title ?? "Project";
-    const desc = loaderData?.description ?? "Case study by Siavash Akbari";
-    const path = `/${loaderData?.disciplineSlug}/${loaderData?.specialtySlug}/${loaderData?.projectSlug}`;
+    const normDisc = normalizeDisciplineSlug(loaderData?.disciplineSlug || "");
+    const normSpec = normalizeSpecialtySlug(loaderData?.specialtySlug || "");
+    const normProj = normalizeProjectSlug(loaderData?.projectSlug || "");
+    const routePath = `/${normDisc}/${normSpec}/${normProj}`;
+    const vaultPage = typeof window !== "undefined" ? getPageByRoute(routePath) : null;
+    const pageName = vaultPage?.name || loaderData?.title || "Project";
+    const desc = vaultPage?.descriptionEn || loaderData?.description || "Case study by Siavash Akbari";
     return pageHead({
-      title: `${title} — Siavash Akbari`,
+      title: `Siavash Akbari - ${pageName}`,
       description: desc,
-      path,
+      path: routePath,
       image: loaderData?.coverImage,
       type: "article",
     });
   },
   component: ProjectCaseStudyPage,
-  errorComponent: ({ error }) => (
+  errorComponent: ({ error }: { error: any }) => (
     <div className="mx-auto max-w-3xl px-6 py-32 text-center">
       <h1 className="font-display text-4xl">Something went wrong</h1>
-      <p className="mt-4 text-muted-foreground">{error.message}</p>
+      <p className="mt-4 text-muted-foreground">{error?.message || String(error)}</p>
     </div>
   ),
 });
@@ -165,10 +185,16 @@ export const Route = createFileRoute("/$discipline/$specialty/$project/")({
 function ProjectCaseStudyPage() {
   const loaderData = Route.useLoaderData();
   const [data, setData] = useState(loaderData);
+  const [vaultPage, setVaultPage] = useState<VaultPageItem | undefined>(undefined);
   const scrollRef = useRef<HTMLDivElement>(null);
   const isDesktop = useIsDesktop();
 
+  const currentRoute = `/${loaderData.disciplineSlug}/${loaderData.specialtySlug}/${loaderData.projectSlug}`;
+
   const refreshProjectData = () => {
+    const currentVaultPage = getPageByRoute(currentRoute);
+    setVaultPage(currentVaultPage);
+
     const allStudio = getStudioProjects();
     const found = allStudio.find((p) => {
       const pSlug = normalizeProjectSlug(p.title);
@@ -185,15 +211,16 @@ function ProjectCaseStudyPage() {
     const projectPhotos = getPhotosByProject(loaderData.projectSlug);
 
     if (found || projectPhotos.length > 0) {
+      const fAny = found as any;
       const updatedImages: string[] =
-        found?.images && found.images.length > 0
-          ? found.images.map((im) => im.url)
+        fAny?.images && fAny.images.length > 0
+          ? fAny.images.map((im: any) => im.url)
           : projectPhotos.length > 0
             ? projectPhotos.map((p) => p.imgSrc)
-            : found?.gallery && found.gallery.length > 0
-              ? found.gallery
-              : found?.image
-                ? [found.image]
+            : fAny?.gallery && fAny.gallery.length > 0
+              ? fAny.gallery
+              : fAny?.image
+                ? [fAny.image]
                 : loaderData.images;
 
       setData({
@@ -215,17 +242,25 @@ function ProjectCaseStudyPage() {
     }
   };
 
-  // Client hydration for project updates saved in localStorage/admin
+  // Client hydration for project updates saved in localStorage/vault
   useEffect(() => {
     refreshProjectData();
   }, [loaderData.projectSlug]);
 
-  // Real-time listener: updates view as soon as admin edits anything
+  // Real-time listener: updates view as soon as vault edits anything
   useEffect(() => {
-    return subscribeToStudioStore(() => {
-      refreshProjectData();
-    });
+    const unsub1 = subscribeToStudioStore(() => refreshProjectData());
+    const unsub2 = subscribeToVaultStore(() => refreshProjectData());
+    return () => {
+      unsub1();
+      unsub2();
+    };
   }, [loaderData.projectSlug]);
+
+  // Check if page is hidden in vault
+  if (vaultPage?.isHidden) {
+    return <HiddenPageNotice title={vaultPage.name} routePath={currentRoute} />;
+  }
 
   const images = data.images;
 
@@ -309,9 +344,16 @@ function ProjectCaseStudyPage() {
           </Link>
         )}
 
-        <p className="col-start-1 mt-2 text-sm md:text-base leading-relaxed text-muted-foreground max-w-3xl">
-          {data.description}
-        </p>
+        {/* Vault Page Header (English & Farsi Descriptions, Paired Boxes) */}
+        <div className="col-start-1 col-span-full">
+          <PageHeader
+            title={vaultPage?.name || data.title}
+            descriptionEn={vaultPage?.descriptionEn || (vaultPage?.descriptionFa ? undefined : data.description)}
+            descriptionFa={vaultPage?.descriptionFa}
+            pairedBoxes={vaultPage?.pairedBoxes}
+            className="px-0 py-2"
+          />
+        </div>
 
         {/* METADATA CREDITS MATRIX */}
         {hasCredits && (

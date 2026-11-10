@@ -308,8 +308,8 @@ export function visualAssetJsonLd(asset: {
         copyrightNotice: `© ${asset.year} ${SITE_NAME} Studio. All rights reserved.`,
         creditText: `${SITE_NAME} Studio`,
         acquireLicensePage: absoluteUrl("/contact"),
-        ...mainMediaObject,
       },
+      mainMediaObject,
     ],
   };
 }

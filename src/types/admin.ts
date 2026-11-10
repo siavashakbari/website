@@ -1,5 +1,5 @@
 import type { Discipline } from "@/data/projects";
-import type { BlogCategory } from "@/data/blog-posts";
+import type { BlogCategory, BlogAuthor } from "@/data/blog-posts";
 
 export interface AdminSession {
   authenticated: boolean;
@@ -7,7 +7,7 @@ export interface AdminSession {
   loginTime: string;
   mfaVerified: boolean;
   vaultKeyHash?: string;
-  source: "supabase" | "local_master";
+  source: "vault" | "local_master";
 }
 
 export interface StudioProjectItem {
@@ -18,9 +18,18 @@ export interface StudioProjectItem {
   year: number | string;
   discipline: string; // e.g. "fashion-photography", "food-photography", "visual-identity", "graphic-design", "video", etc.
   category?: string;
+  subDiscipline?: string;
   coverImage: string;
   description: string;
   descriptionFa?: string;
+  caption?: string;
+  models?: string | string[];
+  makeupArtist?: string;
+  assistant?: string;
+  stylist?: string;
+  location?: string;
+  seoKeywords?: string;
+  videoUrl?: string;
   images: {
     id: string;
     url: string;
@@ -43,8 +52,13 @@ export interface StudioBlogItem {
   publishedAt: string;
   readTime: string;
   contentMarkdown: string;
+  contentMarkdownFa?: string;
   published: boolean;
   featured?: boolean;
   seoDescription?: string;
   aiSummary?: string;
+  aiSummaryFa?: string;
+  author?: BlogAuthor;
+  tags?: string[];
+  tagsFa?: string[];
 }
