@@ -107,7 +107,9 @@ function VaultPagesView() {
   }, [selectedDiscipline, pages]);
 
   // Derived slug and locked route computed top-to-bottom
-  const computedSlug = customSlug.trim() || normalizeProjectSlug(pageTitle) || "new-page";
+  const computedSlug = customSlug.trim()
+    ? normalizeProjectSlug(customSlug.trim())
+    : normalizeProjectSlug(pageTitle) || "new-page";
 
   const computedRoute = useMemo(() => {
     if (createTarget === "discipline") {
@@ -219,11 +221,14 @@ function VaultPagesView() {
 
   // Build hierarchical tree
   // Level 0: pages with parentRoute === "" or not matching any existing route
-  const allRoutesSet = useMemo(() => new Set(pages.map((p) => p.route)), [pages]);
+  const allRoutesLowerSet = useMemo(
+    () => new Set(pages.map((p) => (p.route || "").toLowerCase())),
+    [pages]
+  );
 
   const rootPages = useMemo(() => {
     return pages
-      .filter((p) => !p.parentRoute || !allRoutesSet.has(p.parentRoute))
+      .filter((p) => !p.parentRoute || !allRoutesLowerSet.has(p.parentRoute.toLowerCase()))
       .filter((p) => {
         if (!searchQuery.trim()) return true;
         const q = searchQuery.toLowerCase();
@@ -234,10 +239,11 @@ function VaultPagesView() {
           p.descriptionFa.includes(q)
         );
       });
-  }, [pages, allRoutesSet, searchQuery]);
+  }, [pages, allRoutesLowerSet, searchQuery]);
 
   const getChildrenOf = (parentRoute: string) => {
-    return pages.filter((p) => p.parentRoute === parentRoute);
+    const prLower = (parentRoute || "").toLowerCase();
+    return pages.filter((p) => (p.parentRoute || "").toLowerCase() === prLower);
   };
 
   return (

@@ -160,12 +160,23 @@ export function normalizeSpecialtySlug(specialty: string): string {
 export function normalizeProjectSlug(project: string): string {
   const base = slugify(project) || "project";
   if (base === "tasting") return "gastronomie";
+  if (
+    base === "signature-cafe-restaurant" ||
+    base === "signature-cafe" ||
+    base === "signature-restaurant" ||
+    base === "signature"
+  ) {
+    return "signature-restaurant";
+  }
   if (base === "dodareh" || base === "dobareh-accesories" || base === "dobareh-accessories") return "dobareh";
   if (base === "shekarchian" || base === "shekarchian-honey") return "shekarchian-sweets";
   if (base === "on-swipe") return "onswipe";
   if (base === "polarity-atelier") return "polarity";
-  if (base === "nozad-publication") return "nozad-publication-visual-identity";
+  if (base === "nozad-publication" || base === "nozad-publication-visual-identity" || base === "nozad-vi") {
+    return "nozad-publication-visual-identity";
+  }
   if (base === "goats") return "goats-coffee";
+  if (base === "zen-studio" || base === "zen-studio-products") return "zen-studio";
   return base;
 }
 

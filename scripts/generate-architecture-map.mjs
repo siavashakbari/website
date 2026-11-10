@@ -24,6 +24,35 @@ function cleanSegment(s) {
   return str.replace(/^-+|-+$/g, "");
 }
 
+function normalizeProjectSlug(project) {
+  const base = (project || "project")
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, "-")
+    .replace(/[^\w\-]+/g, "")
+    .replace(/\-\-+/g, "-")
+    .replace(/^-+|-+$/g, "");
+  if (base === "tasting") return "gastronomie";
+  if (
+    base === "signature-cafe-restaurant" ||
+    base === "signature-cafe" ||
+    base === "signature-restaurant" ||
+    base === "signature"
+  ) {
+    return "signature-restaurant";
+  }
+  if (base === "dodareh" || base === "dobareh-accesories" || base === "dobareh-accessories") return "dobareh";
+  if (base === "shekarchian" || base === "shekarchian-honey") return "shekarchian-sweets";
+  if (base === "on-swipe") return "onswipe";
+  if (base === "polarity-atelier") return "polarity";
+  if (base === "nozad-publication" || base === "nozad-publication-visual-identity" || base === "nozad-vi") {
+    return "nozad-publication-visual-identity";
+  }
+  if (base === "goats") return "goats-coffee";
+  if (base === "zen-studio" || base === "zen-studio-products") return "zen-studio";
+  return base;
+}
+
 function buildDynamicCode(uniqueCode, field, category, project) {
   return [uniqueCode, cleanSegment(field), cleanSegment(category), cleanSegment(project)]
     .filter(Boolean)
@@ -33,7 +62,7 @@ function buildDynamicCode(uniqueCode, field, category, project) {
 function resolveHierarchy(item) {
   let field = "photography";
   let category = "fashion-photography";
-  let project = item.project ? item.project.toLowerCase().replace(/\s+/g, "-") : "project";
+  let project = normalizeProjectSlug(item.project);
 
   const discNorm = (item.disciplineSlug || item.discipline || "").toLowerCase();
   if (discNorm.includes("video") || discNorm.includes("motion")) {
@@ -68,7 +97,12 @@ function resolveHierarchy(item) {
     ? ".MP4"
     : ".JPG";
   const imageName = `${dynamicCode}${ext}`;
-  const assignedRoute = `/${field}/${category}/${project}`;
+  const assignedRoute =
+    field === "video"
+      ? `/video/${project}`
+      : field === "product-design"
+      ? `/product-design/${project}`
+      : `/${field}/${category}/${project}`;
   const canonicalUrl = `https://www.siavashakbari.ir${assignedRoute}/${dynamicCode}`;
   const shortUrl = `https://www.siavashakbari.ir${assignedRoute}/${uniqueCode}`;
 

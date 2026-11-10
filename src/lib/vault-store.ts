@@ -15,6 +15,7 @@ import {
   normalizeSpecialtySlug,
   normalizeProjectSlug,
   buildPhotoUrl,
+  slugify,
 } from "@/lib/taxonomy";
 import { notifyStudioStoreUpdated } from "@/lib/studio-store";
 
@@ -740,7 +741,7 @@ export function getInitialScannedMedia(): VaultMediaItem[] {
 
     let field = "photography";
     let category = "fashion-photography";
-    let project = p.project ? p.project.toLowerCase().replace(/\s+/g, "-") : "project";
+    let project = normalizeProjectSlug(p.project || "project");
 
     const discNorm = (p.disciplineSlug || p.discipline || "").toLowerCase();
     if (discNorm.includes("video") || discNorm.includes("motion")) {
@@ -762,7 +763,12 @@ export function getInitialScannedMedia(): VaultMediaItem[] {
       else category = "fashion-photography";
     }
 
-    const assignedRoute = `/${field}/${category}/${project}`;
+    const assignedRoute =
+      field === "video"
+        ? `/video/${project}`
+        : field === "product-design"
+        ? `/product-design/${project}`
+        : `/${field}/${category}/${project}`;
     const dynamicCode = buildDynamicMediaCode(uniqueCode, field, category, project);
 
     const ext = p.imgSrc?.toLowerCase().endsWith(".png")
@@ -873,7 +879,8 @@ export function getVaultPages(): VaultPageItem[] {
       /* ignore */
     }
 
-    // 3. Merge user customizations saved in STORAGE_VAULT_PAGES
+    // 3. Merge user customizations saved in STORAGE_VAULT_PAGES with automatic self-healing
+    let needsWriteBack = false;
     try {
       const savedRaw = localStorage.getItem(STORAGE_VAULT_PAGES);
       if (savedRaw) {
@@ -881,31 +888,125 @@ export function getVaultPages(): VaultPageItem[] {
         if (Array.isArray(savedList)) {
           savedList.forEach((saved) => {
             if (!saved || !saved.route) return;
-            const key = saved.route.toLowerCase();
-            const existing = pagesMap.get(key) || Array.from(pagesMap.values()).find((p) => p.id === saved.id);
+
+            let route = (saved.route || "").trim().toLowerCase();
+            let parentRoute = (saved.parentRoute || "").trim().toLowerCase();
+            let name = saved.name || "";
+            let id = saved.id || "";
+
+            // Heal case 1: Gastronomie page hijacked or misnamed in past browser session
+            if (id === "photography-food-gastronomie") {
+              route = "/photography/food-photography/gastronomie";
+              parentRoute = "/photography/food-photography";
+              if (name.toLowerCase().includes("signature") || name.toLowerCase().includes("cafe")) {
+                name = "Gastronomie";
+                needsWriteBack = true;
+              }
+            }
+
+            // Heal case 2: Signature Restaurant variants and ghost slugs (Signature-Cafe-Restaurant)
+            if (
+              route.includes("signature-cafe-restaurant") ||
+              route.includes("signature-cafe") ||
+              route === "/photography/food-photography/signature" ||
+              id === "photography-food-signature-cafe-restaurant"
+            ) {
+              route = "/photography/food-photography/signature-restaurant";
+              parentRoute = "/photography/food-photography";
+              id = "photography-food-signature-restaurant";
+              if (!name || name.toLowerCase().includes("cafe") || name.toLowerCase().includes("signature")) {
+                name = "Signature Restaurant";
+              }
+              needsWriteBack = true;
+            }
+
+            // Heal case 3: Zen Studio variants
+            if (route.includes("zen-studio-products")) {
+              route = "/graphic-design/visual-identity/zen-studio";
+              parentRoute = "/graphic-design/visual-identity";
+              needsWriteBack = true;
+            }
+
+            // Route segment normalization across all disciplines and projects
+            const segs = route.split("/").filter(Boolean);
+            if (segs.length === 3) {
+              const d = normalizeDisciplineSlug(segs[0]);
+              const s = normalizeSpecialtySlug(segs[1]);
+              const p = normalizeProjectSlug(segs[2]);
+              const normRoute = `/${d}/${s}/${p}`;
+              if (normRoute !== route) {
+                route = normRoute;
+                needsWriteBack = true;
+              }
+              parentRoute = `/${d}/${s}`;
+            } else if (segs.length === 2) {
+              const d = normalizeDisciplineSlug(segs[0]);
+              const s = normalizeSpecialtySlug(segs[1]);
+              const normRoute = `/${d}/${s}`;
+              if (normRoute !== route) {
+                route = normRoute;
+                needsWriteBack = true;
+              }
+              parentRoute = `/${d}`;
+            } else if (segs.length === 1) {
+              const d = normalizeDisciplineSlug(segs[0]);
+              const normRoute = `/${d}`;
+              if (normRoute !== route) {
+                route = normRoute;
+                needsWriteBack = true;
+              }
+              parentRoute = "";
+            }
+
+            const key = route.toLowerCase();
+            const existing = pagesMap.get(key) || Array.from(pagesMap.values()).find((p) => p.id === id);
+
             if (existing) {
+              // Existing base page: update its customizable attributes, but PRESERVE its canonical route and ID
               pagesMap.set(existing.route.toLowerCase(), {
                 ...existing,
-                ...saved,
-                name: saved.name !== undefined ? saved.name : existing.name,
-                route: saved.route !== undefined ? saved.route : existing.route,
-                parentRoute: saved.parentRoute !== undefined ? saved.parentRoute : existing.parentRoute,
-                coverPhoto: (saved.coverPhoto && saved.coverPhoto.trim()) ? saved.coverPhoto : existing.coverPhoto,
+                name: name && name !== existing.id ? name : existing.name,
                 descriptionEn: saved.descriptionEn !== undefined ? saved.descriptionEn : existing.descriptionEn,
                 descriptionFa: saved.descriptionFa !== undefined ? saved.descriptionFa : existing.descriptionFa,
+                coverPhoto: saved.coverPhoto && saved.coverPhoto.trim() ? saved.coverPhoto : existing.coverPhoto,
                 uiType: saved.uiType || existing.uiType,
                 isHidden: saved.isHidden !== undefined ? saved.isHidden : existing.isHidden,
                 pairedBoxes: saved.pairedBoxes || existing.pairedBoxes,
+                order: saved.order !== undefined ? saved.order : existing.order,
               });
             } else {
               // Custom user-created page
-              pagesMap.set(key, saved);
+              pagesMap.set(key, {
+                ...saved,
+                id: id || `custom-page-${Date.now()}`,
+                route,
+                parentRoute,
+                name: name || route,
+              });
             }
           });
         }
       }
     } catch (e) {
       console.error("Error merging saved vault pages:", e);
+    }
+
+    // 4. Invariant: Guarantee all base pages are present and restored
+    basePages.forEach((bp) => {
+      const k = bp.route.toLowerCase();
+      if (!pagesMap.has(k)) {
+        pagesMap.set(k, bp);
+        needsWriteBack = true;
+      }
+    });
+
+    // 5. Write-back healed state to localStorage if corrections were made
+    if (needsWriteBack) {
+      try {
+        localStorage.setItem(STORAGE_VAULT_PAGES, JSON.stringify(Array.from(pagesMap.values())));
+      } catch (e) {
+        /* ignore */
+      }
     }
   }
 
@@ -915,23 +1016,53 @@ export function getVaultPages(): VaultPageItem[] {
 
 export function saveVaultPage(page: VaultPageItem): void {
   if (typeof window === "undefined") return;
+
+  // Normalize route and parentRoute before saving
+  let normRoute = (page.route || "").trim().toLowerCase();
+  let normParent = (page.parentRoute || "").trim().toLowerCase();
+  const segs = normRoute.split("/").filter(Boolean);
+  if (segs.length === 3) {
+    const d = normalizeDisciplineSlug(segs[0]);
+    const s = normalizeSpecialtySlug(segs[1]);
+    const p = normalizeProjectSlug(segs[2]);
+    normRoute = `/${d}/${s}/${p}`;
+    normParent = `/${d}/${s}`;
+  } else if (segs.length === 2) {
+    const d = normalizeDisciplineSlug(segs[0]);
+    const s = normalizeSpecialtySlug(segs[1]);
+    normRoute = `/${d}/${s}`;
+    normParent = `/${d}`;
+  } else if (segs.length === 1) {
+    const d = normalizeDisciplineSlug(segs[0]);
+    normRoute = `/${d}`;
+    normParent = "";
+  }
+
+  const normalizedPage: VaultPageItem = {
+    ...page,
+    route: normRoute,
+    parentRoute: normParent,
+  };
+
   const currentPages = getVaultPages();
-  const idx = currentPages.findIndex((p) => p.id === page.id || p.route.toLowerCase() === page.route.toLowerCase());
+  const idx = currentPages.findIndex(
+    (p) => p.id === normalizedPage.id || p.route.toLowerCase() === normalizedPage.route.toLowerCase()
+  );
 
   if (idx >= 0) {
     const oldRoute = currentPages[idx].route;
-    currentPages[idx] = { ...currentPages[idx], ...page };
+    currentPages[idx] = { ...currentPages[idx], ...normalizedPage };
 
     // If route was changed, update any children parentRoute
-    if (oldRoute && oldRoute.toLowerCase() !== page.route.toLowerCase()) {
+    if (oldRoute && oldRoute.toLowerCase() !== normalizedPage.route.toLowerCase()) {
       currentPages.forEach((item) => {
         if (item.parentRoute.toLowerCase() === oldRoute.toLowerCase()) {
-          item.parentRoute = page.route;
+          item.parentRoute = normalizedPage.route;
         }
       });
     }
   } else {
-    currentPages.push(page);
+    currentPages.push(normalizedPage);
   }
 
   localStorage.setItem(STORAGE_VAULT_PAGES, JSON.stringify(currentPages));

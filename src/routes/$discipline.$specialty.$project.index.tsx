@@ -83,6 +83,19 @@ export const Route = createFileRoute("/$discipline/$specialty/$project/")({
       });
     }
 
+    // Auto-redirect if URL project slug, discipline, or specialty differs from normalized canonical slug
+    if (params.project !== normProj || params.discipline !== normDisc || params.specialty !== normSpec) {
+      throw redirect({
+        to: "/$discipline/$specialty/$project",
+        params: {
+          discipline: normDisc,
+          specialty: normSpec,
+          project: normProj,
+        },
+        replace: true,
+      });
+    }
+
     // Find in studio projects or default static projects
     const allStudio = getStudioProjects();
     const studioFound = allStudio.find((p) => {
