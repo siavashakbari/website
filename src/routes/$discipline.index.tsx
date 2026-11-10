@@ -86,9 +86,12 @@ function useIsDesktop() {
 
 export const Route = createFileRoute("/$discipline/")({
   loader: ({ params }) => {
-    // Graphic Design top route does not exist per specification
+    // Graphic Design top route redirects to visual identity specialty
     if (params.discipline === "graphic-design") {
-      throw notFound({ routeId: rootRouteId });
+      throw redirect({
+        to: "/$discipline/$specialty",
+        params: { discipline: "graphic-design", specialty: "visual-identity" },
+      });
     }
 
     const normSlug = normalizeDisciplineSlug(params.discipline);

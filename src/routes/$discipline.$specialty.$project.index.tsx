@@ -62,9 +62,12 @@ export const Route = createFileRoute("/$discipline/$specialty/$project/")({
     const normSpec = normalizeSpecialtySlug(params.specialty);
     const normProj = normalizeProjectSlug(params.project);
 
-    // Posters & Book Covers project-dedicated pages do not exist per specification
-    if (normDisc === "graphic-design" && (normSpec === "posters" || normSpec === "book-covers")) {
-      throw notFound({ routeId: rootRouteId });
+    // Posters project-dedicated pages do not exist per specification -> redirect to posters gallery
+    if (normDisc === "graphic-design" && normSpec === "posters") {
+      throw redirect({
+        to: "/$discipline/$specialty",
+        params: { discipline: "graphic-design", specialty: "posters" },
+      });
     }
 
     // Video project page routes to /video/[project] (2 segments)
