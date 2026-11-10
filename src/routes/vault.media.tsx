@@ -583,7 +583,11 @@ function VaultMediaView() {
                     >
                       <option value="">Select Category...</option>
                       {pages
-                        .filter((p) => p.parentRoute === `/${newField}`)
+                        .filter(
+                          (p) =>
+                            (p.parentRoute || "").toLowerCase().trim().replace(/\/+$/, "") ===
+                            `/${newField}`.toLowerCase().replace(/\/+$/, ""),
+                        )
                         .map((c) => (
                           <option key={c.id} value={c.route.split("/").pop()}>
                             {c.name}
@@ -605,7 +609,11 @@ function VaultMediaView() {
                     >
                       <option value="">Select Project...</option>
                       {pages
-                        .filter((p) => p.parentRoute === `/${newField}/${newCategory}`)
+                        .filter(
+                          (p) =>
+                            (p.parentRoute || "").toLowerCase().trim().replace(/\/+$/, "") ===
+                            `/${newField}/${newCategory}`.toLowerCase().replace(/\/+$/, ""),
+                        )
                         .map((proj) => (
                           <option key={proj.id} value={proj.route.split("/").pop()}>
                             {proj.name}
@@ -677,13 +685,19 @@ function MediaCard({
   // Categories under selected field
   const categoryOptions = useMemo(() => {
     if (!item.field) return [];
-    return pages.filter((p) => p.parentRoute === `/${item.field}`);
+    const targetParent = `/${item.field}`.toLowerCase().replace(/\/+$/, "");
+    return pages.filter(
+      (p) => (p.parentRoute || "").toLowerCase().trim().replace(/\/+$/, "") === targetParent,
+    );
   }, [pages, item.field]);
 
   // Projects under selected category
   const projectOptions = useMemo(() => {
     if (!item.field || !item.category) return [];
-    return pages.filter((p) => p.parentRoute === `/${item.field}/${item.category}`);
+    const targetParent = `/${item.field}/${item.category}`.toLowerCase().replace(/\/+$/, "");
+    return pages.filter(
+      (p) => (p.parentRoute || "").toLowerCase().trim().replace(/\/+$/, "") === targetParent,
+    );
   }, [pages, item.field, item.category]);
 
   const resolvedSrc = resolveInventoryImage(item.thumbSrc || item.imgSrc) || item.imgSrc;

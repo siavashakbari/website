@@ -1233,7 +1233,8 @@ export function getVaultMedia(): VaultMediaItem[] {
     console.error("Error discovering custom project media:", e);
   }
 
-  // 3. Merge user edits from localStorage (toggled isHidden, modified pairedBoxes, etc.)
+  // 3. Merge user edits from localStorage with self-healing
+  let mediaNeedsWriteBack = false;
   try {
     const savedRaw = localStorage.getItem(STORAGE_VAULT_MEDIA);
     if (savedRaw) {
@@ -1241,21 +1242,29 @@ export function getVaultMedia(): VaultMediaItem[] {
       if (Array.isArray(savedList)) {
         savedList.forEach((saved) => {
           if (!saved) return;
-          const key = (saved.imgSrc || saved.uniqueCode).toLowerCase();
-          const existing =
-            mediaMap.get(key) ||
-            Array.from(mediaMap.values()).find(
-              (m) => m.uniqueCode === saved.uniqueCode || m.id === saved.id,
-            );
+          const sSrc = (saved.imgSrc || "").toLowerCase();
+
+          // Match by image source first (the immutable invariant for all scanned assets)
+          const existing = sSrc
+            ? mediaMap.get(sSrc)
+            : Array.from(mediaMap.values()).find((m) => m.id === saved.id);
+
           if (existing) {
+            // Merge user customization (visibility, title, paired boxes), but keep canonical taxonomy & sticky uniqueCode
             mediaMap.set((existing.imgSrc || existing.uniqueCode).toLowerCase(), {
               ...existing,
-              ...saved,
-              imgSrc: saved.imgSrc || existing.imgSrc,
-              thumbSrc: saved.thumbSrc || existing.thumbSrc,
+              title: saved.title && saved.title !== existing.dynamicCode ? saved.title : existing.title,
+              isHidden: saved.isHidden !== undefined ? saved.isHidden : existing.isHidden,
+              pairedBoxes: saved.pairedBoxes || existing.pairedBoxes,
+              caption: saved.caption !== undefined ? saved.caption : existing.caption,
+              client: saved.client !== undefined ? saved.client : existing.client,
+              model: saved.model !== undefined ? saved.model : existing.model,
+              makeupArtist: saved.makeupArtist !== undefined ? saved.makeupArtist : existing.makeupArtist,
+              assistant: saved.assistant !== undefined ? saved.assistant : existing.assistant,
             });
-          } else {
-            // New user-uploaded media item added directly in Vault
+          } else if (saved.id?.startsWith("custom-media-") || sSrc.startsWith("data:") || sSrc.startsWith("blob:")) {
+            // Valid user-uploaded media item added directly in Vault
+            const key = (saved.imgSrc || saved.uniqueCode).toLowerCase();
             mediaMap.set(key, saved);
           }
         });
@@ -1263,6 +1272,44 @@ export function getVaultMedia(): VaultMediaItem[] {
     }
   } catch (e) {
     console.error("Error loading vault media:", e);
+  }
+
+  // 4. Invariant: Guarantee all base inventory media items are always present and un-shadowed
+  baseList.forEach((bm) => {
+    const k = (bm.imgSrc || bm.uniqueCode).toLowerCase();
+    const current = mediaMap.get(k);
+    if (!current) {
+      mediaMap.set(k, bm);
+      mediaNeedsWriteBack = true;
+    } else {
+      // Ensure canonical uniqueCode, field, category, project, assignedRoute, and dynamicCode are correct
+      if (
+        current.uniqueCode !== bm.uniqueCode ||
+        current.project !== bm.project ||
+        current.field !== bm.field ||
+        current.category !== bm.category
+      ) {
+        mediaMap.set(k, {
+          ...current,
+          uniqueCode: bm.uniqueCode,
+          dynamicCode: bm.dynamicCode,
+          field: bm.field,
+          category: bm.category,
+          project: bm.project,
+          assignedRoute: bm.assignedRoute,
+        });
+        mediaNeedsWriteBack = true;
+      }
+    }
+  });
+
+  // 5. Write-back healed state to localStorage if corrections were made
+  if (mediaNeedsWriteBack) {
+    try {
+      localStorage.setItem(STORAGE_VAULT_MEDIA, JSON.stringify(Array.from(mediaMap.values())));
+    } catch (e) {
+      /* ignore */
+    }
   }
 
   const result = Array.from(mediaMap.values()).map(ensureMediaItemDynamicFields);
@@ -1331,11 +1378,19 @@ export function saveVaultMedia(item: VaultMediaItem): void {
 
 export function deleteVaultMedia(idOrCode: string): void {
   if (typeof window === "undefined") return;
-  const list = getVaultMedia().filter(
-    (m) => m.id !== idOrCode && m.uniqueCode !== idOrCode
-  );
-  localStorage.setItem(STORAGE_VAULT_MEDIA, JSON.stringify(list));
-  notifyVaultUpdated({ type: "media_deleted", id: idOrCode });
+  const list = getVaultMedia();
+  const target = list.find((m) => m.id === idOrCode || m.uniqueCode === idOrCode);
+  if (target) {
+    if (target.id.startsWith("custom-media-")) {
+      const filtered = list.filter((m) => m.id !== idOrCode && m.uniqueCode !== idOrCode);
+      localStorage.setItem(STORAGE_VAULT_MEDIA, JSON.stringify(filtered));
+    } else {
+      // Base inventory media is marked isHidden so it does not break inventory indexing
+      target.isHidden = true;
+      localStorage.setItem(STORAGE_VAULT_MEDIA, JSON.stringify(list));
+    }
+    notifyVaultUpdated({ type: "media_deleted", id: idOrCode });
+  }
 }
 
 export function getMediaByCode(code: string): VaultMediaItem | undefined {

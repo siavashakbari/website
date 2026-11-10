@@ -224,6 +224,12 @@ export function getStudioProjects(): StudioProjectItem[] {
             cleanItem = { ...cleanItem, id: "gastronomie", title: "Gastronomie" };
           } else if (canonicalSlug === "echo-prime") {
             cleanItem = { ...cleanItem, id: "echo-prime", title: "Echo Prime" };
+          } else if (canonicalSlug === "meatlab") {
+            cleanItem = { ...cleanItem, id: "meatlab", title: "Meatlab", discipline: "graphic-design", category: "visual-identity" };
+          } else if (canonicalSlug === "signature-restaurant") {
+            cleanItem = { ...cleanItem, id: "signature-restaurant", title: "Signature Restaurant", discipline: "photography", category: "food-photography" };
+          } else if (canonicalSlug === "zen-studio") {
+            cleanItem = { ...cleanItem, id: "zen-studio", title: "Zen Studio Products", discipline: "graphic-design", category: "visual-identity" };
           }
 
           if (canonicalMap.has(canonicalSlug)) {
@@ -270,11 +276,22 @@ export function getStudioProjects(): StudioProjectItem[] {
     if (canonicalMap.has(canonicalSlug)) {
       const custom = canonicalMap.get(canonicalSlug)!;
       const hasCustomImages = custom.images && custom.images.length > 0;
+
+      // Protect default project coverImage against accidental cross-project corruption
+      let finalCover = def.coverImage;
+      if (custom.coverImage) {
+        const cLower = custom.coverImage.toLowerCase();
+        const dId = def.id.toLowerCase();
+        if (cLower.includes(dId) || cLower.startsWith("data:") || cLower.startsWith("blob:") || cLower.startsWith("/assets/")) {
+          finalCover = custom.coverImage;
+        }
+      }
+
       canonicalMap.set(canonicalSlug, {
         ...def,
         ...custom,
         images: hasCustomImages ? custom.images : def.images,
-        coverImage: custom.coverImage || def.coverImage,
+        coverImage: finalCover,
       });
     } else {
       canonicalMap.set(canonicalSlug, def);
@@ -907,6 +924,9 @@ export function getMergedPhotoInventory(): PhotoInventoryItem[] {
     else if (projSlug === "nozad-publication-visual-identity") projName = "Nozad Publication Visual Identity";
     else if (projSlug === "nozad-publications") projName = "Nozad Publications";
     else if (projSlug === "echo-prime") projName = "Echo Prime";
+    else if (projSlug === "signature-restaurant") projName = "Signature Restaurant";
+    else if (projSlug === "meatlab") projName = "Meatlab";
+    else if (projSlug === "zen-studio") projName = "Zen Studio Products";
 
     if (!projectSequenceMap[projSlug]) projectSequenceMap[projSlug] = 0;
     projectSequenceMap[projSlug] += 1;
@@ -936,6 +956,7 @@ export function getMergedPhotoInventory(): PhotoInventoryItem[] {
       specialtySlug: specSlug,
       projectSlug: projSlug,
       canonicalPath,
+      uniqueCode: item.uniqueCode || (item as any).uniqueCode || String(1001 + idx),
     };
 
     const key = getPhotoDedupeKey(mergedItem);
@@ -959,6 +980,9 @@ export function getMergedPhotoInventory(): PhotoInventoryItem[] {
     else if (projSlug === "nozad-publication-visual-identity") projName = "Nozad Publication Visual Identity";
     else if (projSlug === "nozad-publications") projName = "Nozad Publications";
     else if (projSlug === "echo-prime") projName = "Echo Prime";
+    else if (projSlug === "signature-restaurant") projName = "Signature Restaurant";
+    else if (projSlug === "meatlab") projName = "Meatlab";
+    else if (projSlug === "zen-studio") projName = "Zen Studio Products";
 
     const standardCode =
       custom?.standardCode ||
@@ -1043,9 +1067,12 @@ export function getPhotoItemBySlugOrCode(
     if (atla9) return atla9;
   }
 
-  // 1. Direct match on standard 4-part code (PHOT-FASH-SEPI-0001), code, or legacy code
+  // 1. Direct match on uniqueCode (e.g. "1211", "1317"), leading 4-digit code, standard 4-part code, code, or legacy code
+  const leading4 = /^\d{4}/.test(q) ? q.slice(0, 4) : "";
   const byStandardCode = all.find(
     (i) =>
+      i.uniqueCode === q ||
+      (leading4 && i.uniqueCode === leading4) ||
       (i.standardCode && i.standardCode.toLowerCase() === q) ||
       i.code.toLowerCase() === q ||
       (i.legacyCode && i.legacyCode.toLowerCase() === q),

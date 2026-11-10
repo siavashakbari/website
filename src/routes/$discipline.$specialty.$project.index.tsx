@@ -418,31 +418,32 @@ function ProjectCaseStudyPage() {
     };
   });
 
-  // Unified metadata paired boxes: Vault Page paired boxes take precedence, with legacy data merged seamlessly
+  // Unified metadata paired boxes: Vault Page paired boxes take precedence as single source of truth
   const mergedPairedBoxes = useMemo(() => {
-    const list = [...(vaultPage?.pairedBoxes || [])];
-    const hasKey = (key: string) => list.some((p) => p.key?.toLowerCase() === key.toLowerCase());
-
-    if (data.client && !hasKey("client")) {
+    if (vaultPage && Array.isArray(vaultPage.pairedBoxes) && vaultPage.pairedBoxes.length > 0) {
+      return vaultPage.pairedBoxes;
+    }
+    const list: any[] = [];
+    if (data.client) {
       list.push({ key: "Client", value: data.client });
     }
-    if (data.models && !hasKey("model") && !hasKey("models")) {
-      list.push({ key: "Model", value: Array.isArray(data.models) ? data.models.join(", ") : data.models });
-    }
-    if (data.makeupArtist && !hasKey("mua") && !hasKey("makeup artist")) {
-      list.push({ key: "MUA", value: data.makeupArtist });
-    }
-    if (data.assistant && !hasKey("assistant")) {
-      list.push({ key: "Assistant", value: data.assistant });
-    }
-    if (data.stylist && !hasKey("stylist")) {
-      list.push({ key: "Stylist", value: data.stylist });
-    }
-    if (data.year && !hasKey("year")) {
+    if (data.year) {
       list.push({ key: "Year", value: String(data.year) });
     }
+    if (data.models) {
+      list.push({ key: "Model", value: Array.isArray(data.models) ? data.models.join(", ") : data.models });
+    }
+    if (data.makeupArtist) {
+      list.push({ key: "MUA", value: data.makeupArtist });
+    }
+    if (data.assistant) {
+      list.push({ key: "Assistant", value: data.assistant });
+    }
+    if (data.stylist) {
+      list.push({ key: "Stylist", value: data.stylist });
+    }
     return list;
-  }, [vaultPage?.pairedBoxes, data.client, data.models, data.makeupArtist, data.assistant, data.stylist, data.year]);
+  }, [vaultPage, data.client, data.models, data.makeupArtist, data.assistant, data.stylist, data.year]);
 
   const backUrl = `/${data.disciplineSlug}/${data.specialtySlug}`;
 

@@ -124,8 +124,11 @@ export const Route = createFileRoute("/$discipline/$specialty/$project/$photoId"
 
     // Auto-redirect if accessed via uniqueCode (e.g. 1221), legacy code, or casing mismatch
     if (
-      rawPhotoId !== canonicalPhotoCode &&
-      rawPhotoId.toUpperCase() !== canonicalPhotoCode.toUpperCase()
+      (rawPhotoId !== canonicalPhotoCode &&
+        rawPhotoId.toUpperCase() !== canonicalPhotoCode.toUpperCase()) ||
+      params.discipline !== disciplineSlug ||
+      params.specialty !== specialtySlug ||
+      params.project !== projectSlug
     ) {
       throw redirect({
         to: "/$discipline/$specialty/$project/$photoId",
