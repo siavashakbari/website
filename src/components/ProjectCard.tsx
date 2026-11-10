@@ -1,5 +1,10 @@
 import { Link } from "@tanstack/react-router";
 import type { Project } from "@/data/projects";
+import {
+  normalizeDisciplineSlug,
+  normalizeSpecialtySlug,
+  normalizeProjectSlug,
+} from "@/lib/taxonomy";
 
 interface ProjectCardProps {
   project: Project;
@@ -20,32 +25,25 @@ export function ProjectCard({ project, index = 0, aspectRatio }: ProjectCardProp
     />
   );
 
-  const isVisualIdentity =
-    project.discipline === "graphic-design" &&
-    project.category.toLowerCase().includes("visual identity");
+  const normDisc = normalizeDisciplineSlug(project.discipline || "graphic-design");
+  const normProj = normalizeProjectSlug(project.title || project.id);
+  const normSpec = normalizeSpecialtySlug(project.subDiscipline || project.category || "");
 
-  const cat = project.category.toLowerCase();
   let linkProps: any = {
     to: "/$discipline/$specialty/$project",
-    params: { discipline: "graphic-design", specialty: "visual-identity", project: project.id },
+    params: { discipline: normDisc, specialty: normSpec, project: normProj },
   };
 
-  if (!isVisualIdentity) {
-    if (cat.includes("fashion")) {
-      linkProps = { to: "/$discipline/$specialty", params: { discipline: "photography", specialty: "fashion-photography" } };
-    } else if (cat.includes("food")) {
-      linkProps = { to: "/$discipline/$specialty", params: { discipline: "photography", specialty: "food-photography" } };
-    } else if (cat.includes("portrait")) {
-      linkProps = { to: "/$discipline/$specialty", params: { discipline: "photography", specialty: "portrait-photography" } };
-    } else if (cat.includes("product")) {
-      linkProps = { to: "/$discipline/$specialty", params: { discipline: "photography", specialty: "product-photography" } };
-    } else if (cat.includes("book cover") || cat.includes("book")) {
-      linkProps = { to: "/$discipline/$specialty", params: { discipline: "graphic-design", specialty: "book-covers" } };
-    } else if (cat.includes("poster")) {
-      linkProps = { to: "/$discipline/$specialty", params: { discipline: "graphic-design", specialty: "posters" } };
-    } else if (project.discipline === "video" || cat.includes("video")) {
-      linkProps = { to: "/$discipline/$specialty", params: { discipline: "video", specialty: "videos" } };
-    }
+  if (normDisc === "video" || normDisc === "product-design") {
+    linkProps = {
+      to: "/$discipline/$specialty",
+      params: { discipline: normDisc, specialty: normProj },
+    };
+  } else if (normSpec === "posters") {
+    linkProps = {
+      to: "/$discipline/$specialty",
+      params: { discipline: "graphic-design", specialty: "posters" },
+    };
   }
 
   return (

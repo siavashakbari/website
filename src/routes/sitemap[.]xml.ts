@@ -1,9 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
 import type {} from "@tanstack/react-start";
-import { DISCIPLINES } from "@/data/disciplines";
-import { projects } from "@/data/projects";
 import { BLOG_POSTS } from "@/data/blog-posts";
-import { PHOTO_INVENTORY, computeItemSeoSlug } from "@/data/photo-inventory";
+import {
+  buildMediaLiveDetailUrl,
+  getInitialScannedMedia,
+  getInitialScannedPages,
+} from "@/lib/vault-store";
+import { resolveInventoryImage } from "@/lib/inventory-assets";
 import { getSiteUrl } from "@/lib/seo";
 
 interface SitemapEntry {
@@ -18,29 +21,41 @@ interface SitemapEntry {
   };
 }
 
+function escapeXml(str: string): string {
+  return String(str || "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&apos;");
+}
+
 function buildEntries(baseUrl: string): SitemapEntry[] {
   const staticPages: SitemapEntry[] = [
     { path: "/", changefreq: "weekly", priority: "1.0" },
     { path: "/photography", changefreq: "weekly", priority: "0.9" },
-    { path: "/video", changefreq: "weekly", priority: "0.9" },
+    { path: "/graphic-design", changefreq: "weekly", priority: "0.9" },
     { path: "/product-design", changefreq: "weekly", priority: "0.9" },
+    { path: "/video", changefreq: "weekly", priority: "0.9" },
     { path: "/blog", changefreq: "weekly", priority: "0.9" },
     { path: "/about", changefreq: "monthly", priority: "0.8" },
     { path: "/contact", changefreq: "monthly", priority: "0.8" },
     { path: "/brand-discovery", changefreq: "monthly", priority: "0.8" },
   ];
 
-  const disciplinePages: SitemapEntry[] = DISCIPLINES.map((d) => ({
-    path: d.path || `/${d.slug}`,
-    changefreq: "weekly" as const,
-    priority: "0.85",
-  }));
+  const seenPaths = new Set(staticPages.map((p) => p.path));
 
-  const projectPages: SitemapEntry[] = projects.map((p) => ({
-    path: `/projects/${p.id}`,
-    changefreq: "monthly" as const,
-    priority: "0.8",
-  }));
+  const vaultRouteEntries: SitemapEntry[] = [];
+  for (const vp of getInitialScannedPages()) {
+    if (vp.isHidden || !vp.route || seenPaths.has(vp.route)) continue;
+    seenPaths.add(vp.route);
+    const depth = vp.route.split("/").filter(Boolean).length;
+    vaultRouteEntries.push({
+      path: vp.route,
+      changefreq: depth <= 2 ? "weekly" : "monthly",
+      priority: depth <= 2 ? "0.85" : "0.8",
+    });
+  }
 
   const blogPages: SitemapEntry[] = BLOG_POSTS.map((bp) => ({
     path: `/blog/${bp.slug}`,
@@ -49,25 +64,37 @@ function buildEntries(baseUrl: string): SitemapEntry[] {
     lastmod: bp.publishedAt,
   }));
 
-  const assetPages: SitemapEntry[] = PHOTO_INVENTORY.map((item) => {
-    const seoSlug = computeItemSeoSlug(item);
-    const rawSrc = item.imgSrc.replace(/^src\//, "/");
-    const imageLoc = `${baseUrl}${rawSrc.startsWith("/") ? rawSrc : `/${rawSrc}`}`;
+  const assetPages: SitemapEntry[] = [];
+  for (const item of getInitialScannedMedia()) {
+    if (item.isHidden || item.isVideo || item.field === "video") continue;
+    const livePath = buildMediaLiveDetailUrl(item);
+    if (!livePath || seenPaths.has(livePath)) continue;
+    seenPaths.add(livePath);
 
-    return {
-      path: `/${item.disciplineSlug}/${seoSlug}`,
-      changefreq: "monthly" as const,
+    const resolvedImg = resolveInventoryImage(item.imgSrc);
+    const imageLoc =
+      resolvedImg && !resolvedImg.startsWith("data:") && !resolvedImg.startsWith("src/")
+        ? resolvedImg.startsWith("http")
+          ? resolvedImg
+          : `${baseUrl}${resolvedImg.startsWith("/") ? resolvedImg : `/${resolvedImg}`}`
+        : undefined;
+
+    assetPages.push({
+      path: livePath,
+      changefreq: "monthly",
       priority: "0.75",
-      lastmod: item.date ? `${item.date}-01-01` : undefined,
-      image: {
-        loc: imageLoc,
-        title: `${item.project} — ${item.code}`,
-        caption: `${item.project} ${item.subdiscipline || item.discipline} by Siavash Akbari`,
-      },
-    };
-  });
+      lastmod: item.year ? `${item.year}-01-01` : undefined,
+      image: imageLoc
+        ? {
+            loc: imageLoc,
+            title: `${item.project || item.category || item.field} — ${item.dynamicCode}`,
+            caption: `${item.title || item.dynamicCode} by Siavash Akbari`,
+          }
+        : undefined,
+    });
+  }
 
-  return [...staticPages, ...disciplinePages, ...projectPages, ...blogPages, ...assetPages];
+  return [...staticPages, ...vaultRouteEntries, ...blogPages, ...assetPages];
 }
 
 export const Route = createFileRoute("/sitemap.xml")({
@@ -80,12 +107,12 @@ export const Route = createFileRoute("/sitemap.xml")({
         const urls = entries.map((e) =>
           [
             `  <url>`,
-            `    <loc>${baseUrl}${e.path === "/" ? "/" : e.path}</loc>`,
-            e.lastmod ? `    <lastmod>${e.lastmod}</lastmod>` : null,
+            `    <loc>${escapeXml(`${baseUrl}${e.path === "/" ? "/" : e.path}`)}</loc>`,
+            e.lastmod ? `    <lastmod>${escapeXml(e.lastmod)}</lastmod>` : null,
             e.changefreq ? `    <changefreq>${e.changefreq}</changefreq>` : null,
             e.priority ? `    <priority>${e.priority}</priority>` : null,
             e.image
-              ? `    <image:image>\n      <image:loc>${e.image.loc}</image:loc>\n      <image:title>${e.image.title.replace(/&/g, "&amp;")}</image:title>\n      <image:caption>${e.image.caption.replace(/&/g, "&amp;")}</image:caption>\n    </image:image>`
+              ? `    <image:image>\n      <image:loc>${escapeXml(e.image.loc)}</image:loc>\n      <image:title>${escapeXml(e.image.title)}</image:title>\n      <image:caption>${escapeXml(e.image.caption)}</image:caption>\n    </image:image>`
               : null,
             `  </url>`,
           ]

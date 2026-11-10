@@ -1,4 +1,5 @@
 import { Link } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
 
 type CoverTileProps = {
   label: string;
@@ -7,27 +8,38 @@ type CoverTileProps = {
   href?: string;
   to?: any;
   params?: any;
+  index?: number;
 };
 
 /**
  * Shared cover card used by homepage disciplines and Visual Identity project cards.
  */
-export function CoverTile({ to, params, href, label, image, ariaLabel }: CoverTileProps) {
+export function CoverTile({ to, params, href, label, image, ariaLabel, index }: CoverTileProps) {
   const linkProps = href ? { to: href as any } : { to: to as any, params };
+  const [imgFailed, setImgFailed] = useState(false);
+
+  useEffect(() => {
+    setImgFailed(false);
+  }, [image]);
+
+  const hasValidImage = Boolean(image && !imgFailed && !image.startsWith("blob:"));
+  const isVideo = Boolean(image && /\.(mp4|webm|mov)(\?|#|$)|^data:video\//i.test(image));
+
   return (
     <Link
       {...linkProps}
       aria-label={ariaLabel ?? `View ${label}`}
       className="group relative isolate block aspect-[3/4] cursor-pointer overflow-hidden rounded-[3px] no-underline [clip-path:inset(0_round_3px)]"
     >
-      {image ? (
-        image.endsWith(".mp4") ? (
+      {hasValidImage ? (
+        isVideo ? (
           <video
             src={image}
             muted
             loop
             playsInline
             autoPlay
+            onError={() => setImgFailed(true)}
             className="h-full w-full rounded-[3px] object-cover object-center transition-[filter] duration-500 ease-out group-hover:brightness-[0.45]"
           />
         ) : (
@@ -36,9 +48,11 @@ export function CoverTile({ to, params, href, label, image, ariaLabel }: CoverTi
             alt={label}
             width={480}
             height={640}
-            loading="lazy"
+            loading={index !== undefined && index < 8 ? "eager" : "lazy"}
+            fetchPriority={index !== undefined && index < 4 ? "high" : undefined}
             decoding="async"
             draggable={false}
+            onError={() => setImgFailed(true)}
             className="h-full w-full rounded-[3px] object-cover object-center transition-[filter] duration-500 ease-out group-hover:brightness-[0.45]"
           />
         )

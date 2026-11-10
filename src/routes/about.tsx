@@ -150,7 +150,9 @@ const TIMELINE_LOGO_ONLY = new Set([
   "zen-studio",
   "femiq",
   "on-swipe",
+  "onswipe",
   "dodareh",
+  "dobareh",
   "awli",
   "mamrezz",
   "artemis",
@@ -194,7 +196,11 @@ const ZEEE_PRODUCTS_PHOTOS: GalleryPhoto[] = [
 /** Named client / brand projects + every visual identity in the portfolio. */
 function isTimelinePortfolioProject(project: Project) {
   // Already appear on the timeline as Job entries.
-  if (project.id === "nozad-publication" || project.id === "zeee-products") {
+  if (
+    project.id === "nozad-publication" ||
+    project.id === "nozad-publication-visual-identity" ||
+    project.id === "zeee-products"
+  ) {
     return false;
   }
   if (project.category.toLowerCase().includes("visual identity")) return true;
@@ -206,15 +212,20 @@ function isTimelinePortfolioProject(project: Project) {
 }
 
 const PROJECT_TITLE_FA: Record<string, string> = {
+  meatlab: "میت‌لب",
   shekarchian: "شیرینی شکرچیان",
+  "shekarchian-sweets": "شیرینی شکرچیان",
   dodareh: "دوباره",
+  dobareh: "دوباره",
   "ahura-cctv": "اهورا",
   femiq: "فمیک",
   polarity: "پلاریتی",
   "echo-supplements": "Echo Supplements",
   "goats-coffee": "قهوه‌ی بز",
   "nozad-publication": "انتشارات نوزاد",
+  "nozad-publication-visual-identity": "انتشارات نوزاد",
   "on-swipe": "آن سوایپ",
+  onswipe: "آن سوایپ",
   "zen-studio": "محصولات استودیو زن",
   artemis: "آرتمیس",
   cichon: "سیچون",
@@ -238,9 +249,14 @@ const PROJECT_ROLE_FA: Record<string, string> = {
 };
 
 const PROJECT_DESC_FA: Record<string, string> = {
+  meatlab: "هویت بصری و طراحی برند مفهومی برای میت‌لب.",
   shekarchian:
     "پروژه پیشنهادی هویت بصری برای شیرینی شکرچیان — طرح کانسپت با خوشنویسی زاویه‌دار فارسی، لحن گرم شکلاتی و سیستم بصری پیشنهادی برای بسته‌بندی، شبکه‌های اجتماعی و هویت برند.",
+  "shekarchian-sweets":
+    "پروژه پیشنهادی هویت بصری برای شیرینی شکرچیان — طرح کانسپت با خوشنویسی زاویه‌دار فارسی، لحن گرم شکلاتی و سیستم بصری پیشنهادی برای بسته‌بندی، شبکه‌های اجتماعی و هویت برند.",
   dodareh:
+    "پروژه هویت بصری برای دوباره اکسسوریز — برند اکسسوری با فرم‌های حروفی مجسمه‌گونه و لحنی بازیگوش.",
+  dobareh:
     "پروژه هویت بصری برای دوباره اکسسوریز — برند اکسسوری با فرم‌های حروفی مجسمه‌گونه و لحنی بازیگوش.",
   "ahura-cctv":
     "پروژه هویت بصری برای اهورا — برند سیستم‌های نظارتی با تایپوگرافی زاویه‌دار فارسی و تصویرسازی سینمایی.",
@@ -254,7 +270,11 @@ const PROJECT_DESC_FA: Record<string, string> = {
     "پروژه هویت بصری برای قهوه‌ی بز — برند قهوه که سیلوئت بز داخل نشان دانه زندگی می‌کند، با بسته‌بندی آرام و برشی به‌یادماندنی.",
   "nozad-publication":
     "پروژه هویت بصری برای انتشارات نوزاد — برند نشر با نشان جوانه و تایپ مدرن فارسی.",
+  "nozad-publication-visual-identity":
+    "پروژه هویت بصری برای انتشارات نوزاد — برند نشر با نشان جوانه و تایپ مدرن فارسی.",
   "on-swipe":
+    "پروژه هویت بصری برای آن سوایپ — نرم‌افزار شغل‌یابی با هوش مصنوعی؛ حروف باز و آیکون سوراخ کلید.",
+  onswipe:
     "پروژه هویت بصری برای آن سوایپ — نرم‌افزار شغل‌یابی با هوش مصنوعی؛ حروف باز و آیکون سوراخ کلید.",
   "zen-studio":
     "پروژه هویت بصری برای محصولات استودیو زن — وردمارک معماری با هندسه شابلونی و صدای صنعتی آرام.",

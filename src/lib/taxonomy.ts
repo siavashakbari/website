@@ -107,6 +107,9 @@ export const PROJECT_4_MAP: Record<string, string> = {
   "snow-snack": "SNOW",
   "zeee-products": "ZEEE",
   awli: "AWLI",
+  meatlab: "MEAT",
+  "signature-restaurant": "SIGN",
+  posters: "POST",
   "echo-prime": "ECHO",
 };
 
@@ -158,7 +161,8 @@ export function normalizeSpecialtySlug(specialty: string): string {
  * Maps any project name to its canonical URL slug (e.g. "Sepidar" -> "sepidar").
  */
 export function normalizeProjectSlug(project: string): string {
-  const base = slugify(project) || "project";
+  const base = slugify(project);
+  if (!base) return "";
   if (base === "tasting") return "gastronomie";
   if (
     base === "signature-cafe-restaurant" ||
@@ -255,12 +259,27 @@ export function buildPhotoUrl(
   photoCode: string,
 ): string {
   const dSlug = normalizeDisciplineSlug(discipline);
-  const sSlug = normalizeSpecialtySlug(specialty);
-  const pSlug = normalizeProjectSlug(project);
+  const sSlug = specialty ? normalizeSpecialtySlug(specialty) : "";
+  const pSlug = project ? normalizeProjectSlug(project) : "";
   if (dSlug === "product-design") {
-    return `/product-design/${pSlug}/${photoCode}`;
+    return pSlug ? `/product-design/${pSlug}/${photoCode}` : `/product-design/${photoCode}`;
   }
-  return `/${dSlug}/${sSlug}/${pSlug}/${photoCode}`;
+  if (dSlug === "video") {
+    return pSlug ? `/video/${pSlug}` : `/video`;
+  }
+  if (dSlug === "graphic-design" && sSlug === "posters" && (!pSlug || pSlug === "posters")) {
+    return `/graphic-design/posters/${photoCode}`;
+  }
+  if (sSlug && pSlug) {
+    return `/${dSlug}/${sSlug}/${pSlug}/${photoCode}`;
+  }
+  if (sSlug) {
+    return `/${dSlug}/${sSlug}/${photoCode}`;
+  }
+  if (pSlug) {
+    return `/${dSlug}/${pSlug}/${photoCode}`;
+  }
+  return `/${dSlug}/${photoCode}`;
 }
 
 /**

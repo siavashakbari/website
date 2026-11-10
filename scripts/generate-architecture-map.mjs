@@ -18,20 +18,46 @@ const endIdx = endMatch ? endMatch.index : -1;
 const arrayStr = invContent.slice(startIdx + startMarker.length, endIdx + 1);
 const inventory = JSON.parse(arrayStr);
 
-function cleanSegment(s) {
-  if (!s) return "";
-  let str = s.trim().toUpperCase().replace(/[^A-Z0-9]+/g, "-");
-  return str.replace(/^-+|-+$/g, "");
+// Read Vault initial pages from src/lib/vault-store.ts
+const vaultStorePath = path.join(rootDir, "src/lib/vault-store.ts");
+const vaultStoreContent = fs.readFileSync(vaultStorePath, "utf8");
+const initPagesMatch = vaultStoreContent.match(
+  /export function getInitialScannedPages\(\): VaultPageItem\[\] \{([\s\S]*?)return pages;/,
+);
+const vaultPages = [];
+if (initPagesMatch) {
+  const objRegex =
+    /id:\s*["']([^"']+)["'][\s\S]*?route:\s*["']([^"']+)["'][\s\S]*?name:\s*["']([^"']+)["'][\s\S]*?parentRoute:\s*["']([^"']*)["'][\s\S]*?uiType:\s*["']([^"']+)["']/g;
+  let m;
+  while ((m = objRegex.exec(initPagesMatch[1])) !== null) {
+    vaultPages.push({
+      id: m[1],
+      route: m[2],
+      name: m[3],
+      parentRoute: m[4],
+      uiType: m[5],
+    });
+  }
 }
 
-function normalizeProjectSlug(project) {
-  const base = (project || "project")
+function cleanSegment(s) {
+  if (!s) return "";
+  return s.trim().toUpperCase().replace(/[^A-Z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+}
+
+function slugify(text) {
+  return String(text || "")
     .toLowerCase()
     .trim()
     .replace(/\s+/g, "-")
     .replace(/[^\w\-]+/g, "")
     .replace(/\-\-+/g, "-")
     .replace(/^-+|-+$/g, "");
+}
+
+function normalizeProjectSlug(project) {
+  const base = slugify(project);
+  if (!base) return "";
   if (base === "tasting") return "gastronomie";
   if (
     base === "signature-cafe-restaurant" ||
@@ -59,15 +85,27 @@ function buildDynamicCode(uniqueCode, field, category, project) {
     .join("-");
 }
 
-function resolveHierarchy(item) {
+function extFromSrc(imgSrc) {
+  const clean = (imgSrc || "").split(/[?#]/)[0].toLowerCase();
+  if (clean.endsWith(".png")) return ".PNG";
+  if (clean.endsWith(".webp")) return ".WEBP";
+  if (clean.endsWith(".gif")) return ".GIF";
+  if (clean.endsWith(".mp4")) return ".MP4";
+  if (clean.endsWith(".webm")) return ".WEBM";
+  if (clean.endsWith(".mov")) return ".MOV";
+  return ".JPG";
+}
+
+function resolveHierarchy(item, idx) {
   let field = "photography";
   let category = "fashion-photography";
-  let project = normalizeProjectSlug(item.project);
+  let project = normalizeProjectSlug(item.project || "");
 
   const discNorm = (item.disciplineSlug || item.discipline || "").toLowerCase();
   if (discNorm.includes("video") || discNorm.includes("motion")) {
     field = "video";
-    category = "videos";
+    category = "";
+    if (!project) project = "echo-prime";
   } else if (
     discNorm.includes("graphic") ||
     discNorm.includes("identity") ||
@@ -75,12 +113,20 @@ function resolveHierarchy(item) {
     discNorm.includes("poster")
   ) {
     field = "graphic-design";
-    if (discNorm.includes("book")) category = "book-covers";
-    else if (discNorm.includes("poster")) category = "posters";
-    else category = "visual-identity";
-  } else if (discNorm.includes("product") && !discNorm.includes("photo")) {
+    if (discNorm.includes("book")) {
+      category = "book-covers";
+      if (!project) project = "nozad-publications";
+    } else if (discNorm.includes("poster")) {
+      category = "posters";
+      if (!project || project === "posters" || project === "nozad-publications") {
+        project = "";
+      }
+    } else {
+      category = "visual-identity";
+    }
+  } else if (discNorm.includes("product-design") || discNorm.includes("product design")) {
     field = "product-design";
-    category = "products";
+    category = "";
   } else {
     field = "photography";
     if (discNorm.includes("food")) category = "food-photography";
@@ -89,48 +135,49 @@ function resolveHierarchy(item) {
     else category = "fashion-photography";
   }
 
-  const uniqueCode = item.uniqueCode || "1001";
+  const uniqueCode = item.uniqueCode || String(1001 + idx);
   const dynamicCode = buildDynamicCode(uniqueCode, field, category, project);
-  const ext = item.imgSrc?.toLowerCase().endsWith(".png")
-    ? ".PNG"
-    : item.imgSrc?.toLowerCase().endsWith(".mp4")
-    ? ".MP4"
-    : ".JPG";
+  const ext = extFromSrc(item.imgSrc);
   const imageName = `${dynamicCode}${ext}`;
-  const assignedRoute =
-    field === "video"
-      ? `/video/${project}`
-      : field === "product-design"
-      ? `/product-design/${project}`
-      : `/${field}/${category}/${project}`;
-  const canonicalUrl = `https://www.siavashakbari.ir${assignedRoute}/${dynamicCode}`;
-  const shortUrl = `https://www.siavashakbari.ir${assignedRoute}/${uniqueCode}`;
+  const isVideo = field === "video" || ext === ".MP4" || ext === ".WEBM" || ext === ".MOV";
+
+  const assignedRoute = `/${[field, category, project].filter(Boolean).join("/")}`;
+  const liveDetailPath = isVideo ? assignedRoute : `${assignedRoute}/${dynamicCode}`;
+  const shortRedirectPath = isVideo ? `/${uniqueCode}` : `${assignedRoute}/${uniqueCode}`;
+
+  const canonicalUrl = `https://www.siavashakbari.ir${liveDetailPath}`;
+  const shortUrl = `https://www.siavashakbari.ir${shortRedirectPath}`;
 
   return {
     uniqueCode,
     field,
-    category,
-    project,
-    projectName: item.project,
+    category: category || "— (flat)",
+    project: project || "— (top gallery)",
+    projectName: item.project || "Posters Gallery",
     dynamicCode,
     imageName,
     assignedRoute,
+    liveDetailPath,
+    shortRedirectPath,
     canonicalUrl,
     shortUrl,
     imgSrc: item.imgSrc,
     client: item.client || "—",
     year: item.date || "2024",
     code: item.code,
+    isVideo,
   };
 }
 
 const processedMedia = inventory.map(resolveHierarchy);
+const videoCount = processedMedia.filter((m) => m.isVideo).length;
+const photoCount = processedMedia.length - videoCount;
 
-// Group by project
-const projectGroups = new Map();
+// Group media by assignedRoute (exact gallery destination)
+const routeGroups = new Map();
 processedMedia.forEach((m) => {
-  if (!projectGroups.has(m.projectName)) {
-    projectGroups.set(m.projectName, {
+  if (!routeGroups.has(m.assignedRoute)) {
+    routeGroups.set(m.assignedRoute, {
       name: m.projectName,
       slug: m.project,
       field: m.field,
@@ -140,12 +187,12 @@ processedMedia.forEach((m) => {
       items: [],
     });
   }
-  const g = projectGroups.get(m.projectName);
+  const g = routeGroups.get(m.assignedRoute);
   g.count++;
   g.items.push(m);
 });
 
-const projectsList = Array.from(projectGroups.values());
+const projectsList = Array.from(routeGroups.values());
 
 const htmlContent = `<!DOCTYPE html>
 <html lang="en" class="dark">
@@ -168,11 +215,7 @@ const htmlContent = `<!DOCTYPE html>
       --code-bg: #181818;
       --badge-bg: rgba(44, 227, 192, 0.1);
     }
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       background-color: var(--bg);
       color: var(--text-main);
@@ -180,13 +223,10 @@ const htmlContent = `<!DOCTYPE html>
       line-height: 1.6;
       padding: 32px 20px 80px;
     }
-    .container {
-      max-width: 1400px;
-      margin: 0 auto;
-    }
+    .container { max-width: 1440px; margin: 0 auto; }
     header {
       margin-bottom: 40px;
-      border-b: 1px solid var(--card-border);
+      border-bottom: 1px solid var(--card-border);
       padding-bottom: 24px;
       display: flex;
       flex-wrap: wrap;
@@ -202,6 +242,7 @@ const htmlContent = `<!DOCTYPE html>
       display: flex;
       align-items: center;
       gap: 12px;
+      flex-wrap: wrap;
     }
     .badge {
       font-family: 'JetBrains Mono', monospace;
@@ -213,16 +254,8 @@ const htmlContent = `<!DOCTYPE html>
       border-radius: 9999px;
       border: 1px solid rgba(44, 227, 192, 0.25);
     }
-    .title-group p {
-      color: var(--text-muted);
-      font-size: 14px;
-      margin-top: 6px;
-    }
-    .stats-strip {
-      display: flex;
-      gap: 16px;
-      flex-wrap: wrap;
-    }
+    .title-group p { color: var(--text-muted); font-size: 14px; margin-top: 6px; }
+    .stats-strip { display: flex; gap: 14px; flex-wrap: wrap; }
     .stat-pill {
       background: var(--card-bg);
       border: 1px solid var(--card-border);
@@ -242,10 +275,8 @@ const htmlContent = `<!DOCTYPE html>
       letter-spacing: 0.05em;
       color: var(--text-muted);
     }
-    
-    /* Search & Filter Bar */
     .controls {
-      background: var(--card-bg);
+      background: rgba(18, 18, 18, 0.9);
       border: 1px solid var(--card-border);
       padding: 16px 20px;
       border-radius: 16px;
@@ -277,11 +308,7 @@ const htmlContent = `<!DOCTYPE html>
       border-color: var(--accent);
       box-shadow: 0 0 0 2px var(--accent-glow);
     }
-    .filter-pills {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
+    .filter-pills { display: flex; gap: 8px; flex-wrap: wrap; }
     .filter-btn {
       background: var(--bg);
       border: 1px solid var(--card-border);
@@ -298,12 +325,10 @@ const htmlContent = `<!DOCTYPE html>
       color: var(--accent);
       border-color: rgba(44, 227, 192, 0.4);
     }
-
-    /* Section Headers */
     .section-title {
       font-size: 20px;
       font-weight: 700;
-      margin: 40px 0 16px;
+      margin: 40px 0 10px;
       display: flex;
       align-items: center;
       gap: 10px;
@@ -311,13 +336,7 @@ const htmlContent = `<!DOCTYPE html>
       border-bottom: 1px solid var(--card-border);
       padding-bottom: 8px;
     }
-    .section-desc {
-      color: var(--text-muted);
-      font-size: 13px;
-      margin-bottom: 20px;
-    }
-
-    /* Architecture Cards Grid */
+    .section-desc { color: var(--text-muted); font-size: 13px; margin-bottom: 18px; }
     .arch-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
@@ -331,28 +350,18 @@ const htmlContent = `<!DOCTYPE html>
       padding: 24px;
       transition: transform 0.2s, border-color 0.2s;
     }
-    .arch-card:hover {
-      border-color: rgba(44, 227, 192, 0.3);
-      transform: translateY(-2px);
-    }
+    .arch-card:hover { border-color: rgba(44, 227, 192, 0.3); transform: translateY(-2px); }
     .arch-card h3 {
       font-size: 16px;
       font-weight: 600;
       color: #FFF;
-      margin-bottom: 12px;
+      margin-bottom: 10px;
       display: flex;
       align-items: center;
       gap: 8px;
     }
-    .arch-card h3 .icon {
-      color: var(--accent);
-    }
-    .arch-card p {
-      font-size: 13px;
-      color: var(--text-muted);
-      margin-bottom: 14px;
-      line-height: 1.5;
-    }
+    .arch-card h3 .icon { color: var(--accent); }
+    .arch-card p { font-size: 13px; color: var(--text-muted); margin-bottom: 14px; line-height: 1.55; }
     .code-block {
       background: var(--code-bg);
       border: 1px solid rgba(255, 255, 255, 0.05);
@@ -363,49 +372,33 @@ const htmlContent = `<!DOCTYPE html>
       color: var(--accent);
       word-break: break-all;
     }
-
-    /* Table Styles */
     .table-container {
       background: var(--card-bg);
       border: 1px solid var(--card-border);
       border-radius: 16px;
-      overflow: hidden;
+      overflow-x: auto;
       margin-bottom: 40px;
     }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 13px;
-      text-align: left;
-    }
-    thead {
-      background: rgba(255, 255, 255, 0.02);
-      border-bottom: 1px solid var(--card-border);
-    }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; text-align: left; }
+    thead { background: rgba(255, 255, 255, 0.02); border-bottom: 1px solid var(--card-border); }
     th {
-      padding: 14px 18px;
+      padding: 14px 16px;
       font-family: 'JetBrains Mono', monospace;
       font-size: 11px;
       font-weight: 600;
       text-transform: uppercase;
       letter-spacing: 0.06em;
       color: var(--text-muted);
+      white-space: nowrap;
     }
     td {
-      padding: 14px 18px;
+      padding: 12px 16px;
       border-bottom: 1px solid rgba(255, 255, 255, 0.04);
       vertical-align: middle;
     }
-    tr:last-child td {
-      border-bottom: none;
-    }
-    tr:hover td {
-      background: rgba(255, 255, 255, 0.015);
-    }
-    .mono {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 12px;
-    }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: rgba(255, 255, 255, 0.015); }
+    .mono { font-family: 'JetBrains Mono', monospace; font-size: 12px; }
     .code-tag {
       font-family: 'JetBrains Mono', monospace;
       font-size: 11px;
@@ -424,16 +417,14 @@ const htmlContent = `<!DOCTYPE html>
       align-items: center;
       gap: 6px;
     }
-    .url-link:hover {
-      color: var(--accent);
-      text-decoration: underline;
-    }
+    .url-link:hover { color: var(--accent); text-decoration: underline; }
     .badge-gray {
       background: rgba(255, 255, 255, 0.06);
       color: #BBB;
       padding: 2px 8px;
       border-radius: 4px;
       font-size: 11px;
+      display: inline-block;
     }
     footer {
       text-align: center;
@@ -450,8 +441,8 @@ const htmlContent = `<!DOCTYPE html>
   <div class="container">
     <header>
       <div class="title-group">
-        <h1>Siavash Akbari Studio <span class="badge">Architecture & Route Map</span></h1>
-        <p>Complete directory of all 320 media assets, 26 project case studies, and taxonomy rules.</p>
+        <h1>Siavash Akbari Studio <span class="badge">Architecture &amp; Route Map</span></h1>
+        <p>Complete synchronized directory of ${vaultPages.length} Vault Pages, ${projectsList.length} gallery collections, and all ${processedMedia.length} media assets (${photoCount} dedicated photo routes + ${videoCount} video showcases).</p>
       </div>
       <div class="stats-strip">
         <div class="stat-pill">
@@ -459,92 +450,124 @@ const htmlContent = `<!DOCTYPE html>
           <div class="lbl">Media Assets</div>
         </div>
         <div class="stat-pill">
+          <div class="num">${vaultPages.length}</div>
+          <div class="lbl">Vault Pages</div>
+        </div>
+        <div class="stat-pill">
           <div class="num">${projectsList.length}</div>
-          <div class="lbl">Projects</div>
+          <div class="lbl">Collections</div>
         </div>
         <div class="stat-pill">
           <div class="num">4</div>
           <div class="lbl">Disciplines</div>
         </div>
-        <div class="stat-pill">
-          <div class="num">100%</div>
-          <div class="lbl">Zero-404 Verified</div>
-        </div>
       </div>
     </header>
 
     <!-- Structural Foundations -->
-    <div class="section-title">Architectural Standards & Naming Logic</div>
-    <div class="section-desc">The core algorithmic rules governing URL paths, sticky asset codes, file names, and layout sizing.</div>
+    <div class="section-title">Architectural Standards, Sizing &amp; Naming Logic</div>
+    <div class="section-desc">Canonical algorithmic rules binding the Vault Admin Panel, client storage, SSR routing, and sitemap.</div>
     <div class="arch-grid">
       <div class="arch-card">
         <h3><span class="icon">#1</span> Sticky Unique Code</h3>
-        <p>Every asset receives an immutable 4-digit numeric code upon creation (e.g. <code>1211</code>). This code never shifts or re-indexes when items are added or removed.</p>
-        <div class="code-block">Format: [1001-9999] (e.g. 1211, 1221, 1317)</div>
+        <p>Every uploaded or catalogued media asset receives an immutable 4-digit numeric code (<code>1001–9999</code>). Moving a file between projects or categories updates its dynamic suffix without changing its sticky 4-digit anchor.</p>
+        <div class="code-block">Format: [1001-9999] (e.g. 1211, 1221, 1306)</div>
       </div>
       <div class="arch-card">
-        <h3><span class="icon">#2</span> Route-Based Dynamic Code</h3>
-        <p>Generated dynamically from placement hierarchy: <code>\${uniqueCode}-\${DISCIPLINE}-\${CATEGORY}-\${PROJECT}</code>. Synchronized between Vault and website.</p>
-        <div class="code-block">e.g. 1211-GRAPHIC-DESIGN-VISUAL-IDENTITY-SHEKARCHIAN-SWEETS</div>
+        <h3><span class="icon">#2</span> Placement Dynamic Code</h3>
+        <p>Computed dynamically from placement hierarchy: <code>\${uniqueCode}-\${DISCIPLINE}[-\${CATEGORY}][-\${PROJECT}]</code>. Flat disciplines (<code>video</code>, <code>product-design</code>) omit category; top-level Posters omit project.</p>
+        <div class="code-block">1211-GRAPHIC-DESIGN-VISUAL-IDENTITY-SHEKARCHIAN-SWEETS<br>1306-GRAPHIC-DESIGN-POSTERS<br>1314-VIDEO-ECHO-PRIME</div>
       </div>
       <div class="arch-card">
         <h3><span class="icon">#3</span> Database Image Filename</h3>
-        <p>The image title and database filename standard always mirrors the dynamic code plus original uppercase extension (.JPG / .PNG / .MP4).</p>
-        <div class="code-block">e.g. 1211-GRAPHIC-DESIGN-VISUAL-IDENTITY-SHEKARCHIAN-SWEETS.JPG</div>
+        <p>Default media asset titles and logical filenames mirror the dynamic code plus uppercase extension (<code>.JPG</code>, <code>.PNG</code>, <code>.GIF</code>, <code>.WEBP</code>, <code>.MP4</code>) directly synced with Vault Media.</p>
+        <div class="code-block">e.g. 1221-GRAPHIC-DESIGN-VISUAL-IDENTITY-AHURA-CCTV.JPG</div>
       </div>
       <div class="arch-card">
-        <h3><span class="icon">#4</span> Dedicated Canonical Route</h3>
-        <p>The dedicated photo showcase route is always <code>/\${discipline}/\${specialty}/\${project}/\${dynamicCode}</code>. Short code /1211 automatically redirects here.</p>
-        <div class="code-block">/graphic-design/visual-identity/shekarchian-sweets/1211-...</div>
+        <h3><span class="icon">#4</span> Canonical URL Routing</h3>
+        <p>Standard 3-level hierarchy: <code>/discipline/category/project/dynamicCode</code>. Flat fields &amp; top-level Posters resolve cleanly at 3 segments without empty/duplicate segments. Videos resolve at <code>/video/echo-prime</code>.</p>
+        <div class="code-block">/graphic-design/visual-identity/meatlab/1317-...<br>/graphic-design/posters/1306-GRAPHIC-DESIGN-POSTERS</div>
       </div>
       <div class="arch-card">
-        <h3><span class="icon">#5</span> Layout Sizing Modes</h3>
-        <p><strong>UI01:</strong> Vertical scroll (editorial).<br><strong>UI02:</strong> Horizontal filmstrip with wheel translation.<br><strong>UI03:</strong> Equal cards grid.<br><strong>UI04:</strong> Interactive video player.</p>
-        <div class="code-block">Responsive: 100dvh desktop / touch gesture mobile</div>
+        <h3><span class="icon">#5</span> Image &amp; Video Sizing Logic</h3>
+        <p><strong>Full High-Res:</strong> Max 2000px long edge (preserves aspect, JPEG/WebP ~80–82%, ~400KB soft cap).<br><strong>Grid Thumbnail:</strong> Max 450x450px WebP @ 60–65% (&lt;20KB for fast masonry/scroll grids).<br><strong>Video:</strong> MP4/WebM with 0.5s frame poster extraction.</p>
+        <div class="code-block">Full &lt;= 2000px · Thumb &lt;= 450px WebP (&lt;20KB)</div>
       </div>
       <div class="arch-card">
-        <h3><span class="icon">#6</span> Resilient Fallback Routing</h3>
-        <p>Zero-404 guarantee: If a user enters an older shifted code, legacy code (SA-VI-SHEK-01), or 4-digit short code, the router auto-resolves and redirects safely.</p>
-        <div class="code-block">Short /1211 ➔ Redirects 302 ➔ Canonical Dynamic URL</div>
+        <h3><span class="icon">#6</span> UI Layout Modes &amp; Fallback Redirects</h3>
+        <p><strong>UI01:</strong> Vertical editorial scroll · <strong>UI02:</strong> Horizontal strip with wheel translation · <strong>UI03:</strong> Equal cover cards grid · <strong>UI04:</strong> Interactive video showcase. Legacy codes (<code>SA-...</code>), 4-part codes, aliases (<code>Signature-Cafe-Restaurant</code>), and short numeric URLs (<code>/1211</code>) 302-redirect cleanly.</p>
+        <div class="code-block">/1211 or /photography/.../SA-... ➔ Canonical Dynamic URL</div>
       </div>
     </div>
 
     <!-- Interactive Search Controls -->
     <div class="controls">
-      <input type="text" id="searchInput" class="search-input" placeholder="Search by Project, Code (e.g. 1211), Dynamic Code, or URL..." oninput="filterTable()">
+      <input type="text" id="searchInput" class="search-input" placeholder="Search by code (e.g. 1222), project (e.g. Meatlab), Vault route, or dynamic code..." oninput="filterAllTables()">
       <div class="filter-pills">
-        <button class="filter-btn active" onclick="filterDiscipline('all')">All Assets (${processedMedia.length})</button>
-        <button class="filter-btn" onclick="filterDiscipline('graphic-design')">Graphic Design</button>
-        <button class="filter-btn" onclick="filterDiscipline('photography')">Photography</button>
-        <button class="filter-btn" onclick="filterDiscipline('video')">Video</button>
-        <button class="filter-btn" onclick="filterDiscipline('product-design')">Product Design</button>
+        <button class="filter-btn active" onclick="filterDiscipline('all', this)">All Disciplines</button>
+        <button class="filter-btn" onclick="filterDiscipline('photography', this)">Photography</button>
+        <button class="filter-btn" onclick="filterDiscipline('graphic-design', this)">Graphic Design</button>
+        <button class="filter-btn" onclick="filterDiscipline('video', this)">Video</button>
+        <button class="filter-btn" onclick="filterDiscipline('product-design', this)">Product Design</button>
       </div>
     </div>
 
-    <!-- Projects Directory -->
-    <div class="section-title">Projects & Case Studies Directory (${projectsList.length} Total)</div>
+    <!-- Complete Vault Pages Architecture Directory -->
+    <div class="section-title">Vault Pages Hierarchy Directory (${vaultPages.length} Pages)</div>
+    <div class="section-desc">Every top-level discipline, specialty category, and project route managed in <code>/vault/pages</code>.</div>
     <div class="table-container">
-      <table>
+      <table id="vaultPagesTable">
         <thead>
           <tr>
-            <th>Project</th>
+            <th>Discipline</th>
+            <th>Vault Page Name</th>
+            <th>Parent Route</th>
+            <th>UI Type</th>
+            <th>Live Route</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${vaultPages
+            .map((vp) => {
+              const disc = vp.route.split("/").filter(Boolean)[0] || "all";
+              return `
+          <tr data-discipline="${disc}" data-search="${vp.id} ${vp.name} ${vp.route} ${vp.parentRoute} ${vp.uiType}">
+            <td><span class="badge-gray">${disc}</span></td>
+            <td><strong>${vp.name}</strong></td>
+            <td class="mono" style="color: var(--text-muted);">${vp.parentRoute || "— (Root)"}</td>
+            <td><span class="code-tag">${vp.uiType}</span></td>
+            <td><a href="https://www.siavashakbari.ir${vp.route}" target="_blank" class="url-link mono">${vp.route} ↗</a></td>
+          </tr>`;
+            })
+            .join("")}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Projects / Gallery Collections Directory -->
+    <div class="section-title">Gallery Collections &amp; Media Grouping (${projectsList.length} Total)</div>
+    <div class="table-container">
+      <table id="projectsTable">
+        <thead>
+          <tr>
+            <th>Collection / Project</th>
             <th>Discipline</th>
             <th>Category</th>
             <th>Asset Count</th>
-            <th>Live Project Route</th>
+            <th>Live Gallery Route</th>
           </tr>
         </thead>
         <tbody>
           ${projectsList
             .map(
               (p) => `
-          <tr data-discipline="${p.field}">
+          <tr data-discipline="${p.field}" data-search="${p.name} ${p.slug} ${p.field} ${p.category} ${p.route}">
             <td><strong>${p.name}</strong></td>
             <td><span class="badge-gray">${p.field}</span></td>
             <td>${p.category}</td>
-            <td class="mono">${p.count} photos</td>
+            <td class="mono">${p.count} assets</td>
             <td><a href="https://www.siavashakbari.ir${p.route}" target="_blank" class="url-link mono">${p.route} ↗</a></td>
-          </tr>`
+          </tr>`,
             )
             .join("")}
         </tbody>
@@ -552,24 +575,24 @@ const htmlContent = `<!DOCTYPE html>
     </div>
 
     <!-- Complete Media Assets Directory -->
-    <div class="section-title">All Media Assets & Dedicated Live Routes (${processedMedia.length} Total)</div>
+    <div class="section-title">All Media Assets &amp; Live Detail Routes (${processedMedia.length} Total)</div>
     <div class="table-container">
       <table id="mediaTable">
         <thead>
           <tr>
             <th>Code</th>
-            <th>Project</th>
-            <th>Dynamic Code & Database File Name</th>
+            <th>Collection</th>
+            <th>Dynamic Code &amp; Filename</th>
             <th>Discipline / Category</th>
-            <th>Canonical Dedicated Route (Live Detail)</th>
-            <th>Short Code Route</th>
+            <th>Canonical Live Route</th>
+            <th>Short Redirect</th>
           </tr>
         </thead>
         <tbody>
           ${processedMedia
             .map(
               (m) => `
-          <tr data-discipline="${m.field}" data-search="${m.uniqueCode} ${m.dynamicCode} ${m.projectName} ${m.assignedRoute}">
+          <tr data-discipline="${m.field}" data-search="${m.uniqueCode} ${m.dynamicCode} ${m.projectName} ${m.assignedRoute} ${m.code || ""}">
             <td><span class="code-tag">${m.uniqueCode}</span></td>
             <td><strong>${m.projectName}</strong></td>
             <td>
@@ -579,15 +602,15 @@ const htmlContent = `<!DOCTYPE html>
             <td><span class="badge-gray">${m.field}</span><br><span style="font-size: 11px; color: var(--text-muted);">${m.category}</span></td>
             <td>
               <a href="${m.canonicalUrl}" target="_blank" class="url-link mono" style="color: var(--accent);">
-                ${m.assignedRoute}/${m.dynamicCode} ↗
+                ${m.liveDetailPath} ↗
               </a>
             </td>
             <td>
               <a href="${m.shortUrl}" target="_blank" class="url-link mono" style="color: var(--text-muted);">
-                ${m.assignedRoute}/${m.uniqueCode} ↗
+                ${m.shortRedirectPath} ↗
               </a>
             </td>
-          </tr>`
+          </tr>`,
             )
             .join("")}
         </tbody>
@@ -595,41 +618,39 @@ const htmlContent = `<!DOCTYPE html>
     </div>
 
     <footer>
-      Generated for Siavash Akbari Studio Architecture Documentation &copy; 2026. All routes active & verified.
+      Generated for Siavash Akbari Studio Architecture Documentation &copy; 2026. Sitemap, Vault &amp; Routes Synchronized.
     </footer>
   </div>
 
   <script>
     let currentDiscipline = 'all';
 
-    function filterDiscipline(disc) {
+    function filterDiscipline(disc, btnEl) {
       currentDiscipline = disc;
-      document.querySelectorAll('.filter-btn').forEach(b => {
-        b.classList.remove('active');
-        if (b.innerText.toLowerCase().includes(disc) || (disc === 'all' && b.innerText.includes('All'))) {
-          b.classList.add('active');
-        }
-      });
-      filterTable();
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      if (btnEl) btnEl.classList.add('active');
+      filterAllTables();
     }
 
-    function filterTable() {
+    function filterAllTables() {
       const q = document.getElementById('searchInput').value.toLowerCase().trim();
-      const rows = document.querySelectorAll('#mediaTable tbody tr');
-      rows.forEach(r => {
-        const disc = r.getAttribute('data-discipline');
-        const text = r.getAttribute('data-search').toLowerCase();
-        const discMatch = currentDiscipline === 'all' || disc === currentDiscipline;
-        const textMatch = !q || text.includes(q);
-        r.style.display = (discMatch && textMatch) ? '' : 'none';
+      ['#vaultPagesTable tbody tr', '#projectsTable tbody tr', '#mediaTable tbody tr'].forEach(sel => {
+        document.querySelectorAll(sel).forEach(r => {
+          const disc = r.getAttribute('data-discipline');
+          const text = (r.getAttribute('data-search') || '').toLowerCase();
+          const discMatch = currentDiscipline === 'all' || disc === currentDiscipline;
+          const textMatch = !q || text.includes(q);
+          r.style.display = (discMatch && textMatch) ? '' : 'none';
+        });
       });
     }
   </script>
 </body>
 </html>`;
 
-// Write to public directory and root directory
-fs.writeFileSync(path.join(rootDir, "public/studio-architecture-map.html"), htmlContent, "utf8");
+// Write to root directory only (keep private local route map out of public/)
 fs.writeFileSync(path.join(rootDir, "STUDIO_ARCHITECTURE_AND_ROUTE_MAP.html"), htmlContent, "utf8");
 
-console.log("Generated both public/studio-architecture-map.html and STUDIO_ARCHITECTURE_AND_ROUTE_MAP.html!");
+console.log(
+  `Generated STUDIO_ARCHITECTURE_AND_ROUTE_MAP.html (${vaultPages.length} Vault pages, ${projectsList.length} collections, ${processedMedia.length} assets).`,
+);

@@ -5,6 +5,7 @@
  */
 
 import imageColors from "@/data/image-colors.json";
+import { resolveKnownAssetStem } from "@/lib/inventory-assets";
 
 type ColorMeta = { color: string; ratio: number };
 
@@ -12,17 +13,29 @@ const colorMap = imageColors as Record<string, ColorMeta>;
 
 /** Strip Vite/Rolldown hash from asset basename → fashion-atlasi-01 */
 export function assetStemFromSrc(src: string): string {
-  const file = decodeURIComponent((src.split("/").pop() ?? src).split("?")[0] ?? "");
-  let stem = file.replace(/\.[^.]+$/, "");
+  const raw = src.split(/[?#]/)[0] ?? src;
+  let file = raw.split("/").pop() ?? raw;
+  try {
+    file = decodeURIComponent(file);
+  } catch {
+    /* keep raw */
+  }
+  const stem = file.replace(/\.[^.]+$/, "");
 
   // 1. Direct match if no hash
   if (colorMap[stem]) return stem;
 
-  // 2. Vite / Rolldown 8-10 char base64url hash (includes [A-Za-z0-9_-])
-  const stripped = stem.replace(/-[A-Za-z0-9_-]{8,10}$/, "");
+  // 2. Canonical asset module registry match (handles stems omitted from colorMap too)
+  const known = resolveKnownAssetStem(src);
+  if (known) return known;
+
+  // 3. Vite / Rolldown 8-char base64url hash (avoid stripping numeric sequence tokens like -01)
+  const stripped = stem.replace(/-[A-Za-z0-9_-]{8}$/, (match) =>
+    /^-\d+$/.test(match) ? match : "",
+  );
   if (colorMap[stripped]) return stripped;
 
-  // 3. Fallback for other build hash lengths
+  // 4. Fallback for other build hash lengths
   const fallback = stem.replace(/-[A-Za-z0-9_-]{6,}$/, (match) =>
     /^-\d+$/.test(match) ? match : "",
   );
@@ -61,7 +74,17 @@ export function loadRankForIndex(domIndex: number, total: number, cols: number):
 
 /** Get <20KB WebP thumbnail URL from public/thumbs/ */
 export function getThumbSrc(src: string): string {
-  if (!src || src.endsWith(".mp4") || src.endsWith(".gif") || src.startsWith("data:")) return src;
+  if (
+    !src ||
+    /\.(mp4|webm|mov|gif)(\?|#|$)/i.test(src) ||
+    src.startsWith("data:") ||
+    src.startsWith("blob:") ||
+    src.startsWith("http://") ||
+    src.startsWith("https://") ||
+    src.startsWith("/thumbs/")
+  ) {
+    return src;
+  }
   const stem = assetStemFromSrc(src);
   if (!stem) return src;
   return `/thumbs/${stem}.webp`;

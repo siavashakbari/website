@@ -4,6 +4,7 @@ import type { InvoiceData } from "@/types/invoice";
 import { INITIAL_INVOICE_DATA } from "@/types/invoice";
 import { BLOG_POSTS } from "@/data/blog-posts";
 import { projects as DEFAULT_PROJECTS, type Project } from "@/data/projects";
+import { resolveInventoryImage } from "@/lib/inventory-assets";
 import {
   generate4PartPhotoCode,
   getDiscipline4Code,
@@ -120,6 +121,23 @@ export function getDeletedProjectIds(): Set<string> {
   return new Set();
 }
 
+const NON_PROJECT_SLUGS = new Set([
+  "photography",
+  "graphic-design",
+  "video",
+  "product-design",
+  "fashion-photography",
+  "food-photography",
+  "portrait-photography",
+  "product-photography",
+  "visual-identity",
+  "book-covers",
+  "posters",
+  "videos",
+  "products",
+  "general",
+]);
+
 export function getCanonicalProjectSlug(item: { id: string; title?: string }): string {
   const normTitle = (item.title || "").toLowerCase().trim();
   const normId = (item.id || "").toLowerCase().trim();
@@ -149,6 +167,17 @@ export function getCanonicalProjectSlug(item: { id: string; title?: string }): s
   }
   if (normId.includes("goat") || normTitle.includes("goat")) {
     return "goats-coffee";
+  }
+  if (
+    normId.includes("signature-cafe") ||
+    normId === "signature-restaurant" ||
+    normId === "signature" ||
+    normTitle.includes("signature")
+  ) {
+    return "signature-restaurant";
+  }
+  if (normId.includes("zen-studio") || normTitle.includes("zen studio")) {
+    return "zen-studio";
   }
   if (
     normId === "tasting" ||
@@ -207,7 +236,14 @@ export function getStudioProjects(): StudioProjectItem[] {
           if (isProjectDeleted(item, deletedSet)) return;
 
           const canonicalSlug = getCanonicalProjectSlug(item);
-          if (deletedSet.has(canonicalSlug)) return;
+          if (
+            !canonicalSlug ||
+            NON_PROJECT_SLUGS.has(canonicalSlug) ||
+            NON_PROJECT_SLUGS.has(item.id.toLowerCase().trim()) ||
+            deletedSet.has(canonicalSlug)
+          ) {
+            return;
+          }
 
           let cleanItem: StudioProjectItem = { ...item };
           if (canonicalSlug === "shekarchian-sweets") {
@@ -275,15 +311,21 @@ export function getStudioProjects(): StudioProjectItem[] {
 
     if (canonicalMap.has(canonicalSlug)) {
       const custom = canonicalMap.get(canonicalSlug)!;
-      const hasCustomImages = custom.images && custom.images.length > 0;
+      const customImagesModified = Boolean((custom as any).imagesModifiedByUser);
+      const hasCustomImages = customImagesModified && custom.images && custom.images.length > 0;
 
-      // Protect default project coverImage against accidental cross-project corruption
+      // Protect default project coverImage against expired blob URLs, stale hashes, or cross-project corruption
       let finalCover = def.coverImage;
-      if (custom.coverImage) {
-        const cLower = custom.coverImage.toLowerCase();
+      if (custom.coverImage && !custom.coverImage.startsWith("blob:")) {
+        const resolvedCustomCover = resolveInventoryImage(custom.coverImage);
+        const cLower = resolvedCustomCover.toLowerCase();
         const dId = def.id.toLowerCase();
-        if (cLower.includes(dId) || cLower.startsWith("data:") || cLower.startsWith("blob:") || cLower.startsWith("/assets/")) {
-          finalCover = custom.coverImage;
+        if (
+          (custom as any).coverImageModifiedByUser ||
+          cLower.includes(dId) ||
+          cLower.startsWith("data:")
+        ) {
+          finalCover = resolvedCustomCover;
         }
       }
 
@@ -943,7 +985,11 @@ export function getMergedPhotoInventory(): PhotoInventoryItem[] {
         ? item.code.toUpperCase()
         : generate4PartPhotoCode(discSlug, specSlug, projName, numInt));
 
-    const canonicalPath = buildPhotoUrl(discSlug, specSlug, projSlug, standardCode);
+    const urlProjSlug =
+      discSlug === "graphic-design" && specSlug === "posters" && (projSlug === "posters" || !projSlug)
+        ? ""
+        : projSlug;
+    const canonicalPath = buildPhotoUrl(discSlug, specSlug, urlProjSlug, standardCode);
 
     const mergedItem: PhotoInventoryItem = {
       ...item,

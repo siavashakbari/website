@@ -34,9 +34,10 @@ export function UI03_EqualCardsGrid({
   return (
     <div className="w-full px-[13px] sm:px-[20px]">
       <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4">
-        {cards.map((card) => (
+        {cards.map((card, idx) => (
           <CoverTile
             key={card.id}
+            index={idx}
             to={card.href}
             label={card.title}
             image={card.image}

@@ -131,6 +131,7 @@ export function useGalleryLoad() {
 
 type AdaptiveThumbProps = {
   src: string;
+  thumbSrc?: string;
   index: number;
   alt: string;
   className?: string;
@@ -145,6 +146,7 @@ type AdaptiveThumbProps = {
  */
 export function AdaptiveThumb({
   src,
+  thumbSrc: thumbSrcProp,
   index,
   alt,
   className,
@@ -154,15 +156,25 @@ export function AdaptiveThumb({
   const gallery = useGalleryLoad();
   const meta = useMemo(() => metaFromSrc(src), [src]);
   const [naturalRatio, setNaturalRatio] = useState<number | null>(null);
+  const [thumbFailed, setThumbFailed] = useState(false);
 
   const effectiveRatio = naturalRatio ?? meta.ratio;
   const rank = gallery ? gallery.rankOf(index) : index;
 
-  const isVideo = src.endsWith(".mp4");
-  const thumbSrc = useMemo(() => (isVideo ? src : getThumbSrc(src)), [isVideo, src]);
+  const isVideo = /\.(mp4|webm|mov)(\?|#|$)|^data:video\//i.test(src);
+  const resolvedThumb = useMemo(
+    () => (isVideo ? src : thumbFailed ? src : thumbSrcProp || getThumbSrc(src)),
+    [isVideo, thumbFailed, thumbSrcProp, src],
+  );
 
   const shouldUpgrade = gallery ? gallery.isUnlockedForFull(index) : true;
   const [fullLoaded, setFullLoaded] = useState(false);
+
+  useEffect(() => {
+    setFullLoaded(false);
+    setThumbFailed(false);
+    setNaturalRatio(null);
+  }, [src]);
 
   useEffect(() => {
     onRatio?.(effectiveRatio);
@@ -170,7 +182,7 @@ export function AdaptiveThumb({
 
   // When unlocked for full size, preload full original image in background
   useEffect(() => {
-    if (isVideo || !shouldUpgrade || fullLoaded || thumbSrc === src) return;
+    if (isVideo || !shouldUpgrade || fullLoaded || resolvedThumb === src) return;
 
     let active = true;
     const img = new Image();
@@ -183,7 +195,7 @@ export function AdaptiveThumb({
     return () => {
       active = false;
     };
-  }, [isVideo, shouldUpgrade, fullLoaded, src, thumbSrc]);
+  }, [isVideo, shouldUpgrade, fullLoaded, src, resolvedThumb]);
 
   const boxStyle: CSSProperties = {
     ...style,
@@ -228,7 +240,7 @@ export function AdaptiveThumb({
         <>
           {/* 1. Low-weight WebP thumbnail (<20KB) renders first */}
           <img
-            src={thumbSrc}
+            src={resolvedThumb}
             alt={alt}
             loading={rank < EAGER_COUNT ? "eager" : "lazy"}
             fetchPriority={rank < 3 ? "high" : undefined}
@@ -236,6 +248,12 @@ export function AdaptiveThumb({
             draggable={false}
             onDragStart={(e) => e.preventDefault()}
             decoding="async"
+            onError={() => {
+              if (!thumbFailed && resolvedThumb !== src) {
+                setThumbFailed(true);
+              }
+              gallery?.registerThumbLoaded(index);
+            }}
             onLoad={(e) => {
               gallery?.registerThumbLoaded(index);
               const img = e.currentTarget;

@@ -1,18 +1,24 @@
-import { useEffect, useRef, useState } from "react";
-import { createFileRoute, Link, notFound, rootRouteId } from "@tanstack/react-router";
+import { useEffect, useLayoutEffect, useState } from "react";
+
+const useIsomorphicLayoutEffect = typeof window !== "undefined" ? useLayoutEffect : useEffect;
+import { createFileRoute } from "@tanstack/react-router";
 import { BackToTop } from "@/components/BackToTop";
 import { DISCIPLINES } from "@/data/disciplines";
-import { projects, type Project } from "@/data/projects";
+import { projects } from "@/data/projects";
 import {
-  getPhotosBySpecialty,
-  getPhotosByProject,
+  getDeletedProjectIds,
+  getPhotoItemBySlugOrCode,
   getStudioProjects,
   subscribeToStudioStore,
 } from "@/lib/studio-store";
 import {
+  buildMediaLiveDetailUrl,
+  FLAT_FIELDS,
+  getGalleryMediaForRoute,
+  getMediaByCode,
   getPageByRoute,
-  getVaultMedia,
   getVaultPages,
+  isRouteOrAncestorHidden,
   subscribeToVaultStore,
   type VaultPageItem,
 } from "@/lib/vault-store";
@@ -25,32 +31,28 @@ import {
   HiddenPageNotice,
   type UITypeCode,
 } from "@/components/ui-types";
+import {
+  looksLikeMediaCode,
+  redirectToCanonicalPath,
+} from "@/components/DedicatedPhotoView";
+import { NotFoundPage } from "@/components/NotFoundPage";
 import { pageHead } from "@/lib/seo";
 import { resolveInventoryImage } from "@/lib/inventory-assets";
 import {
   normalizeDisciplineSlug,
   normalizeSpecialtySlug,
   normalizeProjectSlug,
-  buildPhotoUrl,
 } from "@/lib/taxonomy";
 
-interface SpecialtyPhoto {
+interface SpecialtyMediaItem {
+  id: string;
   key: string;
   src: string;
   code: string;
   canonicalPath: string;
-  disciplineSlug: string;
-  specialtySlug: string;
-  projectSlug: string;
-  imageName: string;
   title: string;
   year: string;
   category: string;
-  description: string;
-  client?: string;
-  credits?: string[];
-  photoIndex: number;
-  photoTotal: number;
 }
 
 interface ProjectCardItem {
@@ -58,12 +60,25 @@ interface ProjectCardItem {
   title: string;
   image: string;
   year: string;
-  href?: string;
+  href: string;
 }
 
-function photoCaption(title: string, index: number, total: number): string {
-  if (total <= 1) return title;
-  return `${title} — ${String(index + 1).padStart(2, "0")}`;
+interface SpecialtyRouteData {
+  pendingPhotoRedirect?: boolean;
+  rawPhotoCode?: string;
+  disciplineSlug: string;
+  specialtySlug: string;
+  canonicalRoute: string;
+  serverFound: boolean;
+  label: string;
+  blurb: string;
+  isVisualIdentity: boolean;
+  isVideo: boolean;
+  defaultLayout: "scroll" | null;
+  items: SpecialtyMediaItem[];
+  projectCards: ProjectCardItem[];
+  initialVaultPage?: VaultPageItem;
+  initialIsHidden?: boolean;
 }
 
 function useIsDesktop() {
@@ -81,44 +96,45 @@ function useIsDesktop() {
 }
 
 function computeSpecialtyProjectCards(normDisc: string, normSpec: string): ProjectCardItem[] {
-  const allStudio = getStudioProjects();
-  const matching = allStudio.filter((p) => {
-    const disc = (p.discipline || "").toLowerCase();
-    const cat = (p.category || "").toLowerCase();
-    const sub = ((p as any).subDiscipline || "").toLowerCase();
-    return (
-      disc === "visual-identity" ||
-      disc === "graphic-design" ||
-      cat.includes("identity") ||
-      cat.includes("visual") ||
-      sub.includes("identity")
-    );
-  });
-  const cardMap = new Map<string, ProjectCardItem>();
-
-  matching.forEach((project) => {
-    const projSlug = normalizeProjectSlug(project.title || project.id);
-    const rawCover =
-      (project as any).coverImage ||
-      (project as any).image ||
-      (project.images && project.images[0]?.url) ||
-      "";
-    cardMap.set(projSlug, {
-      id: project.id,
-      title: project.title,
-      image: resolveInventoryImage(rawCover) || rawCover,
-      year: String(project.year || "2026"),
-      href: `/${normDisc}/${normSpec}/${projSlug}`,
-    });
-  });
-
-  // Overlay all Vault Pages under this specialty route
-  const allVault = getVaultPages();
   const specRoute = `/${normDisc}/${normSpec}`.toLowerCase();
+  const cardMap = new Map<string, ProjectCardItem>();
+  const deletedSet = getDeletedProjectIds();
+
+  // 1. Pull studio projects strictly belonging to this discipline & specialty
+  const allStudio = getStudioProjects();
+  allStudio
+    .filter((p) => {
+      const pDisc = normalizeDisciplineSlug(p.discipline || "");
+      const pSpec = normalizeSpecialtySlug(p.subDiscipline || p.category || "");
+      return pDisc === normDisc && pSpec === normSpec;
+    })
+    .forEach((project) => {
+      const projSlug = normalizeProjectSlug(project.title || project.id);
+      if (!projSlug || deletedSet.has(projSlug)) return;
+      const rawCover =
+        (project as any).coverImage ||
+        (project as any).image ||
+        (project.images && project.images[0]?.url) ||
+        "";
+      cardMap.set(projSlug, {
+        id: project.id,
+        title: project.title,
+        image: resolveInventoryImage(rawCover) || rawCover,
+        year: String(project.year || "2026"),
+        href: `/${normDisc}/${normSpec}/${projSlug}`,
+      });
+    });
+
+  // 2. Overlay all Vault Pages whose parentRoute strictly matches specRoute
+  const allVault = getVaultPages();
   allVault
-    .filter((p) => (p.parentRoute || "").toLowerCase() === specRoute && !p.isHidden)
+    .filter((p) => (p.parentRoute || "").toLowerCase().replace(/\/+$/, "") === specRoute)
     .forEach((vp) => {
       const slug = normalizeProjectSlug(vp.route.split("/").pop() || vp.name);
+      if (isRouteOrAncestorHidden(vp.route, allVault) || deletedSet.has(slug)) {
+        cardMap.delete(slug);
+        return;
+      }
       const existing = cardMap.get(slug);
       cardMap.set(slug, {
         id: vp.id,
@@ -132,170 +148,209 @@ function computeSpecialtyProjectCards(normDisc: string, normSpec: string): Proje
   return Array.from(cardMap.values());
 }
 
-export const Route = createFileRoute("/$discipline/$specialty/")({
-  loader: ({ params }) => {
-    const normDisc = normalizeDisciplineSlug(params.discipline);
-
-    // 1. Video Project Dedicated Page: /video/[project]
-    // User request: "Video/Project-Dedicated-Page same UI as Video routed but shows all the videos under the project.
-    // Important: Videos don't have a video-dedicated page; only when clicked on the current pop-up shows and plays the video"
-    if (normDisc === "video") {
-      const normProj = normalizeProjectSlug(params.specialty);
-      const projPhotos = getPhotosByProject(normProj);
-      const allStudio = getStudioProjects();
-      const parentProject =
-        allStudio.find((p) => normalizeProjectSlug(p.title) === normProj || p.id === normProj) ||
-        projects.find((p) => normalizeProjectSlug(p.title) === normProj || p.id === normProj);
-
-      const items: SpecialtyPhoto[] = projPhotos.map((p, idx) => ({
-        key: `${p.code}-${idx}`,
-        src: resolveInventoryImage(p.imgSrc) || p.imgSrc,
-        code: p.standardCode || p.code,
-        canonicalPath: `/video/${normProj}`,
-        disciplineSlug: "video",
-        specialtySlug: normProj,
-        projectSlug: normProj,
-        imageName: p.title || photoCaption(p.project, idx, projPhotos.length),
-        title: p.project,
-        year: p.date || "2026",
-        category: p.subdiscipline || "Video",
-        description: p.caption || "",
-        client: p.client,
-        photoIndex: idx + 1,
-        photoTotal: projPhotos.length,
-      }));
-
-      const projLabel = parentProject?.title || normProj.charAt(0).toUpperCase() + normProj.slice(1);
-      return {
-        disciplineSlug: "video",
-        specialtySlug: normProj,
-        label: projLabel,
-        blurb: parentProject?.description || `${projLabel} video showcase.`,
-        isVisualIdentity: false,
-        isVideo: true,
-        layout: null,
-        items,
-        projectCards: [] as ProjectCardItem[],
-      };
-    }
-
-    // 2. Product Design Project Dedicated Page: /product-design/[project]
-    // User request: "Product-Design/Project-Dedicated-Page has the same UI as the Graphic-Design/Book-Covers shows all photos from a specific project"
-    if (normDisc === "product-design") {
-      const normProj = normalizeProjectSlug(params.specialty);
-      const projPhotos = getPhotosByProject(normProj);
-      const allStudio = getStudioProjects();
-      const parentProject =
-        allStudio.find((p) => normalizeProjectSlug(p.title) === normProj || p.id === normProj) ||
-        projects.find((p) => normalizeProjectSlug(p.title) === normProj || p.id === normProj);
-
-      const items: SpecialtyPhoto[] = projPhotos.map((p, idx) => ({
-        key: `${p.code}-${idx}`,
-        src: resolveInventoryImage(p.imgSrc) || p.imgSrc,
-        code: p.standardCode || p.code,
-        canonicalPath: buildPhotoUrl("product-design", "products", normProj, p.standardCode || p.code),
-        disciplineSlug: "product-design",
-        specialtySlug: normProj,
-        projectSlug: normProj,
-        imageName: p.title || photoCaption(p.project, idx, projPhotos.length),
-        title: p.project,
-        year: p.date || "2026",
-        category: p.subdiscipline || "Product Design",
-        description: p.caption || "",
-        client: p.client,
-        photoIndex: idx + 1,
-        photoTotal: projPhotos.length,
-      }));
-
-      const projLabel = parentProject?.title || normProj.charAt(0).toUpperCase() + normProj.slice(1);
-      return {
-        disciplineSlug: "product-design",
-        specialtySlug: normProj,
-        label: projLabel,
-        blurb: parentProject?.description || `${projLabel} product design showcase.`,
-        isVisualIdentity: false,
-        isVideo: false,
-        layout: "scroll" as const, // EXACT UI AS BOOK COVERS (Horizontal scroll)
-        items,
-        projectCards: [] as ProjectCardItem[],
-      };
-    }
-
-    const normSpec = normalizeSpecialtySlug(params.specialty);
-
-    const disciplineDef = DISCIPLINES.find(
-      (d) =>
-        normalizeDisciplineSlug(d.slug) === normDisc &&
-        normalizeSpecialtySlug(d.slug) === normSpec,
-    ) || DISCIPLINES.find((d) => d.slug.includes(normSpec));
-
-    const label =
-      disciplineDef?.label ||
-      `${normSpec.charAt(0).toUpperCase() + normSpec.slice(1).replace("-", " ")} ${normDisc.charAt(0).toUpperCase() + normDisc.slice(1)}`;
-
-    const isVisualIdentity = normSpec === "visual-identity";
-    const isVideo = normSpec === "videos" || normSpec === "video";
-
-    if (isVisualIdentity) {
-      const projectCards = computeSpecialtyProjectCards(normDisc, normSpec);
-      return {
-        disciplineSlug: normDisc,
-        specialtySlug: normSpec,
-        label,
-        blurb: disciplineDef?.blurb || `${label} showcase by Siavash Akbari.`,
-        isVisualIdentity: true,
-        isVideo: false,
-        layout: disciplineDef?.layout ?? null,
-        items: [] as SpecialtyPhoto[],
-        projectCards,
-      };
-    }
-
-    // Get all photos in this specialty
-    const photos = getPhotosBySpecialty(normSpec, normDisc);
-    const items: SpecialtyPhoto[] = photos.map((p, idx) => ({
-      key: `${p.code}-${idx}`,
-      src: resolveInventoryImage(p.imgSrc) || p.imgSrc,
-      code: p.standardCode || p.code,
-      canonicalPath:
-        p.canonicalPath ||
-        buildPhotoUrl(normDisc, normSpec, p.projectSlug || "project", p.standardCode || p.code),
-      disciplineSlug: normDisc,
-      specialtySlug: normSpec,
-      projectSlug: p.projectSlug || "project",
-      imageName: p.title || photoCaption(p.project, idx, photos.length),
-      title: p.project,
-      year: p.date || "2026",
-      category: p.subdiscipline || label,
-      description: p.caption || "",
-      client: p.client,
-      photoIndex: idx + 1,
-      photoTotal: photos.length,
+function computeChildCardsForRoute(parentRoute: string, allVault?: VaultPageItem[]): ProjectCardItem[] {
+  const pages = allVault || getVaultPages();
+  const parentNorm = parentRoute.toLowerCase().replace(/\/+$/, "");
+  return pages
+    .filter((p) => (p.parentRoute || "").toLowerCase().replace(/\/+$/, "") === parentNorm)
+    .filter((p) => !isRouteOrAncestorHidden(p.route, pages))
+    .map((vp) => ({
+      id: vp.id,
+      title: vp.name,
+      image: resolveInventoryImage(vp.coverPhoto) || vp.coverPhoto,
+      year: vp.pairedBoxes?.find((b) => b.key.toLowerCase() === "year")?.value || "2026",
+      href: vp.route,
     }));
+}
+
+function buildSpecialtyData(normDisc: string, normSpec: string): SpecialtyRouteData {
+  const canonicalRoute = `/${normDisc}/${normSpec}`;
+  const vaultPage = getPageByRoute(canonicalRoute);
+  const allVault = getVaultPages();
+
+  // Flat disciplines: /video/[project] and /product-design/[project]
+  if (FLAT_FIELDS.has(normDisc)) {
+    const allStudio = getStudioProjects();
+    const parentProject =
+      allStudio.find((p) => normalizeProjectSlug(p.title) === normSpec || p.id === normSpec) ||
+      projects.find((p) => normalizeProjectSlug(p.title) === normSpec || p.id === normSpec);
+
+    const mediaItems = getGalleryMediaForRoute(canonicalRoute, { includeDescendants: true });
+    const items: SpecialtyMediaItem[] = mediaItems.map((m, idx) => ({
+      id: m.id || `${m.uniqueCode}-${idx}`,
+      key: `${m.uniqueCode}-${idx}`,
+      src: resolveInventoryImage(m.imgSrc) || m.imgSrc,
+      code: m.dynamicCode,
+      canonicalPath: buildMediaLiveDetailUrl(m),
+      title: m.title || m.dynamicCode,
+      year: m.year || "2026",
+      category:
+        m.category ||
+        (normDisc === "video" ? "Video" : "Product Design"),
+    }));
+
+    const projectCards = computeChildCardsForRoute(canonicalRoute, allVault);
+    const label =
+      vaultPage?.name ||
+      parentProject?.title ||
+      normSpec
+        .split("-")
+        .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+        .join(" ");
 
     return {
       disciplineSlug: normDisc,
       specialtySlug: normSpec,
+      canonicalRoute,
+      serverFound: Boolean(vaultPage || parentProject || items.length > 0 || projectCards.length > 0),
       label,
-      blurb: disciplineDef?.blurb || `${label} photography by Siavash Akbari.`,
+      blurb:
+        vaultPage?.descriptionEn ||
+        parentProject?.description ||
+        `${label} ${normDisc === "video" ? "video showcase" : "product design showcase"}.`,
       isVisualIdentity: false,
-      isVideo,
-      layout: disciplineDef?.layout ?? null,
+      isVideo: normDisc === "video",
+      defaultLayout: normDisc === "product-design" ? "scroll" : null,
       items,
-      projectCards: [] as ProjectCardItem[],
+      projectCards,
+      initialVaultPage: vaultPage,
+      initialIsHidden: isRouteOrAncestorHidden(canonicalRoute, allVault),
     };
+  }
+
+  // Standard 2-segment Discipline / Specialty (e.g. /photography/fashion-photography, /graphic-design/visual-identity, /graphic-design/posters)
+  const disciplineDef =
+    DISCIPLINES.find(
+      (d) =>
+        normalizeDisciplineSlug(d.disciplineSlug || d.slug) === normDisc &&
+        normalizeSpecialtySlug(d.specialtySlug || d.slug) === normSpec,
+    );
+
+  const label =
+    vaultPage?.name ||
+    disciplineDef?.label ||
+    normSpec
+      .split("-")
+      .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+      .join(" ");
+
+  const isVisualIdentity = normSpec === "visual-identity";
+  const isVideo = normSpec === "videos" || normSpec === "video";
+
+  const projectCards = computeSpecialtyProjectCards(normDisc, normSpec);
+  const mediaItems = getGalleryMediaForRoute(canonicalRoute, { includeDescendants: true });
+  const items: SpecialtyMediaItem[] = mediaItems.map((m, idx) => ({
+    id: m.id || `${m.uniqueCode}-${idx}`,
+    key: `${m.uniqueCode}-${idx}`,
+    src: resolveInventoryImage(m.imgSrc) || m.imgSrc,
+    code: m.dynamicCode,
+    canonicalPath: buildMediaLiveDetailUrl(m),
+    title: m.title || m.dynamicCode,
+    year: m.year || "2026",
+    category: m.category || label,
+  }));
+
+  return {
+    disciplineSlug: normDisc,
+    specialtySlug: normSpec,
+    canonicalRoute,
+    serverFound: Boolean(
+      vaultPage || disciplineDef || projectCards.length > 0 || items.length > 0,
+    ),
+    label,
+    blurb:
+      vaultPage?.descriptionEn ||
+      disciplineDef?.blurb ||
+      `${label} portfolio by Siavash Akbari.`,
+    isVisualIdentity,
+    isVideo,
+    defaultLayout: disciplineDef?.layout ?? null,
+    items,
+    projectCards,
+    initialVaultPage: vaultPage,
+    initialIsHidden: isRouteOrAncestorHidden(canonicalRoute, allVault),
+  };
+}
+
+export const Route = createFileRoute("/$discipline/$specialty/")({
+  loader: ({ params }): SpecialtyRouteData => {
+    const normDisc = normalizeDisciplineSlug(params.discipline);
+    const rawSecond = params.specialty.trim();
+
+    // 1. Handle 2-segment photo short/dynamic code URLs (e.g. /photography/1001 or /photography/SA-FASH-ATL-01)
+    const vmByCode = getMediaByCode(rawSecond);
+    if (vmByCode) {
+      redirectToCanonicalPath(buildMediaLiveDetailUrl(vmByCode), true);
+    }
+    const knownRouteSlug =
+      /^(visual-identity|book-covers|posters|fashion-photography|food-photography|portrait-photography|product-photography|echo-prime|videos|products)$/i.test(
+        rawSecond,
+      );
+    if (!knownRouteSlug) {
+      const legacyPhoto = getPhotoItemBySlugOrCode(rawSecond, normDisc);
+      if (legacyPhoto) {
+        const legacyVm = getMediaByCode(legacyPhoto.uniqueCode || legacyPhoto.code);
+        if (legacyVm) {
+          redirectToCanonicalPath(buildMediaLiveDetailUrl(legacyVm), true);
+        }
+        if (legacyPhoto.canonicalPath) {
+          redirectToCanonicalPath(legacyPhoto.canonicalPath, true);
+        }
+      }
+      if (typeof window === "undefined" && looksLikeMediaCode(rawSecond)) {
+        return {
+          pendingPhotoRedirect: true,
+          rawPhotoCode: rawSecond,
+          disciplineSlug: normDisc,
+          specialtySlug: rawSecond,
+          canonicalRoute: `/${normDisc}/${rawSecond}`,
+          serverFound: true,
+          label: rawSecond,
+          blurb: "",
+          isVisualIdentity: false,
+          isVideo: false,
+          defaultLayout: null,
+          items: [],
+          projectCards: [],
+        };
+      }
+    }
+
+    // 2. Flat fields: redirect /video/videos -> /video and /product-design/products -> /product-design
+    if (FLAT_FIELDS.has(normDisc)) {
+      const normProj = normalizeProjectSlug(rawSecond);
+      if (
+        (normDisc === "video" && (normProj === "videos" || normProj === "video")) ||
+        (normDisc === "product-design" && (normProj === "products" || normProj === "product-design"))
+      ) {
+        redirectToCanonicalPath(`/${normDisc}`, true);
+      }
+      if (params.discipline !== normDisc || params.specialty !== normProj) {
+        redirectToCanonicalPath(`/${normDisc}/${normProj}`, true);
+      }
+      return buildSpecialtyData(normDisc, normProj);
+    }
+
+    // 3. Standard 2-segment Discipline / Specialty
+    const normSpec = normalizeSpecialtySlug(rawSecond);
+    if (params.discipline !== normDisc || params.specialty !== normSpec) {
+      redirectToCanonicalPath(`/${normDisc}/${normSpec}`, true);
+    }
+
+    return buildSpecialtyData(normDisc, normSpec);
   },
   head: ({ loaderData }) => {
     const disc = loaderData?.disciplineSlug ?? "photography";
-    const spec = loaderData?.specialtySlug ?? "fashion";
-    const vaultPage = typeof window !== "undefined" ? getPageByRoute(`/${disc}/${spec}`) : null;
+    const spec = loaderData?.specialtySlug ?? "fashion-photography";
+    const routePath = loaderData?.canonicalRoute || `/${disc}/${spec}`;
+    const vaultPage = typeof window !== "undefined" ? getPageByRoute(routePath) : null;
     const label = vaultPage?.name || loaderData?.label || "Specialty";
     const blurb =
       vaultPage?.descriptionEn || loaderData?.blurb || `${label} work by Siavash Akbari.`;
     return pageHead({
       title: `Siavash Akbari - ${label}`,
       description: `${blurb} Explore ${label.toLowerCase()} stories and visual works.`,
-      path: `/${disc}/${spec}`,
+      path: routePath,
     });
   },
   component: SpecialtyPage,
@@ -307,103 +362,67 @@ export const Route = createFileRoute("/$discipline/$specialty/")({
   ),
 });
 
+function computeInitialSpecialtyState(loaderData: SpecialtyRouteData) {
+  if (loaderData.pendingPhotoRedirect) {
+    return {
+      notFound: false,
+      redirectTarget: null as string | null,
+      data: loaderData,
+      vaultPage: undefined as VaultPageItem | undefined,
+      isHidden: false,
+    };
+  }
+  return {
+    notFound: false,
+    redirectTarget: null as string | null,
+    data: loaderData,
+    vaultPage: loaderData.initialVaultPage,
+    isHidden: Boolean(loaderData.initialIsHidden),
+  };
+}
+
+function computeClientSpecialtyState(loaderData: SpecialtyRouteData) {
+  if (loaderData.pendingPhotoRedirect || typeof window === "undefined") {
+    return computeInitialSpecialtyState(loaderData);
+  }
+
+  const fresh = buildSpecialtyData(loaderData.disciplineSlug, loaderData.specialtySlug);
+  const vaultPage = getPageByRoute(fresh.canonicalRoute);
+  const isHidden = isRouteOrAncestorHidden(fresh.canonicalRoute);
+  const exists = fresh.serverFound || loaderData.serverFound || Boolean(vaultPage);
+
+  return {
+    notFound: !exists,
+    redirectTarget: null as string | null,
+    data: fresh,
+    vaultPage,
+    isHidden,
+  };
+}
+
 function SpecialtyPage() {
   const loaderData = Route.useLoaderData();
-  const [data, setData] = useState(() => {
-    if (typeof window === "undefined" || !loaderData.isVisualIdentity) {
-      return loaderData;
-    }
-    return {
-      ...loaderData,
-      projectCards: computeSpecialtyProjectCards(loaderData.disciplineSlug, loaderData.specialtySlug),
-    };
-  });
-  const [vaultPage, setVaultPage] = useState<VaultPageItem | undefined>(() => {
-    if (typeof window === "undefined") return undefined;
-    return getPageByRoute(`/${loaderData.disciplineSlug}/${loaderData.specialtySlug}`);
-  });
+  const [state, setState] = useState(() => computeInitialSpecialtyState(loaderData));
+  const [photoLookupDone, setPhotoLookupDone] = useState(false);
   const isDesktop = useIsDesktop();
 
-  useEffect(() => {
-    setData(loaderData);
-  }, [loaderData]);
-
-  // Client hydration for projectCards & vault page info
   const refreshSpecialtyData = () => {
-    const currentVaultPage = getPageByRoute(`/${loaderData.disciplineSlug}/${loaderData.specialtySlug}`);
-    setVaultPage(currentVaultPage);
-
-    if (loaderData.isVisualIdentity) {
-      const projectCards = computeSpecialtyProjectCards(loaderData.disciplineSlug, loaderData.specialtySlug);
-      setData((prev) => ({
-        ...prev,
-        projectCards,
-      }));
-    } else if (loaderData.disciplineSlug === "product-design" || loaderData.disciplineSlug === "video") {
-      const projPhotos = getPhotosByProject(loaderData.specialtySlug);
-      if (projPhotos.length > 0) {
-        const items: SpecialtyPhoto[] = projPhotos.map((p, idx) => ({
-          key: `${p.code}-${idx}`,
-          src: resolveInventoryImage(p.imgSrc) || p.imgSrc,
-          code: p.standardCode || p.code,
-          canonicalPath:
-            loaderData.disciplineSlug === "video"
-              ? `/video/${loaderData.specialtySlug}`
-              : buildPhotoUrl("product-design", "products", loaderData.specialtySlug, p.standardCode || p.code),
-          disciplineSlug: loaderData.disciplineSlug,
-          specialtySlug: loaderData.specialtySlug,
-          projectSlug: loaderData.specialtySlug,
-          imageName: p.title || photoCaption(p.project, idx, projPhotos.length),
-          title: p.project,
-          year: p.date || "2026",
-          category: p.subdiscipline || loaderData.label,
-          description: p.caption || "",
-          client: p.client,
-          photoIndex: idx + 1,
-          photoTotal: projPhotos.length,
-        }));
-        setData((prev) => ({ ...prev, items }));
+    if (loaderData.pendingPhotoRedirect && loaderData.rawPhotoCode) {
+      const vm = getMediaByCode(loaderData.rawPhotoCode);
+      if (vm && typeof window !== "undefined") {
+        window.location.replace(buildMediaLiveDetailUrl(vm));
+        return;
       }
-    } else {
-      const photos = getPhotosBySpecialty(loaderData.specialtySlug, loaderData.disciplineSlug);
-      if (photos.length > 0) {
-        const items: SpecialtyPhoto[] = photos.map((p, idx) => ({
-          key: `${p.code}-${idx}`,
-          src: resolveInventoryImage(p.imgSrc) || p.imgSrc,
-          code: p.standardCode || p.code,
-          canonicalPath:
-            p.canonicalPath ||
-            buildPhotoUrl(loaderData.disciplineSlug, loaderData.specialtySlug, p.projectSlug || "project", p.standardCode || p.code),
-          disciplineSlug: loaderData.disciplineSlug,
-          specialtySlug: loaderData.specialtySlug,
-          projectSlug: p.projectSlug || "project",
-          imageName: p.title || photoCaption(p.project, idx, photos.length),
-          title: p.project,
-          year: p.date || "2026",
-          category: p.subdiscipline || loaderData.label,
-          description: p.caption || "",
-          client: p.client,
-          photoIndex: idx + 1,
-          photoTotal: photos.length,
-        }));
-        setData((prev) => ({ ...prev, items }));
-      }
+      setPhotoLookupDone(true);
+      return;
     }
+    setState(computeClientSpecialtyState(loaderData));
   };
 
-  useEffect(() => {
+  useIsomorphicLayoutEffect(() => {
     refreshSpecialtyData();
-  }, [loaderData.isVisualIdentity, loaderData.disciplineSlug, loaderData.specialtySlug]);
+  }, [loaderData.canonicalRoute, loaderData.pendingPhotoRedirect, loaderData.rawPhotoCode]);
 
-  // Keep browser tab title synchronized with vault page name or custom title
-  useEffect(() => {
-    const pageTitle = vaultPage?.name || data.label;
-    if (pageTitle && typeof document !== "undefined") {
-      document.title = `Siavash Akbari - ${pageTitle}`;
-    }
-  }, [vaultPage?.name, data.label]);
-
-  // Real-time listener: updates view as soon as vault edits anything
   useEffect(() => {
     const unsub1 = subscribeToStudioStore(() => refreshSpecialtyData());
     const unsub2 = subscribeToVaultStore(() => refreshSpecialtyData());
@@ -411,50 +430,44 @@ function SpecialtyPage() {
       unsub1();
       unsub2();
     };
-  }, [loaderData.disciplineSlug, loaderData.specialtySlug]);
+  }, [loaderData.canonicalRoute]);
 
-  // Check if page is hidden
-  if (vaultPage?.isHidden) {
+  const { data, vaultPage, isHidden, notFound: notFoundOnClient } = state;
+
+  useEffect(() => {
+    const pageTitle = vaultPage?.name || data.label;
+    if (pageTitle && typeof document !== "undefined") {
+      document.title = `Siavash Akbari - ${pageTitle}`;
+    }
+  }, [vaultPage?.name, data.label]);
+
+  if (loaderData.pendingPhotoRedirect) {
+    if (!photoLookupDone) {
+      return <div className="min-h-screen bg-background" />;
+    }
+    return <NotFoundPage />;
+  }
+
+  if (notFoundOnClient) {
+    return <NotFoundPage />;
+  }
+
+  if (isHidden) {
     return (
       <HiddenPageNotice
-        title={vaultPage.name}
-        routePath={`/${data.disciplineSlug}/${data.specialtySlug}`}
+        title={vaultPage?.name || data.label}
+        routePath={data.canonicalRoute}
       />
     );
   }
 
-  // Filter out any hidden media from display
-  const allVaultMedia = typeof window !== "undefined" ? getVaultMedia() : [];
-  const hiddenCodeSet = new Set(
-    allVaultMedia.filter((m) => m.isHidden).map((m) => m.uniqueCode.toUpperCase()),
-  );
+  const visibleItems = data.items;
+  const visibleProjectCards = data.projectCards;
 
-  const visibleItems = data.items.filter((it) => {
-    const code = (it.code || "").toUpperCase();
-    return !hiddenCodeSet.has(code);
-  });
-
-  // Filter out hidden project cards
-  const allVaultPages = typeof window !== "undefined" ? getVaultPages() : [];
-  const hiddenRoutes = new Set(
-    allVaultPages.filter((p) => p.isHidden).map((p) => p.route.toLowerCase().replace(/\/+$/, ""))
-  );
-
-  const visibleProjectCards = data.projectCards.filter((card) => {
-    const cardHref = (card.href || "").toLowerCase().replace(/\/+$/, "");
-    return !hiddenRoutes.has(cardHref);
-  });
-
-  const isEmpty = data.isVisualIdentity
-    ? visibleProjectCards.length === 0
-    : visibleItems.length === 0;
-
-  const useSideScroll = data.layout === "scroll" && isDesktop;
-
-  // Determine UI type: explicit vault assignment or natural default
+  const useSideScroll = data.defaultLayout === "scroll" && isDesktop;
   const activeUiType: UITypeCode =
     vaultPage?.uiType ||
-    (data.isVisualIdentity
+    (data.isVisualIdentity || (!visibleItems.length && visibleProjectCards.length > 0)
       ? "UI03"
       : data.isVideo
         ? "UI04"
@@ -462,11 +475,16 @@ function SpecialtyPage() {
           ? "UI02"
           : "UI01");
 
+  const isEmpty =
+    activeUiType === "UI03"
+      ? visibleProjectCards.length === 0 && visibleItems.length === 0
+      : visibleItems.length === 0;
+
   return (
     <section
       className={`relative w-full bg-background ${
         activeUiType === "UI02"
-          ? "overflow-hidden pt-3 md:pt-3.5"
+          ? "min-h-screen pb-24 pt-3 md:pt-3.5 lg:min-h-0 lg:pb-0 lg:overflow-hidden"
           : "min-h-screen pb-40 pt-3 md:pt-3.5"
       }`}
       aria-labelledby="specialty-heading"
@@ -475,7 +493,6 @@ function SpecialtyPage() {
         {vaultPage?.name || data.label} — Siavash Akbari
       </h1>
 
-      {/* Page Header (English & Farsi Descriptions, Paired Boxes) */}
       <PageHeader
         title={vaultPage?.name || data.label}
         descriptionEn={vaultPage?.descriptionEn || (data.isVisualIdentity ? data.blurb : undefined)}
@@ -492,23 +509,30 @@ function SpecialtyPage() {
           items={visibleItems.map((item) => ({
             id: item.key,
             src: item.src,
-            alt: item.imageName,
+            alt: item.title,
             title: item.title,
             href: item.canonicalPath,
           }))}
           label={vaultPage?.name || data.label}
         />
-      ) : activeUiType === "UI03" || data.isVisualIdentity ? (
+      ) : activeUiType === "UI03" ? (
         <UI03_EqualCardsGrid
-          cards={visibleProjectCards.map((p) => ({
+          cards={(visibleProjectCards.length > 0
+            ? visibleProjectCards
+            : visibleItems.map((it) => ({
+                id: it.id,
+                title: it.title,
+                image: it.src,
+                href: it.canonicalPath,
+              }))
+          ).map((p) => ({
             id: p.id,
             title: p.title,
             image: p.image,
-            href: p.href || `/${data.disciplineSlug}/${data.specialtySlug}/${p.id}`,
-            year: p.year,
+            href: p.href,
           }))}
         />
-      ) : activeUiType === "UI04" || data.isVideo ? (
+      ) : activeUiType === "UI04" ? (
         <UI04_VideoShowcase
           items={visibleItems.map((item) => ({
             id: item.key,
@@ -523,7 +547,7 @@ function SpecialtyPage() {
           items={visibleItems.map((item) => ({
             id: item.key,
             src: item.src,
-            alt: item.imageName,
+            alt: item.title,
             title: item.title,
             href: item.canonicalPath,
           }))}
@@ -533,5 +557,3 @@ function SpecialtyPage() {
     </section>
   );
 }
-
-

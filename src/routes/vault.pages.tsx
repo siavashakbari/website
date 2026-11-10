@@ -21,6 +21,7 @@ import {
   Lock,
 } from "lucide-react";
 import {
+  FLAT_FIELDS,
   getVaultPages,
   saveVaultPage,
   deleteVaultPage,
@@ -33,6 +34,10 @@ import { PairedBoxesEditor, type KeyValuePair } from "@/components/vault/PairedB
 import { processMediaUpload } from "@/lib/media-sizing";
 import { resolveInventoryImage } from "@/lib/inventory-assets";
 import { normalizeProjectSlug } from "@/lib/taxonomy";
+
+function isVideoAssetUrl(url?: string): boolean {
+  return Boolean(url && /\.(mp4|webm|mov)(\?|#|$)|^data:video\//i.test(url));
+}
 
 export const Route = createFileRoute("/vault/pages")({
   component: VaultPagesView,
@@ -87,15 +92,25 @@ function VaultPagesView() {
     return [...defaultRoots, ...customRoots];
   }, [pages]);
 
-  // Available categories under selected discipline
+  const isFlatDiscipline = useMemo(
+    () => FLAT_FIELDS.has(selectedDiscipline.replace(/^\//, "").toLowerCase()),
+    [selectedDiscipline]
+  );
+
+  // Available categories under selected discipline (none for flat disciplines)
   const availableCategories = useMemo(() => {
+    if (isFlatDiscipline) return [];
     return pages.filter(
       (p) => (p.parentRoute || "").toLowerCase() === selectedDiscipline.toLowerCase()
     );
-  }, [pages, selectedDiscipline]);
+  }, [pages, selectedDiscipline, isFlatDiscipline]);
 
   // When selectedDiscipline changes, update category selection
   useEffect(() => {
+    if (isFlatDiscipline) {
+      setSelectedCategory("");
+      return;
+    }
     const cats = pages.filter(
       (p) => (p.parentRoute || "").toLowerCase() === selectedDiscipline.toLowerCase()
     );
@@ -104,7 +119,7 @@ function VaultPagesView() {
     } else {
       setSelectedCategory("");
     }
-  }, [selectedDiscipline, pages]);
+  }, [selectedDiscipline, isFlatDiscipline, pages]);
 
   // Derived slug and locked route computed top-to-bottom
   const computedSlug = customSlug.trim()
@@ -118,17 +133,20 @@ function VaultPagesView() {
         : computedSlug;
       return `/${discSlug}`;
     }
-    if (createTarget === "category") {
+    if (createTarget === "category" && !isFlatDiscipline) {
       const catSlug = customCategoryName.trim()
         ? normalizeProjectSlug(customCategoryName)
         : computedSlug;
       return `${selectedDiscipline.replace(/\/+$/, "")}/${catSlug}`;
     }
-    // project
-    const cat = selectedCategory || `${selectedDiscipline}/general`;
-    return `${cat.replace(/\/+$/, "")}/${computedSlug}`;
+    // project (attaches directly under flat disciplines, or under category when present)
+    const baseParent = isFlatDiscipline
+      ? selectedDiscipline
+      : selectedCategory || selectedDiscipline;
+    return `${baseParent.replace(/\/+$/, "")}/${computedSlug}`;
   }, [
     createTarget,
+    isFlatDiscipline,
     selectedDiscipline,
     customDisciplineName,
     selectedCategory,
@@ -138,9 +156,9 @@ function VaultPagesView() {
 
   const computedParentRoute = useMemo(() => {
     if (createTarget === "discipline") return "";
-    if (createTarget === "category") return selectedDiscipline;
+    if (createTarget === "category" || isFlatDiscipline) return selectedDiscipline;
     return selectedCategory || selectedDiscipline;
-  }, [createTarget, selectedDiscipline, selectedCategory]);
+  }, [createTarget, isFlatDiscipline, selectedDiscipline, selectedCategory]);
 
   const toggleCollapse = (route: string) => {
     setCollapsedSet((prev) => {
@@ -194,9 +212,11 @@ function VaultPagesView() {
       name: finalName,
       parentRoute: computedParentRoute,
       coverPhoto: newCover || "src/assets/fashion/atlasi/fashion-atlasi-01.jpg",
+      coverModifiedByUser: Boolean(newCover),
       descriptionEn: newDescEn.trim(),
       descriptionFa: newDescFa.trim(),
       uiType: newUiType,
+      uiTypeModifiedByUser: true,
       isHidden: false,
       pairedBoxes: newPairs.filter((p) => p.key.trim() || p.value.trim()),
       order: pages.length + 1,
@@ -219,6 +239,35 @@ function VaultPagesView() {
     ]);
   };
 
+  const pageMatchesQuery = (p: VaultPageItem, qLower: string): boolean => {
+    if (!qLower) return true;
+    return (
+      p.name.toLowerCase().includes(qLower) ||
+      p.route.toLowerCase().includes(qLower) ||
+      p.descriptionEn.toLowerCase().includes(qLower) ||
+      p.descriptionFa.includes(qLower) ||
+      (p.pairedBoxes || []).some(
+        (b) =>
+          (b.key || "").toLowerCase().includes(qLower) ||
+          (b.value || "").toLowerCase().includes(qLower),
+      )
+    );
+  };
+
+  const getChildrenOf = (parentRoute: string) => {
+    const prLower = (parentRoute || "").toLowerCase();
+    return pages.filter((p) => (p.parentRoute || "").toLowerCase() === prLower);
+  };
+
+  const subtreeMatchesQuery = (page: VaultPageItem, qLower: string, visited = new Set<string>()): boolean => {
+    if (!qLower) return true;
+    if (pageMatchesQuery(page, qLower)) return true;
+    const key = page.route.toLowerCase();
+    if (visited.has(key)) return false;
+    visited.add(key);
+    return getChildrenOf(page.route).some((child) => subtreeMatchesQuery(child, qLower, visited));
+  };
+
   // Build hierarchical tree
   // Level 0: pages with parentRoute === "" or not matching any existing route
   const allRoutesLowerSet = useMemo(
@@ -226,25 +275,13 @@ function VaultPagesView() {
     [pages]
   );
 
+  const normalizedSearch = searchQuery.trim().toLowerCase();
+
   const rootPages = useMemo(() => {
     return pages
       .filter((p) => !p.parentRoute || !allRoutesLowerSet.has(p.parentRoute.toLowerCase()))
-      .filter((p) => {
-        if (!searchQuery.trim()) return true;
-        const q = searchQuery.toLowerCase();
-        return (
-          p.name.toLowerCase().includes(q) ||
-          p.route.toLowerCase().includes(q) ||
-          p.descriptionEn.toLowerCase().includes(q) ||
-          p.descriptionFa.includes(q)
-        );
-      });
-  }, [pages, allRoutesLowerSet, searchQuery]);
-
-  const getChildrenOf = (parentRoute: string) => {
-    const prLower = (parentRoute || "").toLowerCase();
-    return pages.filter((p) => (p.parentRoute || "").toLowerCase() === prLower);
-  };
+      .filter((p) => subtreeMatchesQuery(p, normalizedSearch));
+  }, [pages, allRoutesLowerSet, normalizedSearch]);
 
   return (
     <div className="space-y-8">
@@ -334,6 +371,9 @@ function VaultPagesView() {
               onDeletePage={handleDeletePage}
               onOpenMediaPicker={(id) => setMediaPickerPageId(id)}
               getChildrenOf={getChildrenOf}
+              searchQuery={normalizedSearch}
+              pageMatchesQuery={pageMatchesQuery}
+              subtreeMatchesQuery={subtreeMatchesQuery}
               depth={0}
             />
           ))
@@ -346,7 +386,7 @@ function VaultPagesView() {
           pageId={mediaPickerPageId}
           onClose={() => setMediaPickerPageId(null)}
           onSelectCover={(url) => {
-            handleUpdatePage(mediaPickerPageId, { coverPhoto: url });
+            handleUpdatePage(mediaPickerPageId, { coverPhoto: url, coverModifiedByUser: true });
             setMediaPickerPageId(null);
           }}
         />
@@ -427,7 +467,16 @@ function VaultPagesView() {
                   </label>
                   <select
                     value={selectedDiscipline}
-                    onChange={(e) => setSelectedDiscipline(e.target.value)}
+                    onChange={(e) => {
+                      const nextDisc = e.target.value;
+                      setSelectedDiscipline(nextDisc);
+                      if (
+                        createTarget === "category" &&
+                        FLAT_FIELDS.has(nextDisc.replace(/^\//, "").toLowerCase())
+                      ) {
+                        setCreateTarget("project");
+                      }
+                    }}
                     className="w-full bg-black/60 border border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-[#2CE3C0] font-mono"
                   >
                     {availableDisciplines.map((d) => (
@@ -616,6 +665,9 @@ interface PageNodeCardProps {
   onDeletePage: (pageId: string, pageName: string) => void;
   onOpenMediaPicker: (pageId: string) => void;
   getChildrenOf: (route: string) => VaultPageItem[];
+  searchQuery: string;
+  pageMatchesQuery: (page: VaultPageItem, q: string) => boolean;
+  subtreeMatchesQuery: (page: VaultPageItem, q: string) => boolean;
   depth: number;
 }
 
@@ -629,11 +681,33 @@ function PageNodeCard({
   onDeletePage,
   onOpenMediaPicker,
   getChildrenOf,
+  searchQuery,
+  pageMatchesQuery,
+  subtreeMatchesQuery,
   depth,
 }: PageNodeCardProps) {
-  const children = getChildrenOf(page.route);
+  const rawChildren = getChildrenOf(page.route);
+  const directMatch = searchQuery ? pageMatchesQuery(page, searchQuery) : false;
+  const children =
+    searchQuery && !directMatch
+      ? rawChildren.filter((c) => subtreeMatchesQuery(c, searchQuery))
+      : rawChildren;
   const hasChildren = children.length > 0;
-  const isCollapsed = collapsedSet.has(page.route);
+  const isCollapsed = searchQuery ? false : collapsedSet.has(page.route);
+  const [routeDraft, setRouteDraft] = useState(page.route);
+
+  useEffect(() => {
+    setRouteDraft(page.route);
+  }, [page.route]);
+
+  const commitRouteDraft = () => {
+    const cleaned = routeDraft.trim();
+    if (cleaned && cleaned !== page.route) {
+      onUpdatePage(page.id, { route: cleaned });
+    } else {
+      setRouteDraft(page.route);
+    }
+  };
 
   // File upload for cover photo
   const handleCoverUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -641,7 +715,7 @@ function PageNodeCard({
     if (!file) return;
     try {
       const sized = await processMediaUpload(file);
-      onUpdatePage(page.id, { coverPhoto: sized.fullUrl });
+      onUpdatePage(page.id, { coverPhoto: sized.fullUrl, coverModifiedByUser: true });
     } catch (err: any) {
       alert(`Error uploading cover: ${err.message}`);
     }
@@ -758,8 +832,14 @@ function PageNodeCard({
               </label>
               <input
                 type="text"
-                value={page.route}
-                onChange={(e) => onUpdatePage(page.id, { route: e.target.value })}
+                value={routeDraft}
+                onChange={(e) => setRouteDraft(e.target.value)}
+                onBlur={commitRouteDraft}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.currentTarget.blur();
+                  }
+                }}
                 className="w-full bg-black/60 border border-white/10 rounded-xl px-3.5 py-2.5 text-xs font-mono text-[#2CE3C0] focus:outline-none focus:border-[#2CE3C0]"
               />
             </div>
@@ -808,7 +888,12 @@ function PageNodeCard({
               </label>
               <select
                 value={page.uiType}
-                onChange={(e) => onUpdatePage(page.id, { uiType: e.target.value as UITypeCode })}
+                onChange={(e) =>
+                  onUpdatePage(page.id, {
+                    uiType: e.target.value as UITypeCode,
+                    uiTypeModifiedByUser: true,
+                  })
+                }
                 className="w-full bg-black/60 border border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-[#2CE3C0]"
               >
                 {UI_TYPE_LIST.map((ui) => (
@@ -829,11 +914,25 @@ function PageNodeCard({
               </label>
               <div className="relative aspect-[16/10] rounded-xl overflow-hidden bg-black/60 border border-white/10 group flex items-center justify-center">
                 {page.coverPhoto ? (
-                  <img
-                    src={resolveInventoryImage(page.coverPhoto) || page.coverPhoto}
-                    alt={page.name}
-                    className="w-full h-full object-cover"
-                  />
+                  (() => {
+                    const resolvedCover = resolveInventoryImage(page.coverPhoto) || page.coverPhoto;
+                    return isVideoAssetUrl(resolvedCover) ? (
+                      <video
+                        src={resolvedCover}
+                        muted
+                        loop
+                        playsInline
+                        preload="metadata"
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <img
+                        src={resolvedCover}
+                        alt={page.name}
+                        className="w-full h-full object-cover"
+                      />
+                    );
+                  })()
                 ) : (
                   <div className="flex flex-col items-center gap-1 text-neutral-500">
                     <ImageIcon className="w-6 h-6" />
@@ -852,7 +951,7 @@ function PageNodeCard({
                     Upload
                     <input
                       type="file"
-                      accept="image/*"
+                      accept="image/*,video/*"
                       onChange={handleCoverUpload}
                       className="hidden"
                     />
@@ -927,6 +1026,9 @@ function PageNodeCard({
               onDeletePage={onDeletePage}
               onOpenMediaPicker={onOpenMediaPicker}
               getChildrenOf={getChildrenOf}
+              searchQuery={searchQuery}
+              pageMatchesQuery={pageMatchesQuery}
+              subtreeMatchesQuery={subtreeMatchesQuery}
               depth={depth + 1}
             />
           ))}
@@ -986,22 +1088,38 @@ function MediaCoverPickerModal({
         />
 
         <div className="flex-1 overflow-y-auto grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2.5 p-1">
-          {filtered.map((item) => (
-            <div
-              key={item.id}
-              onClick={() => onSelectCover(item.imgSrc)}
-              className="group aspect-square rounded-lg overflow-hidden bg-black border border-white/10 hover:border-[#2CE3C0] cursor-pointer transition-all relative"
-            >
-              <img
-                src={resolveInventoryImage(item.thumbSrc || item.imgSrc) || item.imgSrc}
-                alt={item.title}
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-              />
-              <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                <Check className="w-5 h-5 text-[#2CE3C0]" />
+          {filtered.map((item) => {
+            const resolvedThumb =
+              resolveInventoryImage(item.thumbSrc || item.imgSrc) || item.imgSrc;
+            const resolvedVideo = resolveInventoryImage(item.imgSrc) || item.imgSrc;
+            const itemIsVideo = item.isVideo || isVideoAssetUrl(resolvedVideo);
+            return (
+              <div
+                key={item.id}
+                onClick={() => onSelectCover(item.imgSrc)}
+                className="group aspect-square rounded-lg overflow-hidden bg-black border border-white/10 hover:border-[#2CE3C0] cursor-pointer transition-all relative"
+              >
+                {itemIsVideo ? (
+                  <video
+                    src={resolvedVideo}
+                    muted
+                    playsInline
+                    preload="metadata"
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <img
+                    src={resolvedThumb}
+                    alt={item.title}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                  />
+                )}
+                <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                  <Check className="w-5 h-5 text-[#2CE3C0]" />
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </div>

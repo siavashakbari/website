@@ -7,7 +7,7 @@
 import { PHOTO_INVENTORY, type PhotoInventoryItem } from "@/data/photo-inventory";
 import { projects as DEFAULT_PROJECTS } from "@/data/projects";
 import { DISCIPLINES } from "@/data/disciplines";
-import { resolveInventoryImage } from "@/lib/inventory-assets";
+import { resolveInventoryImage, resolveKnownAssetFile } from "@/lib/inventory-assets";
 import type { UITypeCode } from "@/components/ui-types";
 import type { KeyValuePair } from "@/components/vault/PairedBoxesEditor";
 import {
@@ -25,9 +25,11 @@ export interface VaultPageItem {
   name: string;  // e.g. "Sepidar" -> tab title "Siavash Akbari - Sepidar"
   parentRoute: string; // e.g. "/photography/fashion-photography" or ""
   coverPhoto: string;
+  coverModifiedByUser?: boolean;
   descriptionEn: string;
   descriptionFa: string;
   uiType: UITypeCode;
+  uiTypeModifiedByUser?: boolean;
   isHidden: boolean;
   pairedBoxes: KeyValuePair[];
   order: number;
@@ -40,8 +42,8 @@ export interface VaultMediaItem {
   imgSrc: string;
   thumbSrc: string;
   field: string;        // e.g. "photography"
-  category: string;     // e.g. "fashion-photography"
-  project: string;      // e.g. "sepidar"
+  category: string;     // e.g. "fashion-photography" ("" for flat fields)
+  project: string;      // e.g. "sepidar" ("" for Posters)
   assignedRoute: string; // e.g. "/photography/fashion-photography/sepidar"
   title: string;
   year: string;
@@ -53,7 +55,92 @@ export interface VaultMediaItem {
   isHidden: boolean;
   pairedBoxes: KeyValuePair[];
   isVideo: boolean;
+  taxonomyModifiedByUser?: boolean;
   createdAt: string;
+}
+
+export const FLAT_FIELDS = new Set(["video", "product-design"]);
+
+const NON_PROJECT_SLUGS = new Set([
+  "photography",
+  "graphic-design",
+  "video",
+  "product-design",
+  "fashion-photography",
+  "food-photography",
+  "portrait-photography",
+  "product-photography",
+  "visual-identity",
+  "book-covers",
+  "posters",
+  "videos",
+  "products",
+  "general",
+]);
+
+function normalizeRouteStr(route?: string): string {
+  const clean = (route || "").trim().toLowerCase().replace(/\/+$/, "");
+  return clean || "/";
+}
+
+function extFromMediaSrc(imgSrc?: string): string {
+  const clean = (imgSrc || "").split(/[?#]/)[0].toLowerCase();
+  if (clean.endsWith(".png") || clean.startsWith("data:image/png")) return ".PNG";
+  if (clean.endsWith(".webp") || clean.startsWith("data:image/webp")) return ".WEBP";
+  if (clean.endsWith(".gif") || clean.startsWith("data:image/gif")) return ".GIF";
+  if (clean.endsWith(".mp4") || clean.startsWith("data:video/mp4")) return ".MP4";
+  if (clean.endsWith(".webm") || clean.startsWith("data:video/webm")) return ".WEBM";
+  if (clean.endsWith(".mov") || clean.startsWith("data:video/quicktime")) return ".MOV";
+  return ".JPG";
+}
+
+function isVideoMediaSrc(imgSrc?: string): boolean {
+  return Boolean(imgSrc && /\.(mp4|webm|mov)(\?|#|$)|^data:video\//i.test(imgSrc));
+}
+
+export function filenameKeyFromSrc(src?: string): string {
+  if (!src || src.startsWith("data:") || src.startsWith("blob:")) return (src || "").toLowerCase();
+  const withoutOrigin = src.trim().replace(/^https?:\/\/[^/]+/i, "");
+  const knownFile = resolveKnownAssetFile(withoutOrigin);
+  if (knownFile) return knownFile;
+  const clean = withoutOrigin.split(/[?#]/)[0].trim();
+  const base = (clean.split("/").pop() || clean).toLowerCase();
+  return base.replace(/-[a-z0-9_-]{8}(\.[a-z0-9]+)$/i, (m, ext, _offset, full) => {
+    const hashPart = m.slice(1, m.length - ext.length);
+    if (/^\d+$/.test(hashPart)) return m;
+    const stem = full.slice(0, full.length - m.length);
+    return stem ? ext : m;
+  });
+}
+
+function stemKeyFromSrc(src?: string): string {
+  const fKey = filenameKeyFromSrc(src);
+  if (!fKey || fKey.startsWith("data:") || fKey.startsWith("blob:")) return fKey;
+  return fKey.replace(/\.[^.]+$/, "").replace(/-thumb$/, "");
+}
+
+export function buildAssignedRoute(field?: string, category?: string, project?: string): string {
+  const f = normalizeDisciplineSlug(field || "photography");
+  if (FLAT_FIELDS.has(f)) {
+    const p = project ? normalizeProjectSlug(project) : "";
+    return p && p !== f ? `/${f}/${p}` : `/${f}`;
+  }
+  const c = category ? normalizeSpecialtySlug(category) : "";
+  const p = project ? normalizeProjectSlug(project) : "";
+  const isBarePosters = f === "graphic-design" && c === "posters" && (!p || p === "posters");
+  if (c && p && !isBarePosters) return `/${f}/${c}/${p}`;
+  if (c) return `/${f}/${c}`;
+  if (p) return `/${f}/${p}`;
+  return `/${f}`;
+}
+
+export function buildMediaLiveDetailUrl(item: Pick<VaultMediaItem, "field" | "assignedRoute" | "dynamicCode">): string {
+  const assigned = normalizeRouteStr(item.assignedRoute);
+  if (item.field === "video") {
+    return assigned === "/" ? "/video" : assigned;
+  }
+  if (!item.dynamicCode) return assigned;
+  return assigned === "/" ? `/${item.dynamicCode}` : `${assigned}/${item.dynamicCode}`;
 }
 
 const STORAGE_VAULT_PAGES = "siavash_vault_pages_v2";
@@ -361,7 +448,7 @@ export function getInitialScannedPages(): VaultPageItem[] {
       route: "/photography/food-photography/gastronomie",
       name: "Gastronomie",
       parentRoute: "/photography/food-photography",
-      coverPhoto: "src/assets/food/gastronomie/food-gastronomie-19.jpg",
+      coverPhoto: "src/assets/food/gastronomie/food-gastronomie-01.jpg",
       descriptionEn: "Gastronomie culinary series — textural nuances and table composition.",
       descriptionFa: "مجموعه عکاسی گاسترونومی و هنر چیدمان میز.",
       uiType: "UI01",
@@ -448,7 +535,7 @@ export function getInitialScannedPages(): VaultPageItem[] {
       coverPhoto: "src/assets/graphic-design/meatlab/graphic-design-meatlab-01.jpg",
       descriptionEn: "Visual identity and conceptual brand design for Meatlab.",
       descriptionFa: "طراحی هویت بصری و سیستم برند میت‌لب.",
-      uiType: "UI01",
+      uiType: "UI02",
       isHidden: false,
       pairedBoxes: [
         { key: "Client", value: "Meatlab" },
@@ -465,7 +552,7 @@ export function getInitialScannedPages(): VaultPageItem[] {
       coverPhoto: "src/assets/graphic-design/shekarchian/graphic-design-shekarchian-01.jpg",
       descriptionEn: "Visual identity system for historical confectionery brand.",
       descriptionFa: "هویت بصری شیرینی سنتی شکرچیان با پیشینه اصیل اصفهان.",
-      uiType: "UI03",
+      uiType: "UI02",
       isHidden: false,
       pairedBoxes: [{ key: "Client", value: "Shekarchian" }, { key: "Year", value: "2024" }],
       order: 70,
@@ -478,7 +565,7 @@ export function getInitialScannedPages(): VaultPageItem[] {
       coverPhoto: "src/assets/graphic-design/dodareh/graphic-design-dodareh-01.jpg",
       descriptionEn: "Branding and packaging for Dobareh lifestyle accessories.",
       descriptionFa: "هویت بصری و بسته‌بندی برند دوباره.",
-      uiType: "UI03",
+      uiType: "UI02",
       isHidden: false,
       pairedBoxes: [{ key: "Client", value: "Dobareh" }, { key: "Year", value: "2024" }],
       order: 71,
@@ -491,7 +578,7 @@ export function getInitialScannedPages(): VaultPageItem[] {
       coverPhoto: "src/assets/graphic-design/ahura-cctv/graphic-design-ahura-cctv-01.jpg",
       descriptionEn: "Corporate security technology brand identity.",
       descriptionFa: "هویت برند سیستم‌های نظارتی و امنیتی اهورا.",
-      uiType: "UI03",
+      uiType: "UI02",
       isHidden: false,
       pairedBoxes: [{ key: "Client", value: "Ahura" }, { key: "Year", value: "2024" }],
       order: 72,
@@ -504,7 +591,7 @@ export function getInitialScannedPages(): VaultPageItem[] {
       coverPhoto: "src/assets/graphic-design/femiq/graphic-design-femiq-01.jpg",
       descriptionEn: "Brand identity, pattern system, and cosmetics packaging for FEMIQ.",
       descriptionFa: "هویت بصری و بسته‌بندی محصولات فمیک.",
-      uiType: "UI03",
+      uiType: "UI02",
       isHidden: false,
       pairedBoxes: [{ key: "Client", value: "FEMIQ" }, { key: "Year", value: "2024" }],
       order: 73,
@@ -517,7 +604,7 @@ export function getInitialScannedPages(): VaultPageItem[] {
       coverPhoto: "src/assets/graphic-design/polarity/graphic-design-polarity-01.jpg",
       descriptionEn: "Polarity design atelier visual architecture.",
       descriptionFa: "هویت بصری آتلیه طراحی پولاریتی.",
-      uiType: "UI03",
+      uiType: "UI02",
       isHidden: false,
       pairedBoxes: [{ key: "Year", value: "2024" }],
       order: 74,
@@ -530,7 +617,7 @@ export function getInitialScannedPages(): VaultPageItem[] {
       coverPhoto: "src/assets/graphic-design/echo-supplements/graphic-design-echo-supplements-01.jpg",
       descriptionEn: "Nutritional supplements modern identity & packaging.",
       descriptionFa: "هویت بصری و بسته‌بندی مکمل‌های اکو.",
-      uiType: "UI03",
+      uiType: "UI02",
       isHidden: false,
       pairedBoxes: [{ key: "Year", value: "2024" }],
       order: 75,
@@ -543,7 +630,7 @@ export function getInitialScannedPages(): VaultPageItem[] {
       coverPhoto: "src/assets/graphic-design/goats/graphic-design-goats-01.jpg",
       descriptionEn: "Specialty roastery brand voice and cups.",
       descriptionFa: "برندینگ رستری قهوه گوتز.",
-      uiType: "UI03",
+      uiType: "UI02",
       isHidden: false,
       pairedBoxes: [{ key: "Year", value: "2023" }],
       order: 76,
@@ -556,7 +643,7 @@ export function getInitialScannedPages(): VaultPageItem[] {
       coverPhoto: "src/assets/graphic-design/nozad-publication/graphic-design-nozad-publication-01.jpg",
       descriptionEn: "Publishing house identity, colophon mark, and stationery system.",
       descriptionFa: "هویت بصری و نشان نشر نوزاد.",
-      uiType: "UI03",
+      uiType: "UI02",
       isHidden: false,
       pairedBoxes: [{ key: "Year", value: "2024" }],
       order: 77,
@@ -569,7 +656,7 @@ export function getInitialScannedPages(): VaultPageItem[] {
       coverPhoto: "src/assets/graphic-design/on-swipe/graphic-design-on-swipe-01.jpg",
       descriptionEn: "Digital payment and transaction brand interface.",
       descriptionFa: "هویت برند دیجیتال آن‌سوایپ.",
-      uiType: "UI03",
+      uiType: "UI02",
       isHidden: false,
       pairedBoxes: [{ key: "Year", value: "2024" }],
       order: 78,
@@ -582,7 +669,7 @@ export function getInitialScannedPages(): VaultPageItem[] {
       coverPhoto: "src/assets/graphic-design/zen/graphic-design-zen-01.jpg",
       descriptionEn: "Minimalist workspace objects and desk architecture.",
       descriptionFa: "اشیا و لوازم مینیمال استودیو ذن.",
-      uiType: "UI03",
+      uiType: "UI02",
       isHidden: false,
       pairedBoxes: [{ key: "Year", value: "2024" }],
       order: 79,
@@ -595,7 +682,7 @@ export function getInitialScannedPages(): VaultPageItem[] {
       coverPhoto: "src/assets/graphic-design/artemis/graphic-design-artemis-01.jpg",
       descriptionEn: "Artisanal food jar packaging and visual branding.",
       descriptionFa: "هویت و بسته‌بندی آرتمیس.",
-      uiType: "UI03",
+      uiType: "UI02",
       isHidden: false,
       pairedBoxes: [{ key: "Year", value: "2024" }],
       order: 80,
@@ -608,7 +695,7 @@ export function getInitialScannedPages(): VaultPageItem[] {
       coverPhoto: "src/assets/graphic-design/cichon/graphic-design-cichon-01.jpg",
       descriptionEn: "Typographic brand system and stationery suite.",
       descriptionFa: "سیستم تایپوگرافی و ست اداری سیچون.",
-      uiType: "UI03",
+      uiType: "UI02",
       isHidden: false,
       pairedBoxes: [{ key: "Year", value: "2024" }],
       order: 81,
@@ -621,7 +708,7 @@ export function getInitialScannedPages(): VaultPageItem[] {
       coverPhoto: "src/assets/graphic-design/farshid-rahimi/graphic-design-farshid-rahimi-01.jpg",
       descriptionEn: "Personal identity and signature stationery system.",
       descriptionFa: "هویت بصری شخصی فرشید رحیمی.",
-      uiType: "UI03",
+      uiType: "UI02",
       isHidden: false,
       pairedBoxes: [{ key: "Year", value: "2024" }],
       order: 82,
@@ -634,7 +721,7 @@ export function getInitialScannedPages(): VaultPageItem[] {
       coverPhoto: "src/assets/graphic-design/maanaar/graphic-design-maanaar-01.jpg",
       descriptionEn: "Minimalist architectural identity and monogram.",
       descriptionFa: "هویت مینیمال مانار.",
-      uiType: "UI03",
+      uiType: "UI02",
       isHidden: false,
       pairedBoxes: [{ key: "Year", value: "2024" }],
       order: 83,
@@ -647,7 +734,7 @@ export function getInitialScannedPages(): VaultPageItem[] {
       coverPhoto: "src/assets/graphic-design/mamrezz/graphic-design-mamrezz-01.jpg",
       descriptionEn: "Bold contemporary emblem and graphic brand expression.",
       descriptionFa: "نشان گرافیکی و هویت بصری ممرز.",
-      uiType: "UI03",
+      uiType: "UI02",
       isHidden: false,
       pairedBoxes: [{ key: "Year", value: "2024" }],
       order: 84,
@@ -660,7 +747,7 @@ export function getInitialScannedPages(): VaultPageItem[] {
       coverPhoto: "src/assets/graphic-design/snow-snack/graphic-design-snow-snack-01.jpg",
       descriptionEn: "Playful packaging patterns and identity for frozen treats.",
       descriptionFa: "طراحی بسته‌بندی و هویت اسنو اسنک.",
-      uiType: "UI03",
+      uiType: "UI02",
       isHidden: false,
       pairedBoxes: [{ key: "Year", value: "2024" }],
       order: 85,
@@ -673,7 +760,7 @@ export function getInitialScannedPages(): VaultPageItem[] {
       coverPhoto: "src/assets/graphic-design/zeee-products/graphic-design-zeee-products-01.jpg",
       descriptionEn: "Industrial design packaging and product branding system.",
       descriptionFa: "هویت صنعتی و بسته‌بندی محصولات زی.",
-      uiType: "UI03",
+      uiType: "UI02",
       isHidden: false,
       pairedBoxes: [{ key: "Year", value: "2024" }],
       order: 86,
@@ -686,7 +773,7 @@ export function getInitialScannedPages(): VaultPageItem[] {
       coverPhoto: "src/assets/graphic-design/awli/graphic-design-awli-01.jpg",
       descriptionEn: "Dynamic digital symbol and motion logo identity.",
       descriptionFa: "هویت بصری و لوگوموشن عالی.",
-      uiType: "UI03",
+      uiType: "UI02",
       isHidden: false,
       pairedBoxes: [{ key: "Year", value: "2024" }],
       order: 87,
@@ -741,20 +828,29 @@ export function getInitialScannedMedia(): VaultMediaItem[] {
 
     let field = "photography";
     let category = "fashion-photography";
-    let project = normalizeProjectSlug(p.project || "project");
+    let project = normalizeProjectSlug(p.project || "");
 
     const discNorm = (p.disciplineSlug || p.discipline || "").toLowerCase();
     if (discNorm.includes("video") || discNorm.includes("motion")) {
       field = "video";
-      category = "videos";
+      category = "";
+      if (!project) project = "echo-prime";
     } else if (discNorm.includes("graphic") || discNorm.includes("identity") || discNorm.includes("book") || discNorm.includes("poster")) {
       field = "graphic-design";
-      if (discNorm.includes("book")) category = "book-covers";
-      else if (discNorm.includes("poster")) category = "posters";
-      else category = "visual-identity";
-    } else if (discNorm.includes("product") && !discNorm.includes("photo")) {
+      if (discNorm.includes("book")) {
+        category = "book-covers";
+        if (!project) project = "nozad-publications";
+      } else if (discNorm.includes("poster")) {
+        category = "posters";
+        if (!project || project === "posters" || project === "nozad-publications") {
+          project = "";
+        }
+      } else {
+        category = "visual-identity";
+      }
+    } else if (discNorm.includes("product-design") || discNorm.includes("product design")) {
       field = "product-design";
-      category = "products";
+      category = "";
     } else {
       field = "photography";
       if (discNorm.includes("food")) category = "food-photography";
@@ -763,19 +859,10 @@ export function getInitialScannedMedia(): VaultMediaItem[] {
       else category = "fashion-photography";
     }
 
-    const assignedRoute =
-      field === "video"
-        ? `/video/${project}`
-        : field === "product-design"
-        ? `/product-design/${project}`
-        : `/${field}/${category}/${project}`;
+    const assignedRoute = buildAssignedRoute(field, category, project);
     const dynamicCode = buildDynamicMediaCode(uniqueCode, field, category, project);
 
-    const ext = p.imgSrc?.toLowerCase().endsWith(".png")
-      ? ".PNG"
-      : p.imgSrc?.toLowerCase().endsWith(".mp4")
-      ? ".MP4"
-      : ".JPG";
+    const ext = extFromMediaSrc(p.imgSrc);
     const dynamicFileName = `${dynamicCode}${ext}`;
 
     const pairedBoxes: KeyValuePair[] = [];
@@ -804,7 +891,7 @@ export function getInitialScannedMedia(): VaultMediaItem[] {
       caption: p.caption,
       isHidden: false,
       pairedBoxes,
-      isVideo: Boolean(p.imgSrc?.endsWith(".mp4")),
+      isVideo: isVideoMediaSrc(p.imgSrc),
       createdAt: new Date().toISOString(),
     });
   });
@@ -834,36 +921,41 @@ export function getVaultPages(): VaultPageItem[] {
         if (Array.isArray(customList)) {
           customList.forEach((cp) => {
             if (!cp || !cp.id) return;
+            const rawId = String(cp.id).toLowerCase().trim();
             const discNorm = normalizeDisciplineSlug(cp.discipline || "photography");
-            let specNorm = normalizeSpecialtySlug(cp.subDiscipline || cp.category || "");
-            if (!specNorm || specNorm === "general") {
+            const isFlat = FLAT_FIELDS.has(discNorm);
+            let specNorm = isFlat ? "" : normalizeSpecialtySlug(cp.subDiscipline || cp.category || "");
+            if (!isFlat && (!specNorm || specNorm === "general")) {
               if (discNorm === "photography") specNorm = "food-photography";
               else if (discNorm === "graphic-design") specNorm = "visual-identity";
-              else if (discNorm === "product-design") specNorm = "products";
-              else if (discNorm === "video") specNorm = "videos";
             }
             const projSlug = normalizeProjectSlug(cp.title || cp.id);
-            const route =
-              discNorm === "video"
-                ? `/video/${projSlug}`
-                : discNorm === "product-design"
-                ? `/product-design/${projSlug}`
-                : `/${discNorm}/${specNorm}/${projSlug}`;
-            const parentRoute =
-              discNorm === "video"
-                ? "/video"
-                : discNorm === "product-design"
-                ? "/product-design"
-                : `/${discNorm}/${specNorm}`;
+            if (
+              !projSlug ||
+              NON_PROJECT_SLUGS.has(projSlug) ||
+              NON_PROJECT_SLUGS.has(rawId)
+            ) {
+              return;
+            }
+            const route = isFlat
+              ? `/${discNorm}/${projSlug}`
+              : `/${discNorm}/${specNorm}/${projSlug}`;
+            const parentRoute = isFlat
+              ? `/${discNorm}`
+              : `/${discNorm}/${specNorm}`;
 
             const key = route.toLowerCase();
             if (!pagesMap.has(key)) {
+              const safeCover =
+                cp.coverImage && !String(cp.coverImage).startsWith("blob:")
+                  ? resolveInventoryImage(String(cp.coverImage))
+                  : "";
               pagesMap.set(key, {
-                id: `page-${discNorm}-${specNorm}-${projSlug}`,
+                id: isFlat ? `page-${discNorm}-${projSlug}` : `page-${discNorm}-${specNorm}-${projSlug}`,
                 route,
                 name: cp.title || projSlug,
                 parentRoute,
-                coverPhoto: cp.coverImage || "",
+                coverPhoto: safeCover,
                 descriptionEn: cp.description || "",
                 descriptionFa: cp.descriptionFa || "",
                 uiType: discNorm === "video" ? "UI04" : "UI01",
@@ -941,8 +1033,10 @@ export function getVaultPages(): VaultPageItem[] {
               parentRoute = `/${d}/${s}`;
             } else if (segs.length === 2) {
               const d = normalizeDisciplineSlug(segs[0]);
-              const s = normalizeSpecialtySlug(segs[1]);
-              const normRoute = `/${d}/${s}`;
+              const second = FLAT_FIELDS.has(d)
+                ? normalizeProjectSlug(segs[1])
+                : normalizeSpecialtySlug(segs[1]);
+              const normRoute = `/${d}/${second}`;
               if (normRoute !== route) {
                 route = normRoute;
                 needsWriteBack = true;
@@ -962,26 +1056,70 @@ export function getVaultPages(): VaultPageItem[] {
             const existing = pagesMap.get(key) || Array.from(pagesMap.values()).find((p) => p.id === id);
 
             if (existing) {
+              // Validate saved coverPhoto against expired blob URLs or dead stale /assets/ hashes
+              let chosenCover = existing.coverPhoto;
+              const rawSavedCover = (saved.coverPhoto || "").trim();
+              if (rawSavedCover && !rawSavedCover.startsWith("blob:")) {
+                const resolvedCover = resolveInventoryImage(rawSavedCover);
+                const resolvedExisting = resolveInventoryImage(existing.coverPhoto);
+                const isKnownAsset =
+                  resolvedCover.startsWith("data:") ||
+                  resolvedCover.startsWith("http://") ||
+                  resolvedCover.startsWith("https://") ||
+                  resolvedCover !== rawSavedCover ||
+                  !rawSavedCover.startsWith("/assets/");
+
+                if (isKnownAsset) {
+                  if (saved.coverModifiedByUser || !rawSavedCover.startsWith("/assets/") || resolvedCover === resolvedExisting) {
+                    chosenCover = rawSavedCover;
+                  } else {
+                    needsWriteBack = true;
+                  }
+                } else {
+                  needsWriteBack = true;
+                }
+              } else if (rawSavedCover.startsWith("blob:")) {
+                needsWriteBack = true;
+              }
+
+              // Heal legacy un-edited Visual Identity project pages that accidentally cached UI03 directory cards
+              let resolvedUiType = saved.uiType || existing.uiType;
+              if (
+                !saved.uiTypeModifiedByUser &&
+                existing.parentRoute === "/graphic-design/visual-identity" &&
+                resolvedUiType === "UI03"
+              ) {
+                resolvedUiType = existing.uiType;
+                needsWriteBack = true;
+              }
+
               // Existing base page: update its customizable attributes, but PRESERVE its canonical route and ID
               pagesMap.set(existing.route.toLowerCase(), {
                 ...existing,
                 name: name && name !== existing.id ? name : existing.name,
                 descriptionEn: saved.descriptionEn !== undefined ? saved.descriptionEn : existing.descriptionEn,
                 descriptionFa: saved.descriptionFa !== undefined ? saved.descriptionFa : existing.descriptionFa,
-                coverPhoto: saved.coverPhoto && saved.coverPhoto.trim() ? saved.coverPhoto : existing.coverPhoto,
-                uiType: saved.uiType || existing.uiType,
+                coverPhoto: chosenCover,
+                coverModifiedByUser: saved.coverModifiedByUser ?? existing.coverModifiedByUser,
+                uiType: resolvedUiType,
+                uiTypeModifiedByUser: saved.uiTypeModifiedByUser ?? existing.uiTypeModifiedByUser,
                 isHidden: saved.isHidden !== undefined ? saved.isHidden : existing.isHidden,
                 pairedBoxes: saved.pairedBoxes || existing.pairedBoxes,
                 order: saved.order !== undefined ? saved.order : existing.order,
               });
             } else {
-              // Custom user-created page
+              // Custom user-created page (drop stale expired blob: covers)
+              const cleanCustomCover =
+                saved.coverPhoto && !saved.coverPhoto.startsWith("blob:")
+                  ? saved.coverPhoto
+                  : "";
               pagesMap.set(key, {
                 ...saved,
                 id: id || `custom-page-${Date.now()}`,
                 route,
                 parentRoute,
                 name: name || route,
+                coverPhoto: cleanCustomCover,
               });
             }
           });
@@ -1018,8 +1156,8 @@ export function saveVaultPage(page: VaultPageItem): void {
   if (typeof window === "undefined") return;
 
   // Normalize route and parentRoute before saving
-  let normRoute = (page.route || "").trim().toLowerCase();
-  let normParent = (page.parentRoute || "").trim().toLowerCase();
+  let normRoute = (page.route || "").trim().toLowerCase().replace(/\/+$/, "");
+  let normParent = (page.parentRoute || "").trim().toLowerCase().replace(/\/+$/, "");
   const segs = normRoute.split("/").filter(Boolean);
   if (segs.length === 3) {
     const d = normalizeDisciplineSlug(segs[0]);
@@ -1029,8 +1167,10 @@ export function saveVaultPage(page: VaultPageItem): void {
     normParent = `/${d}/${s}`;
   } else if (segs.length === 2) {
     const d = normalizeDisciplineSlug(segs[0]);
-    const s = normalizeSpecialtySlug(segs[1]);
-    normRoute = `/${d}/${s}`;
+    const second = FLAT_FIELDS.has(d)
+      ? normalizeProjectSlug(segs[1])
+      : normalizeSpecialtySlug(segs[1]);
+    normRoute = `/${d}/${second}`;
     normParent = `/${d}`;
   } else if (segs.length === 1) {
     const d = normalizeDisciplineSlug(segs[0]);
@@ -1049,8 +1189,9 @@ export function saveVaultPage(page: VaultPageItem): void {
     (p) => p.id === normalizedPage.id || p.route.toLowerCase() === normalizedPage.route.toLowerCase()
   );
 
+  let oldRoute = "";
   if (idx >= 0) {
-    const oldRoute = currentPages[idx].route;
+    oldRoute = currentPages[idx].route;
     currentPages[idx] = { ...currentPages[idx], ...normalizedPage };
 
     // If route was changed, update any children parentRoute
@@ -1067,40 +1208,59 @@ export function saveVaultPage(page: VaultPageItem): void {
 
   localStorage.setItem(STORAGE_VAULT_PAGES, JSON.stringify(currentPages));
 
-  // Sync to studio store custom projects if it matches a project
-  try {
-    const rawStudio = localStorage.getItem("siavash_studio_custom_projects");
-    let studioList: any[] = rawStudio ? JSON.parse(rawStudio) : [];
-    if (!Array.isArray(studioList)) studioList = [];
+  // Sync to studio store custom projects ONLY for project-level routes
+  // (Level-0 disciplines & Level-1 categories must NEVER be stored as studio projects)
+  const normSegs = normRoute.split("/").filter(Boolean);
+  const isProjectLevel =
+    normSegs.length === 3 || (normSegs.length === 2 && FLAT_FIELDS.has(normSegs[0]));
 
-    const projSlug = normalizeProjectSlug(page.route.split("/").pop() || page.name);
-    const sIdx = studioList.findIndex((p) => normalizeProjectSlug(p.title) === projSlug || p.id === projSlug);
+  if (isProjectLevel) {
+    try {
+      const rawStudio = localStorage.getItem("siavash_studio_custom_projects");
+      let studioList: any[] = rawStudio ? JSON.parse(rawStudio) : [];
+      if (!Array.isArray(studioList)) studioList = [];
 
-    if (sIdx >= 0) {
-      studioList[sIdx] = {
-        ...studioList[sIdx],
-        title: page.name,
-        description: page.descriptionEn,
-        descriptionFa: page.descriptionFa,
-        coverImage: page.coverPhoto || studioList[sIdx].coverImage,
-      };
-    } else {
-      studioList.push({
-        id: projSlug,
-        title: page.name,
-        description: page.descriptionEn,
-        descriptionFa: page.descriptionFa,
-        coverImage: page.coverPhoto || "",
-        discipline: page.route.includes("photo") ? "photography" : page.route.includes("graphic") ? "graphic-design" : page.route.includes("video") ? "video" : "product-design",
-        category: page.parentRoute.split("/").pop() || "general",
-        year: "2026",
-        images: [],
-      });
+      const disc = normSegs[0];
+      const spec = normSegs.length === 3 ? normSegs[1] : "";
+      const projSlug = normalizeProjectSlug(normSegs[normSegs.length - 1] || page.name);
+      if (projSlug && !NON_PROJECT_SLUGS.has(projSlug)) {
+        const sIdx = studioList.findIndex(
+          (p) => normalizeProjectSlug(p.title || "") === projSlug || p.id === projSlug
+        );
+
+        if (sIdx >= 0) {
+          studioList[sIdx] = {
+            ...studioList[sIdx],
+            title: page.name,
+            discipline: disc,
+            category: spec || disc,
+            subDiscipline: spec || page.name,
+            description: page.descriptionEn,
+            descriptionFa: page.descriptionFa,
+            coverImage: page.coverPhoto || studioList[sIdx].coverImage,
+            ...(page.coverModifiedByUser ? { coverImageModifiedByUser: true } : {}),
+          };
+        } else {
+          studioList.push({
+            id: projSlug,
+            title: page.name,
+            description: page.descriptionEn,
+            descriptionFa: page.descriptionFa,
+            coverImage: page.coverPhoto || "",
+            ...(page.coverModifiedByUser ? { coverImageModifiedByUser: true } : {}),
+            discipline: disc,
+            category: spec || disc,
+            subDiscipline: spec || page.name,
+            year: "2026",
+            images: [],
+          });
+        }
+        localStorage.setItem("siavash_studio_custom_projects", JSON.stringify(studioList));
+        notifyStudioStoreUpdated({ type: "project_updated", id: projSlug });
+      }
+    } catch (e) {
+      /* ignore */
     }
-    localStorage.setItem("siavash_studio_custom_projects", JSON.stringify(studioList));
-    notifyStudioStoreUpdated({ type: "project_updated", id: projSlug });
-  } catch (e) {
-    /* ignore */
   }
 
   notifyVaultUpdated({ type: "page_saved", id: page.id });
@@ -1108,50 +1268,86 @@ export function saveVaultPage(page: VaultPageItem): void {
 
 export function deleteVaultPage(id: string): void {
   if (typeof window === "undefined") return;
-  const list = getVaultPages().filter((p) => p.id !== id);
+  const current = getVaultPages();
+  const target = current.find((p) => p.id === id);
+  const list = current.filter((p) => p.id !== id);
   localStorage.setItem(STORAGE_VAULT_PAGES, JSON.stringify(list));
+
+  if (target) {
+    try {
+      const targetProj = normalizeProjectSlug(target.route.split("/").pop() || target.name);
+      const rawStudio = localStorage.getItem("siavash_studio_custom_projects");
+      if (rawStudio) {
+        const studioList = JSON.parse(rawStudio);
+        if (Array.isArray(studioList)) {
+          const filtered = studioList.filter(
+            (cp: any) =>
+              cp &&
+              cp.id !== targetProj &&
+              normalizeProjectSlug(cp.title || "") !== targetProj
+          );
+          localStorage.setItem("siavash_studio_custom_projects", JSON.stringify(filtered));
+          notifyStudioStoreUpdated({ type: "project_deleted", id: targetProj });
+        }
+      }
+    } catch (e) {
+      /* ignore */
+    }
+  }
+
   notifyVaultUpdated({ type: "page_deleted", id });
 }
 
 /**
- * Resilient lookup matching exact route, normalized route, or project slug
+ * Checks whether a route or any of its parent ancestor routes is marked hidden in Vault Pages.
+ */
+export function isRouteOrAncestorHidden(route: string, pagesList?: VaultPageItem[]): boolean {
+  const pages = pagesList || getVaultPages();
+  const byRoute = new Map<string, VaultPageItem>();
+  pages.forEach((p) => byRoute.set(normalizeRouteStr(p.route), p));
+
+  const segs = normalizeRouteStr(route).split("/").filter(Boolean);
+  for (let i = 1; i <= segs.length; i++) {
+    const prefix = `/${segs.slice(0, i).join("/")}`;
+    const page = byRoute.get(prefix);
+    if (page?.isHidden) return true;
+  }
+  return false;
+}
+
+/**
+ * Strict hierarchical lookup matching exact route, normalized canonical route, or flat-field route.
+ * Never returns false matches via loose substring inclusion.
  */
 export function getPageByRoute(route: string): VaultPageItem | undefined {
   if (!route) return undefined;
   const list = getVaultPages();
-  const clean = route.trim().toLowerCase().replace(/\/+$/, "") || "/";
+  const clean = normalizeRouteStr(route);
 
-  // 1. Direct match
-  const direct = list.find((p) => (p.route || "").trim().toLowerCase().replace(/\/+$/, "") === clean);
+  // 1. Direct normalized route match
+  const direct = list.find((p) => normalizeRouteStr(p.route) === clean);
   if (direct) return direct;
 
-  // 2. Trailing slug matching
+  // 2. Canonicalized segment matching
   const segments = clean.split("/").filter(Boolean);
-  if (segments.length >= 2) {
-    const lastSeg = segments[segments.length - 1];
-    const prevSeg = segments[segments.length - 2];
-
-    const byTwo = list.find((p) => {
-      const pClean = (p.route || "").trim().toLowerCase().replace(/\/+$/, "");
-      return pClean.endsWith(`/${prevSeg}/${lastSeg}`) || pClean.endsWith(`/${lastSeg}`);
-    });
-    if (byTwo) return byTwo;
-
-    const bySlug = list.find((p) => {
-      const pSlug = normalizeProjectSlug(p.name || p.id);
-      return pSlug === lastSeg || p.id.toLowerCase().includes(lastSeg);
-    });
-    if (bySlug) return bySlug;
-  }
-
-  // 3. Single segment match
   if (segments.length === 1) {
-    const seg = segments[0];
-    const single = list.find((p) => {
-      const pClean = (p.route || "").trim().toLowerCase().replace(/\/+$/, "");
-      return pClean === `/${seg}` || p.id.toLowerCase() === seg;
-    });
+    const d = normalizeDisciplineSlug(segments[0]);
+    const single = list.find((p) => normalizeRouteStr(p.route) === `/${d}` || p.id.toLowerCase() === segments[0]);
     if (single) return single;
+  } else if (segments.length === 2) {
+    const d = normalizeDisciplineSlug(segments[0]);
+    const secondCandidate = FLAT_FIELDS.has(d)
+      ? `/${d}/${normalizeProjectSlug(segments[1])}`
+      : `/${d}/${normalizeSpecialtySlug(segments[1])}`;
+    const matched = list.find((p) => normalizeRouteStr(p.route) === secondCandidate);
+    if (matched) return matched;
+  } else if (segments.length === 3) {
+    const d = normalizeDisciplineSlug(segments[0]);
+    const s = normalizeSpecialtySlug(segments[1]);
+    const proj = normalizeProjectSlug(segments[2]);
+    const canonical3 = `/${d}/${s}/${proj}`;
+    const matched = list.find((p) => normalizeRouteStr(p.route) === canonical3);
+    if (matched) return matched;
   }
 
   return undefined;
@@ -1165,13 +1361,21 @@ export function getVaultMedia(): VaultMediaItem[] {
   const baseList = getInitialScannedMedia();
   if (typeof window === "undefined") return baseList;
 
-  // Use a map keyed by uniqueCode or imgSrc to seamlessly merge base items + custom items + saved user edits
+  // Use maps keyed by normalized asset src/filename/stem/uniqueCode so base items, custom items, and edits merge cleanly
   const mediaMap = new Map<string, VaultMediaItem>();
+  const byFileKey = new Map<string, string>();
+  const byStemKey = new Map<string, string>();
+  const byUniqueCode = new Map<string, string>();
 
   // 1. Load all base scanned items
   baseList.forEach((item) => {
     const key = (item.imgSrc || item.uniqueCode).toLowerCase();
     mediaMap.set(key, item);
+    const fKey = filenameKeyFromSrc(item.imgSrc);
+    if (fKey) byFileKey.set(fKey, key);
+    const sKey = stemKeyFromSrc(item.imgSrc);
+    if (sKey) byStemKey.set(sKey, key);
+    if (item.uniqueCode) byUniqueCode.set(item.uniqueCode, key);
   });
 
   // 2. Discover media from custom projects (e.g. from studio store in browser)
@@ -1187,21 +1391,27 @@ export function getVaultMedia(): VaultMediaItem[] {
             : cp.coverImage
             ? [cp.coverImage]
             : [];
-          cpImages.forEach((src, idx) => {
-            if (!src) return;
+          cpImages.forEach((src) => {
+            if (!src || src.startsWith("blob:")) return;
             const key = src.toLowerCase();
-            if (!mediaMap.has(key)) {
+            const fKey = filenameKeyFromSrc(src);
+            const sKey = stemKeyFromSrc(src);
+            if (
+              !mediaMap.has(key) &&
+              !(fKey && byFileKey.has(fKey)) &&
+              !(sKey && byStemKey.has(sKey))
+            ) {
               const uCode = String(8000 + mediaMap.size);
               const field = normalizeDisciplineSlug(cp.discipline || "graphic-design");
-              const category = normalizeSpecialtySlug(cp.subDiscipline || cp.category || "visual-identity");
+              const category = FLAT_FIELDS.has(field)
+                ? ""
+                : normalizeSpecialtySlug(cp.subDiscipline || cp.category || "visual-identity");
               const project = normalizeProjectSlug(cp.title || cp.id || "project");
-              const ext = src.toLowerCase().endsWith(".png")
-                ? ".PNG"
-                : src.toLowerCase().endsWith(".mp4")
-                ? ".MP4"
-                : ".JPG";
+              if (!project || NON_PROJECT_SLUGS.has(project)) return;
+              const ext = extFromMediaSrc(src);
               const dynamicCode = buildDynamicMediaCode(uCode, field, category, project);
               const dynamicFileName = `${dynamicCode}${ext}`;
+              const assignedRoute = buildAssignedRoute(field, category, project);
               mediaMap.set(key, {
                 id: `custom-media-${uCode}`,
                 uniqueCode: uCode,
@@ -1211,7 +1421,7 @@ export function getVaultMedia(): VaultMediaItem[] {
                 field,
                 category,
                 project,
-                assignedRoute: `/${field}/${category}/${project}`,
+                assignedRoute,
                 title: dynamicFileName,
                 year: String(cp.year || "2025"),
                 client: cp.client || "",
@@ -1221,9 +1431,12 @@ export function getVaultMedia(): VaultMediaItem[] {
                 caption: cp.caption || cp.description || "",
                 isHidden: false,
                 pairedBoxes: cp.client ? [{ key: "Client", value: cp.client }] : [],
-                isVideo: Boolean(src.endsWith(".mp4")),
+                isVideo: isVideoMediaSrc(src),
                 createdAt: new Date().toISOString(),
               });
+              if (fKey) byFileKey.set(fKey, key);
+              if (sKey) byStemKey.set(sKey, key);
+              byUniqueCode.set(uCode, key);
             }
           });
         });
@@ -1243,17 +1456,62 @@ export function getVaultMedia(): VaultMediaItem[] {
         savedList.forEach((saved) => {
           if (!saved) return;
           const sSrc = (saved.imgSrc || "").toLowerCase();
+          const sFileKey = filenameKeyFromSrc(saved.imgSrc);
+          const sStemKey = stemKeyFromSrc(saved.imgSrc);
 
-          // Match by image source first (the immutable invariant for all scanned assets)
-          const existing = sSrc
-            ? mediaMap.get(sSrc)
+          const matchedKey =
+            (sSrc && mediaMap.has(sSrc) ? sSrc : undefined) ||
+            (sFileKey && byFileKey.get(sFileKey)) ||
+            (sStemKey && byStemKey.get(sStemKey)) ||
+            (saved.uniqueCode && byUniqueCode.get(saved.uniqueCode)) ||
+            undefined;
+
+          const existing = matchedKey
+            ? mediaMap.get(matchedKey)
             : Array.from(mediaMap.values()).find((m) => m.id === saved.id);
 
           if (existing) {
-            // Merge user customization (visibility, title, paired boxes), but keep canonical taxonomy & sticky uniqueCode
-            mediaMap.set((existing.imgSrc || existing.uniqueCode).toLowerCase(), {
+            // Heal phantom duplicate custom-media entries that collide with canonical inventory items
+            if (saved.id?.startsWith("custom-media-") && existing.id !== saved.id) {
+              mediaNeedsWriteBack = true;
+              return;
+            }
+            const existingKey = (existing.imgSrc || existing.uniqueCode).toLowerCase();
+            const preserveTaxonomy = Boolean(saved.taxonomyModifiedByUser);
+            const nextField = preserveTaxonomy && saved.field ? normalizeDisciplineSlug(saved.field) : existing.field;
+            const nextCat = preserveTaxonomy
+              ? FLAT_FIELDS.has(nextField)
+                ? ""
+                : saved.category !== undefined
+                  ? saved.category
+                    ? normalizeSpecialtySlug(saved.category)
+                    : ""
+                  : nextField === existing.field
+                    ? existing.category
+                    : ""
+              : existing.category;
+            const nextProj = preserveTaxonomy
+              ? saved.project !== undefined
+                ? normalizeProjectSlug(saved.project)
+                : existing.project
+              : existing.project;
+            const nextAssigned = preserveTaxonomy
+              ? buildAssignedRoute(nextField, nextCat, nextProj)
+              : existing.assignedRoute;
+            const nextDynamic = preserveTaxonomy
+              ? buildDynamicMediaCode(existing.uniqueCode, nextField, nextCat, nextProj)
+              : existing.dynamicCode;
+
+            mediaMap.set(existingKey, {
               ...existing,
+              field: nextField,
+              category: nextCat,
+              project: nextProj,
+              assignedRoute: nextAssigned,
+              dynamicCode: nextDynamic,
+              taxonomyModifiedByUser: saved.taxonomyModifiedByUser ?? existing.taxonomyModifiedByUser,
               title: saved.title && saved.title !== existing.dynamicCode ? saved.title : existing.title,
+              year: saved.year !== undefined ? saved.year : existing.year,
               isHidden: saved.isHidden !== undefined ? saved.isHidden : existing.isHidden,
               pairedBoxes: saved.pairedBoxes || existing.pairedBoxes,
               caption: saved.caption !== undefined ? saved.caption : existing.caption,
@@ -1262,10 +1520,20 @@ export function getVaultMedia(): VaultMediaItem[] {
               makeupArtist: saved.makeupArtist !== undefined ? saved.makeupArtist : existing.makeupArtist,
               assistant: saved.assistant !== undefined ? saved.assistant : existing.assistant,
             });
-          } else if (saved.id?.startsWith("custom-media-") || sSrc.startsWith("data:") || sSrc.startsWith("blob:")) {
-            // Valid user-uploaded media item added directly in Vault
+          } else if (saved.id?.startsWith("custom-media-") || sSrc.startsWith("data:")) {
+            // Valid user-uploaded media item added directly in Vault (ignore expired blob: uploads)
             const key = (saved.imgSrc || saved.uniqueCode).toLowerCase();
-            mediaMap.set(key, saved);
+            if (!sSrc.startsWith("blob:")) {
+              mediaMap.set(key, {
+                ...saved,
+                isVideo: saved.isVideo || isVideoMediaSrc(saved.imgSrc),
+              });
+              if (sFileKey) byFileKey.set(sFileKey, key);
+              if (sStemKey) byStemKey.set(sStemKey, key);
+              if (saved.uniqueCode) byUniqueCode.set(saved.uniqueCode, key);
+            } else {
+              mediaNeedsWriteBack = true;
+            }
           }
         });
       }
@@ -1274,20 +1542,22 @@ export function getVaultMedia(): VaultMediaItem[] {
     console.error("Error loading vault media:", e);
   }
 
-  // 4. Invariant: Guarantee all base inventory media items are always present and un-shadowed
+  // 4. Invariant: Guarantee all base inventory media items are always present & un-shadowed,
+  // while respecting explicit user-moved taxonomy (`taxonomyModifiedByUser === true`)
   baseList.forEach((bm) => {
     const k = (bm.imgSrc || bm.uniqueCode).toLowerCase();
     const current = mediaMap.get(k);
     if (!current) {
       mediaMap.set(k, bm);
       mediaNeedsWriteBack = true;
-    } else {
-      // Ensure canonical uniqueCode, field, category, project, assignedRoute, and dynamicCode are correct
+    } else if (!current.taxonomyModifiedByUser) {
       if (
         current.uniqueCode !== bm.uniqueCode ||
         current.project !== bm.project ||
         current.field !== bm.field ||
-        current.category !== bm.category
+        current.category !== bm.category ||
+        current.assignedRoute !== bm.assignedRoute ||
+        current.dynamicCode !== bm.dynamicCode
       ) {
         mediaMap.set(k, {
           ...current,
@@ -1300,6 +1570,9 @@ export function getVaultMedia(): VaultMediaItem[] {
         });
         mediaNeedsWriteBack = true;
       }
+    } else if (current.uniqueCode !== bm.uniqueCode) {
+      mediaMap.set(k, { ...current, uniqueCode: bm.uniqueCode });
+      mediaNeedsWriteBack = true;
     }
   });
 
@@ -1318,34 +1591,41 @@ export function getVaultMedia(): VaultMediaItem[] {
 
 export function ensureMediaItemDynamicFields(item: VaultMediaItem): VaultMediaItem {
   const uCode = (item.uniqueCode || item.id?.replace(/^media-/, "") || "1001").trim();
-  const field = item.field || "photography";
-  const category = item.category || "fashion-photography";
-  const project = item.project || "project";
+  const field = normalizeDisciplineSlug(item.field || "photography");
+  const isFlat = FLAT_FIELDS.has(field);
+  const category = isFlat
+    ? ""
+    : item.category
+    ? normalizeSpecialtySlug(item.category)
+    : field === "graphic-design"
+    ? "visual-identity"
+    : "fashion-photography";
+  const rawProj = (item.project || "").trim();
+  const isBarePosters =
+    field === "graphic-design" &&
+    category === "posters" &&
+    (!rawProj || rawProj.toLowerCase() === "posters" || rawProj === "nozad-publications");
+  const project = isBarePosters ? "" : rawProj ? normalizeProjectSlug(rawProj) : "";
 
   const dynamicCode = buildDynamicMediaCode(uCode, field, category, project);
-  const assignedRoute = `/${field}/${category}/${project}`;
+  const assignedRoute = buildAssignedRoute(field, category, project);
 
-  const ext = item.imgSrc?.toLowerCase().endsWith(".png")
-    ? ".PNG"
-    : item.imgSrc?.toLowerCase().endsWith(".mp4")
-    ? ".MP4"
-    : ".JPG";
+  const ext = extFromMediaSrc(item.imgSrc);
   const dynamicFileName = `${dynamicCode}${ext}`;
 
-  // Keep title in sync with dynamicCode + extension if it hasn't been given a distinct custom filename
-  let title = item.title;
-  if (
+  // Keep title in sync with dynamicCode + extension if it's auto-generated or empty
+  let title = item.title || "";
+  const isAutoDynamicTitle =
     !title ||
+    new RegExp(`^${uCode}-[A-Z0-9-]+(\\.(JPG|JPEG|PNG|WEBP|GIF|MP4|WEBM|MOV))?$`, "i").test(title) ||
     title === item.project ||
     title === item.uniqueCode ||
     title.includes("—") ||
     title.toLowerCase().startsWith("media ") ||
-    title.toLowerCase().startsWith("frame ") ||
-    !title.includes("-")
-  ) {
+    title.toLowerCase().startsWith("frame ");
+
+  if (isAutoDynamicTitle) {
     title = dynamicFileName;
-  } else if (!title.endsWith(ext) && !title.endsWith(".jpg") && !title.endsWith(".png") && !title.endsWith(".mp4")) {
-    title = `${title}${ext}`;
   }
 
   return {
@@ -1357,6 +1637,7 @@ export function ensureMediaItemDynamicFields(item: VaultMediaItem): VaultMediaIt
     project,
     assignedRoute,
     title,
+    isVideo: item.isVideo || isVideoMediaSrc(item.imgSrc),
   };
 }
 
@@ -1397,7 +1678,7 @@ export function getMediaByCode(code: string): VaultMediaItem | undefined {
   if (!code) return undefined;
   const list = getVaultMedia();
   const cClean = code.trim().toUpperCase();
-  const cWithoutExt = cClean.replace(/\.(JPG|JPEG|PNG|WEBP|MP4)$/i, "");
+  const cWithoutExt = cClean.replace(/\.(JPG|JPEG|PNG|WEBP|GIF|MP4|WEBM|MOV)$/i, "");
 
   return list.find((m) => {
     const dyn = (m.dynamicCode || "").toUpperCase();
@@ -1415,12 +1696,67 @@ export function getMediaByCode(code: string): VaultMediaItem | undefined {
 }
 
 export function getMediaByRoute(route: string): VaultMediaItem[] {
-  const norm = route.replace(/\/+$/, "").toLowerCase();
+  const norm = normalizeRouteStr(route);
   const list = getVaultMedia();
   return list.filter((m) => {
-    const aRoute = (m.assignedRoute || "").replace(/\/+$/, "").toLowerCase();
-    return aRoute === norm || aRoute.startsWith(norm);
+    const aRoute = normalizeRouteStr(m.assignedRoute);
+    return aRoute === norm || aRoute.startsWith(`${norm}/`);
   });
+}
+
+/**
+ * Returns visible Vault media items for a public gallery route (project, specialty, or discipline).
+ * Enforces both item.isHidden and ancestor page isHidden flags, and preserves curated DEFAULT_PROJECTS
+ * frame ordering while seamlessly including custom/moved items.
+ */
+export function getGalleryMediaForRoute(
+  route: string,
+  options?: { includeDescendants?: boolean }
+): VaultMediaItem[] {
+  const cleanRoute = normalizeRouteStr(route);
+  const pages = getVaultPages();
+  if (isRouteOrAncestorHidden(cleanRoute, pages)) return [];
+
+  const includeDescendants = Boolean(options?.includeDescendants);
+  const allMedia = getVaultMedia();
+
+  const matching = allMedia.filter((m) => {
+    if (m.isHidden) return false;
+    const aRoute = normalizeRouteStr(m.assignedRoute);
+    if (isRouteOrAncestorHidden(aRoute, pages)) return false;
+    if (includeDescendants) {
+      return aRoute === cleanRoute || aRoute.startsWith(`${cleanRoute}/`);
+    }
+    return aRoute === cleanRoute;
+  });
+
+  // Preserve curated editorial order from DEFAULT_PROJECTS when matching default project slug
+  const routeSegs = cleanRoute.split("/").filter(Boolean);
+  const lastSeg = routeSegs[routeSegs.length - 1] || "";
+  const defProj = DEFAULT_PROJECTS.find(
+    (p) => normalizeProjectSlug(p.id) === lastSeg || p.id.toLowerCase() === lastSeg
+  );
+
+  if (defProj && Array.isArray(defProj.gallery) && defProj.gallery.length > 0 && !includeDescendants) {
+    const orderByStem = new Map<string, number>();
+    defProj.gallery.forEach((src, i) => {
+      const fKey = filenameKeyFromSrc(src);
+      if (fKey && !orderByStem.has(fKey)) {
+        orderByStem.set(fKey, i);
+      }
+    });
+
+    matching.sort((a, b) => {
+      const aIdx = orderByStem.get(filenameKeyFromSrc(a.imgSrc));
+      const bIdx = orderByStem.get(filenameKeyFromSrc(b.imgSrc));
+      if (aIdx !== undefined && bIdx !== undefined) return aIdx - bIdx;
+      if (aIdx !== undefined) return -1;
+      if (bIdx !== undefined) return 1;
+      return a.uniqueCode.localeCompare(b.uniqueCode);
+    });
+  }
+
+  return matching;
 }
 
 /**

@@ -152,13 +152,14 @@ export function siteJsonLd() {
 /** CreativeWork / VisualArtwork for a project detail page. */
 export function projectJsonLd(project: {
   id: string;
+  canonicalPath?: string;
   title: string;
   description: string;
   image: string;
   year: string;
   category: string;
 }) {
-  const url = absoluteUrl(`/projects/${project.id}`);
+  const url = absoluteUrl(project.canonicalPath || `/${project.id}`);
   return {
     "@context": "https://schema.org",
     "@type": "CreativeWork",

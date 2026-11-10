@@ -21,6 +21,9 @@ import {
   FolderTree,
 } from "lucide-react";
 import {
+  FLAT_FIELDS,
+  buildAssignedRoute,
+  buildMediaLiveDetailUrl,
   getVaultMedia,
   saveVaultMedia,
   deleteVaultMedia,
@@ -41,6 +44,17 @@ export const Route = createFileRoute("/vault/media")({
 });
 
 const ITEMS_PER_PAGE = 24;
+
+function extFromMediaSrc(imgSrc?: string): string {
+  const clean = (imgSrc || "").split(/[?#]/)[0].toLowerCase();
+  if (clean.endsWith(".png") || clean.startsWith("data:image/png")) return ".PNG";
+  if (clean.endsWith(".webp") || clean.startsWith("data:image/webp")) return ".WEBP";
+  if (clean.endsWith(".gif") || clean.startsWith("data:image/gif")) return ".GIF";
+  if (clean.endsWith(".mp4") || clean.startsWith("data:video/mp4")) return ".MP4";
+  if (clean.endsWith(".webm") || clean.startsWith("data:video/webm")) return ".WEBM";
+  if (clean.endsWith(".mov") || clean.startsWith("data:video/quicktime")) return ".MOV";
+  return ".JPG";
+}
 
 function VaultMediaView() {
   const [mediaList, setMediaList] = useState<VaultMediaItem[]>([]);
@@ -103,17 +117,23 @@ function VaultMediaView() {
     }
   };
 
-  // Update media item with auto dynamic code recalculation
+  // Update media item with auto dynamic code recalculation & live sync flag
   const handleUpdateMedia = (item: VaultMediaItem, updates: Partial<VaultMediaItem>) => {
-    const nextField = updates.field ?? item.field;
-    const nextCategory = updates.category ?? item.category;
-    const nextProject = updates.project ?? item.project;
+    const taxonomyChanged =
+      updates.field !== undefined ||
+      updates.category !== undefined ||
+      updates.project !== undefined;
 
-    // Build route: e.g. /photography/fashion-photography/sepidar
-    const routeParts = [nextField, nextCategory, nextProject].filter(Boolean);
-    const assignedRoute = `/${routeParts.join("/")}`;
+    const nextField = updates.field !== undefined ? updates.field : item.field;
+    const isFlat = FLAT_FIELDS.has(nextField);
+    const nextCategory = isFlat
+      ? ""
+      : updates.category !== undefined
+      ? updates.category
+      : item.category;
+    const nextProject = updates.project !== undefined ? updates.project : item.project;
 
-    // Recalculate dynamic code: e.g. 1221-GRAPHIC-DESIGN-VISUAL-IDENTITY-AHURA-CCTV
+    const assignedRoute = buildAssignedRoute(nextField, nextCategory, nextProject);
     const dynamicCode = buildDynamicMediaCode(
       item.uniqueCode,
       nextField,
@@ -121,25 +141,30 @@ function VaultMediaView() {
       nextProject,
     );
 
-    const ext = item.imgSrc?.toLowerCase().endsWith(".png")
-      ? ".PNG"
-      : item.imgSrc?.toLowerCase().endsWith(".mp4")
-      ? ".MP4"
-      : ".JPG";
+    const ext = extFromMediaSrc(item.imgSrc);
     const dynamicFileName = `${dynamicCode}${ext}`;
 
-    let nextTitle = updates.title ?? item.title;
-    if (
-      !nextTitle ||
-      nextTitle === `${item.dynamicCode}${ext}` ||
-      nextTitle === item.dynamicCode ||
-      nextTitle === item.project ||
-      nextTitle.includes("—") ||
-      nextTitle.toLowerCase().startsWith("media ") ||
-      nextTitle.toLowerCase().startsWith("frame ")
+    let nextTitle: string;
+    if (updates.title !== undefined) {
+      nextTitle = updates.title;
+    } else if (
+      !item.title ||
+      new RegExp(`^${item.uniqueCode}-[A-Z0-9-]+(\\.(JPG|JPEG|PNG|WEBP|GIF|MP4|WEBM|MOV))?$`, "i").test(item.title) ||
+      item.title === item.project ||
+      item.title.includes("—") ||
+      item.title.toLowerCase().startsWith("media ") ||
+      item.title.toLowerCase().startsWith("frame ")
     ) {
       nextTitle = dynamicFileName;
+    } else {
+      nextTitle = item.title;
     }
+
+    const pairValue = (keys: string[]) => {
+      if (!updates.pairedBoxes) return undefined;
+      const hit = updates.pairedBoxes.find((p) => keys.includes((p.key || "").trim().toLowerCase()));
+      return hit ? hit.value : "";
+    };
 
     const updated: VaultMediaItem = {
       ...item,
@@ -150,6 +175,18 @@ function VaultMediaView() {
       assignedRoute,
       dynamicCode,
       title: nextTitle,
+      ...(updates.pairedBoxes
+        ? {
+            client: pairValue(["client"]),
+            model: pairValue(["model", "models"]),
+            makeupArtist: pairValue(["makeup artist", "mua"]),
+            assistant: pairValue(["assistant"]),
+            year: pairValue(["year", "date"]) || item.year,
+          }
+        : {}),
+      taxonomyModifiedByUser: taxonomyChanged
+        ? true
+        : updates.taxonomyModifiedByUser ?? item.taxonomyModifiedByUser,
     };
 
     saveVaultMedia(updated);
@@ -164,9 +201,6 @@ function VaultMediaView() {
     try {
       const sized = await processMediaUpload(file);
       setNewSizedMedia(sized);
-      if (!newTitle) {
-        setNewTitle(file.name.replace(/\.[^.]+$/, ""));
-      }
     } catch (err: any) {
       alert(`Error processing media upload: ${err.message}`);
     } finally {
@@ -186,18 +220,18 @@ function VaultMediaView() {
     const uniqueCode = getAvailable4DigitCode(usedCodes);
 
     const field = newField || fieldPages[0]?.route.replace(/^\//, "") || "photography";
-    const category = newCategory || "";
+    const isFlat = FLAT_FIELDS.has(field);
+    const category = isFlat ? "" : newCategory || "";
     const project = newProject || "";
 
-    const routeParts = [field, category, project].filter(Boolean);
-    const assignedRoute = `/${routeParts.join("/")}`;
+    const assignedRoute = buildAssignedRoute(field, category, project);
     const dynamicCode = buildDynamicMediaCode(uniqueCode, field, category, project);
 
-    const ext = newSizedMedia.isVideo ? ".MP4" : ".JPG";
+    const ext = newSizedMedia.isVideo ? ".MP4" : extFromMediaSrc(newSizedMedia.fullUrl);
     const dynamicTitle = newTitle.trim() || `${dynamicCode}${ext}`;
 
     const newMedia: VaultMediaItem = {
-      id: `media-${uniqueCode}`,
+      id: `custom-media-${uniqueCode}`,
       uniqueCode,
       dynamicCode,
       imgSrc: newSizedMedia.fullUrl,
@@ -211,6 +245,7 @@ function VaultMediaView() {
       isHidden: false,
       pairedBoxes: newPairs,
       isVideo: newSizedMedia.isVideo,
+      taxonomyModifiedByUser: true,
       createdAt: new Date().toISOString(),
     };
 
@@ -285,7 +320,7 @@ function VaultMediaView() {
           <p className="text-xs text-neutral-400 mt-1 max-w-2xl leading-relaxed">
             All scanned website photos and videos. Each media card carries a static 4-digit unique code
             and a dynamic route-bound code (e.g.{" "}
-            <span className="font-mono text-[#2CE3C0]">5826-PHOTOGRAPHY-FASHION-SEPIDAR</span>). Sizing
+            <span className="font-mono text-[#2CE3C0]">1221-GRAPHIC-DESIGN-VISUAL-IDENTITY-AHURA-CCTV</span>). Sizing
             is automatically optimized upon upload.
           </p>
         </div>
@@ -526,103 +561,121 @@ function VaultMediaView() {
               {/* Title */}
               <div>
                 <label className="block text-xs font-mono uppercase text-neutral-400 mb-1">
-                  Title / Name
+                  Title / Name (Optional)
                 </label>
                 <input
                   type="text"
                   value={newTitle}
                   onChange={(e) => setNewTitle(e.target.value)}
-                  placeholder="e.g. Sepidar Editorial Look 01"
+                  placeholder="Leave blank to auto-name with dynamic code (.JPG / .MP4)"
                   className="w-full bg-black/60 border border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-[#2CE3C0]"
                 />
               </div>
 
               {/* Cascading Dropdowns: Field -> Category -> Project */}
-              <div className="space-y-3 p-3.5 rounded-xl bg-black/40 border border-white/10">
-                <span className="block text-[11px] font-mono uppercase tracking-wider text-neutral-300">
-                  Project Assignment (Cascading Dropdowns)
-                </span>
+              {(() => {
+                const isNewFlatField = FLAT_FIELDS.has(newField.toLowerCase());
+                const newCategoryOptions = isNewFlatField
+                  ? []
+                  : pages.filter(
+                      (p) =>
+                        (p.parentRoute || "").toLowerCase().trim().replace(/\/+$/, "") ===
+                        `/${newField}`.toLowerCase().replace(/\/+$/, ""),
+                    );
+                const newProjectOptions = isNewFlatField
+                  ? pages.filter(
+                      (p) =>
+                        (p.parentRoute || "").toLowerCase().trim().replace(/\/+$/, "") ===
+                        `/${newField}`.toLowerCase().replace(/\/+$/, ""),
+                    )
+                  : newCategory
+                  ? pages.filter(
+                      (p) =>
+                        (p.parentRoute || "").toLowerCase().trim().replace(/\/+$/, "") ===
+                        `/${newField}/${newCategory}`.toLowerCase().replace(/\/+$/, ""),
+                    )
+                  : [];
 
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  {/* Box 1: Field */}
-                  <div>
-                    <label className="block text-[10px] font-mono text-neutral-400 mb-1">
-                      1. Field
-                    </label>
-                    <select
-                      value={newField}
-                      onChange={(e) => {
-                        setNewField(e.target.value);
-                        setNewCategory("");
-                        setNewProject("");
-                      }}
-                      className="w-full bg-black/60 border border-white/10 rounded-lg px-2.5 py-2 text-xs text-white focus:outline-none focus:border-[#2CE3C0]"
-                    >
-                      <option value="">Select Field...</option>
-                      {fieldPages.map((f) => (
-                        <option key={f.id} value={f.route.replace(/^\//, "")}>
-                          {f.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
+                return (
+                  <div className="space-y-3 p-3.5 rounded-xl bg-black/40 border border-white/10">
+                    <span className="block text-[11px] font-mono uppercase tracking-wider text-neutral-300">
+                      Project Assignment (Cascading Dropdowns)
+                    </span>
 
-                  {/* Box 2: Category (children of Field) */}
-                  <div>
-                    <label className="block text-[10px] font-mono text-neutral-400 mb-1">
-                      2. Category
-                    </label>
-                    <select
-                      value={newCategory}
-                      onChange={(e) => {
-                        setNewCategory(e.target.value);
-                        setNewProject("");
-                      }}
-                      disabled={!newField}
-                      className="w-full bg-black/60 border border-white/10 rounded-lg px-2.5 py-2 text-xs text-white focus:outline-none focus:border-[#2CE3C0] disabled:opacity-30"
-                    >
-                      <option value="">Select Category...</option>
-                      {pages
-                        .filter(
-                          (p) =>
-                            (p.parentRoute || "").toLowerCase().trim().replace(/\/+$/, "") ===
-                            `/${newField}`.toLowerCase().replace(/\/+$/, ""),
-                        )
-                        .map((c) => (
-                          <option key={c.id} value={c.route.split("/").pop()}>
-                            {c.name}
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      {/* Box 1: Field */}
+                      <div>
+                        <label className="block text-[10px] font-mono text-neutral-400 mb-1">
+                          1. Field
+                        </label>
+                        <select
+                          value={newField}
+                          onChange={(e) => {
+                            setNewField(e.target.value);
+                            setNewCategory("");
+                            setNewProject("");
+                          }}
+                          className="w-full bg-black/60 border border-white/10 rounded-lg px-2.5 py-2 text-xs text-white focus:outline-none focus:border-[#2CE3C0]"
+                        >
+                          <option value="">Select Field...</option>
+                          {fieldPages.map((f) => (
+                            <option key={f.id} value={f.route.replace(/^\//, "")}>
+                              {f.name}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
+                      {/* Box 2: Category (children of Field; disabled for flat disciplines) */}
+                      <div>
+                        <label className="block text-[10px] font-mono text-neutral-400 mb-1">
+                          2. Category
+                        </label>
+                        <select
+                          value={isNewFlatField ? "" : newCategory}
+                          onChange={(e) => {
+                            setNewCategory(e.target.value);
+                            setNewProject("");
+                          }}
+                          disabled={!newField || isNewFlatField}
+                          className="w-full bg-black/60 border border-white/10 rounded-lg px-2.5 py-2 text-xs text-white focus:outline-none focus:border-[#2CE3C0] disabled:opacity-30"
+                        >
+                          <option value="">
+                            {isNewFlatField ? "Flat Discipline (Direct)" : "Select Category..."}
                           </option>
-                        ))}
-                    </select>
-                  </div>
+                          {newCategoryOptions.map((c) => (
+                            <option key={c.id} value={c.route.split("/").pop()}>
+                              {c.name}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
 
-                  {/* Box 3: Project (children of Category) */}
-                  <div>
-                    <label className="block text-[10px] font-mono text-neutral-400 mb-1">
-                      3. Project
-                    </label>
-                    <select
-                      value={newProject}
-                      onChange={(e) => setNewProject(e.target.value)}
-                      disabled={!newCategory}
-                      className="w-full bg-black/60 border border-white/10 rounded-lg px-2.5 py-2 text-xs text-white focus:outline-none focus:border-[#2CE3C0] disabled:opacity-30"
-                    >
-                      <option value="">Select Project...</option>
-                      {pages
-                        .filter(
-                          (p) =>
-                            (p.parentRoute || "").toLowerCase().trim().replace(/\/+$/, "") ===
-                            `/${newField}/${newCategory}`.toLowerCase().replace(/\/+$/, ""),
-                        )
-                        .map((proj) => (
-                          <option key={proj.id} value={proj.route.split("/").pop()}>
-                            {proj.name}
+                      {/* Box 3: Project (children of Category or flat Field) */}
+                      <div>
+                        <label className="block text-[10px] font-mono text-neutral-400 mb-1">
+                          3. Project
+                        </label>
+                        <select
+                          value={newProject}
+                          onChange={(e) => setNewProject(e.target.value)}
+                          disabled={!newField || (!isNewFlatField && !newCategory)}
+                          className="w-full bg-black/60 border border-white/10 rounded-lg px-2.5 py-2 text-xs text-white focus:outline-none focus:border-[#2CE3C0] disabled:opacity-30"
+                        >
+                          <option value="">
+                            {newCategory === "posters" ? "Posters Gallery (Top)" : "Select Project..."}
                           </option>
-                        ))}
-                    </select>
+                          {newProjectOptions.map((proj) => (
+                            <option key={proj.id} value={proj.route.split("/").pop()}>
+                              {proj.name}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </div>
+                );
+              })()}
 
               {/* Paired Boxes */}
               <PairedBoxesEditor
@@ -681,26 +734,37 @@ function MediaCard({
   onCopyCode,
   isCopied,
 }: MediaCardProps) {
+  const isFlatField = FLAT_FIELDS.has((item.field || "").toLowerCase());
+
   // Cascading options derived from Pages:
-  // Categories under selected field
+  // Categories under selected field (empty for flat fields like video/product-design)
   const categoryOptions = useMemo(() => {
-    if (!item.field) return [];
+    if (!item.field || isFlatField) return [];
     const targetParent = `/${item.field}`.toLowerCase().replace(/\/+$/, "");
     return pages.filter(
       (p) => (p.parentRoute || "").toLowerCase().trim().replace(/\/+$/, "") === targetParent,
     );
-  }, [pages, item.field]);
+  }, [pages, item.field, isFlatField]);
 
-  // Projects under selected category
+  // Projects under selected category (or directly under flat field)
   const projectOptions = useMemo(() => {
-    if (!item.field || !item.category) return [];
+    if (!item.field) return [];
+    if (isFlatField) {
+      const targetParent = `/${item.field}`.toLowerCase().replace(/\/+$/, "");
+      return pages.filter(
+        (p) => (p.parentRoute || "").toLowerCase().trim().replace(/\/+$/, "") === targetParent,
+      );
+    }
+    if (!item.category) return [];
     const targetParent = `/${item.field}/${item.category}`.toLowerCase().replace(/\/+$/, "");
     return pages.filter(
       (p) => (p.parentRoute || "").toLowerCase().trim().replace(/\/+$/, "") === targetParent,
     );
-  }, [pages, item.field, item.category]);
+  }, [pages, item.field, item.category, isFlatField]);
 
+  const resolvedFullVideoSrc = resolveInventoryImage(item.imgSrc) || item.imgSrc;
   const resolvedSrc = resolveInventoryImage(item.thumbSrc || item.imgSrc) || item.imgSrc;
+  const liveDetailHref = buildMediaLiveDetailUrl(item);
 
   return (
     <div
@@ -743,15 +807,17 @@ function MediaCard({
               )}
             </button>
 
-            {/* Delete Button */}
-            <button
-              type="button"
-              onClick={() => onDeleteMedia(item)}
-              className="p-1 rounded text-neutral-500 hover:text-red-400 hover:bg-red-500/10 transition-colors cursor-pointer"
-              title="Delete media and free unique code"
-            >
-              <Trash2 className="w-3.5 h-3.5" />
-            </button>
+            {/* Delete Button (only for user-uploaded custom media; built-in inventory items use Visible/Hidden) */}
+            {item.id.startsWith("custom-media-") && (
+              <button
+                type="button"
+                onClick={() => onDeleteMedia(item)}
+                className="p-1 rounded text-neutral-500 hover:text-red-400 hover:bg-red-500/10 transition-colors cursor-pointer"
+                title="Delete uploaded media and free unique code"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+              </button>
+            )}
           </div>
         </div>
 
@@ -781,7 +847,7 @@ function MediaCard({
         <div className="relative aspect-[16/10] bg-black overflow-hidden flex items-center justify-center">
           {item.isVideo ? (
             <video
-              src={item.imgSrc}
+              src={resolvedFullVideoSrc}
               muted
               loop
               playsInline
@@ -810,12 +876,12 @@ function MediaCard({
 
           {/* Dedicated Media Route View link */}
           <a
-            href={`${item.assignedRoute}/${item.dynamicCode}`}
+            href={liveDetailHref}
             target="_blank"
             rel="noreferrer"
             className="absolute bottom-2 right-2 px-2 py-1 rounded bg-black/70 hover:bg-black text-[10px] font-mono text-neutral-300 hover:text-white flex items-center gap-1 border border-white/10 backdrop-blur-sm transition-colors"
           >
-            <span>Live Detail</span>
+            <span>{item.isVideo || item.field === "video" ? "Open Video" : "Live Detail"}</span>
             <ExternalLink className="w-2.5 h-2.5" />
           </a>
         </div>
@@ -864,11 +930,12 @@ function MediaCard({
                 </select>
               </div>
 
-              {/* Dropdown 2: Category (swaps based on Field) */}
+              {/* Dropdown 2: Category (swaps based on Field; disabled for flat fields) */}
               <div>
                 <label className="block text-[9px] font-mono text-neutral-500 mb-0.5">Category</label>
                 <select
-                  value={item.category}
+                  value={isFlatField ? "" : item.category}
+                  disabled={isFlatField}
                   onChange={(e) => {
                     const nextCat = e.target.value;
                     onUpdateMedia(item, {
@@ -876,9 +943,9 @@ function MediaCard({
                       project: "",
                     });
                   }}
-                  className="w-full bg-black/80 border border-white/10 rounded px-2 py-1.5 text-[11px] text-white focus:outline-none focus:border-[#2CE3C0] font-mono"
+                  className="w-full bg-black/80 border border-white/10 rounded px-2 py-1.5 text-[11px] text-white focus:outline-none focus:border-[#2CE3C0] font-mono disabled:opacity-35"
                 >
-                  <option value="">None / Top</option>
+                  <option value="">{isFlatField ? "Flat (Direct)" : "None / Top"}</option>
                   {categoryOptions.map((c) => (
                     <option key={c.id} value={c.route.split("/").pop()}>
                       {c.name}
@@ -887,7 +954,7 @@ function MediaCard({
                 </select>
               </div>
 
-              {/* Dropdown 3: Project (swaps based on Category) */}
+              {/* Dropdown 3: Project (swaps based on Category or flat Field) */}
               <div>
                 <label className="block text-[9px] font-mono text-neutral-500 mb-0.5">Project</label>
                 <select
@@ -897,7 +964,9 @@ function MediaCard({
                   }}
                   className="w-full bg-black/80 border border-white/10 rounded px-2 py-1.5 text-[11px] text-white focus:outline-none focus:border-[#2CE3C0] font-mono"
                 >
-                  <option value="">None / General</option>
+                  <option value="">
+                    {item.category === "posters" ? "Posters Gallery (Top)" : "None / General"}
+                  </option>
                   {projectOptions.map((proj) => (
                     <option key={proj.id} value={proj.route.split("/").pop()}>
                       {proj.name}

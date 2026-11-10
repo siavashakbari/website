@@ -4620,7 +4620,7 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
   },
   {
     "code": "SA-DES-POS-01",
-    "project": "Nozad Publications",
+    "project": "Posters",
     "discipline": "Posters",
     "imgSrc": "src/assets/graphic-design/posters/graphic-design-posters-01.jpg",
     "subdiscipline": "Cultural & Exhibition Poster",
@@ -4635,7 +4635,7 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
   },
   {
     "code": "SA-DES-POS-02",
-    "project": "Nozad Publications",
+    "project": "Posters",
     "discipline": "Posters",
     "imgSrc": "src/assets/graphic-design/posters/graphic-design-posters-02.jpg",
     "subdiscipline": "Cultural & Exhibition Poster",
@@ -4650,7 +4650,7 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
   },
   {
     "code": "SA-DES-POS-03",
-    "project": "Nozad Publications",
+    "project": "Posters",
     "discipline": "Posters",
     "imgSrc": "src/assets/graphic-design/posters/graphic-design-posters-03.jpg",
     "subdiscipline": "Cultural & Exhibition Poster",
@@ -4665,7 +4665,7 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
   },
   {
     "code": "SA-DES-POS-04",
-    "project": "Nozad Publications",
+    "project": "Posters",
     "discipline": "Posters",
     "imgSrc": "src/assets/graphic-design/posters/graphic-design-posters-04.jpg",
     "subdiscipline": "Cultural & Exhibition Poster",
@@ -4680,7 +4680,7 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
   },
   {
     "code": "SA-DES-POS-05",
-    "project": "Nozad Publications",
+    "project": "Posters",
     "discipline": "Posters",
     "imgSrc": "src/assets/graphic-design/posters/graphic-design-posters-05.jpg",
     "subdiscipline": "Cultural & Exhibition Poster",
@@ -4695,7 +4695,7 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
   },
   {
     "code": "SA-DES-POS-06",
-    "project": "Nozad Publications",
+    "project": "Posters",
     "discipline": "Posters",
     "imgSrc": "src/assets/graphic-design/posters/graphic-design-posters-06.jpg",
     "subdiscipline": "Cultural & Exhibition Poster",
@@ -4710,7 +4710,7 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
   },
   {
     "code": "SA-DES-POS-07",
-    "project": "Nozad Publications",
+    "project": "Posters",
     "discipline": "Posters",
     "imgSrc": "src/assets/graphic-design/posters/graphic-design-posters-07.jpg",
     "subdiscipline": "Cultural & Exhibition Poster",
@@ -4725,7 +4725,7 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
   },
   {
     "code": "SA-DES-POS-08",
-    "project": "Nozad Publications",
+    "project": "Posters",
     "discipline": "Posters",
     "imgSrc": "src/assets/graphic-design/posters/graphic-design-posters-08.jpg",
     "subdiscipline": "Cultural & Exhibition Poster",

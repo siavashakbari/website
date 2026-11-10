@@ -1,19 +1,20 @@
-import { useEffect, useRef, useState } from "react";
-import { createFileRoute, Link, notFound, redirect, rootRouteId } from "@tanstack/react-router";
+import { useEffect, useLayoutEffect, useState } from "react";
+
+const useIsomorphicLayoutEffect = typeof window !== "undefined" ? useLayoutEffect : useEffect;
+import { createFileRoute } from "@tanstack/react-router";
 import { BackToTop } from "@/components/BackToTop";
-import { DISCIPLINES } from "@/data/disciplines";
-import { projects, type Project } from "@/data/projects";
 import {
-  getMergedPhotoInventory,
-  getPhotosByDiscipline,
-  getPhotosBySpecialty,
+  getDeletedProjectIds,
   getStudioProjects,
   subscribeToStudioStore,
 } from "@/lib/studio-store";
 import {
+  buildMediaLiveDetailUrl,
+  getGalleryMediaForRoute,
+  getMediaByCode,
   getPageByRoute,
-  getVaultMedia,
   getVaultPages,
+  isRouteOrAncestorHidden,
   subscribeToVaultStore,
   type VaultPageItem,
 } from "@/lib/vault-store";
@@ -26,35 +27,30 @@ import {
   HiddenPageNotice,
   type UITypeCode,
 } from "@/components/ui-types";
+import {
+  looksLikeMediaCode,
+  redirectToCanonicalPath,
+  resolveDedicatedPhotoLoader,
+} from "@/components/DedicatedPhotoView";
+import { NotFoundPage } from "@/components/NotFoundPage";
 import { pageHead } from "@/lib/seo";
 import {
   normalizeDisciplineSlug,
-  normalizeSpecialtySlug,
   normalizeProjectSlug,
-  buildPhotoUrl,
 } from "@/lib/taxonomy";
 import { resolveInventoryImage } from "@/lib/inventory-assets";
 
-interface DisciplinePhoto {
+interface DisciplineMediaItem {
   id: string;
   key: string;
   src: string;
   code: string;
   canonicalPath: string;
-  href?: string;
-  alt?: string;
-  disciplineSlug: string;
-  specialtySlug: string;
-  projectSlug: string;
-  imageName: string;
+  href: string;
+  alt: string;
   title: string;
   year: string;
   category: string;
-  description: string;
-  client?: string;
-  credits?: string[];
-  photoIndex: number;
-  photoTotal: number;
 }
 
 interface ProjectCardItem {
@@ -62,159 +58,219 @@ interface ProjectCardItem {
   title: string;
   image: string;
   year: string;
-  href?: string;
+  href: string;
 }
 
-function photoCaption(title: string, index: number, total: number): string {
-  if (total <= 1) return title;
-  return `${title} — ${String(index + 1).padStart(2, "0")}`;
+interface DisciplineRouteData {
+  slug: string;
+  canonicalRoute: string;
+  serverFound: boolean;
+  pendingMediaLookup?: string;
+  label: string;
+  blurb: string;
+  defaultUiType: UITypeCode;
+  items: DisciplineMediaItem[];
+  projectCards: ProjectCardItem[];
+  initialVaultPage?: VaultPageItem;
+  initialIsHidden?: boolean;
 }
 
-function useIsDesktop() {
-  const [isDesktop, setIsDesktop] = useState(false);
+const ROOT_DISCIPLINE_META: Record<
+  string,
+  { label: string; blurb: string; defaultUiType: UITypeCode }
+> = {
+  photography: {
+    label: "Photography",
+    blurb: "Studio photography, fashion editorials, culinary stories, and portraiture.",
+    defaultUiType: "UI01",
+  },
+  "graphic-design": {
+    label: "Graphic Design",
+    blurb: "Visual identity systems, typography, editorial book design, and posters.",
+    defaultUiType: "UI03",
+  },
+  "product-design": {
+    label: "Product Design",
+    blurb: "Objects shaped by purpose, material, and quiet detail.",
+    defaultUiType: "UI03",
+  },
+  video: {
+    label: "Video & Motion",
+    blurb: "Moving image work — rhythm, atmosphere, and story in time.",
+    defaultUiType: "UI04",
+  },
+};
 
-  useEffect(() => {
-    const media = window.matchMedia("(min-width: 1024px)");
-    const update = () => setIsDesktop(media.matches);
-    update();
-    media.addEventListener("change", update);
-    return () => media.removeEventListener("change", update);
-  }, []);
+const LEGACY_SINGLE_SEGMENT_REDIRECTS: Record<string, string> = {
+  fashion: "/photography/fashion-photography",
+  "fashion-photography": "/photography/fashion-photography",
+  food: "/photography/food-photography",
+  "food-photography": "/photography/food-photography",
+  portrait: "/photography/portrait-photography",
+  "portrait-photography": "/photography/portrait-photography",
+  "product-photography": "/photography/product-photography",
+  "visual-identity": "/graphic-design/visual-identity",
+  "book-covers": "/graphic-design/book-covers",
+  posters: "/graphic-design/posters",
+  videos: "/video",
+  products: "/product-design",
+};
 
-  return isDesktop;
-}
+function computeDisciplineChildCards(slug: string): ProjectCardItem[] {
+  const parentRoute = `/${slug}`.toLowerCase();
+  const cardMap = new Map<string, ProjectCardItem>();
+  const allVault = getVaultPages();
+  const deletedSet = getDeletedProjectIds();
 
-export const Route = createFileRoute("/$discipline/")({
-  loader: ({ params }) => {
-    // Graphic Design top route redirects to visual identity specialty
-    if (params.discipline === "graphic-design") {
-      throw redirect({
-        to: "/$discipline/$specialty",
-        params: { discipline: "graphic-design", specialty: "visual-identity" },
-      });
-    }
-
-    const normSlug = normalizeDisciplineSlug(params.discipline);
-
-    // 1. Product Design: shows all products as cards (same UI as Visual Identity)
-    if (normSlug === "product-design" || params.discipline === "product-design") {
-      const allStudio = getStudioProjects();
-      const matching = allStudio.filter((p) => {
-        const disc = (p.discipline || "").toLowerCase();
-        const cat = (p.category || "").toLowerCase();
-        const sub = ((p as any).subDiscipline || "").toLowerCase();
-        return (
-          disc === "product-design" ||
-          cat.includes("product design") ||
-          sub.includes("product design") ||
-          cat.includes("object")
-        );
-      });
-      const projectCards: ProjectCardItem[] = matching.map((project) => {
+  if (slug === "product-design") {
+    const allStudio = getStudioProjects();
+    allStudio
+      .filter((p) => normalizeDisciplineSlug(p.discipline || "") === "product-design")
+      .forEach((project) => {
         const projSlug = normalizeProjectSlug(project.title || project.id);
+        if (!projSlug || deletedSet.has(projSlug)) return;
         const rawCover =
           (project as any).coverImage ||
           (project as any).image ||
           (project.images && project.images[0]?.url) ||
           "";
-        return {
+        cardMap.set(projSlug, {
           id: project.id,
           title: project.title,
           image: resolveInventoryImage(rawCover) || rawCover,
           year: String(project.year || "2026"),
           href: `/product-design/${projSlug}`,
-        };
+        });
       });
-      return {
-        discipline: {
-          slug: "product-design",
-          label: "Product Design",
-          blurb: "Objects shaped by purpose, material, and quiet detail.",
-          browseByProject: true,
-          layout: null,
-        },
-        items: [] as DisciplinePhoto[],
-        projectCards,
-      };
-    }
+  }
 
-    // 2. Photography / Video / Specialty Handling
-    const discipline =
-      DISCIPLINES.find((d) => d.slug === params.discipline) ||
-      DISCIPLINES.find((d) => normalizeDisciplineSlug(d.slug) === normSlug) ||
-      {
-        slug: normSlug,
-        label: normSlug.charAt(0).toUpperCase() + normSlug.slice(1).replace("-", " "),
-        blurb: `${normSlug} portfolio by Siavash Akbari.`,
-        browseByProject: false,
-        layout: null,
-      };
-
-    const meta = {
-      slug: normSlug,
-      label: discipline.label,
-      blurb: discipline.blurb,
-      browseByProject: Boolean(discipline.browseByProject),
-      layout: discipline.layout ?? null,
-    };
-
-    // If param is a specialty (e.g. book-covers, posters, videos), load only that specialty
-    const dAny = discipline as any;
-    const isSpecialty = Boolean(
-      dAny.specialtySlug &&
-      (discipline.slug === params.discipline || params.discipline === dAny.specialtySlug)
-    );
-
-    const photos = isSpecialty
-      ? getPhotosBySpecialty(dAny.specialtySlug!, dAny.disciplineSlug)
-      : getPhotosByDiscipline(normSlug);
-
-    const items: DisciplinePhoto[] = photos.map((p, idx) => {
-      const canonical =
-        p.canonicalPath ||
-        buildPhotoUrl(
-          dAny.disciplineSlug || normSlug,
-          p.specialtySlug || dAny.specialtySlug || "fashion-photography",
-          p.projectSlug || "project",
-          p.standardCode || p.code,
-        );
-      return {
-        id: p.standardCode || p.code || `${normSlug}-${idx}`,
-        key: `${p.code}-${idx}`,
-        src: resolveInventoryImage(p.imgSrc) || p.imgSrc,
-        code: p.standardCode || p.code,
-        canonicalPath: canonical,
-        href: canonical,
-        alt: p.title || photoCaption(p.project, idx, photos.length),
-        disciplineSlug: dAny.disciplineSlug || normSlug,
-        specialtySlug: p.specialtySlug || dAny.specialtySlug || "fashion-photography",
-        projectSlug: p.projectSlug || "project",
-        imageName: p.title || photoCaption(p.project, idx, photos.length),
-        title: p.project,
-        year: p.date || "2026",
-        category: p.subdiscipline || p.discipline,
-        description: p.caption || "",
-        client: p.client,
-        photoIndex: idx + 1,
-        photoTotal: photos.length,
-      };
+  allVault
+    .filter((p) => (p.parentRoute || "").toLowerCase().replace(/\/+$/, "") === parentRoute)
+    .forEach((vp) => {
+      const childSlug = normalizeProjectSlug(vp.route.split("/").pop() || vp.name);
+      if (isRouteOrAncestorHidden(vp.route, allVault) || deletedSet.has(childSlug)) {
+        cardMap.delete(childSlug);
+        return;
+      }
+      const existing = cardMap.get(childSlug);
+      cardMap.set(childSlug, {
+        id: vp.id,
+        title: vp.name || existing?.title || childSlug,
+        image: resolveInventoryImage(vp.coverPhoto) || vp.coverPhoto || existing?.image || "",
+        year: vp.pairedBoxes?.find((b) => b.key.toLowerCase() === "year")?.value || existing?.year || "2026",
+        href: vp.route,
+      });
     });
 
-    return { discipline: meta, items, projectCards: [] as ProjectCardItem[] };
+  return Array.from(cardMap.values());
+}
+
+function buildDisciplineData(normSlug: string): DisciplineRouteData {
+  const canonicalRoute = `/${normSlug}`;
+  const vaultPage = getPageByRoute(canonicalRoute);
+  const rootMeta = ROOT_DISCIPLINE_META[normSlug];
+
+  const label =
+    vaultPage?.name ||
+    rootMeta?.label ||
+    normSlug
+      .split("-")
+      .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+      .join(" ");
+  const blurb =
+    vaultPage?.descriptionEn ||
+    rootMeta?.blurb ||
+    `${label} portfolio by Siavash Akbari.`;
+  const defaultUiType: UITypeCode =
+    vaultPage?.uiType || rootMeta?.defaultUiType || "UI03";
+
+  const projectCards = computeDisciplineChildCards(normSlug);
+  const mediaItems = getGalleryMediaForRoute(canonicalRoute, {
+    includeDescendants: true,
+  });
+
+  const items: DisciplineMediaItem[] = mediaItems.map((m, idx) => {
+    const liveUrl = buildMediaLiveDetailUrl(m);
+    return {
+      id: m.id || m.uniqueCode || `${normSlug}-${idx}`,
+      key: `${m.uniqueCode}-${idx}`,
+      src: resolveInventoryImage(m.imgSrc) || m.imgSrc,
+      code: m.dynamicCode,
+      canonicalPath: liveUrl,
+      href: liveUrl,
+      alt: m.title || m.dynamicCode,
+      title: m.title || m.project || m.dynamicCode,
+      year: m.year || "2026",
+      category: m.category || label,
+    };
+  });
+
+  const serverFound = Boolean(
+    vaultPage || rootMeta || projectCards.length > 0 || items.length > 0,
+  );
+
+  return {
+    slug: normSlug,
+    canonicalRoute,
+    serverFound,
+    label,
+    blurb,
+    defaultUiType,
+    items,
+    projectCards,
+    initialVaultPage: vaultPage,
+    initialIsHidden: isRouteOrAncestorHidden(canonicalRoute),
+  };
+}
+
+export const Route = createFileRoute("/$discipline/")({
+  loader: ({ params }): DisciplineRouteData => {
+    const rawTrimmed = params.discipline.trim();
+    const rawSlug = rawTrimmed.toLowerCase();
+
+    // 0. 1-segment short code / dynamic code shortcut (e.g. /1211, /1221, /SA-VI-SHEK-01)
+    if (looksLikeMediaCode(rawTrimmed)) {
+      const resolved = resolveDedicatedPhotoLoader({
+        rawDiscipline: "photography",
+        rawSpecialty: "",
+        rawProject: "",
+        rawPhotoId: rawTrimmed,
+        currentRawPath: `/${rawTrimmed}`,
+      });
+      if (resolved?.pendingClientLookup) {
+        return {
+          ...buildDisciplineData(rawSlug),
+          serverFound: true,
+          pendingMediaLookup: rawTrimmed,
+        };
+      }
+    }
+
+    // 1. Legacy 1-segment shortcuts redirect cleanly to their hierarchical 2-segment / 1-segment routes
+    const legacyTarget = LEGACY_SINGLE_SEGMENT_REDIRECTS[rawSlug];
+    if (legacyTarget) {
+      redirectToCanonicalPath(legacyTarget, true);
+    }
+
+    const normSlug = normalizeDisciplineSlug(rawSlug);
+    if (params.discipline !== normSlug && ROOT_DISCIPLINE_META[normSlug]) {
+      redirectToCanonicalPath(`/${normSlug}`, true);
+    }
+
+    return buildDisciplineData(normSlug);
   },
   head: ({ loaderData }) => {
-    const slug = loaderData?.discipline.slug ?? "";
-    const routePath = `/${normalizeDisciplineSlug(slug)}`;
-    const pageItem = typeof window !== "undefined" ? getPageByRoute(routePath) : undefined;
-    const label = pageItem?.name || loaderData?.discipline.label || "Discipline";
+    const routePath = loaderData?.canonicalRoute || `/${loaderData?.slug || "photography"}`;
+    const vaultPage = typeof window !== "undefined" ? getPageByRoute(routePath) : null;
+    const label = vaultPage?.name || loaderData?.label || "Discipline";
     const blurb =
-      pageItem?.descriptionEn ||
-      loaderData?.discipline.blurb ||
+      vaultPage?.descriptionEn ||
+      loaderData?.blurb ||
       `${label} work by Siavash Akbari.`;
     return pageHead({
       title: `Siavash Akbari - ${label}`,
       description: `${blurb} Browse the ${label.toLowerCase()} portfolio of Siavash Akbari.`,
-      path: slug ? `/${slug}` : "/",
+      path: routePath,
     });
   },
   component: DisciplinePage,
@@ -226,185 +282,64 @@ export const Route = createFileRoute("/$discipline/")({
   ),
 });
 
-function computeDisciplineProjectCards(slug: string): ProjectCardItem[] {
-  if (slug === "product-design") {
-    const allStudio = getStudioProjects();
-    const matching = allStudio.filter((p) => {
-      const disc = (p.discipline || "").toLowerCase();
-      const cat = (p.category || "").toLowerCase();
-      const sub = ((p as any).subDiscipline || "").toLowerCase();
-      return (
-        disc === "product-design" ||
-        cat.includes("product design") ||
-        sub.includes("product design") ||
-        cat.includes("object")
-      );
-    });
-    const cardMap = new Map<string, ProjectCardItem>();
-    matching.forEach((project) => {
-      const projSlug = normalizeProjectSlug(project.title || project.id);
-      const rawCover =
-        (project as any).coverImage ||
-        (project as any).image ||
-        (project.images && project.images[0]?.url) ||
-        "";
-      cardMap.set(projSlug, {
-        id: project.id,
-        title: project.title,
-        image: resolveInventoryImage(rawCover) || rawCover,
-        year: String(project.year || "2026"),
-        href: `/product-design/${projSlug}`,
-      });
-    });
-    // Overlay Vault pages under /product-design
-    const allVault = getVaultPages();
-    allVault
-      .filter((p) => (p.parentRoute || "").toLowerCase() === "/product-design" && !p.isHidden)
-      .forEach((vp) => {
-        const pSlug = normalizeProjectSlug(vp.route.split("/").pop() || vp.name);
-        const existing = cardMap.get(pSlug);
-        cardMap.set(pSlug, {
-          id: vp.id,
-          title: vp.name || existing?.title || pSlug,
-          image: resolveInventoryImage(vp.coverPhoto) || vp.coverPhoto || existing?.image || "",
-          year: existing?.year || "2026",
-          href: vp.route,
-        });
-      });
-    return Array.from(cardMap.values());
-  }
+function computeInitialDisciplineState(loaderData: DisciplineRouteData) {
+  return {
+    notFound: false,
+    data: loaderData,
+    vaultPage: loaderData.initialVaultPage,
+    isHidden: Boolean(loaderData.initialIsHidden),
+  };
+}
 
-  const allStudio = getStudioProjects();
-  const matching = allStudio.filter((p) => {
-    const disc = (p.discipline || "").toLowerCase();
-    const cat = (p.category || "").toLowerCase();
-    const sub = ((p as any).subDiscipline || "").toLowerCase();
-    return (
-      disc === "visual-identity" ||
-      disc === "graphic-design" ||
-      cat.includes("identity") ||
-      cat.includes("visual") ||
-      sub.includes("identity")
-    );
-  });
-  const cardMap = new Map<string, ProjectCardItem>();
-  matching.forEach((project) => {
-    const projSlug = normalizeProjectSlug(project.title || project.id);
-    const rawCover =
-      (project as any).coverImage ||
-      (project as any).image ||
-      (project.images && project.images[0]?.url) ||
-      "";
-    cardMap.set(projSlug, {
-      id: project.id,
-      title: project.title,
-      image: resolveInventoryImage(rawCover) || rawCover,
-      year: String(project.year || "2026"),
-      href: `/graphic-design/visual-identity/${projSlug}`,
-    });
-  });
-  const allVault = getVaultPages();
-  allVault
-    .filter(
-      (p) =>
-        ((p.parentRoute || "").toLowerCase() === "/graphic-design/visual-identity" ||
-          (p.parentRoute || "").toLowerCase() === "/graphic-design") &&
-        !p.isHidden,
-    )
-    .forEach((vp) => {
-      const pSlug = normalizeProjectSlug(vp.route.split("/").pop() || vp.name);
-      const existing = cardMap.get(pSlug);
-      cardMap.set(pSlug, {
-        id: vp.id,
-        title: vp.name || existing?.title || pSlug,
-        image: resolveInventoryImage(vp.coverPhoto) || vp.coverPhoto || existing?.image || "",
-        year: existing?.year || "2026",
-        href: vp.route,
-      });
-    });
-  return Array.from(cardMap.values());
+function computeClientDisciplineState(loaderData: DisciplineRouteData) {
+  if (typeof window === "undefined") {
+    return computeInitialDisciplineState(loaderData);
+  }
+  if (loaderData.pendingMediaLookup) {
+    const matched = getMediaByCode(loaderData.pendingMediaLookup);
+    if (!matched) {
+      return {
+        notFound: true,
+        data: loaderData,
+        vaultPage: undefined,
+        isHidden: false,
+      };
+    }
+  }
+  const fresh = buildDisciplineData(loaderData.slug);
+  const vaultPage = getPageByRoute(fresh.canonicalRoute);
+  const isHidden = isRouteOrAncestorHidden(fresh.canonicalRoute);
+  const exists = fresh.serverFound || loaderData.serverFound || Boolean(vaultPage);
+
+  return {
+    notFound: !exists,
+    data: fresh,
+    vaultPage,
+    isHidden,
+  };
 }
 
 function DisciplinePage() {
   const loaderData = Route.useLoaderData();
-  const [data, setData] = useState(() => {
-    if (typeof window === "undefined") return loaderData;
-    if (loaderData.discipline.slug === "product-design" || loaderData.discipline.browseByProject) {
-      return {
-        ...loaderData,
-        projectCards: computeDisciplineProjectCards(loaderData.discipline.slug),
-      };
+  const [state, setState] = useState(() => computeInitialDisciplineState(loaderData));
+
+  useEffect(() => {
+    if (!loaderData.pendingMediaLookup || typeof window === "undefined") return;
+    const matched = getMediaByCode(loaderData.pendingMediaLookup);
+    if (matched) {
+      const target = buildMediaLiveDetailUrl(matched);
+      window.location.replace(target);
     }
-    return loaderData;
-  });
-  const [vaultPage, setVaultPage] = useState<VaultPageItem | undefined>(() => {
-    if (typeof window === "undefined") return undefined;
-    return getPageByRoute(`/${normalizeDisciplineSlug(loaderData.discipline.slug)}`);
-  });
-  const isDesktop = useIsDesktop();
+  }, [loaderData.pendingMediaLookup]);
 
   const refreshData = () => {
-    const routePath = `/${normalizeDisciplineSlug(loaderData.discipline.slug)}`;
-    const currentVaultPage = getPageByRoute(routePath);
-    setVaultPage(currentVaultPage);
-
-    if (loaderData.discipline.slug === "product-design" || loaderData.discipline.browseByProject) {
-      const projectCards = computeDisciplineProjectCards(loaderData.discipline.slug);
-      setData((prev) => ({ ...prev, projectCards }));
-      return;
-    } else {
-      // Re-hydrate photo items dynamically
-      const photos = getPhotosByDiscipline(loaderData.discipline.slug);
-      if (photos.length > 0) {
-        const items: DisciplinePhoto[] = photos.map((p, idx) => {
-          const canonical =
-            p.canonicalPath ||
-            buildPhotoUrl(
-              loaderData.discipline.slug,
-              p.specialtySlug || "fashion-photography",
-              p.projectSlug || "project",
-              p.standardCode || p.code,
-            );
-          return {
-            id: p.standardCode || p.code || `${loaderData.discipline.slug}-${idx}`,
-            key: `${p.code}-${idx}`,
-            src: resolveInventoryImage(p.imgSrc) || p.imgSrc,
-            code: p.standardCode || p.code,
-            canonicalPath: canonical,
-            href: canonical,
-            alt: p.title || photoCaption(p.project, idx, photos.length),
-            disciplineSlug: loaderData.discipline.slug,
-            specialtySlug: p.specialtySlug || "fashion-photography",
-            projectSlug: p.projectSlug || "project",
-            imageName: p.title || photoCaption(p.project, idx, photos.length),
-            title: p.project,
-            year: p.date || "2026",
-            category: p.subdiscipline || p.discipline,
-            description: p.caption || "",
-            client: p.client,
-            photoIndex: idx + 1,
-            photoTotal: photos.length,
-          };
-        });
-        setData((prev) => ({ ...prev, items }));
-      }
-    }
+    setState(computeClientDisciplineState(loaderData));
   };
 
-  useEffect(() => {
-    setData(loaderData);
+  useIsomorphicLayoutEffect(() => {
     refreshData();
-  }, [loaderData]);
+  }, [loaderData.canonicalRoute]);
 
-  // Keep browser tab title synchronized with vault page name or custom label
-  useEffect(() => {
-    const pageTitle = vaultPage?.name || data.discipline.label;
-    if (pageTitle && typeof document !== "undefined") {
-      document.title = `Siavash Akbari - ${pageTitle}`;
-    }
-  }, [vaultPage?.name, data.discipline.label]);
-
-  // Real-time listener: updates view as soon as vault edits anything
   useEffect(() => {
     const unsubStudio = subscribeToStudioStore(() => refreshData());
     const unsubVault = subscribeToVaultStore(() => refreshData());
@@ -412,75 +347,59 @@ function DisciplinePage() {
       unsubStudio();
       unsubVault();
     };
-  }, [loaderData.discipline.slug]);
+  }, [loaderData.canonicalRoute]);
 
-  // Check if page is hidden
-  if (vaultPage?.isHidden) {
+  const { data, vaultPage, isHidden, notFound: notFoundOnClient } = state;
+
+  useEffect(() => {
+    const pageTitle = vaultPage?.name || data.label;
+    if (pageTitle && typeof document !== "undefined") {
+      document.title = `Siavash Akbari - ${pageTitle}`;
+    }
+  }, [vaultPage?.name, data.label]);
+
+  if (notFoundOnClient) {
+    return <NotFoundPage />;
+  }
+
+  if (isHidden) {
     return (
       <HiddenPageNotice
-        title={vaultPage.name}
-        routePath={`/${loaderData.discipline.slug}`}
+        title={vaultPage?.name || data.label}
+        routePath={data.canonicalRoute}
       />
     );
   }
 
-  // Filter out any hidden media from display
-  const allVaultMedia = typeof window !== "undefined" ? getVaultMedia() : [];
-  const hiddenCodeSet = new Set(
-    allVaultMedia.filter((m) => m.isHidden).map((m) => m.uniqueCode.toUpperCase()),
-  );
+  const visibleItems = data.items;
+  const visibleProjectCards = data.projectCards;
 
-  const visibleItems = (data.items || []).filter((it) => {
-    const code = (it.code || "").toUpperCase();
-    return !hiddenCodeSet.has(code);
-  });
-
-  // Filter out hidden project cards
-  const allVaultPages = typeof window !== "undefined" ? getVaultPages() : [];
-  const hiddenRoutes = new Set(
-    allVaultPages.filter((p) => p.isHidden).map((p) => p.route.toLowerCase().replace(/\/+$/, ""))
-  );
-
-  const { discipline, projectCards } = data;
-  const visibleProjectCards = (projectCards || []).filter((card) => {
-    const cardHref = (card.href || "").toLowerCase().replace(/\/+$/, "");
-    return !hiddenRoutes.has(cardHref);
-  });
-
-  const isEmpty = discipline.browseByProject
-    ? visibleProjectCards.length === 0
-    : visibleItems.length === 0;
-
-  const useSideScroll = discipline.layout === "scroll" && isDesktop;
-
-  // Determine active UI type: explicit vault assignment or natural default
   const activeUiType: UITypeCode =
     vaultPage?.uiType ||
-    (discipline.browseByProject
-      ? "UI03"
-      : discipline.slug === "videos" || discipline.slug === "video" || visibleItems.some((i) => i.src.endsWith(".mp4"))
-        ? "UI04"
-        : useSideScroll
-          ? "UI02"
-          : "UI01");
+    data.defaultUiType ||
+    (data.slug === "video" ? "UI04" : visibleItems.length > 0 ? "UI01" : "UI03");
+
+  const isEmpty =
+    activeUiType === "UI03"
+      ? visibleProjectCards.length === 0 && visibleItems.length === 0
+      : visibleItems.length === 0;
 
   return (
     <section
       className={`relative w-full bg-background ${
         activeUiType === "UI02"
-          ? "overflow-hidden pt-3 md:pt-3.5"
+          ? "min-h-screen pb-24 pt-3 md:pt-3.5 lg:min-h-0 lg:pb-0 lg:overflow-hidden"
           : "min-h-screen pb-40 pt-3 md:pt-3.5"
       }`}
       aria-labelledby="discipline-heading"
     >
       <h1 id="discipline-heading" className="sr-only">
-        {vaultPage?.name || discipline.label} — Siavash Akbari
+        {vaultPage?.name || data.label} — Siavash Akbari
       </h1>
 
-      {/* Page Header (English & Farsi Descriptions, Paired Boxes) */}
       <PageHeader
-        title={vaultPage?.name || discipline.label}
-        descriptionEn={vaultPage?.descriptionEn || discipline.blurb}
+        title={vaultPage?.name || data.label}
+        descriptionEn={vaultPage?.descriptionEn || data.blurb}
         descriptionFa={vaultPage?.descriptionFa}
         pairedBoxes={vaultPage?.pairedBoxes}
       />
@@ -492,15 +411,23 @@ function DisciplinePage() {
       ) : activeUiType === "UI02" ? (
         <UI02_HorizontalScroll
           items={visibleItems}
-          label={vaultPage?.name || discipline.label}
+          label={vaultPage?.name || data.label}
         />
       ) : activeUiType === "UI03" ? (
         <UI03_EqualCardsGrid
-          cards={visibleProjectCards.map((p) => ({
+          cards={(visibleProjectCards.length > 0
+            ? visibleProjectCards
+            : visibleItems.map((it) => ({
+                id: it.id,
+                title: it.title,
+                image: it.src,
+                href: it.href,
+              }))
+          ).map((p) => ({
             id: p.id,
             title: p.title,
             image: p.image,
-            href: p.href || `/projects/${p.id}`,
+            href: p.href,
           }))}
         />
       ) : activeUiType === "UI04" ? (

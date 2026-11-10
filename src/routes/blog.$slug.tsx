@@ -116,14 +116,8 @@ function BlogPostDetailPage() {
   const [post, setPost] = useState<any>(initialPost || (() => getBlogPostBySlug(slug)));
   const [allPosts, setAllPosts] = useState(() => getMergedBlogPosts());
   const [copied, setCopied] = useState(false);
-
-  const [lang, setLang] = useState<"en" | "fa">(() => {
-    if (typeof window !== "undefined") {
-      const saved = localStorage.getItem("siavash_blog_lang");
-      if (saved === "fa" || saved === "en") return saved;
-    }
-    return "en";
-  });
+  const [lang, setLang] = useState<"en" | "fa">("en");
+  const [shareUrl, setShareUrl] = useState(() => absoluteUrl(`/blog/${initialPost?.slug || slug}`));
 
   const isFa = lang === "fa";
 
@@ -136,6 +130,13 @@ function BlogPostDetailPage() {
   };
 
   useEffect(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("siavash_blog_lang");
+      if (saved === "fa" || saved === "en") {
+        setLang(saved);
+      }
+      setShareUrl(window.location.href);
+    }
     const livePost = getBlogPostBySlug(slug) || (initialPost ? getBlogPostBySlug(initialPost.slug) : undefined);
     if (livePost) {
       setPost(livePost as any);
@@ -170,7 +171,6 @@ function BlogPostDetailPage() {
     }
   };
 
-  const shareUrl = typeof window !== "undefined" ? window.location.href : "";
   const postTitle = isFa ? (post.titleFa || post.title) : post.title;
   const postExcerpt = isFa ? (post.excerptFa || post.excerpt) : post.excerpt;
   const postCategoryLabel = isFa

@@ -16,6 +16,11 @@ import { Logo } from "@/components/Logo";
 import { NotFoundPage } from "@/components/NotFoundPage";
 import { DISCIPLINES } from "@/data/disciplines";
 import {
+  getVaultPages,
+  isRouteOrAncestorHidden,
+  subscribeToVaultStore,
+} from "@/lib/vault-store";
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -161,7 +166,52 @@ function isDisciplinePath(pathname: string) {
   );
 }
 
+function computeVisibleNavItems() {
+  const pages = getVaultPages();
+  const byRoute = new Map(pages.map((p) => [p.route.toLowerCase(), p]));
+  const items = DISCIPLINES.filter((d) => !isRouteOrAncestorHidden(d.path, pages)).map((d) => {
+    const vp = byRoute.get(d.path.toLowerCase());
+    return {
+      key: d.path || d.slug,
+      path: d.path,
+      label: vp?.name || d.label,
+    };
+  });
+  const seen = new Set(items.map((i) => i.path.toLowerCase()));
+  pages
+    .filter(
+      (p) =>
+        !p.parentRoute &&
+        !p.isHidden &&
+        !seen.has(p.route.toLowerCase()) &&
+        p.route !== "/graphic-design" &&
+        p.route !== "/photography",
+    )
+    .forEach((p) => {
+      items.push({ key: p.route, path: p.route, label: p.name });
+    });
+  return items;
+}
+
+function useVisibleNavDisciplines() {
+  const [items, setItems] = useState(() =>
+    DISCIPLINES.map((d) => ({
+      key: d.path || d.slug,
+      path: d.path,
+      label: d.label,
+    })),
+  );
+
+  useEffect(() => {
+    setItems(computeVisibleNavItems());
+    return subscribeToVaultStore(() => setItems(computeVisibleNavItems()));
+  }, []);
+
+  return items;
+}
+
 function WorksDropdown({ active }: { active: boolean }) {
+  const navItems = useVisibleNavDisciplines();
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
@@ -184,9 +234,9 @@ function WorksDropdown({ active }: { active: boolean }) {
         <div className="px-3 py-1.5 text-[10px] font-mono uppercase tracking-[0.2em] text-muted-foreground/60">
           Specialties
         </div>
-        {DISCIPLINES.map((discipline) => (
+        {navItems.map((discipline) => (
           <DropdownMenuItem
-            key={discipline.path || discipline.slug}
+            key={discipline.key}
             asChild
             className="rounded-none p-0 focus:bg-foreground/5"
           >
@@ -276,6 +326,7 @@ function CloseIcon({ className }: { className?: string }) {
 function MobileNav() {
   const [open, setOpen] = useState(false);
   const [worksOpen, setWorksOpen] = useState(false);
+  const navItems = useVisibleNavDisciplines();
   const router = useRouter();
   const worksActive = isDisciplinePath(router.state.location.pathname);
 
@@ -350,9 +401,9 @@ function MobileNav() {
                     <span className="text-[10px] font-mono uppercase tracking-[0.2em] text-muted-foreground/60">
                       Specialties
                     </span>
-                    {DISCIPLINES.map((discipline) => (
+                    {navItems.map((discipline) => (
                       <Link
-                        key={discipline.path || discipline.slug}
+                        key={discipline.key}
                         to={discipline.path as any}
                         onClick={() => setOpen(false)}
                         className="text-base font-normal uppercase tracking-widest text-foreground/80 transition-colors hover:text-secondary data-[status=active]:font-bold data-[status=active]:text-secondary"
@@ -408,20 +459,24 @@ function RootComponent() {
   const router = useRouter();
   const pathname = router.state.location.pathname;
   const pathParts = pathname.split("/").filter(Boolean);
+  const lastSeg = pathParts[pathParts.length - 1] || "";
+  const isMediaCodeSegment =
+    /^(\d{4}(?:-[A-Z0-9-]+)?|[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}-\d{4}|SA-[A-Z0-9-]+|(?:custom-)?media-\d{4})$/i.test(
+      lastSeg,
+    );
   const isPhotoPage =
     pathParts.length >= 4 ||
-    (pathParts.length === 2 &&
-      (/^([A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}-\d{4}|SA-[A-Z0-9-]+)$/i.test(pathParts[1])));
+    (pathParts.length === 3 && isMediaCodeSegment) ||
+    (pathParts.length === 2 && isMediaCodeSegment);
   const isProjectPage =
-    (pathname.startsWith("/projects/") && pathname.length > "/projects/".length) ||
-    (pathname.startsWith("/visual-identity/") && pathname.length > "/visual-identity/".length) ||
-    pathParts.length === 3;
+    !isPhotoPage &&
+    (pathParts.length === 3 ||
+      (pathParts.length === 2 && pathParts[0] === "product-design"));
   const isSideScrollDiscipline =
-    pathname === "/book-covers" ||
-    pathname === "/posters" ||
-    pathname === "/graphic-design/book-covers" ||
-    pathname === "/graphic-design/posters" ||
-    (pathname.startsWith("/product-design/") && pathParts.length === 2);
+    !isPhotoPage &&
+    (pathname === "/graphic-design/book-covers" ||
+      pathname === "/graphic-design/posters" ||
+      (pathname.startsWith("/product-design/") && pathParts.length === 2));
   const [isDesktop, setIsDesktop] = useState(false);
 
   useEffect(() => {

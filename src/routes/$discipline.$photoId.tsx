@@ -1,17 +1,13 @@
-import { createFileRoute, notFound, redirect, rootRouteId } from "@tanstack/react-router";
-import { getPhotoItemBySlugOrCode, getMergedPhotoInventory } from "@/lib/studio-store";
-import { getMediaByCode, getVaultMedia } from "@/lib/vault-store";
+import { useEffect, useState } from "react";
+import { createFileRoute, notFound, rootRouteId } from "@tanstack/react-router";
+import { getPhotoItemBySlugOrCode } from "@/lib/studio-store";
+import { buildMediaLiveDetailUrl, getMediaByCode } from "@/lib/vault-store";
+import { getPhotoByCode, getPhotoBySeoSlug, getPhotoByStem } from "@/data/photo-inventory";
 import {
-  getPhotoByCode,
-  getPhotoBySeoSlug,
-  getPhotoByStem,
-  type PhotoInventoryItem,
-} from "@/data/photo-inventory";
-import {
-  normalizeDisciplineSlug,
-  normalizeSpecialtySlug,
-  normalizeProjectSlug,
-} from "@/lib/taxonomy";
+  looksLikeMediaCode,
+  redirectToCanonicalPath,
+} from "@/components/DedicatedPhotoView";
+import { NotFoundPage } from "@/components/NotFoundPage";
 
 export const Route = createFileRoute("/$discipline/$photoId")({
   loader: ({ params }) => {
@@ -19,53 +15,51 @@ export const Route = createFileRoute("/$discipline/$photoId")({
 
     const vaultMedia = getMediaByCode(rawParam);
     if (vaultMedia) {
-      throw redirect({
-        to: "/$discipline/$specialty/$project/$photoId",
-        params: {
-          discipline: vaultMedia.field,
-          specialty: vaultMedia.category,
-          project: vaultMedia.project,
-          photoId: vaultMedia.dynamicCode,
-        },
-      });
+      redirectToCanonicalPath(buildMediaLiveDetailUrl(vaultMedia), true);
     }
 
-    let photo: PhotoInventoryItem | undefined =
+    const photo =
       getPhotoItemBySlugOrCode(rawParam, params.discipline) ||
       getPhotoBySeoSlug(rawParam, params.discipline) ||
       getPhotoByCode(rawParam) ||
       getPhotoByStem(rawParam);
 
-    if (!photo) {
-      const q = rawParam.toLowerCase();
-      photo = getMergedPhotoInventory().find(
-        (i) =>
-          i.code.toLowerCase() === q ||
-          (i.standardCode && i.standardCode.toLowerCase() === q) ||
-          i.imgSrc.toLowerCase().includes(q),
-      );
+    if (photo) {
+      const vm =
+        getMediaByCode(photo.uniqueCode || photo.code) ||
+        (photo.standardCode ? getMediaByCode(photo.standardCode) : undefined);
+      if (vm) {
+        redirectToCanonicalPath(buildMediaLiveDetailUrl(vm), true);
+      }
+      if (photo.canonicalPath) {
+        redirectToCanonicalPath(photo.canonicalPath, true);
+      }
     }
 
-    if (photo) {
-      const discSlug = normalizeDisciplineSlug(photo.disciplineSlug || photo.discipline || params.discipline);
-      const specSlug = normalizeSpecialtySlug(photo.specialtySlug || photo.subdiscipline || "fashion");
-      const projSlug = normalizeProjectSlug(photo.projectSlug || photo.project);
-
-      const vm = getMediaByCode(photo.code) || (photo.standardCode ? getMediaByCode(photo.standardCode) : undefined);
-      const photoId = vm ? vm.dynamicCode : (photo.code || photo.standardCode || rawParam);
-
-      throw redirect({
-        to: "/$discipline/$specialty/$project/$photoId",
-        params: {
-          discipline: discSlug,
-          specialty: specSlug,
-          project: projSlug,
-          photoId,
-        },
-      });
+    if (typeof window === "undefined" && looksLikeMediaCode(rawParam)) {
+      return { rawPhotoCode: rawParam };
     }
 
     throw notFound({ routeId: rootRouteId });
   },
-  component: () => null,
+  component: PendingShortCodeRedirect,
 });
+
+function PendingShortCodeRedirect() {
+  const { rawPhotoCode } = Route.useLoaderData();
+  const [missing, setMissing] = useState(false);
+
+  useEffect(() => {
+    const vm = getMediaByCode(rawPhotoCode);
+    if (vm && typeof window !== "undefined") {
+      window.location.replace(buildMediaLiveDetailUrl(vm));
+    } else {
+      setMissing(true);
+    }
+  }, [rawPhotoCode]);
+
+  if (!missing) {
+    return <div className="min-h-screen bg-background" />;
+  }
+  return <NotFoundPage />;
+}
