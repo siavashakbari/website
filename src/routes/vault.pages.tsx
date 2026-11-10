@@ -18,6 +18,7 @@ import {
   Layers,
   ArrowRight,
   SlidersHorizontal,
+  Lock,
 } from "lucide-react";
 import {
   getVaultPages,
@@ -31,6 +32,7 @@ import { UI_TYPE_LIST, type UITypeCode } from "@/components/ui-types";
 import { PairedBoxesEditor, type KeyValuePair } from "@/components/vault/PairedBoxesEditor";
 import { processMediaUpload } from "@/lib/media-sizing";
 import { resolveInventoryImage } from "@/lib/inventory-assets";
+import { normalizeProjectSlug } from "@/lib/taxonomy";
 
 export const Route = createFileRoute("/vault/pages")({
   component: VaultPagesView,
@@ -43,14 +45,22 @@ function VaultPagesView() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [mediaPickerPageId, setMediaPickerPageId] = useState<string | null>(null);
 
-  // New page form state
-  const [newRoute, setNewRoute] = useState("");
-  const [newName, setNewName] = useState("");
-  const [newParent, setNewParent] = useState("");
+  // Top-to-bottom hierarchical creation form state
+  const [createTarget, setCreateTarget] = useState<"project" | "category" | "discipline">("project");
+  const [selectedDiscipline, setSelectedDiscipline] = useState<string>("/photography");
+  const [customDisciplineName, setCustomDisciplineName] = useState<string>("");
+  const [selectedCategory, setSelectedCategory] = useState<string>("/photography/fashion-photography");
+  const [customCategoryName, setCustomCategoryName] = useState<string>("");
+  const [pageTitle, setPageTitle] = useState("");
+  const [customSlug, setCustomSlug] = useState("");
   const [newUiType, setNewUiType] = useState<UITypeCode>("UI01");
   const [newDescEn, setNewDescEn] = useState("");
   const [newDescFa, setNewDescFa] = useState("");
   const [newCover, setNewCover] = useState("");
+  const [newPairs, setNewPairs] = useState<KeyValuePair[]>([
+    { key: "Client", value: "" },
+    { key: "Year", value: "2026" },
+  ]);
 
   const refreshPages = () => {
     setPages(getVaultPages());
@@ -62,6 +72,73 @@ function VaultPagesView() {
       refreshPages();
     });
   }, []);
+
+  // Available root disciplines: pages with !parentRoute or standard roots
+  const availableDisciplines = useMemo(() => {
+    const defaultRoots = [
+      { route: "/photography", name: "Photography" },
+      { route: "/graphic-design", name: "Graphic Design" },
+      { route: "/product-design", name: "Product Design" },
+      { route: "/video", name: "Video" },
+    ];
+    const customRoots = pages
+      .filter((p) => !p.parentRoute && !defaultRoots.some((dr) => dr.route === p.route))
+      .map((p) => ({ route: p.route, name: p.name }));
+    return [...defaultRoots, ...customRoots];
+  }, [pages]);
+
+  // Available categories under selected discipline
+  const availableCategories = useMemo(() => {
+    return pages.filter(
+      (p) => (p.parentRoute || "").toLowerCase() === selectedDiscipline.toLowerCase()
+    );
+  }, [pages, selectedDiscipline]);
+
+  // When selectedDiscipline changes, update category selection
+  useEffect(() => {
+    const cats = pages.filter(
+      (p) => (p.parentRoute || "").toLowerCase() === selectedDiscipline.toLowerCase()
+    );
+    if (cats.length > 0) {
+      setSelectedCategory(cats[0].route);
+    } else {
+      setSelectedCategory("");
+    }
+  }, [selectedDiscipline, pages]);
+
+  // Derived slug and locked route computed top-to-bottom
+  const computedSlug = customSlug.trim() || normalizeProjectSlug(pageTitle) || "new-page";
+
+  const computedRoute = useMemo(() => {
+    if (createTarget === "discipline") {
+      const discSlug = customDisciplineName.trim()
+        ? normalizeProjectSlug(customDisciplineName)
+        : computedSlug;
+      return `/${discSlug}`;
+    }
+    if (createTarget === "category") {
+      const catSlug = customCategoryName.trim()
+        ? normalizeProjectSlug(customCategoryName)
+        : computedSlug;
+      return `${selectedDiscipline.replace(/\/+$/, "")}/${catSlug}`;
+    }
+    // project
+    const cat = selectedCategory || `${selectedDiscipline}/general`;
+    return `${cat.replace(/\/+$/, "")}/${computedSlug}`;
+  }, [
+    createTarget,
+    selectedDiscipline,
+    customDisciplineName,
+    selectedCategory,
+    customCategoryName,
+    computedSlug,
+  ]);
+
+  const computedParentRoute = useMemo(() => {
+    if (createTarget === "discipline") return "";
+    if (createTarget === "category") return selectedDiscipline;
+    return selectedCategory || selectedDiscipline;
+  }, [createTarget, selectedDiscipline, selectedCategory]);
 
   const toggleCollapse = (route: string) => {
     setCollapsedSet((prev) => {
@@ -100,33 +177,44 @@ function VaultPagesView() {
 
   const handleCreatePage = (e: React.FormEvent) => {
     e.preventDefault();
-    let cleanRoute = newRoute.trim();
-    if (!cleanRoute.startsWith("/")) cleanRoute = `/${cleanRoute}`;
-    cleanRoute = cleanRoute.replace(/\/+$/, "");
+    const finalRoute = computedRoute;
+    const finalName =
+      (createTarget === "discipline"
+        ? customDisciplineName
+        : createTarget === "category"
+        ? customCategoryName
+        : pageTitle
+      ).trim() || computedSlug;
 
     const newPage: VaultPageItem = {
-      id: `page-${cleanRoute.replace(/[^a-zA-Z0-9]/g, "-").replace(/^-+|-+$/g, "")}`,
-      route: cleanRoute,
-      name: newName.trim() || cleanRoute.split("/").pop() || "Page",
-      parentRoute: newParent,
+      id: `page-${finalRoute.replace(/[^a-zA-Z0-9]/g, "-").replace(/^-+|-+$/g, "")}`,
+      route: finalRoute,
+      name: finalName,
+      parentRoute: computedParentRoute,
       coverPhoto: newCover || "src/assets/fashion/atlasi/fashion-atlasi-01.jpg",
       descriptionEn: newDescEn.trim(),
       descriptionFa: newDescFa.trim(),
       uiType: newUiType,
       isHidden: false,
-      pairedBoxes: [],
+      pairedBoxes: newPairs.filter((p) => p.key.trim() || p.value.trim()),
       order: pages.length + 1,
     };
 
     saveVaultPage(newPage);
     setShowAddModal(false);
+
     // Reset form
-    setNewRoute("");
-    setNewName("");
-    setNewParent("");
+    setPageTitle("");
+    setCustomSlug("");
+    setCustomDisciplineName("");
+    setCustomCategoryName("");
     setNewDescEn("");
     setNewDescFa("");
     setNewCover("");
+    setNewPairs([
+      { key: "Client", value: "" },
+      { key: "Year", value: "2026" },
+    ]);
   };
 
   // Build hierarchical tree
@@ -258,76 +346,177 @@ function VaultPagesView() {
         />
       )}
 
-      {/* Add New Page Modal */}
+      {/* Add New Page Modal with Hierarchical Top-to-Bottom Creation */}
       {showAddModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
-          <div className="bg-[#141414] border border-white/15 rounded-2xl max-w-lg w-full p-6 sm:p-7 shadow-2xl space-y-5 max-h-[90vh] overflow-y-auto">
+          <div className="bg-[#141414] border border-white/15 rounded-2xl max-w-xl w-full p-6 sm:p-7 shadow-2xl space-y-5 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between border-b border-white/10 pb-4">
               <div>
-                <h2 className="text-lg font-bold text-white">Add New Route / Page</h2>
+                <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                  <FolderTree className="w-4 h-4 text-[#2CE3C0]" />
+                  <span>Add New Page (Top-to-Bottom Routing)</span>
+                </h2>
                 <p className="text-xs text-neutral-400 mt-0.5">
-                  Define route path, tab name, parent page, and initial UI type.
+                  Choose discipline and category to hierarchically lock the route prefix.
                 </p>
               </div>
               <button
                 type="button"
                 onClick={() => setShowAddModal(false)}
-                className="text-neutral-400 hover:text-white text-xs font-mono"
+                className="text-neutral-400 hover:text-white text-xs font-mono cursor-pointer"
               >
                 Cancel
               </button>
             </div>
 
             <form onSubmit={handleCreatePage} className="space-y-4">
+              {/* Creation Level Selector */}
               <div>
-                <label className="block text-xs font-mono uppercase text-neutral-400 mb-1">
-                  Route Address *
+                <label className="block text-[11px] font-mono uppercase text-neutral-400 mb-1.5">
+                  Hierarchy Level
                 </label>
-                <input
-                  type="text"
-                  value={newRoute}
-                  onChange={(e) => setNewRoute(e.target.value)}
-                  placeholder="/photography/fashion-photography/new-project"
-                  required
-                  className="w-full bg-black/60 border border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder:text-neutral-600 focus:outline-none focus:border-[#2CE3C0] font-mono"
-                />
+                <div className="flex rounded-xl bg-black/60 p-1 border border-white/10 gap-1 text-xs font-mono">
+                  <button
+                    type="button"
+                    onClick={() => setCreateTarget("project")}
+                    className={`flex-1 py-1.5 rounded-lg transition-colors cursor-pointer ${
+                      createTarget === "project"
+                        ? "bg-[#2CE3C0] text-black font-semibold shadow"
+                        : "text-neutral-400 hover:text-white"
+                    }`}
+                  >
+                    Project / Page
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setCreateTarget("category")}
+                    className={`flex-1 py-1.5 rounded-lg transition-colors cursor-pointer ${
+                      createTarget === "category"
+                        ? "bg-[#2CE3C0] text-black font-semibold shadow"
+                        : "text-neutral-400 hover:text-white"
+                    }`}
+                  >
+                    Category
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setCreateTarget("discipline")}
+                    className={`flex-1 py-1.5 rounded-lg transition-colors cursor-pointer ${
+                      createTarget === "discipline"
+                        ? "bg-[#2CE3C0] text-black font-semibold shadow"
+                        : "text-neutral-400 hover:text-white"
+                    }`}
+                  >
+                    Root Field
+                  </button>
+                </div>
               </div>
 
+              {/* Step 1: Discipline (Locks Prefix 1) */}
+              {(createTarget === "project" || createTarget === "category") && (
+                <div>
+                  <label className="block text-xs font-mono uppercase text-neutral-400 mb-1 flex items-center justify-between">
+                    <span>1. Discipline (Locks Route Prefix)</span>
+                    <span className="text-[10px] text-[#2CE3C0] font-mono">{selectedDiscipline}</span>
+                  </label>
+                  <select
+                    value={selectedDiscipline}
+                    onChange={(e) => setSelectedDiscipline(e.target.value)}
+                    className="w-full bg-black/60 border border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-[#2CE3C0] font-mono"
+                  >
+                    {availableDisciplines.map((d) => (
+                      <option key={d.route} value={d.route}>
+                        {d.name} ({d.route})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
+              {/* Step 2: Category (Locks Prefix 2 for Projects) */}
+              {createTarget === "project" && (
+                <div>
+                  <label className="block text-xs font-mono uppercase text-neutral-400 mb-1 flex items-center justify-between">
+                    <span>2. Category / Specialty (Locks Parent)</span>
+                    <span className="text-[10px] text-[#2CE3C0] font-mono">
+                      {selectedCategory || "Direct"}
+                    </span>
+                  </label>
+                  {availableCategories.length > 0 ? (
+                    <select
+                      value={selectedCategory}
+                      onChange={(e) => setSelectedCategory(e.target.value)}
+                      className="w-full bg-black/60 border border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-[#2CE3C0] font-mono"
+                    >
+                      {availableCategories.map((c) => (
+                        <option key={c.route} value={c.route}>
+                          {c.name} ({c.route})
+                        </option>
+                      ))}
+                    </select>
+                  ) : (
+                    <div className="text-xs text-neutral-500 font-mono italic p-2.5 bg-black/40 border border-white/5 rounded-xl">
+                      No sub-categories under {selectedDiscipline}. The project will attach directly to this discipline.
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Step 3: Project / Category Name */}
               <div>
                 <label className="block text-xs font-mono uppercase text-neutral-400 mb-1">
-                  Page Name (Tab Title) *
+                  {createTarget === "discipline"
+                    ? "Discipline Name *"
+                    : createTarget === "category"
+                    ? "Category Name *"
+                    : "Project Name *"}
                 </label>
                 <input
                   type="text"
-                  value={newName}
-                  onChange={(e) => setNewName(e.target.value)}
-                  placeholder="e.g. Sepidar or Visual Identity"
+                  value={
+                    createTarget === "discipline"
+                      ? customDisciplineName
+                      : createTarget === "category"
+                      ? customCategoryName
+                      : pageTitle
+                  }
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    if (createTarget === "discipline") setCustomDisciplineName(val);
+                    else if (createTarget === "category") setCustomCategoryName(val);
+                    else setPageTitle(val);
+                  }}
+                  placeholder={
+                    createTarget === "discipline"
+                      ? "e.g. Architecture"
+                      : createTarget === "category"
+                      ? "e.g. Street Photography"
+                      : "e.g. Meatlab, Sepidar, Samanwood"
+                  }
                   required
                   className="w-full bg-black/60 border border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder:text-neutral-600 focus:outline-none focus:border-[#2CE3C0]"
                 />
-                <span className="text-[10px] text-neutral-500 font-mono mt-0.5 block">
-                  Renders in browser tab as: Siavash Akbari - {newName || "[Name]"}
+              </div>
+
+              {/* Live Locked Route Banner */}
+              <div className="p-3 rounded-xl bg-black/80 border border-[#2CE3C0]/40 font-mono text-xs flex items-center gap-3 shadow-inner">
+                <div className="p-1.5 rounded-lg bg-[#2CE3C0]/10 border border-[#2CE3C0]/20 text-[#2CE3C0]">
+                  <Lock className="w-3.5 h-3.5" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <span className="text-[10px] text-neutral-400 uppercase tracking-widest block">
+                    Hierarchically Locked Route
+                  </span>
+                  <span className="text-[#2CE3C0] font-semibold truncate block">
+                    {computedRoute}
+                  </span>
+                </div>
+                <span className="text-[10px] text-neutral-500 font-mono">
+                  Parent: {computedParentRoute || "None (Root)"}
                 </span>
               </div>
 
-              <div>
-                <label className="block text-xs font-mono uppercase text-neutral-400 mb-1">
-                  Parent Route (for hierarchy & collapsible group)
-                </label>
-                <select
-                  value={newParent}
-                  onChange={(e) => setNewParent(e.target.value)}
-                  className="w-full bg-black/60 border border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-[#2CE3C0] font-mono"
-                >
-                  <option value="">None (Root Field)</option>
-                  {pages.map((p) => (
-                    <option key={p.id} value={p.route}>
-                      {p.name} ({p.route})
-                    </option>
-                  ))}
-                </select>
-              </div>
-
+              {/* UI Layout Type */}
               <div>
                 <label className="block text-xs font-mono uppercase text-neutral-400 mb-1">
                   UI Layout Type
@@ -345,6 +534,7 @@ function VaultPagesView() {
                 </select>
               </div>
 
+              {/* Descriptions: English & Farsi */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-mono uppercase text-neutral-400 mb-1">
@@ -373,11 +563,21 @@ function VaultPagesView() {
                 </div>
               </div>
 
+              {/* Additional Paired Boxes */}
+              <div className="pt-1">
+                <PairedBoxesEditor
+                  pairs={newPairs}
+                  onChange={setNewPairs}
+                  title="Initial Metadata Paired Boxes"
+                  description="Add attributes like Client: Meatlab, Year: 2025"
+                />
+              </div>
+
               <div className="flex justify-end gap-2 pt-2 border-t border-white/10">
                 <button
                   type="button"
                   onClick={() => setShowAddModal(false)}
-                  className="px-4 py-2.5 rounded-xl border border-white/10 text-xs text-neutral-400 hover:text-white"
+                  className="px-4 py-2.5 rounded-xl border border-white/10 text-xs text-neutral-400 hover:text-white cursor-pointer"
                 >
                   Cancel
                 </button>

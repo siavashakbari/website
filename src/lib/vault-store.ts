@@ -443,6 +443,23 @@ export function getInitialScannedPages(): VaultPageItem[] {
 
     // 8. Projects under Visual Identity (Level 2)
     {
+      id: "graphic-design-visual-identity-meatlab",
+      route: "/graphic-design/visual-identity/meatlab",
+      name: "Meatlab",
+      parentRoute: "/graphic-design/visual-identity",
+      coverPhoto: "src/assets/graphic-design/shekarchian/graphic-design-shekarchian-01.jpg",
+      descriptionEn: "Visual identity and conceptual brand design for Meatlab.",
+      descriptionFa: "طراحی هویت بصری و سیستم برند میت‌لب.",
+      uiType: "UI01",
+      isHidden: false,
+      pairedBoxes: [
+        { key: "Client", value: "Meatlab" },
+        { key: "Category", value: "Visual Identity" },
+        { key: "Year", value: "2025" },
+      ],
+      order: 69,
+    },
+    {
       id: "graphic-design-shekarchian-sweets",
       route: "/graphic-design/visual-identity/shekarchian-sweets",
       name: "Shekarchian Sweets",

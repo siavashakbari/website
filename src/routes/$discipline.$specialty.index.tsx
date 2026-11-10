@@ -198,21 +198,42 @@ export const Route = createFileRoute("/$discipline/$specialty/")({
           sub.includes("identity")
         );
       });
-      const projectCards: ProjectCardItem[] = matching.map((project) => {
+      const cardMap = new Map<string, ProjectCardItem>();
+
+      matching.forEach((project) => {
         const projSlug = normalizeProjectSlug(project.title || project.id);
         const rawCover =
           (project as any).coverImage ||
           (project as any).image ||
           (project.images && project.images[0]?.url) ||
           "";
-        return {
+        cardMap.set(projSlug, {
           id: project.id,
           title: project.title,
           image: resolveInventoryImage(rawCover) || rawCover,
           year: String(project.year || "2026"),
           href: `/${normDisc}/${normSpec}/${projSlug}`,
-        };
+        });
       });
+
+      // Overlay all Vault Pages under this specialty route
+      const allVault = getVaultPages();
+      const specRoute = `/${normDisc}/${normSpec}`.toLowerCase();
+      allVault
+        .filter((p) => (p.parentRoute || "").toLowerCase() === specRoute && !p.isHidden)
+        .forEach((vp) => {
+          const slug = normalizeProjectSlug(vp.route.split("/").pop() || vp.name);
+          const existing = cardMap.get(slug);
+          cardMap.set(slug, {
+            id: vp.id,
+            title: vp.name || existing?.title || slug,
+            image: resolveInventoryImage(vp.coverPhoto) || vp.coverPhoto || existing?.image || "",
+            year: existing?.year || "2026",
+            href: vp.route,
+          });
+        });
+
+      const projectCards: ProjectCardItem[] = Array.from(cardMap.values());
       return {
         disciplineSlug: normDisc,
         specialtySlug: normSpec,
@@ -311,21 +332,42 @@ function SpecialtyPage() {
           sub.includes("identity")
         );
       });
-      const projectCards: ProjectCardItem[] = matching.map((project) => {
+      const cardMap = new Map<string, ProjectCardItem>();
+
+      matching.forEach((project) => {
         const projSlug = normalizeProjectSlug(project.title || project.id);
         const rawCover =
           (project as any).coverImage ||
           (project as any).image ||
           (project.images && project.images[0]?.url) ||
           "";
-        return {
+        cardMap.set(projSlug, {
           id: project.id,
           title: project.title,
           image: resolveInventoryImage(rawCover) || rawCover,
           year: String(project.year || "2026"),
           href: `/${loaderData.disciplineSlug}/${loaderData.specialtySlug}/${projSlug}`,
-        };
+        });
       });
+
+      // Overlay all Vault Pages under this specialty route
+      const allVault = getVaultPages();
+      const specRoute = `/${loaderData.disciplineSlug}/${loaderData.specialtySlug}`.toLowerCase();
+      allVault
+        .filter((p) => (p.parentRoute || "").toLowerCase() === specRoute && !p.isHidden)
+        .forEach((vp) => {
+          const slug = normalizeProjectSlug(vp.route.split("/").pop() || vp.name);
+          const existing = cardMap.get(slug);
+          cardMap.set(slug, {
+            id: vp.id,
+            title: vp.name || existing?.title || slug,
+            image: resolveInventoryImage(vp.coverPhoto) || vp.coverPhoto || existing?.image || "",
+            year: existing?.year || "2026",
+            href: vp.route,
+          });
+        });
+
+      const projectCards: ProjectCardItem[] = Array.from(cardMap.values());
       setData((prev) => ({
         ...prev,
         projectCards,

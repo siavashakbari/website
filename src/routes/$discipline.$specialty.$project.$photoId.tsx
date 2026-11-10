@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { createFileRoute, notFound, rootRouteId, Link } from "@tanstack/react-router";
 import { ArrowLeft, ChevronLeft, ChevronRight, ExternalLink } from "lucide-react";
 import {
@@ -423,58 +423,49 @@ function DedicatedPhotoView() {
                 </div>
               </div>
 
-              {/* Credits */}
-              {(photo.client ||
-                photo.model ||
-                photo.makeupArtist ||
-                photo.assistant ||
-                (photo.customFields && photo.customFields.length > 0)) && (
-                <div className="grid grid-cols-1 sm:grid-cols-[110px_1fr] py-3.5 gap-2 sm:gap-4 items-baseline">
-                  <div className="text-neutral-500 font-mono uppercase tracking-wider text-xs">
-                    Credits
-                  </div>
-                  <div className="text-neutral-200 font-sans flex flex-wrap gap-x-4 gap-y-2">
-                    {photo.client && (
-                      <div
-                        onClick={() => handleCreditClick("Client", photo.client)}
-                        className="cursor-pointer hover:text-[#2CE3C0] transition-colors"
-                      >
-                        Client: <strong className="text-white font-medium">{photo.client}</strong>
-                      </div>
-                    )}
-                    {photo.model && (
-                      <div
-                        onClick={() => handleCreditClick("Model", photo.model)}
-                        className="cursor-pointer hover:text-[#2CE3C0] transition-colors"
-                      >
-                        Model: <strong className="text-white font-medium">{photo.model}</strong>
-                      </div>
-                    )}
-                    {photo.makeupArtist && (
-                      <div
-                        onClick={() => handleCreditClick("Makeup Artist", photo.makeupArtist)}
-                        className="cursor-pointer hover:text-[#2CE3C0] transition-colors"
-                      >
-                        MUA: <strong className="text-white font-medium">{photo.makeupArtist}</strong>
-                      </div>
-                    )}
-                    {photo.assistant && (
-                      <div
-                        onClick={() => handleCreditClick("Assistant", photo.assistant)}
-                        className="cursor-pointer hover:text-[#2CE3C0] transition-colors"
-                      >
-                        Assistant: <strong className="text-white font-medium">{photo.assistant}</strong>
-                      </div>
-                    )}
-                    {photo.customFields &&
-                      photo.customFields.map((cf) => (
-                        <div key={cf.id || cf.label}>
-                          {cf.label}: <strong className="text-white font-medium">{cf.value}</strong>
+              {/* Unified Credits & Paired Boxes from Vault Media */}
+              {(() => {
+                const vaultMedia = getMediaByCode(photo.code) || getMediaByCode(photo.standardCode || "");
+                const list = [...(vaultMedia?.pairedBoxes || [])];
+                const hasKey = (k: string) => list.some((p) => p.key?.toLowerCase() === k.toLowerCase());
+
+                if (photo.client && !hasKey("client")) {
+                  list.push({ key: "Client", value: photo.client });
+                }
+                if (photo.model && !hasKey("model")) {
+                  list.push({ key: "Model", value: photo.model });
+                }
+                if (photo.makeupArtist && !hasKey("mua") && !hasKey("makeup artist")) {
+                  list.push({ key: "MUA", value: photo.makeupArtist });
+                }
+                if (photo.assistant && !hasKey("assistant")) {
+                  list.push({ key: "Assistant", value: photo.assistant });
+                }
+                if (photo.date && !hasKey("year") && !hasKey("date")) {
+                  list.push({ key: "Year", value: String(photo.date) });
+                }
+
+                if (list.length === 0) return null;
+
+                return (
+                  <div className="grid grid-cols-1 sm:grid-cols-[110px_1fr] py-3.5 gap-2 sm:gap-4 items-baseline">
+                    <div className="text-neutral-500 font-mono uppercase tracking-wider text-xs">
+                      Credits
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {list.map((pair, idx) => (
+                        <div
+                          key={idx}
+                          className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/[0.04] border border-white/10 text-xs font-mono transition-colors hover:border-[#2CE3C0]/40"
+                        >
+                          <span className="text-neutral-400 font-medium">{pair.key}:</span>
+                          <span className="text-[#2CE3C0] font-semibold">{pair.value}</span>
                         </div>
                       ))}
+                    </div>
                   </div>
-                </div>
-              )}
+                );
+              })()}
             </div>
           </div>
 

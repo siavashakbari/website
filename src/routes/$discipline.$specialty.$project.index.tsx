@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { createFileRoute, Link, notFound, redirect, rootRouteId } from "@tanstack/react-router";
 import { ArrowLeft } from "lucide-react";
 import { projects } from "@/data/projects";
@@ -377,13 +377,31 @@ function ProjectCaseStudyPage() {
     };
   });
 
-  const hasCredits =
-    Boolean(data.client) ||
-    Boolean(data.models) ||
-    Boolean(data.makeupArtist) ||
-    Boolean(data.assistant) ||
-    Boolean(data.stylist) ||
-    Boolean(data.location);
+  // Unified metadata paired boxes: Vault Page paired boxes take precedence, with legacy data merged seamlessly
+  const mergedPairedBoxes = useMemo(() => {
+    const list = [...(vaultPage?.pairedBoxes || [])];
+    const hasKey = (key: string) => list.some((p) => p.key?.toLowerCase() === key.toLowerCase());
+
+    if (data.client && !hasKey("client")) {
+      list.push({ key: "Client", value: data.client });
+    }
+    if (data.models && !hasKey("model") && !hasKey("models")) {
+      list.push({ key: "Model", value: Array.isArray(data.models) ? data.models.join(", ") : data.models });
+    }
+    if (data.makeupArtist && !hasKey("mua") && !hasKey("makeup artist")) {
+      list.push({ key: "MUA", value: data.makeupArtist });
+    }
+    if (data.assistant && !hasKey("assistant")) {
+      list.push({ key: "Assistant", value: data.assistant });
+    }
+    if (data.stylist && !hasKey("stylist")) {
+      list.push({ key: "Stylist", value: data.stylist });
+    }
+    if (data.year && !hasKey("year")) {
+      list.push({ key: "Year", value: String(data.year) });
+    }
+    return list;
+  }, [vaultPage?.pairedBoxes, data.client, data.models, data.makeupArtist, data.assistant, data.stylist, data.year]);
 
   const backUrl = `/${data.disciplineSlug}/${data.specialtySlug}`;
 
@@ -419,58 +437,10 @@ function ProjectCaseStudyPage() {
             title={vaultPage?.name || data.title}
             descriptionEn={vaultPage?.descriptionEn || (vaultPage?.descriptionFa ? undefined : data.description)}
             descriptionFa={vaultPage?.descriptionFa}
-            pairedBoxes={vaultPage?.pairedBoxes}
+            pairedBoxes={mergedPairedBoxes}
             className="px-0 py-2"
           />
         </div>
-
-        {/* METADATA CREDITS MATRIX */}
-        {hasCredits && (
-          <div className="col-start-1 mt-3 flex flex-wrap items-center gap-x-6 gap-y-1.5 pt-2 border-t border-white/10 text-xs">
-            {data.client && (
-              <div>
-                <span className="text-[10px] uppercase font-bold tracking-wider text-secondary mr-1">
-                  Client:
-                </span>
-                <span className="text-white font-medium">{data.client}</span>
-              </div>
-            )}
-            {data.models && (
-              <div>
-                <span className="text-[10px] uppercase font-bold tracking-wider text-secondary mr-1">
-                  Model:
-                </span>
-                <span className="text-white font-medium">
-                  {Array.isArray(data.models) ? data.models.join(", ") : data.models}
-                </span>
-              </div>
-            )}
-            {data.makeupArtist && (
-              <div>
-                <span className="text-[10px] uppercase font-bold tracking-wider text-secondary mr-1">
-                  MUA:
-                </span>
-                <span className="text-white font-medium">{data.makeupArtist}</span>
-              </div>
-            )}
-            {data.assistant && (
-              <div>
-                <span className="text-[10px] uppercase font-bold tracking-wider text-secondary mr-1">
-                  Assistant:
-                </span>
-                <span className="text-white font-medium">{data.assistant}</span>
-              </div>
-            )}
-            {data.stylist && (
-              <div>
-                <span className="text-[10px] uppercase font-bold tracking-wider text-secondary mr-1">
-                  Stylist:
-                </span>
-                <span className="text-white font-medium">{data.stylist}</span>
-              </div>
-            )}
-          </div>
-        )}
       </div>
 
       {/* Media Presentation dynamically driven by activeUiType */}

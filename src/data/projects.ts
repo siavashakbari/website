@@ -372,6 +372,18 @@ export const projects: Project[] = [
     gallery: [echoPrimeVid1, echoPrimeVid2, echoPrimeVid3],
   },
   {
+    id: "meatlab",
+    title: "Meatlab",
+    discipline: "graphic-design",
+    category: "Visual Identity",
+    year: "2025",
+    client: "Meatlab",
+    description: "Visual identity and conceptual brand design for Meatlab.",
+    image: shekarchian1,
+    aspect: "portrait",
+    gallery: [shekarchian1, shekarchian2],
+  },
+  {
     id: "shekarchian-sweets",
     title: "Shekarchian Sweets",
     discipline: "graphic-design",
