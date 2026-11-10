@@ -18,6 +18,8 @@
  *    - Standard web formats: MP4 / WebM
  */
 
+import { isWebCodecsSupported, transcodeToStudioSpec } from "@/lib/webcodecs-transcoder";
+
 export interface SizedMediaResult {
   fullUrl: string;
   thumbUrl: string;
@@ -432,8 +434,11 @@ async function compressVideoToStudioSpec(
 }
 
 /**
- * Extracts a video poster/thumbnail and compresses oversized short clips to studio spec
+ * Extracts a video poster/thumbnail and compresses the clip to studio spec
  * (1080p max, 3.2 Mbps target bitrate) before returning Blob/DataURL + thumbnail.
+ *
+ * Primary path: WebCodecs re-encode — works for ANY duration and runs faster
+ * than real-time. Fallback: canvas/MediaRecorder capture (<= 60s clips only).
  */
 async function processVideoFile(
   file: File,
@@ -564,32 +569,52 @@ async function processVideoFile(
   let outH = probe.origH;
   let compressedFromKb: number | undefined;
 
-  if (
+  const needsCompression =
     compressOversizedVideo &&
-    probe.durationSec > 0 &&
-    probe.durationSec <= MAX_BROWSER_COMPRESS_DURATION_SEC &&
-    (file.size > studioBudgetBytes || file.size > 15 * 1024 * 1024)
-  ) {
+    file.size > studioBudgetBytes;
+
+  if (needsCompression) {
     onProgress?.(
       5,
-      `File ${(file.size / 1024 / 1024).toFixed(1)} MB exceeds studio budget (${(studioBudgetBytes / 1024 / 1024).toFixed(1)} MB). Compressing in browser...`,
+      `File ${(file.size / 1024 / 1024).toFixed(1)} MB exceeds studio budget (${(studioBudgetBytes / 1024 / 1024).toFixed(1)} MB). Compressing...`,
     );
-    const compressed = await compressVideoToStudioSpec(
-      probe.fileUrl,
-      probe.origW,
-      probe.origH,
-      probe.durationSec,
-      onProgress,
-    );
-    if (compressed && compressed.blob.size > 0 && compressed.blob.size < file.size * 0.92) {
-      // Discard the huge raw object URL and keep only the studio-sized compressed blob
-      URL.revokeObjectURL(probe.fileUrl);
-      activeBlob = compressed.blob;
-      activeExt = compressed.ext;
-      activeUrl = URL.createObjectURL(compressed.blob);
-      outW = compressed.width;
-      outH = compressed.height;
-      compressedFromKb = originalKb;
+
+    // Primary: WebCodecs re-encode (any duration, faster than real-time)
+    if (isWebCodecsSupported()) {
+      try {
+        const compressed = await transcodeToStudioSpec(file, { onProgress });
+        if (compressed && compressed.blob.size > 0 && compressed.blob.size < file.size * 0.92) {
+          URL.revokeObjectURL(probe.fileUrl);
+          activeBlob = compressed.blob;
+          activeExt = ".mp4";
+          activeUrl = URL.createObjectURL(compressed.blob);
+          outW = compressed.width;
+          outH = compressed.height;
+          compressedFromKb = originalKb;
+        }
+      } catch (err: any) {
+        onProgress?.(10, `WebCodecs compression failed (${err?.message ?? err}); trying fallback...`);
+      }
+    }
+
+    // Fallback: canvas/MediaRecorder capture — real-time, only for short clips
+    if (compressedFromKb === undefined && probe.durationSec > 0 && probe.durationSec <= MAX_BROWSER_COMPRESS_DURATION_SEC) {
+      const compressed = await compressVideoToStudioSpec(
+        probe.fileUrl,
+        probe.origW,
+        probe.origH,
+        probe.durationSec,
+        onProgress,
+      );
+      if (compressed && compressed.blob.size > 0 && compressed.blob.size < file.size * 0.92) {
+        URL.revokeObjectURL(probe.fileUrl);
+        activeBlob = compressed.blob;
+        activeExt = compressed.ext;
+        activeUrl = URL.createObjectURL(compressed.blob);
+        outW = compressed.width;
+        outH = compressed.height;
+        compressedFromKb = originalKb;
+      }
     }
   }
 

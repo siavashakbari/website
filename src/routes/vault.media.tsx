@@ -40,6 +40,7 @@ import {
 } from "@/lib/vault-store";
 import { PairedBoxesEditor, type KeyValuePair } from "@/components/vault/PairedBoxesEditor";
 import { processMediaUpload, type SizedMediaResult } from "@/lib/media-sizing";
+import { isCloudStorageConfigured, uploadToCloudStorage } from "@/lib/cloud-storage";
 import { putMediaBlob, resolveVideoPoster, useResolvedMediaSrc } from "@/lib/local-media-db";
 
 export const Route = createFileRoute("/vault/media")({
@@ -212,6 +213,43 @@ function VaultMediaView() {
         compressOversizedVideo: true,
         onProgress: (percent, message) => setUploadProgress({ percent, message }),
       });
+
+      // Large media (videos over the inline limit) go straight to cloud storage
+      // when configured, so the Vault entry works on every device. The local
+      // blob is discarded after a successful upload.
+      if (sized.isVideo && sized.blob && isCloudStorageConfigured()) {
+        const cloudName = sized.rawExt
+          ? `media${sized.rawExt.toLowerCase()}`
+          : "media.mp4";
+        setUploadProgress({ percent: 90, message: "Uploading compressed video to cloud storage..." });
+        try {
+          const uploaded = await uploadToCloudStorage(sized.blob, cloudName, {
+            contentType: sized.rawExt === ".webm" ? "video/webm" : "video/mp4",
+            onProgress: (pct: number) =>
+              setUploadProgress({
+                percent: Math.min(99, 90 + Math.round(pct * 0.09)),
+                message: `Uploading to cloud storage... ${pct}%`,
+              }),
+          });
+          if (sized.fullUrl.startsWith("blob:")) {
+            try {
+              URL.revokeObjectURL(sized.fullUrl);
+            } catch {
+              /* ignore */
+            }
+          }
+          sized.fullUrl = uploaded.url;
+          sized.blob = undefined;
+          sized.storedInIndexedDb = false;
+        } catch (err: any) {
+          // Fall back to local IndexedDB persistence if the upload fails
+          setUploadProgress({
+            percent: 95,
+            message: `Cloud upload failed (${err?.message ?? err}); keeping local copy...`,
+          });
+        }
+      }
+
       if (newSizedMedia?.fullUrl?.startsWith("blob:")) {
         try {
           URL.revokeObjectURL(newSizedMedia.fullUrl);
