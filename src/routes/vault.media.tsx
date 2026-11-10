@@ -113,13 +113,33 @@ function VaultMediaView() {
     const routeParts = [nextField, nextCategory, nextProject].filter(Boolean);
     const assignedRoute = `/${routeParts.join("/")}`;
 
-    // Recalculate dynamic code: e.g. 5826-PHOTOGRAPHY-FASHION-SEPIDAR
+    // Recalculate dynamic code: e.g. 1221-GRAPHIC-DESIGN-VISUAL-IDENTITY-AHURA-CCTV
     const dynamicCode = buildDynamicMediaCode(
       item.uniqueCode,
       nextField,
       nextCategory,
       nextProject,
     );
+
+    const ext = item.imgSrc?.toLowerCase().endsWith(".png")
+      ? ".PNG"
+      : item.imgSrc?.toLowerCase().endsWith(".mp4")
+      ? ".MP4"
+      : ".JPG";
+    const dynamicFileName = `${dynamicCode}${ext}`;
+
+    let nextTitle = updates.title ?? item.title;
+    if (
+      !nextTitle ||
+      nextTitle === `${item.dynamicCode}${ext}` ||
+      nextTitle === item.dynamicCode ||
+      nextTitle === item.project ||
+      nextTitle.includes("—") ||
+      nextTitle.toLowerCase().startsWith("media ") ||
+      nextTitle.toLowerCase().startsWith("frame ")
+    ) {
+      nextTitle = dynamicFileName;
+    }
 
     const updated: VaultMediaItem = {
       ...item,
@@ -129,6 +149,7 @@ function VaultMediaView() {
       project: nextProject,
       assignedRoute,
       dynamicCode,
+      title: nextTitle,
     };
 
     saveVaultMedia(updated);
@@ -172,6 +193,9 @@ function VaultMediaView() {
     const assignedRoute = `/${routeParts.join("/")}`;
     const dynamicCode = buildDynamicMediaCode(uniqueCode, field, category, project);
 
+    const ext = newSizedMedia.isVideo ? ".MP4" : ".JPG";
+    const dynamicTitle = newTitle.trim() || `${dynamicCode}${ext}`;
+
     const newMedia: VaultMediaItem = {
       id: `media-${uniqueCode}`,
       uniqueCode,
@@ -182,7 +206,7 @@ function VaultMediaView() {
       category,
       project,
       assignedRoute,
-      title: newTitle.trim() || `Media ${uniqueCode}`,
+      title: dynamicTitle,
       year: new Date().getFullYear().toString(),
       isHidden: false,
       pairedBoxes: newPairs,
@@ -772,7 +796,7 @@ function MediaCard({
 
           {/* Dedicated Media Route View link */}
           <a
-            href={`${item.assignedRoute}/${item.uniqueCode}`}
+            href={`${item.assignedRoute}/${item.dynamicCode}`}
             target="_blank"
             rel="noreferrer"
             className="absolute bottom-2 right-2 px-2 py-1 rounded bg-black/70 hover:bg-black text-[10px] font-mono text-neutral-300 hover:text-white flex items-center gap-1 border border-white/10 backdrop-blur-sm transition-colors"

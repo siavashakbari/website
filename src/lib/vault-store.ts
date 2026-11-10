@@ -104,9 +104,6 @@ function cleanSegment(s?: string): string {
   if (!s) return "";
   let str = s.trim().toUpperCase().replace(/[^A-Z0-9]+/g, "-");
   str = str.replace(/^-+|-+$/g, "");
-  if (str.endsWith("-PHOTOGRAPHY")) {
-    str = str.replace(/-PHOTOGRAPHY$/, "");
-  }
   return str;
 }
 
@@ -768,6 +765,13 @@ export function getInitialScannedMedia(): VaultMediaItem[] {
     const assignedRoute = `/${field}/${category}/${project}`;
     const dynamicCode = buildDynamicMediaCode(uniqueCode, field, category, project);
 
+    const ext = p.imgSrc?.toLowerCase().endsWith(".png")
+      ? ".PNG"
+      : p.imgSrc?.toLowerCase().endsWith(".mp4")
+      ? ".MP4"
+      : ".JPG";
+    const dynamicFileName = `${dynamicCode}${ext}`;
+
     const pairedBoxes: KeyValuePair[] = [];
     if (p.model) pairedBoxes.push({ key: "Model", value: p.model });
     if (p.client) pairedBoxes.push({ key: "Client", value: p.client });
@@ -785,7 +789,7 @@ export function getInitialScannedMedia(): VaultMediaItem[] {
       category,
       project,
       assignedRoute,
-      title: p.title || p.project,
+      title: dynamicFileName,
       year: p.date || "2024",
       client: p.client,
       model: p.model,
@@ -1060,17 +1064,24 @@ export function getVaultMedia(): VaultMediaItem[] {
               const field = normalizeDisciplineSlug(cp.discipline || "graphic-design");
               const category = normalizeSpecialtySlug(cp.subDiscipline || cp.category || "visual-identity");
               const project = normalizeProjectSlug(cp.title || cp.id || "project");
+              const ext = src.toLowerCase().endsWith(".png")
+                ? ".PNG"
+                : src.toLowerCase().endsWith(".mp4")
+                ? ".MP4"
+                : ".JPG";
+              const dynamicCode = buildDynamicMediaCode(uCode, field, category, project);
+              const dynamicFileName = `${dynamicCode}${ext}`;
               mediaMap.set(key, {
                 id: `custom-media-${uCode}`,
                 uniqueCode: uCode,
-                dynamicCode: buildDynamicMediaCode(uCode, field, category, project),
+                dynamicCode,
                 imgSrc: src,
                 thumbSrc: src,
                 field,
                 category,
                 project,
                 assignedRoute: `/${field}/${category}/${project}`,
-                title: `${cp.title || project} — ${idx + 1}`,
+                title: dynamicFileName,
                 year: String(cp.year || "2025"),
                 client: cp.client || "",
                 model: cp.models || "",
@@ -1123,23 +1134,68 @@ export function getVaultMedia(): VaultMediaItem[] {
     console.error("Error loading vault media:", e);
   }
 
-  const result = Array.from(mediaMap.values());
+  const result = Array.from(mediaMap.values()).map(ensureMediaItemDynamicFields);
   return result;
+}
+
+export function ensureMediaItemDynamicFields(item: VaultMediaItem): VaultMediaItem {
+  const uCode = (item.uniqueCode || item.id?.replace(/^media-/, "") || "1001").trim();
+  const field = item.field || "photography";
+  const category = item.category || "fashion-photography";
+  const project = item.project || "project";
+
+  const dynamicCode = buildDynamicMediaCode(uCode, field, category, project);
+  const assignedRoute = `/${field}/${category}/${project}`;
+
+  const ext = item.imgSrc?.toLowerCase().endsWith(".png")
+    ? ".PNG"
+    : item.imgSrc?.toLowerCase().endsWith(".mp4")
+    ? ".MP4"
+    : ".JPG";
+  const dynamicFileName = `${dynamicCode}${ext}`;
+
+  // Keep title in sync with dynamicCode + extension if it hasn't been given a distinct custom filename
+  let title = item.title;
+  if (
+    !title ||
+    title === item.project ||
+    title === item.uniqueCode ||
+    title.includes("—") ||
+    title.toLowerCase().startsWith("media ") ||
+    title.toLowerCase().startsWith("frame ") ||
+    !title.includes("-")
+  ) {
+    title = dynamicFileName;
+  } else if (!title.endsWith(ext) && !title.endsWith(".jpg") && !title.endsWith(".png") && !title.endsWith(".mp4")) {
+    title = `${title}${ext}`;
+  }
+
+  return {
+    ...item,
+    uniqueCode: uCode,
+    dynamicCode,
+    field,
+    category,
+    project,
+    assignedRoute,
+    title,
+  };
 }
 
 export function saveVaultMedia(item: VaultMediaItem): void {
   if (typeof window === "undefined") return;
+  const processed = ensureMediaItemDynamicFields(item);
   const list = getVaultMedia();
   const idx = list.findIndex(
-    (m) => m.id === item.id || m.uniqueCode === item.uniqueCode
+    (m) => m.id === processed.id || m.uniqueCode === processed.uniqueCode
   );
   if (idx >= 0) {
-    list[idx] = { ...list[idx], ...item };
+    list[idx] = { ...list[idx], ...processed };
   } else {
-    list.unshift(item);
+    list.unshift(processed);
   }
   localStorage.setItem(STORAGE_VAULT_MEDIA, JSON.stringify(list));
-  notifyVaultUpdated({ type: "media_saved", id: item.id });
+  notifyVaultUpdated({ type: "media_saved", id: processed.id });
 }
 
 export function deleteVaultMedia(idOrCode: string): void {
@@ -1152,13 +1208,21 @@ export function deleteVaultMedia(idOrCode: string): void {
 }
 
 export function getMediaByCode(code: string): VaultMediaItem | undefined {
+  if (!code) return undefined;
   const list = getVaultMedia();
   const cClean = code.trim().toUpperCase();
+  const cWithoutExt = cClean.replace(/\.(JPG|JPEG|PNG|WEBP|MP4)$/i, "");
+
   return list.find((m) => {
+    const dyn = (m.dynamicCode || "").toUpperCase();
+    const uCode = (m.uniqueCode || "").toUpperCase();
+    const mId = (m.id || "").toUpperCase();
     return (
-      m.uniqueCode === cClean ||
-      m.dynamicCode.toUpperCase() === cClean ||
-      m.id === code
+      dyn === cClean ||
+      dyn === cWithoutExt ||
+      uCode === cClean ||
+      mId === cClean ||
+      (cClean.length === 4 && /^\d{4}$/.test(cClean) && (uCode === cClean || dyn.startsWith(`${cClean}-`)))
     );
   });
 }

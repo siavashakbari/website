@@ -1,14 +1,15 @@
 import { useEffect, useMemo, useState } from "react";
-import { createFileRoute, notFound, rootRouteId, Link } from "@tanstack/react-router";
+import { createFileRoute, notFound, redirect, rootRouteId, Link } from "@tanstack/react-router";
 import { ArrowLeft, ChevronLeft, ChevronRight, ExternalLink } from "lucide-react";
 import {
   getPhotoItemBySlugOrCode,
   getPhotosByProject,
   getStudioProjects,
+  getMergedPhotoInventory,
   subscribeToStudioStore,
 } from "@/lib/studio-store";
 import type { PhotoInventoryItem } from "@/data/photo-inventory";
-import { getMediaByCode, subscribeToVaultStore } from "@/lib/vault-store";
+import { getMediaByCode, getVaultMedia, subscribeToVaultStore } from "@/lib/vault-store";
 import { HiddenPageNotice } from "@/components/ui-types";
 import { resolveInventoryImage } from "@/lib/inventory-assets";
 import { pageHead } from "@/lib/seo";
@@ -29,22 +30,101 @@ export const Route = createFileRoute("/$discipline/$specialty/$project/$photoId"
     const projectSlug = normalizeProjectSlug(params.project);
     const rawPhotoId = params.photoId.trim();
 
-    const photo = getPhotoItemBySlugOrCode(
+    let vaultMedia = getMediaByCode(rawPhotoId);
+    let photo = getPhotoItemBySlugOrCode(
       rawPhotoId,
       disciplineSlug,
       specialtySlug,
       projectSlug,
     );
 
+    if (!photo && vaultMedia) {
+      const all = getMergedPhotoInventory();
+      const vmSrc = (vaultMedia.imgSrc || "").toLowerCase();
+      const vmFilename = vmSrc.split("/").pop() || "";
+      photo = all.find((p) => {
+        const pSrc = (p.imgSrc || "").toLowerCase();
+        return (
+          pSrc === vmSrc ||
+          pSrc.endsWith(vmFilename) ||
+          vmSrc.endsWith(pSrc.split("/").pop() || "")
+        );
+      });
+
+      if (!photo) {
+        photo = {
+          code: vaultMedia.dynamicCode,
+          standardCode: vaultMedia.dynamicCode,
+          project: vaultMedia.project,
+          discipline: vaultMedia.field,
+          disciplineSlug: vaultMedia.field,
+          subdiscipline: vaultMedia.category,
+          specialtySlug: vaultMedia.category,
+          projectSlug: vaultMedia.project,
+          imgSrc: vaultMedia.imgSrc,
+          client: vaultMedia.client || "",
+          model: vaultMedia.model || "",
+          makeupArtist: vaultMedia.makeupArtist || "",
+          assistant: vaultMedia.assistant || "",
+          date: vaultMedia.year,
+          caption: vaultMedia.caption,
+          displayName: vaultMedia.title,
+          keywords: `${vaultMedia.project}, ${vaultMedia.field}`,
+        };
+      }
+    }
+
+    if (!vaultMedia && photo) {
+      vaultMedia =
+        getMediaByCode(photo.code) ||
+        (photo.standardCode ? getMediaByCode(photo.standardCode) : undefined);
+      if (!vaultMedia) {
+        const allVault = getVaultMedia();
+        const pSrc = (photo.imgSrc || "").toLowerCase();
+        const pFilename = pSrc.split("/").pop() || "";
+        vaultMedia = allVault.find((m) => {
+          const mSrc = (m.imgSrc || "").toLowerCase();
+          return (
+            mSrc === pSrc ||
+            mSrc.endsWith(pFilename) ||
+            pSrc.endsWith(mSrc.split("/").pop() || "")
+          );
+        });
+      }
+    }
+
     if (!photo) {
       throw notFound({ routeId: rootRouteId });
+    }
+
+    const canonicalPhotoCode = vaultMedia?.dynamicCode || photo.standardCode || photo.code;
+
+    // Auto-redirect if accessed via uniqueCode (e.g. 1221), legacy code, or casing mismatch
+    if (
+      rawPhotoId !== canonicalPhotoCode &&
+      rawPhotoId.toUpperCase() !== canonicalPhotoCode.toUpperCase()
+    ) {
+      throw redirect({
+        to: "/$discipline/$specialty/$project/$photoId",
+        params: {
+          discipline: disciplineSlug,
+          specialty: specialtySlug,
+          project: projectSlug,
+          photoId: canonicalPhotoCode,
+        },
+        replace: true,
+      });
     }
 
     // Inherit credits from studio project or default projects if missing
     const allProjects = getStudioProjects();
     const parentProject =
-      allProjects.find((p) => normalizeProjectSlug(p.title) === projectSlug || p.id === projectSlug) ||
-      projects.find((p) => normalizeProjectSlug(p.title) === projectSlug || p.id === projectSlug);
+      allProjects.find(
+        (p) => normalizeProjectSlug(p.title) === projectSlug || p.id === projectSlug,
+      ) ||
+      projects.find(
+        (p) => normalizeProjectSlug(p.title) === projectSlug || p.id === projectSlug,
+      );
 
     const client = photo.client || (parentProject as any)?.client || "";
     const model =
@@ -60,33 +140,64 @@ export const Route = createFileRoute("/$discipline/$specialty/$project/$photoId"
     const year = photo.date || parentProject?.year || "2024";
     const projectDescription = parentProject?.description || "";
 
+    const ext = (photo.imgSrc || "").toLowerCase().endsWith(".png")
+      ? ".PNG"
+      : (photo.imgSrc || "").toLowerCase().endsWith(".mp4")
+      ? ".MP4"
+      : ".JPG";
+    const dynamicImageFileName = vaultMedia?.title || `${canonicalPhotoCode}${ext}`;
+
     const resolvedPhoto: PhotoInventoryItem = {
       ...photo,
+      code: canonicalPhotoCode,
+      standardCode: canonicalPhotoCode,
+      displayName: dynamicImageFileName,
+      title: dynamicImageFileName,
       client,
       model,
       makeupArtist,
       assistant,
       date: String(year),
-      subdiscipline: photo.subdiscipline || (parentProject as any)?.subDiscipline || parentProject?.category || specialtySlug,
+      subdiscipline:
+        photo.subdiscipline ||
+        (parentProject as any)?.subDiscipline ||
+        parentProject?.category ||
+        specialtySlug,
       caption: photo.caption || (parentProject as any)?.caption || parentProject?.description || "",
     };
 
     const resolvedImage = resolveInventoryImage(resolvedPhoto.imgSrc);
 
-    // Sibling photos for navigation
+    // Sibling photos for navigation using dynamic codes
     const projectPhotos = getPhotosByProject(projectSlug);
     const currentIndex = projectPhotos.findIndex(
       (p) =>
-        p.code.toUpperCase() === resolvedPhoto.code.toUpperCase() ||
-        (p.standardCode && p.standardCode.toUpperCase() === resolvedPhoto.code.toUpperCase()),
+        (p.imgSrc && photo.imgSrc && p.imgSrc.toLowerCase() === photo.imgSrc.toLowerCase()) ||
+        p.code.toUpperCase() === photo.code.toUpperCase() ||
+        (p.standardCode && p.standardCode.toUpperCase() === photo.code.toUpperCase()),
     );
-    const prevPhoto = currentIndex > 0 ? projectPhotos[currentIndex - 1] : null;
-    const nextPhoto =
+
+    const getDynamicCodeForPhoto = (p: PhotoInventoryItem | null): string => {
+      if (!p) return "";
+      const vm =
+        getMediaByCode(p.code) ||
+        getVaultMedia().find((m) => {
+          const mSrc = (m.imgSrc || "").toLowerCase();
+          const pSrc = (p.imgSrc || "").toLowerCase();
+          return mSrc === pSrc || mSrc.endsWith(pSrc.split("/").pop() || "");
+        });
+      return vm ? vm.dynamicCode : p.standardCode || p.code;
+    };
+
+    const prevItem = currentIndex > 0 ? projectPhotos[currentIndex - 1] : null;
+    const nextItem =
       currentIndex >= 0 && currentIndex < projectPhotos.length - 1
         ? projectPhotos[currentIndex + 1]
         : null;
 
-    const vaultMedia = getMediaByCode(rawPhotoId) || getMediaByCode(resolvedPhoto.code);
+    const prevPhoto = prevItem ? { ...prevItem, code: getDynamicCodeForPhoto(prevItem) } : null;
+    const nextPhoto = nextItem ? { ...nextItem, code: getDynamicCodeForPhoto(nextItem) } : null;
+
     const isHidden = vaultMedia ? vaultMedia.isHidden : false;
 
     return {
@@ -185,8 +296,18 @@ function computePhotoData(loaderData: any) {
     const assistant = currentPhoto.assistant || (parentProject as any)?.assistant || "";
     const year = currentPhoto.date || parentProject?.year || "2024";
 
+    const ext = (currentPhoto.imgSrc || "").toLowerCase().endsWith(".png")
+      ? ".PNG"
+      : (currentPhoto.imgSrc || "").toLowerCase().endsWith(".mp4")
+      ? ".MP4"
+      : ".JPG";
+    const dynamicImageFileName = vMedia?.title || `${loaderData.photo.code}${ext}`;
+
     const resolved: PhotoInventoryItem = {
       ...currentPhoto,
+      code: loaderData.photo.code,
+      displayName: dynamicImageFileName,
+      title: dynamicImageFileName,
       client,
       model,
       makeupArtist,
@@ -396,8 +517,8 @@ function DedicatedPhotoView() {
             </div>
 
             <div>
-              <h1 className="font-display text-xl md:text-2xl font-normal leading-snug tracking-tight text-white">
-                {photo.displayName || photo.caption?.trim() || `${photo.project} — Frame ${photo.code.split("-").pop() || "01"}`}
+              <h1 className="font-display text-xl md:text-2xl font-normal leading-snug tracking-tight text-white font-mono break-all">
+                {photo.displayName || photo.title || `${photo.code}.JPG`}
               </h1>
             </div>
 
@@ -441,6 +562,9 @@ function DedicatedPhotoView() {
                 <div className="space-y-1.5 text-neutral-200 font-sans">
                   <div>
                     Asset Code: <span className="font-mono text-[#2CE3C0] font-semibold">{photo.code}</span>
+                  </div>
+                  <div>
+                    Image Name: <span className="font-mono text-white font-medium">{photo.displayName || photo.title || `${photo.code}.JPG`}</span>
                   </div>
                   {photo.date && <div>Year / Date: {photo.date}</div>}
                   {photo.keywords && (

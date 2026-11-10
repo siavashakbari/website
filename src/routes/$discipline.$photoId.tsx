@@ -1,5 +1,6 @@
 import { createFileRoute, notFound, redirect, rootRouteId } from "@tanstack/react-router";
 import { getPhotoItemBySlugOrCode, getMergedPhotoInventory } from "@/lib/studio-store";
+import { getMediaByCode, getVaultMedia } from "@/lib/vault-store";
 import {
   getPhotoByCode,
   getPhotoBySeoSlug,
@@ -15,6 +16,19 @@ import {
 export const Route = createFileRoute("/$discipline/$photoId")({
   loader: ({ params }) => {
     const rawParam = params.photoId.trim();
+
+    const vaultMedia = getMediaByCode(rawParam);
+    if (vaultMedia) {
+      throw redirect({
+        to: "/$discipline/$specialty/$project/$photoId",
+        params: {
+          discipline: vaultMedia.field,
+          specialty: vaultMedia.category,
+          project: vaultMedia.project,
+          photoId: vaultMedia.dynamicCode,
+        },
+      });
+    }
 
     let photo: PhotoInventoryItem | undefined =
       getPhotoItemBySlugOrCode(rawParam, params.discipline) ||
@@ -36,7 +50,9 @@ export const Route = createFileRoute("/$discipline/$photoId")({
       const discSlug = normalizeDisciplineSlug(photo.disciplineSlug || photo.discipline || params.discipline);
       const specSlug = normalizeSpecialtySlug(photo.specialtySlug || photo.subdiscipline || "fashion");
       const projSlug = normalizeProjectSlug(photo.projectSlug || photo.project);
-      const photoId = photo.code || photo.standardCode || rawParam;
+
+      const vm = getMediaByCode(photo.code) || (photo.standardCode ? getMediaByCode(photo.standardCode) : undefined);
+      const photoId = vm ? vm.dynamicCode : (photo.code || photo.standardCode || rawParam);
 
       throw redirect({
         to: "/$discipline/$specialty/$project/$photoId",

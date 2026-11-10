@@ -295,7 +295,7 @@ function ProjectCaseStudyPage() {
   }
 
   // Filter out any hidden media from display
-  const allVaultMedia = typeof window !== "undefined" ? getVaultMedia() : [];
+  const allVaultMedia = getVaultMedia();
   const hiddenCodeSet = new Set(
     allVaultMedia.filter((m) => m.isHidden).map((m) => m.uniqueCode.toUpperCase()),
   );
@@ -371,7 +371,18 @@ function ProjectCaseStudyPage() {
       );
     });
 
+    const vMedia = allVaultMedia.find((m) => {
+      const mSrc = (m.imgSrc || "").toLowerCase();
+      return (
+        mSrc === cleanSrc ||
+        mSrc.endsWith(filename) ||
+        cleanSrc.endsWith(mSrc.split("/").pop() || "") ||
+        (matched && (m.uniqueCode === matched.code || m.dynamicCode.toUpperCase() === matched.code.toUpperCase()))
+      );
+    });
+
     const photoIdentifier =
+      vMedia?.dynamicCode ||
       matched?.standardCode ||
       matched?.code ||
       projectPhotos[i]?.standardCode ||
