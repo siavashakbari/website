@@ -105,24 +105,52 @@ export const VideoPlayer = ({
 
   const handleLoadedMetadata = () => {
     if (videoRef.current) {
-      const { videoWidth, videoHeight } = videoRef.current;
+      const { videoWidth, videoHeight, duration: dur } = videoRef.current;
       if (videoWidth && videoHeight) {
         onRatioChange?.(videoWidth / videoHeight);
       }
-      readDuration();
+      // Faststart MP4s usually report a real duration immediately; if this one
+      // reports Infinity/NaN we force a duration scan via the seek hack in
+      // handleDurationChange.
+      if (isFinite(dur) && dur > 0) {
+        setDuration(dur);
+      } else {
+        requestDurationScan();
+      }
     }
   };
 
-  const handleDurationChange = () => readDuration();
-
-  const readDuration = () => {
+  const handleDurationChange = () => {
     const v = videoRef.current;
     if (!v) return;
     const dur = v.duration;
-    // Freshly remuxed MP4s report duration=Infinity in loadedmetadata.
-    // The real duration only becomes available on durationchange / timeupdate.
-    if (dur && isFinite(dur) && dur > 0 && dur !== duration) {
+    if (isFinite(dur) && dur > 0) {
       setDuration(dur);
+      if (durationScanRef.current) {
+        // The seek hack asked the browser to scan; return to the start.
+        durationScanRef.current = false;
+        try {
+          v.currentTime = 0;
+        } catch {
+          /* ignore */
+        }
+      }
+    }
+  };
+
+  // Forces Chrome/Safari/Firefox to scan the WHOLE MP4 so it can report the
+  // true duration (some files report Infinity until every byte is read).
+  const durationScanRef = useRef(false);
+  const requestedScanRef = useRef(false);
+  const requestDurationScan = () => {
+    const v = videoRef.current;
+    if (!v || requestedScanRef.current) return;
+    requestedScanRef.current = true;
+    durationScanRef.current = true;
+    try {
+      v.currentTime = Number.MAX_SAFE_INTEGER;
+    } catch {
+      /* browser may clamp — durationchange will still fire */
     }
   };
 
@@ -131,15 +159,11 @@ export const VideoPlayer = ({
       const cur = videoRef.current.currentTime;
       const dur = videoRef.current.duration;
       setCurrentTime(cur);
-      if (dur && isFinite(dur) && dur > 0) {
+      if (isFinite(dur) && dur > 0) {
         if (dur !== duration) setDuration(dur);
         setProgress((cur / dur) * 100);
-      } else if (dur === Infinity) {
-        // Some browsers report Infinity until the browser has scanned the whole
-        // stream — seek hack: once playback actually starts, the real value appears.
-        // Show 0 progress rather than NaN.
-        setProgress(0);
       }
+      // progress stays at 0 until a real duration is known — never NaN
     }
   };
 
@@ -203,6 +227,7 @@ export const VideoPlayer = ({
         className="w-full h-full object-contain cursor-pointer"
         onTimeUpdate={handleTimeUpdate}
         onLoadedMetadata={handleLoadedMetadata}
+        onDurationChange={handleDurationChange}
         src={src}
         autoPlay={autoPlay}
         loop={loop}
