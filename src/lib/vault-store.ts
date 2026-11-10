@@ -735,7 +735,7 @@ export function getInitialScannedMedia(): VaultMediaItem[] {
 
   // Map each item in PHOTO_INVENTORY
   PHOTO_INVENTORY.forEach((p, idx) => {
-    const uniqueCode = String(1001 + idx);
+    const uniqueCode = p.uniqueCode || String(1001 + idx);
     existingCodes.add(uniqueCode);
 
     let field = "photography";
@@ -1217,12 +1217,13 @@ export function getMediaByCode(code: string): VaultMediaItem | undefined {
     const dyn = (m.dynamicCode || "").toUpperCase();
     const uCode = (m.uniqueCode || "").toUpperCase();
     const mId = (m.id || "").toUpperCase();
+    const codeLeading4 = cClean.length >= 4 && /^\d{4}/.test(cClean) ? cClean.slice(0, 4) : "";
     return (
       dyn === cClean ||
       dyn === cWithoutExt ||
       uCode === cClean ||
       mId === cClean ||
-      (cClean.length === 4 && /^\d{4}$/.test(cClean) && (uCode === cClean || dyn.startsWith(`${cClean}-`)))
+      (codeLeading4 && (uCode === codeLeading4 || dyn.startsWith(`${codeLeading4}-`)))
     );
   });
 }

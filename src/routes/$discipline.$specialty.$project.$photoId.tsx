@@ -38,6 +38,29 @@ export const Route = createFileRoute("/$discipline/$specialty/$project/$photoId"
       projectSlug,
     );
 
+    // Resilient fallback for project photos: match by 4-digit prefix or project frame index
+    if (!photo && !vaultMedia) {
+      const leadingCodeMatch = rawPhotoId.match(/^(\d{4})/);
+      if (leadingCodeMatch) {
+        vaultMedia = getMediaByCode(leadingCodeMatch[1]);
+      }
+
+      const projPhotos = getPhotosByProject(projectSlug);
+      if (projPhotos.length > 0) {
+        const frameMatch =
+          rawPhotoId.match(/(?:frame-?|[-_])(\d+)(?:-thumb)?$/i) ||
+          rawPhotoId.match(/(\d+)$/);
+        let targetIndex = 0;
+        if (frameMatch) {
+          const num = parseInt(frameMatch[1], 10);
+          if (num >= 1 && num <= projPhotos.length) {
+            targetIndex = num - 1;
+          }
+        }
+        photo = projPhotos[targetIndex] || projPhotos[0];
+      }
+    }
+
     if (!photo && vaultMedia) {
       const all = getMergedPhotoInventory();
       const vmSrc = (vaultMedia.imgSrc || "").toLowerCase();

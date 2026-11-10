@@ -21,6 +21,8 @@ export interface PhotoInventoryItem {
   date: string;
   keywords: string;
   caption?: string;
+  uniqueCode?: string;
+  dynamicCode?: string;
   // Enhanced DAM & SEO Architecture fields:
   standardCode?: string;
   specialty?: string;
@@ -53,7 +55,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Atlasi, Fashion Photography, Siavash Akbari",
-    "disciplineSlug": "fashion-photography"
+    "disciplineSlug": "fashion-photography",
+    "uniqueCode": "1001"
   },
   {
     "code": "SA-FASH-ATL-02",
@@ -67,7 +70,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Atlasi, Fashion Photography, Siavash Akbari",
-    "disciplineSlug": "fashion-photography"
+    "disciplineSlug": "fashion-photography",
+    "uniqueCode": "1002"
   },
   {
     "code": "SA-FASH-ATL-03",
@@ -81,7 +85,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Atlasi, Fashion Photography, Siavash Akbari",
-    "disciplineSlug": "fashion-photography"
+    "disciplineSlug": "fashion-photography",
+    "uniqueCode": "1003"
   },
   {
     "code": "SA-FASH-ATL-04",
@@ -95,7 +100,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Atlasi, Fashion Photography, Siavash Akbari",
-    "disciplineSlug": "fashion-photography"
+    "disciplineSlug": "fashion-photography",
+    "uniqueCode": "1004"
   },
   {
     "code": "SA-FASH-ATL-05",
@@ -109,7 +115,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Atlasi, Fashion Photography, Siavash Akbari",
-    "disciplineSlug": "fashion-photography"
+    "disciplineSlug": "fashion-photography",
+    "uniqueCode": "1005"
   },
   {
     "code": "SA-FASH-ATL-06",
@@ -123,7 +130,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Atlasi, Fashion Photography, Siavash Akbari",
-    "disciplineSlug": "fashion-photography"
+    "disciplineSlug": "fashion-photography",
+    "uniqueCode": "1006"
   },
   {
     "code": "SA-FASH-ATL-07",
@@ -137,7 +145,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Atlasi, Fashion Photography, Siavash Akbari",
-    "disciplineSlug": "fashion-photography"
+    "disciplineSlug": "fashion-photography",
+    "uniqueCode": "1007"
   },
   {
     "code": "SA-FASH-ATL-08",
@@ -151,7 +160,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Atlasi, Fashion Photography, Siavash Akbari",
-    "disciplineSlug": "fashion-photography"
+    "disciplineSlug": "fashion-photography",
+    "uniqueCode": "1008"
   },
   {
     "code": "SA-FASH-ATL-09",
@@ -165,7 +175,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Atlasi, Fashion Photography, Siavash Akbari",
-    "disciplineSlug": "fashion-photography"
+    "disciplineSlug": "fashion-photography",
+    "uniqueCode": "1009"
   },
   {
     "code": "SA-FASH-ATL-10",
@@ -179,7 +190,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Atlasi, Fashion Photography, Siavash Akbari",
-    "disciplineSlug": "fashion-photography"
+    "disciplineSlug": "fashion-photography",
+    "uniqueCode": "1010"
   },
   {
     "code": "SA-FASH-ATL-11",
@@ -193,7 +205,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Atlasi, Fashion Photography, Siavash Akbari",
-    "disciplineSlug": "fashion-photography"
+    "disciplineSlug": "fashion-photography",
+    "uniqueCode": "1011"
   },
   {
     "code": "SA-FASH-ATL-12",
@@ -207,7 +220,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Atlasi, Fashion Photography, Siavash Akbari",
-    "disciplineSlug": "fashion-photography"
+    "disciplineSlug": "fashion-photography",
+    "uniqueCode": "1012"
   },
   {
     "code": "SA-FASH-ATL-13",
@@ -221,7 +235,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Atlasi, Fashion Photography, Siavash Akbari",
-    "disciplineSlug": "fashion-photography"
+    "disciplineSlug": "fashion-photography",
+    "uniqueCode": "1013"
   },
   {
     "code": "SA-FASH-ATL-14",
@@ -235,7 +250,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Atlasi, Fashion Photography, Siavash Akbari",
-    "disciplineSlug": "fashion-photography"
+    "disciplineSlug": "fashion-photography",
+    "uniqueCode": "1014"
   },
   {
     "code": "SA-FASH-SEP-01",
@@ -249,7 +265,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2020",
     "keywords": "Sepidar, Fashion Photography, Siavash Akbari",
-    "disciplineSlug": "fashion-photography"
+    "disciplineSlug": "fashion-photography",
+    "uniqueCode": "1015"
   },
   {
     "code": "SA-FASH-SEP-02",
@@ -263,7 +280,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2020",
     "keywords": "Sepidar, Fashion Photography, Siavash Akbari",
-    "disciplineSlug": "fashion-photography"
+    "disciplineSlug": "fashion-photography",
+    "uniqueCode": "1016"
   },
   {
     "code": "SA-FASH-SEP-03",
@@ -277,7 +295,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2020",
     "keywords": "Sepidar, Fashion Photography, Siavash Akbari",
-    "disciplineSlug": "fashion-photography"
+    "disciplineSlug": "fashion-photography",
+    "uniqueCode": "1017"
   },
   {
     "code": "SA-FASH-SEP-04",
@@ -291,7 +310,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2020",
     "keywords": "Sepidar, Fashion Photography, Siavash Akbari",
-    "disciplineSlug": "fashion-photography"
+    "disciplineSlug": "fashion-photography",
+    "uniqueCode": "1018"
   },
   {
     "code": "SA-FASH-SEP-05",
@@ -305,7 +325,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2020",
     "keywords": "Sepidar, Fashion Photography, Siavash Akbari",
-    "disciplineSlug": "fashion-photography"
+    "disciplineSlug": "fashion-photography",
+    "uniqueCode": "1019"
   },
   {
     "code": "SA-FASH-SEP-06",
@@ -319,7 +340,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2020",
     "keywords": "Sepidar, Fashion Photography, Siavash Akbari",
-    "disciplineSlug": "fashion-photography"
+    "disciplineSlug": "fashion-photography",
+    "uniqueCode": "1020"
   },
   {
     "code": "SA-FASH-SEP-07",
@@ -333,7 +355,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2020",
     "keywords": "Sepidar, Fashion Photography, Siavash Akbari",
-    "disciplineSlug": "fashion-photography"
+    "disciplineSlug": "fashion-photography",
+    "uniqueCode": "1021"
   },
   {
     "code": "SA-FASH-SEP-08",
@@ -347,7 +370,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2020",
     "keywords": "Sepidar, Fashion Photography, Siavash Akbari",
-    "disciplineSlug": "fashion-photography"
+    "disciplineSlug": "fashion-photography",
+    "uniqueCode": "1022"
   },
   {
     "code": "SA-FASH-SEP-09",
@@ -361,7 +385,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2020",
     "keywords": "Sepidar, Fashion Photography, Siavash Akbari",
-    "disciplineSlug": "fashion-photography"
+    "disciplineSlug": "fashion-photography",
+    "uniqueCode": "1023"
   },
   {
     "code": "SA-FASH-SEP-10",
@@ -375,7 +400,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2020",
     "keywords": "Sepidar, Fashion Photography, Siavash Akbari",
-    "disciplineSlug": "fashion-photography"
+    "disciplineSlug": "fashion-photography",
+    "uniqueCode": "1024"
   },
   {
     "code": "SA-FASH-SEP-11",
@@ -389,7 +415,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2020",
     "keywords": "Sepidar, Fashion Photography, Siavash Akbari",
-    "disciplineSlug": "fashion-photography"
+    "disciplineSlug": "fashion-photography",
+    "uniqueCode": "1025"
   },
   {
     "code": "SA-FASH-SEP-12",
@@ -403,7 +430,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2020",
     "keywords": "Sepidar, Fashion Photography, Siavash Akbari",
-    "disciplineSlug": "fashion-photography"
+    "disciplineSlug": "fashion-photography",
+    "uniqueCode": "1026"
   },
   {
     "code": "SA-FASH-SEP-13",
@@ -417,7 +445,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2020",
     "keywords": "Sepidar, Fashion Photography, Siavash Akbari",
-    "disciplineSlug": "fashion-photography"
+    "disciplineSlug": "fashion-photography",
+    "uniqueCode": "1027"
   },
   {
     "code": "SA-FASH-SEP-14",
@@ -431,7 +460,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2020",
     "keywords": "Sepidar, Fashion Photography, Siavash Akbari",
-    "disciplineSlug": "fashion-photography"
+    "disciplineSlug": "fashion-photography",
+    "uniqueCode": "1028"
   },
   {
     "code": "SA-FASH-SEP-15",
@@ -445,7 +475,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2020",
     "keywords": "Sepidar, Fashion Photography, Siavash Akbari",
-    "disciplineSlug": "fashion-photography"
+    "disciplineSlug": "fashion-photography",
+    "uniqueCode": "1029"
   },
   {
     "code": "SA-FASH-SEP-16",
@@ -459,7 +490,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2020",
     "keywords": "Sepidar, Fashion Photography, Siavash Akbari",
-    "disciplineSlug": "fashion-photography"
+    "disciplineSlug": "fashion-photography",
+    "uniqueCode": "1030"
   },
   {
     "code": "SA-FASH-SEP-17",
@@ -473,7 +505,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2020",
     "keywords": "Sepidar, Fashion Photography, Siavash Akbari",
-    "disciplineSlug": "fashion-photography"
+    "disciplineSlug": "fashion-photography",
+    "uniqueCode": "1031"
   },
   {
     "code": "SA-FASH-SEP-18",
@@ -487,7 +520,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2020",
     "keywords": "Sepidar, Fashion Photography, Siavash Akbari",
-    "disciplineSlug": "fashion-photography"
+    "disciplineSlug": "fashion-photography",
+    "uniqueCode": "1032"
   },
   {
     "code": "SA-FASH-SEP-19",
@@ -501,7 +535,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2020",
     "keywords": "Sepidar, Fashion Photography, Siavash Akbari",
-    "disciplineSlug": "fashion-photography"
+    "disciplineSlug": "fashion-photography",
+    "uniqueCode": "1033"
   },
   {
     "code": "SA-FASH-SEP-20",
@@ -515,7 +550,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2020",
     "keywords": "Sepidar, Fashion Photography, Siavash Akbari",
-    "disciplineSlug": "fashion-photography"
+    "disciplineSlug": "fashion-photography",
+    "uniqueCode": "1034"
   },
   {
     "code": "SA-FASH-SEP-21",
@@ -529,7 +565,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2020",
     "keywords": "Sepidar, Fashion Photography, Siavash Akbari",
-    "disciplineSlug": "fashion-photography"
+    "disciplineSlug": "fashion-photography",
+    "uniqueCode": "1035"
   },
   {
     "code": "SA-FASH-SEP-22",
@@ -543,7 +580,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2020",
     "keywords": "Sepidar, Fashion Photography, Siavash Akbari",
-    "disciplineSlug": "fashion-photography"
+    "disciplineSlug": "fashion-photography",
+    "uniqueCode": "1036"
   },
   {
     "code": "SA-FASH-SEP-23",
@@ -557,7 +595,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2020",
     "keywords": "Sepidar, Fashion Photography, Siavash Akbari",
-    "disciplineSlug": "fashion-photography"
+    "disciplineSlug": "fashion-photography",
+    "uniqueCode": "1037"
   },
   {
     "code": "SA-FASH-SEP-24",
@@ -571,7 +610,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2020",
     "keywords": "Sepidar, Fashion Photography, Siavash Akbari",
-    "disciplineSlug": "fashion-photography"
+    "disciplineSlug": "fashion-photography",
+    "uniqueCode": "1038"
   },
   {
     "code": "SA-FASH-SEP-25",
@@ -585,7 +625,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2020",
     "keywords": "Sepidar, Fashion Photography, Siavash Akbari",
-    "disciplineSlug": "fashion-photography"
+    "disciplineSlug": "fashion-photography",
+    "uniqueCode": "1039"
   },
   {
     "code": "SA-FASH-SEP-26",
@@ -599,7 +640,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2020",
     "keywords": "Sepidar, Fashion Photography, Siavash Akbari",
-    "disciplineSlug": "fashion-photography"
+    "disciplineSlug": "fashion-photography",
+    "uniqueCode": "1040"
   },
   {
     "code": "SA-FASH-SEP-27",
@@ -613,7 +655,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2020",
     "keywords": "Sepidar, Fashion Photography, Siavash Akbari",
-    "disciplineSlug": "fashion-photography"
+    "disciplineSlug": "fashion-photography",
+    "uniqueCode": "1041"
   },
   {
     "code": "SA-FASH-SEP-28",
@@ -627,7 +670,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2020",
     "keywords": "Sepidar, Fashion Photography, Siavash Akbari",
-    "disciplineSlug": "fashion-photography"
+    "disciplineSlug": "fashion-photography",
+    "uniqueCode": "1042"
   },
   {
     "code": "SA-FASH-SEP-29",
@@ -641,7 +685,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2020",
     "keywords": "Sepidar, Fashion Photography, Siavash Akbari",
-    "disciplineSlug": "fashion-photography"
+    "disciplineSlug": "fashion-photography",
+    "uniqueCode": "1043"
   },
   {
     "code": "SA-FASH-SEP-30",
@@ -655,7 +700,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2020",
     "keywords": "Sepidar, Fashion Photography, Siavash Akbari",
-    "disciplineSlug": "fashion-photography"
+    "disciplineSlug": "fashion-photography",
+    "uniqueCode": "1044"
   },
   {
     "code": "SA-FASH-SEP-31",
@@ -669,7 +715,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2020",
     "keywords": "Sepidar, Fashion Photography, Siavash Akbari",
-    "disciplineSlug": "fashion-photography"
+    "disciplineSlug": "fashion-photography",
+    "uniqueCode": "1045"
   },
   {
     "code": "SA-FASH-SEP-32",
@@ -683,7 +730,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2020",
     "keywords": "Sepidar, Fashion Photography, Siavash Akbari",
-    "disciplineSlug": "fashion-photography"
+    "disciplineSlug": "fashion-photography",
+    "uniqueCode": "1046"
   },
   {
     "code": "SA-FASH-SEP-33",
@@ -697,7 +745,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2020",
     "keywords": "Sepidar, Fashion Photography, Siavash Akbari",
-    "disciplineSlug": "fashion-photography"
+    "disciplineSlug": "fashion-photography",
+    "uniqueCode": "1047"
   },
   {
     "code": "SA-FASH-SEP-34",
@@ -711,7 +760,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2020",
     "keywords": "Sepidar, Fashion Photography, Siavash Akbari",
-    "disciplineSlug": "fashion-photography"
+    "disciplineSlug": "fashion-photography",
+    "uniqueCode": "1048"
   },
   {
     "code": "SA-FASH-ZEE-01",
@@ -725,7 +775,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2019",
     "keywords": "Zeeen, Fashion Photography, Siavash Akbari",
-    "disciplineSlug": "fashion-photography"
+    "disciplineSlug": "fashion-photography",
+    "uniqueCode": "1049"
   },
   {
     "code": "SA-FASH-ZEE-02",
@@ -739,7 +790,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2019",
     "keywords": "Zeeen, Fashion Photography, Siavash Akbari",
-    "disciplineSlug": "fashion-photography"
+    "disciplineSlug": "fashion-photography",
+    "uniqueCode": "1050"
   },
   {
     "code": "SA-FOOD-GAS-01",
@@ -753,7 +805,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Gastronomie, Food Photography, Siavash Akbari",
-    "disciplineSlug": "food-photography"
+    "disciplineSlug": "food-photography",
+    "uniqueCode": "1051"
   },
   {
     "code": "SA-FOOD-GAS-02",
@@ -767,7 +820,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Gastronomie, Food Photography, Siavash Akbari",
-    "disciplineSlug": "food-photography"
+    "disciplineSlug": "food-photography",
+    "uniqueCode": "1052"
   },
   {
     "code": "SA-FOOD-GAS-03",
@@ -781,7 +835,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Gastronomie, Food Photography, Siavash Akbari",
-    "disciplineSlug": "food-photography"
+    "disciplineSlug": "food-photography",
+    "uniqueCode": "1053"
   },
   {
     "code": "SA-FOOD-GAS-04",
@@ -795,7 +850,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Gastronomie, Food Photography, Siavash Akbari",
-    "disciplineSlug": "food-photography"
+    "disciplineSlug": "food-photography",
+    "uniqueCode": "1054"
   },
   {
     "code": "SA-FOOD-GAS-05",
@@ -809,7 +865,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Gastronomie, Food Photography, Siavash Akbari",
-    "disciplineSlug": "food-photography"
+    "disciplineSlug": "food-photography",
+    "uniqueCode": "1055"
   },
   {
     "code": "SA-FOOD-GAS-06",
@@ -823,7 +880,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Gastronomie, Food Photography, Siavash Akbari",
-    "disciplineSlug": "food-photography"
+    "disciplineSlug": "food-photography",
+    "uniqueCode": "1056"
   },
   {
     "code": "SA-FOOD-GAS-07",
@@ -837,7 +895,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Gastronomie, Food Photography, Siavash Akbari",
-    "disciplineSlug": "food-photography"
+    "disciplineSlug": "food-photography",
+    "uniqueCode": "1057"
   },
   {
     "code": "SA-FOOD-GAS-08",
@@ -851,7 +910,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Gastronomie, Food Photography, Siavash Akbari",
-    "disciplineSlug": "food-photography"
+    "disciplineSlug": "food-photography",
+    "uniqueCode": "1058"
   },
   {
     "code": "SA-FOOD-GAS-09",
@@ -865,7 +925,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Gastronomie, Food Photography, Siavash Akbari",
-    "disciplineSlug": "food-photography"
+    "disciplineSlug": "food-photography",
+    "uniqueCode": "1059"
   },
   {
     "code": "SA-FOOD-GAS-10",
@@ -879,7 +940,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Gastronomie, Food Photography, Siavash Akbari",
-    "disciplineSlug": "food-photography"
+    "disciplineSlug": "food-photography",
+    "uniqueCode": "1060"
   },
   {
     "code": "SA-FOOD-GAS-11",
@@ -893,7 +955,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Gastronomie, Food Photography, Siavash Akbari",
-    "disciplineSlug": "food-photography"
+    "disciplineSlug": "food-photography",
+    "uniqueCode": "1061"
   },
   {
     "code": "SA-FOOD-GAS-12",
@@ -907,7 +970,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Gastronomie, Food Photography, Siavash Akbari",
-    "disciplineSlug": "food-photography"
+    "disciplineSlug": "food-photography",
+    "uniqueCode": "1062"
   },
   {
     "code": "SA-FOOD-GAS-13",
@@ -921,7 +985,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Gastronomie, Food Photography, Siavash Akbari",
-    "disciplineSlug": "food-photography"
+    "disciplineSlug": "food-photography",
+    "uniqueCode": "1063"
   },
   {
     "code": "SA-FOOD-GAS-14",
@@ -935,7 +1000,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Gastronomie, Food Photography, Siavash Akbari",
-    "disciplineSlug": "food-photography"
+    "disciplineSlug": "food-photography",
+    "uniqueCode": "1064"
   },
   {
     "code": "SA-FOOD-GAS-15",
@@ -949,7 +1015,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Gastronomie, Food Photography, Siavash Akbari",
-    "disciplineSlug": "food-photography"
+    "disciplineSlug": "food-photography",
+    "uniqueCode": "1065"
   },
   {
     "code": "SA-FOOD-GAS-16",
@@ -963,7 +1030,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Gastronomie, Food Photography, Siavash Akbari",
-    "disciplineSlug": "food-photography"
+    "disciplineSlug": "food-photography",
+    "uniqueCode": "1066"
   },
   {
     "code": "SA-FOOD-GAS-17",
@@ -977,7 +1045,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Gastronomie, Food Photography, Siavash Akbari",
-    "disciplineSlug": "food-photography"
+    "disciplineSlug": "food-photography",
+    "uniqueCode": "1067"
   },
   {
     "code": "SA-FOOD-GAS-18",
@@ -991,7 +1060,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Gastronomie, Food Photography, Siavash Akbari",
-    "disciplineSlug": "food-photography"
+    "disciplineSlug": "food-photography",
+    "uniqueCode": "1068"
   },
   {
     "code": "SA-FOOD-GAS-19",
@@ -1005,7 +1075,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Gastronomie, Food Photography, Siavash Akbari",
-    "disciplineSlug": "food-photography"
+    "disciplineSlug": "food-photography",
+    "uniqueCode": "1069"
   },
   {
     "code": "SA-FOOD-GAS-20",
@@ -1019,7 +1090,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Gastronomie, Food Photography, Siavash Akbari",
-    "disciplineSlug": "food-photography"
+    "disciplineSlug": "food-photography",
+    "uniqueCode": "1070"
   },
   {
     "code": "SA-FOOD-GAS-21",
@@ -1033,7 +1105,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Gastronomie, Food Photography, Siavash Akbari",
-    "disciplineSlug": "food-photography"
+    "disciplineSlug": "food-photography",
+    "uniqueCode": "1071"
   },
   {
     "code": "SA-FOOD-GAS-22",
@@ -1047,7 +1120,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Gastronomie, Food Photography, Siavash Akbari",
-    "disciplineSlug": "food-photography"
+    "disciplineSlug": "food-photography",
+    "uniqueCode": "1072"
   },
   {
     "code": "SA-FOOD-GAS-23",
@@ -1061,7 +1135,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Gastronomie, Food Photography, Siavash Akbari",
-    "disciplineSlug": "food-photography"
+    "disciplineSlug": "food-photography",
+    "uniqueCode": "1073"
   },
   {
     "code": "SA-FOOD-GAS-24",
@@ -1075,7 +1150,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Gastronomie, Food Photography, Siavash Akbari",
-    "disciplineSlug": "food-photography"
+    "disciplineSlug": "food-photography",
+    "uniqueCode": "1074"
   },
   {
     "code": "SA-FOOD-CUI-01",
@@ -1089,7 +1165,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Cuisine, Food Photography, Siavash Akbari",
-    "disciplineSlug": "food-photography"
+    "disciplineSlug": "food-photography",
+    "uniqueCode": "1075"
   },
   {
     "code": "SA-FOOD-CUI-02",
@@ -1103,7 +1180,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Cuisine, Food Photography, Siavash Akbari",
-    "disciplineSlug": "food-photography"
+    "disciplineSlug": "food-photography",
+    "uniqueCode": "1076"
   },
   {
     "code": "SA-FOOD-CUI-03",
@@ -1117,7 +1195,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Cuisine, Food Photography, Siavash Akbari",
-    "disciplineSlug": "food-photography"
+    "disciplineSlug": "food-photography",
+    "uniqueCode": "1077"
   },
   {
     "code": "SA-FOOD-CUI-04",
@@ -1131,7 +1210,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Cuisine, Food Photography, Siavash Akbari",
-    "disciplineSlug": "food-photography"
+    "disciplineSlug": "food-photography",
+    "uniqueCode": "1078"
   },
   {
     "code": "SA-FOOD-CUI-05",
@@ -1145,7 +1225,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Cuisine, Food Photography, Siavash Akbari",
-    "disciplineSlug": "food-photography"
+    "disciplineSlug": "food-photography",
+    "uniqueCode": "1079"
   },
   {
     "code": "SA-FOOD-CUI-06",
@@ -1159,7 +1240,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Cuisine, Food Photography, Siavash Akbari",
-    "disciplineSlug": "food-photography"
+    "disciplineSlug": "food-photography",
+    "uniqueCode": "1080"
   },
   {
     "code": "SA-FOOD-CUI-07",
@@ -1173,7 +1255,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Cuisine, Food Photography, Siavash Akbari",
-    "disciplineSlug": "food-photography"
+    "disciplineSlug": "food-photography",
+    "uniqueCode": "1081"
   },
   {
     "code": "SA-FOOD-CUI-08",
@@ -1187,7 +1270,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Cuisine, Food Photography, Siavash Akbari",
-    "disciplineSlug": "food-photography"
+    "disciplineSlug": "food-photography",
+    "uniqueCode": "1082"
   },
   {
     "code": "SA-FOOD-CUI-09",
@@ -1201,7 +1285,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Cuisine, Food Photography, Siavash Akbari",
-    "disciplineSlug": "food-photography"
+    "disciplineSlug": "food-photography",
+    "uniqueCode": "1083"
   },
   {
     "code": "SA-FOOD-CUI-10",
@@ -1215,7 +1300,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Cuisine, Food Photography, Siavash Akbari",
-    "disciplineSlug": "food-photography"
+    "disciplineSlug": "food-photography",
+    "uniqueCode": "1084"
   },
   {
     "code": "SA-FOOD-CUI-11",
@@ -1229,7 +1315,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Cuisine, Food Photography, Siavash Akbari",
-    "disciplineSlug": "food-photography"
+    "disciplineSlug": "food-photography",
+    "uniqueCode": "1085"
   },
   {
     "code": "SA-FOOD-TAS-01",
@@ -1243,7 +1330,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Gastronomie, Food Photography, Siavash Akbari",
-    "disciplineSlug": "food-photography"
+    "disciplineSlug": "food-photography",
+    "uniqueCode": "1086"
   },
   {
     "code": "SA-FOOD-TAS-02",
@@ -1257,7 +1345,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Gastronomie, Food Photography, Siavash Akbari",
-    "disciplineSlug": "food-photography"
+    "disciplineSlug": "food-photography",
+    "uniqueCode": "1087"
   },
   {
     "code": "SA-FOOD-TAS-03",
@@ -1271,7 +1360,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Gastronomie, Food Photography, Siavash Akbari",
-    "disciplineSlug": "food-photography"
+    "disciplineSlug": "food-photography",
+    "uniqueCode": "1088"
   },
   {
     "code": "SA-FOOD-TAS-04",
@@ -1285,7 +1375,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Gastronomie, Food Photography, Siavash Akbari",
-    "disciplineSlug": "food-photography"
+    "disciplineSlug": "food-photography",
+    "uniqueCode": "1089"
   },
   {
     "code": "SA-FOOD-TAS-05",
@@ -1299,7 +1390,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Gastronomie, Food Photography, Siavash Akbari",
-    "disciplineSlug": "food-photography"
+    "disciplineSlug": "food-photography",
+    "uniqueCode": "1090"
   },
   {
     "code": "SA-FOOD-TAS-06",
@@ -1313,7 +1405,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Gastronomie, Food Photography, Siavash Akbari",
-    "disciplineSlug": "food-photography"
+    "disciplineSlug": "food-photography",
+    "uniqueCode": "1091"
   },
   {
     "code": "SA-FOOD-TAS-07",
@@ -1327,7 +1420,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Gastronomie, Food Photography, Siavash Akbari",
-    "disciplineSlug": "food-photography"
+    "disciplineSlug": "food-photography",
+    "uniqueCode": "1092"
   },
   {
     "code": "SA-PORT-CAL-01",
@@ -1341,7 +1435,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Calligraphy, Portrait Photography, Siavash Akbari",
-    "disciplineSlug": "portrait-photography"
+    "disciplineSlug": "portrait-photography",
+    "uniqueCode": "1093"
   },
   {
     "code": "SA-PORT-CAL-02",
@@ -1355,7 +1450,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Calligraphy, Portrait Photography, Siavash Akbari",
-    "disciplineSlug": "portrait-photography"
+    "disciplineSlug": "portrait-photography",
+    "uniqueCode": "1094"
   },
   {
     "code": "SA-PORT-CAL-03",
@@ -1369,7 +1465,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Calligraphy, Portrait Photography, Siavash Akbari",
-    "disciplineSlug": "portrait-photography"
+    "disciplineSlug": "portrait-photography",
+    "uniqueCode": "1095"
   },
   {
     "code": "SA-PORT-CAL-04",
@@ -1383,7 +1480,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Calligraphy, Portrait Photography, Siavash Akbari",
-    "disciplineSlug": "portrait-photography"
+    "disciplineSlug": "portrait-photography",
+    "uniqueCode": "1096"
   },
   {
     "code": "SA-PORT-CAL-05",
@@ -1397,7 +1495,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Calligraphy, Portrait Photography, Siavash Akbari",
-    "disciplineSlug": "portrait-photography"
+    "disciplineSlug": "portrait-photography",
+    "uniqueCode": "1097"
   },
   {
     "code": "SA-PORT-CAL-06",
@@ -1411,7 +1510,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Calligraphy, Portrait Photography, Siavash Akbari",
-    "disciplineSlug": "portrait-photography"
+    "disciplineSlug": "portrait-photography",
+    "uniqueCode": "1098"
   },
   {
     "code": "SA-PORT-PHO-01",
@@ -1425,7 +1525,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Photos, Portrait Photography, Siavash Akbari",
-    "disciplineSlug": "portrait-photography"
+    "disciplineSlug": "portrait-photography",
+    "uniqueCode": "1099"
   },
   {
     "code": "SA-PORT-PHO-02",
@@ -1439,7 +1540,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Photos, Portrait Photography, Siavash Akbari",
-    "disciplineSlug": "portrait-photography"
+    "disciplineSlug": "portrait-photography",
+    "uniqueCode": "1100"
   },
   {
     "code": "SA-PORT-PHO-03",
@@ -1453,7 +1555,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Photos, Portrait Photography, Siavash Akbari",
-    "disciplineSlug": "portrait-photography"
+    "disciplineSlug": "portrait-photography",
+    "uniqueCode": "1101"
   },
   {
     "code": "SA-PORT-PHO-04",
@@ -1467,7 +1570,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Photos, Portrait Photography, Siavash Akbari",
-    "disciplineSlug": "portrait-photography"
+    "disciplineSlug": "portrait-photography",
+    "uniqueCode": "1102"
   },
   {
     "code": "SA-PORT-PHO-05",
@@ -1481,7 +1585,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Photos, Portrait Photography, Siavash Akbari",
-    "disciplineSlug": "portrait-photography"
+    "disciplineSlug": "portrait-photography",
+    "uniqueCode": "1103"
   },
   {
     "code": "SA-PORT-PHO-06",
@@ -1495,7 +1600,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Photos, Portrait Photography, Siavash Akbari",
-    "disciplineSlug": "portrait-photography"
+    "disciplineSlug": "portrait-photography",
+    "uniqueCode": "1104"
   },
   {
     "code": "SA-PORT-PHO-07",
@@ -1509,7 +1615,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Photos, Portrait Photography, Siavash Akbari",
-    "disciplineSlug": "portrait-photography"
+    "disciplineSlug": "portrait-photography",
+    "uniqueCode": "1105"
   },
   {
     "code": "SA-PORT-PHO-08",
@@ -1523,7 +1630,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Photos, Portrait Photography, Siavash Akbari",
-    "disciplineSlug": "portrait-photography"
+    "disciplineSlug": "portrait-photography",
+    "uniqueCode": "1106"
   },
   {
     "code": "SA-PORT-PHO-09",
@@ -1537,7 +1645,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Photos, Portrait Photography, Siavash Akbari",
-    "disciplineSlug": "portrait-photography"
+    "disciplineSlug": "portrait-photography",
+    "uniqueCode": "1107"
   },
   {
     "code": "SA-PORT-PHO-10",
@@ -1551,7 +1660,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Photos, Portrait Photography, Siavash Akbari",
-    "disciplineSlug": "portrait-photography"
+    "disciplineSlug": "portrait-photography",
+    "uniqueCode": "1108"
   },
   {
     "code": "SA-PORT-PHO-11",
@@ -1565,7 +1675,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Photos, Portrait Photography, Siavash Akbari",
-    "disciplineSlug": "portrait-photography"
+    "disciplineSlug": "portrait-photography",
+    "uniqueCode": "1109"
   },
   {
     "code": "SA-PORT-PHO-12",
@@ -1579,7 +1690,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Photos, Portrait Photography, Siavash Akbari",
-    "disciplineSlug": "portrait-photography"
+    "disciplineSlug": "portrait-photography",
+    "uniqueCode": "1110"
   },
   {
     "code": "SA-PORT-PHO-13",
@@ -1593,7 +1705,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Photos, Portrait Photography, Siavash Akbari",
-    "disciplineSlug": "portrait-photography"
+    "disciplineSlug": "portrait-photography",
+    "uniqueCode": "1111"
   },
   {
     "code": "SA-PORT-PHO-14",
@@ -1607,7 +1720,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Photos, Portrait Photography, Siavash Akbari",
-    "disciplineSlug": "portrait-photography"
+    "disciplineSlug": "portrait-photography",
+    "uniqueCode": "1112"
   },
   {
     "code": "SA-PORT-PHO-15",
@@ -1621,7 +1735,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Photos, Portrait Photography, Siavash Akbari",
-    "disciplineSlug": "portrait-photography"
+    "disciplineSlug": "portrait-photography",
+    "uniqueCode": "1113"
   },
   {
     "code": "SA-PORT-PHO-16",
@@ -1635,7 +1750,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Photos, Portrait Photography, Siavash Akbari",
-    "disciplineSlug": "portrait-photography"
+    "disciplineSlug": "portrait-photography",
+    "uniqueCode": "1114"
   },
   {
     "code": "SA-PORT-PHO-17",
@@ -1649,7 +1765,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Photos, Portrait Photography, Siavash Akbari",
-    "disciplineSlug": "portrait-photography"
+    "disciplineSlug": "portrait-photography",
+    "uniqueCode": "1115"
   },
   {
     "code": "SA-PORT-PHO-18",
@@ -1663,7 +1780,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Photos, Portrait Photography, Siavash Akbari",
-    "disciplineSlug": "portrait-photography"
+    "disciplineSlug": "portrait-photography",
+    "uniqueCode": "1116"
   },
   {
     "code": "SA-PORT-PHO-19",
@@ -1677,7 +1795,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Photos, Portrait Photography, Siavash Akbari",
-    "disciplineSlug": "portrait-photography"
+    "disciplineSlug": "portrait-photography",
+    "uniqueCode": "1117"
   },
   {
     "code": "SA-PORT-GAZ-01",
@@ -1691,7 +1810,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Gaze, Portrait Photography, Siavash Akbari",
-    "disciplineSlug": "portrait-photography"
+    "disciplineSlug": "portrait-photography",
+    "uniqueCode": "1118"
   },
   {
     "code": "SA-PROD-OBJ-01",
@@ -1705,7 +1825,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Objects, Product Photography, Siavash Akbari",
-    "disciplineSlug": "product-photography"
+    "disciplineSlug": "product-photography",
+    "uniqueCode": "1119"
   },
   {
     "code": "SA-PROD-OBJ-02",
@@ -1719,7 +1840,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Objects, Product Photography, Siavash Akbari",
-    "disciplineSlug": "product-photography"
+    "disciplineSlug": "product-photography",
+    "uniqueCode": "1120"
   },
   {
     "code": "SA-PROD-OBJ-03",
@@ -1733,7 +1855,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Objects, Product Photography, Siavash Akbari",
-    "disciplineSlug": "product-photography"
+    "disciplineSlug": "product-photography",
+    "uniqueCode": "1121"
   },
   {
     "code": "SA-PROD-OBJ-04",
@@ -1747,7 +1870,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Objects, Product Photography, Siavash Akbari",
-    "disciplineSlug": "product-photography"
+    "disciplineSlug": "product-photography",
+    "uniqueCode": "1122"
   },
   {
     "code": "SA-PROD-OBJ-05",
@@ -1761,7 +1885,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Objects, Product Photography, Siavash Akbari",
-    "disciplineSlug": "product-photography"
+    "disciplineSlug": "product-photography",
+    "uniqueCode": "1123"
   },
   {
     "code": "SA-PROD-OBJ-06",
@@ -1775,7 +1900,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Objects, Product Photography, Siavash Akbari",
-    "disciplineSlug": "product-photography"
+    "disciplineSlug": "product-photography",
+    "uniqueCode": "1124"
   },
   {
     "code": "SA-PROD-OBJ-07",
@@ -1789,7 +1915,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Objects, Product Photography, Siavash Akbari",
-    "disciplineSlug": "product-photography"
+    "disciplineSlug": "product-photography",
+    "uniqueCode": "1125"
   },
   {
     "code": "SA-PROD-OBJ-08",
@@ -1803,7 +1930,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Objects, Product Photography, Siavash Akbari",
-    "disciplineSlug": "product-photography"
+    "disciplineSlug": "product-photography",
+    "uniqueCode": "1126"
   },
   {
     "code": "SA-PROD-OBJ-09",
@@ -1817,7 +1945,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Objects, Product Photography, Siavash Akbari",
-    "disciplineSlug": "product-photography"
+    "disciplineSlug": "product-photography",
+    "uniqueCode": "1127"
   },
   {
     "code": "SA-PROD-OBJ-10",
@@ -1831,7 +1960,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Objects, Product Photography, Siavash Akbari",
-    "disciplineSlug": "product-photography"
+    "disciplineSlug": "product-photography",
+    "uniqueCode": "1128"
   },
   {
     "code": "SA-PROD-OBJ-11",
@@ -1845,7 +1975,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Objects, Product Photography, Siavash Akbari",
-    "disciplineSlug": "product-photography"
+    "disciplineSlug": "product-photography",
+    "uniqueCode": "1129"
   },
   {
     "code": "SA-PROD-OBJ-12",
@@ -1859,7 +1990,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Objects, Product Photography, Siavash Akbari",
-    "disciplineSlug": "product-photography"
+    "disciplineSlug": "product-photography",
+    "uniqueCode": "1130"
   },
   {
     "code": "SA-PROD-OBJ-13",
@@ -1873,7 +2005,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Objects, Product Photography, Siavash Akbari",
-    "disciplineSlug": "product-photography"
+    "disciplineSlug": "product-photography",
+    "uniqueCode": "1131"
   },
   {
     "code": "SA-PROD-OBJ-14",
@@ -1887,7 +2020,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Objects, Product Photography, Siavash Akbari",
-    "disciplineSlug": "product-photography"
+    "disciplineSlug": "product-photography",
+    "uniqueCode": "1132"
   },
   {
     "code": "SA-PROD-OBJ-15",
@@ -1901,7 +2035,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Objects, Product Photography, Siavash Akbari",
-    "disciplineSlug": "product-photography"
+    "disciplineSlug": "product-photography",
+    "uniqueCode": "1133"
   },
   {
     "code": "SA-PROD-OBJ-16",
@@ -1915,7 +2050,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Objects, Product Photography, Siavash Akbari",
-    "disciplineSlug": "product-photography"
+    "disciplineSlug": "product-photography",
+    "uniqueCode": "1134"
   },
   {
     "code": "SA-PROD-OBJ-17",
@@ -1929,7 +2065,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Objects, Product Photography, Siavash Akbari",
-    "disciplineSlug": "product-photography"
+    "disciplineSlug": "product-photography",
+    "uniqueCode": "1135"
   },
   {
     "code": "SA-PROD-OBJ-18",
@@ -1943,7 +2080,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Objects, Product Photography, Siavash Akbari",
-    "disciplineSlug": "product-photography"
+    "disciplineSlug": "product-photography",
+    "uniqueCode": "1136"
   },
   {
     "code": "SA-PROD-OBJ-19",
@@ -1957,7 +2095,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Objects, Product Photography, Siavash Akbari",
-    "disciplineSlug": "product-photography"
+    "disciplineSlug": "product-photography",
+    "uniqueCode": "1137"
   },
   {
     "code": "SA-PROD-OBJ-20",
@@ -1971,7 +2110,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Objects, Product Photography, Siavash Akbari",
-    "disciplineSlug": "product-photography"
+    "disciplineSlug": "product-photography",
+    "uniqueCode": "1138"
   },
   {
     "code": "SA-PROD-OBJ-21",
@@ -1985,7 +2125,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Objects, Product Photography, Siavash Akbari",
-    "disciplineSlug": "product-photography"
+    "disciplineSlug": "product-photography",
+    "uniqueCode": "1139"
   },
   {
     "code": "SA-PROD-OBJ-22",
@@ -1999,7 +2140,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Objects, Product Photography, Siavash Akbari",
-    "disciplineSlug": "product-photography"
+    "disciplineSlug": "product-photography",
+    "uniqueCode": "1140"
   },
   {
     "code": "SA-PROD-OBJ-23",
@@ -2013,7 +2155,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Objects, Product Photography, Siavash Akbari",
-    "disciplineSlug": "product-photography"
+    "disciplineSlug": "product-photography",
+    "uniqueCode": "1141"
   },
   {
     "code": "SA-PROD-OBJ-24",
@@ -2027,7 +2170,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Objects, Product Photography, Siavash Akbari",
-    "disciplineSlug": "product-photography"
+    "disciplineSlug": "product-photography",
+    "uniqueCode": "1142"
   },
   {
     "code": "SA-PROD-OBJ-25",
@@ -2041,7 +2185,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Objects, Product Photography, Siavash Akbari",
-    "disciplineSlug": "product-photography"
+    "disciplineSlug": "product-photography",
+    "uniqueCode": "1143"
   },
   {
     "code": "SA-PROD-OBJ-26",
@@ -2055,7 +2200,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Objects, Product Photography, Siavash Akbari",
-    "disciplineSlug": "product-photography"
+    "disciplineSlug": "product-photography",
+    "uniqueCode": "1144"
   },
   {
     "code": "SA-PROD-OBJ-27",
@@ -2069,7 +2215,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Objects, Product Photography, Siavash Akbari",
-    "disciplineSlug": "product-photography"
+    "disciplineSlug": "product-photography",
+    "uniqueCode": "1145"
   },
   {
     "code": "SA-PROD-OBJ-28",
@@ -2083,7 +2230,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Objects, Product Photography, Siavash Akbari",
-    "disciplineSlug": "product-photography"
+    "disciplineSlug": "product-photography",
+    "uniqueCode": "1146"
   },
   {
     "code": "SA-PROD-OBJ-29",
@@ -2097,7 +2245,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Objects, Product Photography, Siavash Akbari",
-    "disciplineSlug": "product-photography"
+    "disciplineSlug": "product-photography",
+    "uniqueCode": "1147"
   },
   {
     "code": "SA-PROD-OBJ-30",
@@ -2111,7 +2260,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Objects, Product Photography, Siavash Akbari",
-    "disciplineSlug": "product-photography"
+    "disciplineSlug": "product-photography",
+    "uniqueCode": "1148"
   },
   {
     "code": "SA-PROD-OBJ-31",
@@ -2125,7 +2275,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Objects, Product Photography, Siavash Akbari",
-    "disciplineSlug": "product-photography"
+    "disciplineSlug": "product-photography",
+    "uniqueCode": "1149"
   },
   {
     "code": "SA-PROD-OBJ-32",
@@ -2139,7 +2290,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Objects, Product Photography, Siavash Akbari",
-    "disciplineSlug": "product-photography"
+    "disciplineSlug": "product-photography",
+    "uniqueCode": "1150"
   },
   {
     "code": "SA-PROD-OBJ-33",
@@ -2153,7 +2305,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Objects, Product Photography, Siavash Akbari",
-    "disciplineSlug": "product-photography"
+    "disciplineSlug": "product-photography",
+    "uniqueCode": "1151"
   },
   {
     "code": "SA-PROD-OBJ-34",
@@ -2167,7 +2320,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Objects, Product Photography, Siavash Akbari",
-    "disciplineSlug": "product-photography"
+    "disciplineSlug": "product-photography",
+    "uniqueCode": "1152"
   },
   {
     "code": "SA-PROD-OBJ-35",
@@ -2181,7 +2335,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Objects, Product Photography, Siavash Akbari",
-    "disciplineSlug": "product-photography"
+    "disciplineSlug": "product-photography",
+    "uniqueCode": "1153"
   },
   {
     "code": "SA-PROD-OBJ-36",
@@ -2195,7 +2350,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Objects, Product Photography, Siavash Akbari",
-    "disciplineSlug": "product-photography"
+    "disciplineSlug": "product-photography",
+    "uniqueCode": "1154"
   },
   {
     "code": "SA-PROD-OBJ-37",
@@ -2209,7 +2365,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Objects, Product Photography, Siavash Akbari",
-    "disciplineSlug": "product-photography"
+    "disciplineSlug": "product-photography",
+    "uniqueCode": "1155"
   },
   {
     "code": "SA-PROD-OBJ-38",
@@ -2223,7 +2380,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Objects, Product Photography, Siavash Akbari",
-    "disciplineSlug": "product-photography"
+    "disciplineSlug": "product-photography",
+    "uniqueCode": "1156"
   },
   {
     "code": "SA-PROD-OBJ-39",
@@ -2237,7 +2395,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Objects, Product Photography, Siavash Akbari",
-    "disciplineSlug": "product-photography"
+    "disciplineSlug": "product-photography",
+    "uniqueCode": "1157"
   },
   {
     "code": "SA-PROD-OBJ-40",
@@ -2251,7 +2410,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Objects, Product Photography, Siavash Akbari",
-    "disciplineSlug": "product-photography"
+    "disciplineSlug": "product-photography",
+    "uniqueCode": "1158"
   },
   {
     "code": "SA-PROD-OBJ-41",
@@ -2265,7 +2425,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Objects, Product Photography, Siavash Akbari",
-    "disciplineSlug": "product-photography"
+    "disciplineSlug": "product-photography",
+    "uniqueCode": "1159"
   },
   {
     "code": "SA-PROD-OBJ-42",
@@ -2279,7 +2440,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Objects, Product Photography, Siavash Akbari",
-    "disciplineSlug": "product-photography"
+    "disciplineSlug": "product-photography",
+    "uniqueCode": "1160"
   },
   {
     "code": "SA-PROD-OBJ-43",
@@ -2293,7 +2455,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Objects, Product Photography, Siavash Akbari",
-    "disciplineSlug": "product-photography"
+    "disciplineSlug": "product-photography",
+    "uniqueCode": "1161"
   },
   {
     "code": "SA-PROD-OBJ-44",
@@ -2307,7 +2470,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Objects, Product Photography, Siavash Akbari",
-    "disciplineSlug": "product-photography"
+    "disciplineSlug": "product-photography",
+    "uniqueCode": "1162"
   },
   {
     "code": "SA-PROD-OBJ-45",
@@ -2321,7 +2485,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Objects, Product Photography, Siavash Akbari",
-    "disciplineSlug": "product-photography"
+    "disciplineSlug": "product-photography",
+    "uniqueCode": "1163"
   },
   {
     "code": "SA-PROD-OBJ-46",
@@ -2335,7 +2500,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Objects, Product Photography, Siavash Akbari",
-    "disciplineSlug": "product-photography"
+    "disciplineSlug": "product-photography",
+    "uniqueCode": "1164"
   },
   {
     "code": "SA-PROD-OBJ-47",
@@ -2349,7 +2515,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Objects, Product Photography, Siavash Akbari",
-    "disciplineSlug": "product-photography"
+    "disciplineSlug": "product-photography",
+    "uniqueCode": "1165"
   },
   {
     "code": "SA-PROD-OBJ-48",
@@ -2363,7 +2530,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Objects, Product Photography, Siavash Akbari",
-    "disciplineSlug": "product-photography"
+    "disciplineSlug": "product-photography",
+    "uniqueCode": "1166"
   },
   {
     "code": "SA-PROD-OBJ-49",
@@ -2377,7 +2545,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Objects, Product Photography, Siavash Akbari",
-    "disciplineSlug": "product-photography"
+    "disciplineSlug": "product-photography",
+    "uniqueCode": "1167"
   },
   {
     "code": "SA-PROD-OBJ-50",
@@ -2391,7 +2560,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Objects, Product Photography, Siavash Akbari",
-    "disciplineSlug": "product-photography"
+    "disciplineSlug": "product-photography",
+    "uniqueCode": "1168"
   },
   {
     "code": "SA-PROD-OBJ-51",
@@ -2405,7 +2575,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Objects, Product Photography, Siavash Akbari",
-    "disciplineSlug": "product-photography"
+    "disciplineSlug": "product-photography",
+    "uniqueCode": "1169"
   },
   {
     "code": "SA-PROD-OBJ-52",
@@ -2419,7 +2590,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Objects, Product Photography, Siavash Akbari",
-    "disciplineSlug": "product-photography"
+    "disciplineSlug": "product-photography",
+    "uniqueCode": "1170"
   },
   {
     "code": "SA-PROD-OBJ-53",
@@ -2433,7 +2605,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Objects, Product Photography, Siavash Akbari",
-    "disciplineSlug": "product-photography"
+    "disciplineSlug": "product-photography",
+    "uniqueCode": "1171"
   },
   {
     "code": "SA-PROD-OBJ-54",
@@ -2447,7 +2620,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Objects, Product Photography, Siavash Akbari",
-    "disciplineSlug": "product-photography"
+    "disciplineSlug": "product-photography",
+    "uniqueCode": "1172"
   },
   {
     "code": "SA-PROD-OBJ-55",
@@ -2461,7 +2635,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Objects, Product Photography, Siavash Akbari",
-    "disciplineSlug": "product-photography"
+    "disciplineSlug": "product-photography",
+    "uniqueCode": "1173"
   },
   {
     "code": "SA-PROD-OBJ-56",
@@ -2475,7 +2650,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Objects, Product Photography, Siavash Akbari",
-    "disciplineSlug": "product-photography"
+    "disciplineSlug": "product-photography",
+    "uniqueCode": "1174"
   },
   {
     "code": "SA-PROD-OBJ-57",
@@ -2489,7 +2665,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Objects, Product Photography, Siavash Akbari",
-    "disciplineSlug": "product-photography"
+    "disciplineSlug": "product-photography",
+    "uniqueCode": "1175"
   },
   {
     "code": "SA-PROD-OBJ-58",
@@ -2503,7 +2680,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Objects, Product Photography, Siavash Akbari",
-    "disciplineSlug": "product-photography"
+    "disciplineSlug": "product-photography",
+    "uniqueCode": "1176"
   },
   {
     "code": "SA-PROD-OBJ-59",
@@ -2517,7 +2695,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Objects, Product Photography, Siavash Akbari",
-    "disciplineSlug": "product-photography"
+    "disciplineSlug": "product-photography",
+    "uniqueCode": "1177"
   },
   {
     "code": "SA-PROD-OBJ-60",
@@ -2531,7 +2710,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Objects, Product Photography, Siavash Akbari",
-    "disciplineSlug": "product-photography"
+    "disciplineSlug": "product-photography",
+    "uniqueCode": "1178"
   },
   {
     "code": "SA-PROD-OBJ-61",
@@ -2545,7 +2725,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Objects, Product Photography, Siavash Akbari",
-    "disciplineSlug": "product-photography"
+    "disciplineSlug": "product-photography",
+    "uniqueCode": "1179"
   },
   {
     "code": "SA-PROD-OBJ-62",
@@ -2559,7 +2740,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Objects, Product Photography, Siavash Akbari",
-    "disciplineSlug": "product-photography"
+    "disciplineSlug": "product-photography",
+    "uniqueCode": "1180"
   },
   {
     "code": "SA-PROD-OBJ-63",
@@ -2573,7 +2755,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Objects, Product Photography, Siavash Akbari",
-    "disciplineSlug": "product-photography"
+    "disciplineSlug": "product-photography",
+    "uniqueCode": "1181"
   },
   {
     "code": "SA-PROD-OBJ-64",
@@ -2587,7 +2770,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Objects, Product Photography, Siavash Akbari",
-    "disciplineSlug": "product-photography"
+    "disciplineSlug": "product-photography",
+    "uniqueCode": "1182"
   },
   {
     "code": "SA-PROD-OBJ-65",
@@ -2601,7 +2785,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Objects, Product Photography, Siavash Akbari",
-    "disciplineSlug": "product-photography"
+    "disciplineSlug": "product-photography",
+    "uniqueCode": "1183"
   },
   {
     "code": "SA-PROD-OBJ-66",
@@ -2615,7 +2800,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Objects, Product Photography, Siavash Akbari",
-    "disciplineSlug": "product-photography"
+    "disciplineSlug": "product-photography",
+    "uniqueCode": "1184"
   },
   {
     "code": "SA-PROD-OBJ-67",
@@ -2629,7 +2815,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Objects, Product Photography, Siavash Akbari",
-    "disciplineSlug": "product-photography"
+    "disciplineSlug": "product-photography",
+    "uniqueCode": "1185"
   },
   {
     "code": "SA-PROD-OBJ-68",
@@ -2643,7 +2830,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Objects, Product Photography, Siavash Akbari",
-    "disciplineSlug": "product-photography"
+    "disciplineSlug": "product-photography",
+    "uniqueCode": "1186"
   },
   {
     "code": "SA-PROD-OBJ-69",
@@ -2657,7 +2845,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Objects, Product Photography, Siavash Akbari",
-    "disciplineSlug": "product-photography"
+    "disciplineSlug": "product-photography",
+    "uniqueCode": "1187"
   },
   {
     "code": "SA-PROD-OBJ-70",
@@ -2671,7 +2860,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Objects, Product Photography, Siavash Akbari",
-    "disciplineSlug": "product-photography"
+    "disciplineSlug": "product-photography",
+    "uniqueCode": "1188"
   },
   {
     "code": "SA-PROD-OBJ-71",
@@ -2685,7 +2875,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Objects, Product Photography, Siavash Akbari",
-    "disciplineSlug": "product-photography"
+    "disciplineSlug": "product-photography",
+    "uniqueCode": "1189"
   },
   {
     "code": "SA-PROD-OBJ-72",
@@ -2699,7 +2890,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Objects, Product Photography, Siavash Akbari",
-    "disciplineSlug": "product-photography"
+    "disciplineSlug": "product-photography",
+    "uniqueCode": "1190"
   },
   {
     "code": "SA-PROD-OBJ-73",
@@ -2713,7 +2905,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Objects, Product Photography, Siavash Akbari",
-    "disciplineSlug": "product-photography"
+    "disciplineSlug": "product-photography",
+    "uniqueCode": "1191"
   },
   {
     "code": "SA-PROD-OBJ-74",
@@ -2727,7 +2920,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Objects, Product Photography, Siavash Akbari",
-    "disciplineSlug": "product-photography"
+    "disciplineSlug": "product-photography",
+    "uniqueCode": "1192"
   },
   {
     "code": "SA-PROD-OBJ-75",
@@ -2741,7 +2935,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Objects, Product Photography, Siavash Akbari",
-    "disciplineSlug": "product-photography"
+    "disciplineSlug": "product-photography",
+    "uniqueCode": "1193"
   },
   {
     "code": "SA-PROD-OBJ-76",
@@ -2755,7 +2950,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Objects, Product Photography, Siavash Akbari",
-    "disciplineSlug": "product-photography"
+    "disciplineSlug": "product-photography",
+    "uniqueCode": "1194"
   },
   {
     "code": "SA-PROD-OBJ-77",
@@ -2769,7 +2965,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Objects, Product Photography, Siavash Akbari",
-    "disciplineSlug": "product-photography"
+    "disciplineSlug": "product-photography",
+    "uniqueCode": "1195"
   },
   {
     "code": "SA-PROD-OBJ-78",
@@ -2783,7 +2980,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Objects, Product Photography, Siavash Akbari",
-    "disciplineSlug": "product-photography"
+    "disciplineSlug": "product-photography",
+    "uniqueCode": "1196"
   },
   {
     "code": "SA-PROD-OBJ-79",
@@ -2797,7 +2995,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Objects, Product Photography, Siavash Akbari",
-    "disciplineSlug": "product-photography"
+    "disciplineSlug": "product-photography",
+    "uniqueCode": "1197"
   },
   {
     "code": "SA-PROD-OBJ-80",
@@ -2811,7 +3010,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Objects, Product Photography, Siavash Akbari",
-    "disciplineSlug": "product-photography"
+    "disciplineSlug": "product-photography",
+    "uniqueCode": "1198"
   },
   {
     "code": "SA-PROD-OBJ-81",
@@ -2825,7 +3025,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Objects, Product Photography, Siavash Akbari",
-    "disciplineSlug": "product-photography"
+    "disciplineSlug": "product-photography",
+    "uniqueCode": "1199"
   },
   {
     "code": "SA-PROD-OBJ-82",
@@ -2839,7 +3040,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Objects, Product Photography, Siavash Akbari",
-    "disciplineSlug": "product-photography"
+    "disciplineSlug": "product-photography",
+    "uniqueCode": "1200"
   },
   {
     "code": "SA-PROD-OBJ-83",
@@ -2853,7 +3055,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Objects, Product Photography, Siavash Akbari",
-    "disciplineSlug": "product-photography"
+    "disciplineSlug": "product-photography",
+    "uniqueCode": "1201"
   },
   {
     "code": "SA-PROD-OBJ-84",
@@ -2867,7 +3070,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Objects, Product Photography, Siavash Akbari",
-    "disciplineSlug": "product-photography"
+    "disciplineSlug": "product-photography",
+    "uniqueCode": "1202"
   },
   {
     "code": "SA-PROD-OBJ-85",
@@ -2881,7 +3085,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Objects, Product Photography, Siavash Akbari",
-    "disciplineSlug": "product-photography"
+    "disciplineSlug": "product-photography",
+    "uniqueCode": "1203"
   },
   {
     "code": "SA-PROD-OBJ-86",
@@ -2895,7 +3100,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Objects, Product Photography, Siavash Akbari",
-    "disciplineSlug": "product-photography"
+    "disciplineSlug": "product-photography",
+    "uniqueCode": "1204"
   },
   {
     "code": "SA-PROD-OBJ-87",
@@ -2909,7 +3115,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Objects, Product Photography, Siavash Akbari",
-    "disciplineSlug": "product-photography"
+    "disciplineSlug": "product-photography",
+    "uniqueCode": "1205"
   },
   {
     "code": "SA-PROD-OBJ-88",
@@ -2923,7 +3130,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Objects, Product Photography, Siavash Akbari",
-    "disciplineSlug": "product-photography"
+    "disciplineSlug": "product-photography",
+    "uniqueCode": "1206"
   },
   {
     "code": "SA-PROD-OBJ-89",
@@ -2937,7 +3145,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Objects, Product Photography, Siavash Akbari",
-    "disciplineSlug": "product-photography"
+    "disciplineSlug": "product-photography",
+    "uniqueCode": "1207"
   },
   {
     "code": "SA-PROD-OBJ-90",
@@ -2951,7 +3160,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Objects, Product Photography, Siavash Akbari",
-    "disciplineSlug": "product-photography"
+    "disciplineSlug": "product-photography",
+    "uniqueCode": "1208"
   },
   {
     "code": "SA-PROD-OBJ-91",
@@ -2965,7 +3175,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Objects, Product Photography, Siavash Akbari",
-    "disciplineSlug": "product-photography"
+    "disciplineSlug": "product-photography",
+    "uniqueCode": "1209"
   },
   {
     "code": "SA-PROD-OBJ-92",
@@ -2979,63 +3190,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Objects, Product Photography, Siavash Akbari",
-    "disciplineSlug": "product-photography"
-  },
-  {
-    "code": "SA-VI-MEAT-01",
-    "project": "Meatlab",
-    "discipline": "Visual Identity",
-    "imgSrc": "src/assets/graphic-design/meatlab/graphic-design-meatlab-01.jpg",
-    "subdiscipline": "Packaging & Brand Identity",
-    "model": "",
-    "client": "Meatlab",
-    "makeupArtist": "",
-    "assistant": "",
-    "date": "2025",
-    "keywords": "Meatlab, Visual Identity, Siavash Akbari",
-    "disciplineSlug": "visual-identity"
-  },
-  {
-    "code": "SA-VI-MEAT-02",
-    "project": "Meatlab",
-    "discipline": "Visual Identity",
-    "imgSrc": "src/assets/graphic-design/meatlab/graphic-design-meatlab-02.jpg",
-    "subdiscipline": "Packaging & Brand Identity",
-    "model": "",
-    "client": "Meatlab",
-    "makeupArtist": "",
-    "assistant": "",
-    "date": "2025",
-    "keywords": "Meatlab, Visual Identity, Siavash Akbari",
-    "disciplineSlug": "visual-identity"
-  },
-  {
-    "code": "SA-VI-MEAT-03",
-    "project": "Meatlab",
-    "discipline": "Visual Identity",
-    "imgSrc": "src/assets/graphic-design/meatlab/graphic-design-meatlab-03.jpg",
-    "subdiscipline": "Packaging & Brand Identity",
-    "model": "",
-    "client": "Meatlab",
-    "makeupArtist": "",
-    "assistant": "",
-    "date": "2025",
-    "keywords": "Meatlab, Visual Identity, Siavash Akbari",
-    "disciplineSlug": "visual-identity"
-  },
-  {
-    "code": "SA-VI-MEAT-04",
-    "project": "Meatlab",
-    "discipline": "Visual Identity",
-    "imgSrc": "src/assets/graphic-design/meatlab/graphic-design-meatlab-04.jpg",
-    "subdiscipline": "Packaging & Brand Identity",
-    "model": "",
-    "client": "Meatlab",
-    "makeupArtist": "",
-    "assistant": "",
-    "date": "2025",
-    "keywords": "Meatlab, Visual Identity, Siavash Akbari",
-    "disciplineSlug": "visual-identity"
+    "disciplineSlug": "product-photography",
+    "uniqueCode": "1210"
   },
   {
     "code": "SA-VI-SHEK-01",
@@ -3049,7 +3205,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Shekarchian Sweets, Visual Identity, Siavash Akbari",
-    "disciplineSlug": "visual-identity"
+    "disciplineSlug": "visual-identity",
+    "uniqueCode": "1211"
   },
   {
     "code": "SA-VI-SHEK-02",
@@ -3063,7 +3220,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Shekarchian Sweets, Visual Identity, Siavash Akbari",
-    "disciplineSlug": "visual-identity"
+    "disciplineSlug": "visual-identity",
+    "uniqueCode": "1212"
   },
   {
     "code": "SA-VI-SHEK-03",
@@ -3077,7 +3235,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Shekarchian Sweets, Visual Identity, Siavash Akbari",
-    "disciplineSlug": "visual-identity"
+    "disciplineSlug": "visual-identity",
+    "uniqueCode": "1213"
   },
   {
     "code": "SA-VI-SHEK-04",
@@ -3091,7 +3250,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Shekarchian Sweets, Visual Identity, Siavash Akbari",
-    "disciplineSlug": "visual-identity"
+    "disciplineSlug": "visual-identity",
+    "uniqueCode": "1214"
   },
   {
     "code": "SA-VI-SHEK-05",
@@ -3105,7 +3265,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Shekarchian Sweets, Visual Identity, Siavash Akbari",
-    "disciplineSlug": "visual-identity"
+    "disciplineSlug": "visual-identity",
+    "uniqueCode": "1215"
   },
   {
     "code": "SA-VI-SHEK-06",
@@ -3119,7 +3280,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Shekarchian Sweets, Visual Identity, Siavash Akbari",
-    "disciplineSlug": "visual-identity"
+    "disciplineSlug": "visual-identity",
+    "uniqueCode": "1216"
   },
   {
     "code": "SA-VI-DOD-01",
@@ -3133,7 +3295,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Dobareh, Visual Identity, Siavash Akbari",
-    "disciplineSlug": "visual-identity"
+    "disciplineSlug": "visual-identity",
+    "uniqueCode": "1217"
   },
   {
     "code": "SA-VI-DOD-02",
@@ -3147,7 +3310,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Dobareh, Visual Identity, Siavash Akbari",
-    "disciplineSlug": "visual-identity"
+    "disciplineSlug": "visual-identity",
+    "uniqueCode": "1218"
   },
   {
     "code": "SA-VI-AHU-01",
@@ -3161,7 +3325,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2023",
     "keywords": "Ahura CCTV, Visual Identity, Siavash Akbari",
-    "disciplineSlug": "visual-identity"
+    "disciplineSlug": "visual-identity",
+    "uniqueCode": "1219"
   },
   {
     "code": "SA-VI-AHU-02",
@@ -3175,7 +3340,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2023",
     "keywords": "Ahura CCTV, Visual Identity, Siavash Akbari",
-    "disciplineSlug": "visual-identity"
+    "disciplineSlug": "visual-identity",
+    "uniqueCode": "1220"
   },
   {
     "code": "SA-VI-AHU-03",
@@ -3189,7 +3355,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2023",
     "keywords": "Ahura CCTV, Visual Identity, Siavash Akbari",
-    "disciplineSlug": "visual-identity"
+    "disciplineSlug": "visual-identity",
+    "uniqueCode": "1221"
   },
   {
     "code": "SA-VI-AHU-04",
@@ -3203,7 +3370,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2023",
     "keywords": "Ahura CCTV, Visual Identity, Siavash Akbari",
-    "disciplineSlug": "visual-identity"
+    "disciplineSlug": "visual-identity",
+    "uniqueCode": "1222"
   },
   {
     "code": "SA-VI-AHU-05",
@@ -3217,7 +3385,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2023",
     "keywords": "Ahura CCTV, Visual Identity, Siavash Akbari",
-    "disciplineSlug": "visual-identity"
+    "disciplineSlug": "visual-identity",
+    "uniqueCode": "1223"
   },
   {
     "code": "SA-VI-AHU-06",
@@ -3231,7 +3400,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2023",
     "keywords": "Ahura CCTV, Visual Identity, Siavash Akbari",
-    "disciplineSlug": "visual-identity"
+    "disciplineSlug": "visual-identity",
+    "uniqueCode": "1224"
   },
   {
     "code": "SA-VI-AHU-07",
@@ -3245,7 +3415,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2023",
     "keywords": "Ahura CCTV, Visual Identity, Siavash Akbari",
-    "disciplineSlug": "visual-identity"
+    "disciplineSlug": "visual-identity",
+    "uniqueCode": "1225"
   },
   {
     "code": "SA-VI-FEM-01",
@@ -3259,7 +3430,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2023",
     "keywords": "Femiq, Visual Identity, Siavash Akbari",
-    "disciplineSlug": "visual-identity"
+    "disciplineSlug": "visual-identity",
+    "uniqueCode": "1226"
   },
   {
     "code": "SA-VI-FEM-02",
@@ -3273,7 +3445,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2023",
     "keywords": "Femiq, Visual Identity, Siavash Akbari",
-    "disciplineSlug": "visual-identity"
+    "disciplineSlug": "visual-identity",
+    "uniqueCode": "1227"
   },
   {
     "code": "SA-VI-FEM-03",
@@ -3287,7 +3460,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2023",
     "keywords": "Femiq, Visual Identity, Siavash Akbari",
-    "disciplineSlug": "visual-identity"
+    "disciplineSlug": "visual-identity",
+    "uniqueCode": "1228"
   },
   {
     "code": "SA-VI-FEM-04",
@@ -3301,7 +3475,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2023",
     "keywords": "Femiq, Visual Identity, Siavash Akbari",
-    "disciplineSlug": "visual-identity"
+    "disciplineSlug": "visual-identity",
+    "uniqueCode": "1229"
   },
   {
     "code": "SA-VI-FEM-05",
@@ -3315,7 +3490,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2023",
     "keywords": "Femiq, Visual Identity, Siavash Akbari",
-    "disciplineSlug": "visual-identity"
+    "disciplineSlug": "visual-identity",
+    "uniqueCode": "1230"
   },
   {
     "code": "SA-VI-FEM-06",
@@ -3329,7 +3505,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2023",
     "keywords": "Femiq, Visual Identity, Siavash Akbari",
-    "disciplineSlug": "visual-identity"
+    "disciplineSlug": "visual-identity",
+    "uniqueCode": "1231"
   },
   {
     "code": "SA-VI-FEM-07",
@@ -3343,7 +3520,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2023",
     "keywords": "Femiq, Visual Identity, Siavash Akbari",
-    "disciplineSlug": "visual-identity"
+    "disciplineSlug": "visual-identity",
+    "uniqueCode": "1232"
   },
   {
     "code": "SA-VI-FEM-08",
@@ -3357,7 +3535,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2023",
     "keywords": "Femiq, Visual Identity, Siavash Akbari",
-    "disciplineSlug": "visual-identity"
+    "disciplineSlug": "visual-identity",
+    "uniqueCode": "1233"
   },
   {
     "code": "SA-VI-FEM-09",
@@ -3371,7 +3550,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2023",
     "keywords": "Femiq, Visual Identity, Siavash Akbari",
-    "disciplineSlug": "visual-identity"
+    "disciplineSlug": "visual-identity",
+    "uniqueCode": "1234"
   },
   {
     "code": "SA-VI-POL-01",
@@ -3385,7 +3565,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2022",
     "keywords": "Polarity, Visual Identity, Siavash Akbari",
-    "disciplineSlug": "visual-identity"
+    "disciplineSlug": "visual-identity",
+    "uniqueCode": "1235"
   },
   {
     "code": "SA-VI-ECH-01",
@@ -3399,7 +3580,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Echo Supplements, Visual Identity, Siavash Akbari",
-    "disciplineSlug": "visual-identity"
+    "disciplineSlug": "visual-identity",
+    "uniqueCode": "1236"
   },
   {
     "code": "SA-VI-ECH-02",
@@ -3413,7 +3595,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Echo Supplements, Visual Identity, Siavash Akbari",
-    "disciplineSlug": "visual-identity"
+    "disciplineSlug": "visual-identity",
+    "uniqueCode": "1237"
   },
   {
     "code": "SA-VI-ECH-03",
@@ -3427,7 +3610,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Echo Supplements, Visual Identity, Siavash Akbari",
-    "disciplineSlug": "visual-identity"
+    "disciplineSlug": "visual-identity",
+    "uniqueCode": "1238"
   },
   {
     "code": "SA-VI-ECH-04",
@@ -3441,7 +3625,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Echo Supplements, Visual Identity, Siavash Akbari",
-    "disciplineSlug": "visual-identity"
+    "disciplineSlug": "visual-identity",
+    "uniqueCode": "1239"
   },
   {
     "code": "SA-VI-ECH-05",
@@ -3455,7 +3640,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Echo Supplements, Visual Identity, Siavash Akbari",
-    "disciplineSlug": "visual-identity"
+    "disciplineSlug": "visual-identity",
+    "uniqueCode": "1240"
   },
   {
     "code": "SA-VI-ECH-06",
@@ -3469,7 +3655,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Echo Supplements, Visual Identity, Siavash Akbari",
-    "disciplineSlug": "visual-identity"
+    "disciplineSlug": "visual-identity",
+    "uniqueCode": "1241"
   },
   {
     "code": "SA-VI-ECH-07",
@@ -3483,7 +3670,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Echo Supplements, Visual Identity, Siavash Akbari",
-    "disciplineSlug": "visual-identity"
+    "disciplineSlug": "visual-identity",
+    "uniqueCode": "1242"
   },
   {
     "code": "SA-VI-GOA-01",
@@ -3497,7 +3685,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Goats Coffee, Visual Identity, Siavash Akbari",
-    "disciplineSlug": "visual-identity"
+    "disciplineSlug": "visual-identity",
+    "uniqueCode": "1243"
   },
   {
     "code": "SA-VI-GOA-02",
@@ -3511,7 +3700,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Goats Coffee, Visual Identity, Siavash Akbari",
-    "disciplineSlug": "visual-identity"
+    "disciplineSlug": "visual-identity",
+    "uniqueCode": "1244"
   },
   {
     "code": "SA-VI-GOA-03",
@@ -3525,7 +3715,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Goats Coffee, Visual Identity, Siavash Akbari",
-    "disciplineSlug": "visual-identity"
+    "disciplineSlug": "visual-identity",
+    "uniqueCode": "1245"
   },
   {
     "code": "SA-VI-GOA-04",
@@ -3539,7 +3730,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Goats Coffee, Visual Identity, Siavash Akbari",
-    "disciplineSlug": "visual-identity"
+    "disciplineSlug": "visual-identity",
+    "uniqueCode": "1246"
   },
   {
     "code": "SA-VI-GOA-05",
@@ -3553,7 +3745,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Goats Coffee, Visual Identity, Siavash Akbari",
-    "disciplineSlug": "visual-identity"
+    "disciplineSlug": "visual-identity",
+    "uniqueCode": "1247"
   },
   {
     "code": "SA-VI-NOZ-01",
@@ -3567,7 +3760,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2022",
     "keywords": "Nozad Publication Visual Identity, Visual Identity, Siavash Akbari",
-    "disciplineSlug": "visual-identity"
+    "disciplineSlug": "visual-identity",
+    "uniqueCode": "1248"
   },
   {
     "code": "SA-VI-NOZ-02",
@@ -3581,7 +3775,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2022",
     "keywords": "Nozad Publication Visual Identity, Visual Identity, Siavash Akbari",
-    "disciplineSlug": "visual-identity"
+    "disciplineSlug": "visual-identity",
+    "uniqueCode": "1249"
   },
   {
     "code": "SA-VI-NOZ-03",
@@ -3595,7 +3790,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2022",
     "keywords": "Nozad Publication Visual Identity, Visual Identity, Siavash Akbari",
-    "disciplineSlug": "visual-identity"
+    "disciplineSlug": "visual-identity",
+    "uniqueCode": "1250"
   },
   {
     "code": "SA-VI-NOZ-04",
@@ -3609,7 +3805,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2022",
     "keywords": "Nozad Publication Visual Identity, Visual Identity, Siavash Akbari",
-    "disciplineSlug": "visual-identity"
+    "disciplineSlug": "visual-identity",
+    "uniqueCode": "1251"
   },
   {
     "code": "SA-VI-NOZ-05",
@@ -3623,7 +3820,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2022",
     "keywords": "Nozad Publication Visual Identity, Visual Identity, Siavash Akbari",
-    "disciplineSlug": "visual-identity"
+    "disciplineSlug": "visual-identity",
+    "uniqueCode": "1252"
   },
   {
     "code": "SA-VI-ONS-01",
@@ -3637,7 +3835,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2023",
     "keywords": "OnSwipe, Visual Identity, Siavash Akbari",
-    "disciplineSlug": "visual-identity"
+    "disciplineSlug": "visual-identity",
+    "uniqueCode": "1253"
   },
   {
     "code": "SA-VI-ONS-02",
@@ -3651,7 +3850,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2023",
     "keywords": "OnSwipe, Visual Identity, Siavash Akbari",
-    "disciplineSlug": "visual-identity"
+    "disciplineSlug": "visual-identity",
+    "uniqueCode": "1254"
   },
   {
     "code": "SA-VI-ZEN-01",
@@ -3665,7 +3865,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2025",
     "keywords": "Zen Studio Products, Visual Identity, Siavash Akbari",
-    "disciplineSlug": "visual-identity"
+    "disciplineSlug": "visual-identity",
+    "uniqueCode": "1255"
   },
   {
     "code": "SA-VI-ZEN-02",
@@ -3679,7 +3880,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2025",
     "keywords": "Zen Studio Products, Visual Identity, Siavash Akbari",
-    "disciplineSlug": "visual-identity"
+    "disciplineSlug": "visual-identity",
+    "uniqueCode": "1256"
   },
   {
     "code": "SA-VI-ZEN-03",
@@ -3693,7 +3895,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2025",
     "keywords": "Zen Studio Products, Visual Identity, Siavash Akbari",
-    "disciplineSlug": "visual-identity"
+    "disciplineSlug": "visual-identity",
+    "uniqueCode": "1257"
   },
   {
     "code": "SA-VI-ART-01",
@@ -3707,7 +3910,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2019",
     "keywords": "Artemis, Visual Identity, Siavash Akbari",
-    "disciplineSlug": "visual-identity"
+    "disciplineSlug": "visual-identity",
+    "uniqueCode": "1258"
   },
   {
     "code": "SA-VI-ART-02",
@@ -3721,7 +3925,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2019",
     "keywords": "Artemis, Visual Identity, Siavash Akbari",
-    "disciplineSlug": "visual-identity"
+    "disciplineSlug": "visual-identity",
+    "uniqueCode": "1259"
   },
   {
     "code": "SA-VI-ART-03",
@@ -3735,7 +3940,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2019",
     "keywords": "Artemis, Visual Identity, Siavash Akbari",
-    "disciplineSlug": "visual-identity"
+    "disciplineSlug": "visual-identity",
+    "uniqueCode": "1260"
   },
   {
     "code": "SA-VI-ART-04",
@@ -3749,7 +3955,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2019",
     "keywords": "Artemis, Visual Identity, Siavash Akbari",
-    "disciplineSlug": "visual-identity"
+    "disciplineSlug": "visual-identity",
+    "uniqueCode": "1261"
   },
   {
     "code": "SA-VI-CIC-01",
@@ -3763,7 +3970,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Cichon, Visual Identity, Siavash Akbari",
-    "disciplineSlug": "visual-identity"
+    "disciplineSlug": "visual-identity",
+    "uniqueCode": "1262"
   },
   {
     "code": "SA-VI-CIC-02",
@@ -3777,7 +3985,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Cichon, Visual Identity, Siavash Akbari",
-    "disciplineSlug": "visual-identity"
+    "disciplineSlug": "visual-identity",
+    "uniqueCode": "1263"
   },
   {
     "code": "SA-VI-CIC-03",
@@ -3791,7 +4000,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Cichon, Visual Identity, Siavash Akbari",
-    "disciplineSlug": "visual-identity"
+    "disciplineSlug": "visual-identity",
+    "uniqueCode": "1264"
   },
   {
     "code": "SA-VI-CIC-04",
@@ -3805,7 +4015,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Cichon, Visual Identity, Siavash Akbari",
-    "disciplineSlug": "visual-identity"
+    "disciplineSlug": "visual-identity",
+    "uniqueCode": "1265"
   },
   {
     "code": "SA-VI-CIC-05",
@@ -3819,7 +4030,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Cichon, Visual Identity, Siavash Akbari",
-    "disciplineSlug": "visual-identity"
+    "disciplineSlug": "visual-identity",
+    "uniqueCode": "1266"
   },
   {
     "code": "SA-VI-CIC-06",
@@ -3833,7 +4045,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Cichon, Visual Identity, Siavash Akbari",
-    "disciplineSlug": "visual-identity"
+    "disciplineSlug": "visual-identity",
+    "uniqueCode": "1267"
   },
   {
     "code": "SA-VI-CIC-07",
@@ -3847,7 +4060,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2024",
     "keywords": "Cichon, Visual Identity, Siavash Akbari",
-    "disciplineSlug": "visual-identity"
+    "disciplineSlug": "visual-identity",
+    "uniqueCode": "1268"
   },
   {
     "code": "SA-VI-FAR-01",
@@ -3861,7 +4075,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2019",
     "keywords": "Farshid Rahimi, Visual Identity, Siavash Akbari",
-    "disciplineSlug": "visual-identity"
+    "disciplineSlug": "visual-identity",
+    "uniqueCode": "1269"
   },
   {
     "code": "SA-VI-FAR-02",
@@ -3875,7 +4090,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2019",
     "keywords": "Farshid Rahimi, Visual Identity, Siavash Akbari",
-    "disciplineSlug": "visual-identity"
+    "disciplineSlug": "visual-identity",
+    "uniqueCode": "1270"
   },
   {
     "code": "SA-VI-FAR-03",
@@ -3889,7 +4105,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2019",
     "keywords": "Farshid Rahimi, Visual Identity, Siavash Akbari",
-    "disciplineSlug": "visual-identity"
+    "disciplineSlug": "visual-identity",
+    "uniqueCode": "1271"
   },
   {
     "code": "SA-VI-MAA-01",
@@ -3903,7 +4120,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2025",
     "keywords": "Maanaar, Visual Identity, Siavash Akbari",
-    "disciplineSlug": "visual-identity"
+    "disciplineSlug": "visual-identity",
+    "uniqueCode": "1272"
   },
   {
     "code": "SA-VI-MAA-02",
@@ -3917,7 +4135,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2025",
     "keywords": "Maanaar, Visual Identity, Siavash Akbari",
-    "disciplineSlug": "visual-identity"
+    "disciplineSlug": "visual-identity",
+    "uniqueCode": "1273"
   },
   {
     "code": "SA-VI-MAA-03",
@@ -3931,7 +4150,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2025",
     "keywords": "Maanaar, Visual Identity, Siavash Akbari",
-    "disciplineSlug": "visual-identity"
+    "disciplineSlug": "visual-identity",
+    "uniqueCode": "1274"
   },
   {
     "code": "SA-VI-MAM-01",
@@ -3945,7 +4165,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2023",
     "keywords": "Mamrezz, Visual Identity, Siavash Akbari",
-    "disciplineSlug": "visual-identity"
+    "disciplineSlug": "visual-identity",
+    "uniqueCode": "1275"
   },
   {
     "code": "SA-VI-MAM-02",
@@ -3959,7 +4180,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2023",
     "keywords": "Mamrezz, Visual Identity, Siavash Akbari",
-    "disciplineSlug": "visual-identity"
+    "disciplineSlug": "visual-identity",
+    "uniqueCode": "1276"
   },
   {
     "code": "SA-VI-MAM-03",
@@ -3973,7 +4195,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2023",
     "keywords": "Mamrezz, Visual Identity, Siavash Akbari",
-    "disciplineSlug": "visual-identity"
+    "disciplineSlug": "visual-identity",
+    "uniqueCode": "1277"
   },
   {
     "code": "SA-VI-SNO-01",
@@ -3987,7 +4210,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2020",
     "keywords": "Snow Snack, Visual Identity, Siavash Akbari",
-    "disciplineSlug": "visual-identity"
+    "disciplineSlug": "visual-identity",
+    "uniqueCode": "1278"
   },
   {
     "code": "SA-VI-SNO-02",
@@ -4001,7 +4225,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2020",
     "keywords": "Snow Snack, Visual Identity, Siavash Akbari",
-    "disciplineSlug": "visual-identity"
+    "disciplineSlug": "visual-identity",
+    "uniqueCode": "1279"
   },
   {
     "code": "SA-VI-SNO-03",
@@ -4015,7 +4240,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2020",
     "keywords": "Snow Snack, Visual Identity, Siavash Akbari",
-    "disciplineSlug": "visual-identity"
+    "disciplineSlug": "visual-identity",
+    "uniqueCode": "1280"
   },
   {
     "code": "SA-VI-SNO-04",
@@ -4029,7 +4255,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2020",
     "keywords": "Snow Snack, Visual Identity, Siavash Akbari",
-    "disciplineSlug": "visual-identity"
+    "disciplineSlug": "visual-identity",
+    "uniqueCode": "1281"
   },
   {
     "code": "SA-VI-SNO-05",
@@ -4043,7 +4270,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2020",
     "keywords": "Snow Snack, Visual Identity, Siavash Akbari",
-    "disciplineSlug": "visual-identity"
+    "disciplineSlug": "visual-identity",
+    "uniqueCode": "1282"
   },
   {
     "code": "SA-VI-SNO-06",
@@ -4057,7 +4285,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2020",
     "keywords": "Snow Snack, Visual Identity, Siavash Akbari",
-    "disciplineSlug": "visual-identity"
+    "disciplineSlug": "visual-identity",
+    "uniqueCode": "1283"
   },
   {
     "code": "SA-VI-ZEE-01",
@@ -4071,7 +4300,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2025",
     "keywords": "ZEEE Products, Visual Identity, Siavash Akbari",
-    "disciplineSlug": "visual-identity"
+    "disciplineSlug": "visual-identity",
+    "uniqueCode": "1284"
   },
   {
     "code": "SA-VI-ZEE-02",
@@ -4085,7 +4315,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2025",
     "keywords": "ZEEE Products, Visual Identity, Siavash Akbari",
-    "disciplineSlug": "visual-identity"
+    "disciplineSlug": "visual-identity",
+    "uniqueCode": "1285"
   },
   {
     "code": "SA-VI-ZEE-03",
@@ -4099,7 +4330,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2025",
     "keywords": "ZEEE Products, Visual Identity, Siavash Akbari",
-    "disciplineSlug": "visual-identity"
+    "disciplineSlug": "visual-identity",
+    "uniqueCode": "1286"
   },
   {
     "code": "SA-VI-ZEE-04",
@@ -4113,7 +4345,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2025",
     "keywords": "ZEEE Products, Visual Identity, Siavash Akbari",
-    "disciplineSlug": "visual-identity"
+    "disciplineSlug": "visual-identity",
+    "uniqueCode": "1287"
   },
   {
     "code": "SA-VI-ZEE-05",
@@ -4127,7 +4360,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2025",
     "keywords": "ZEEE Products, Visual Identity, Siavash Akbari",
-    "disciplineSlug": "visual-identity"
+    "disciplineSlug": "visual-identity",
+    "uniqueCode": "1288"
   },
   {
     "code": "SA-VI-ZEE-06",
@@ -4141,7 +4375,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2025",
     "keywords": "ZEEE Products, Visual Identity, Siavash Akbari",
-    "disciplineSlug": "visual-identity"
+    "disciplineSlug": "visual-identity",
+    "uniqueCode": "1289"
   },
   {
     "code": "SA-VI-AWL-01",
@@ -4155,7 +4390,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2021",
     "keywords": "AWLI, Visual Identity, Siavash Akbari",
-    "disciplineSlug": "visual-identity"
+    "disciplineSlug": "visual-identity",
+    "uniqueCode": "1290"
   },
   {
     "code": "SA-VI-AWL-02",
@@ -4169,7 +4405,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2021",
     "keywords": "AWLI, Visual Identity, Siavash Akbari",
-    "disciplineSlug": "visual-identity"
+    "disciplineSlug": "visual-identity",
+    "uniqueCode": "1291"
   },
   {
     "code": "SA-VI-AWL-03",
@@ -4183,7 +4420,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2021",
     "keywords": "AWLI, Visual Identity, Siavash Akbari",
-    "disciplineSlug": "visual-identity"
+    "disciplineSlug": "visual-identity",
+    "uniqueCode": "1292"
   },
   {
     "code": "SA-VI-AWL-04",
@@ -4197,7 +4435,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2021",
     "keywords": "AWLI, Visual Identity, Siavash Akbari",
-    "disciplineSlug": "visual-identity"
+    "disciplineSlug": "visual-identity",
+    "uniqueCode": "1293"
   },
   {
     "code": "SA-DES-BOK-01",
@@ -4211,7 +4450,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2025",
     "keywords": "Book Covers, Book Covers, Siavash Akbari",
-    "disciplineSlug": "book-covers"
+    "disciplineSlug": "book-covers",
+    "uniqueCode": "1294"
   },
   {
     "code": "SA-DES-BOK-02",
@@ -4225,7 +4465,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2025",
     "keywords": "Book Covers, Book Covers, Siavash Akbari",
-    "disciplineSlug": "book-covers"
+    "disciplineSlug": "book-covers",
+    "uniqueCode": "1295"
   },
   {
     "code": "SA-DES-BOK-03",
@@ -4239,7 +4480,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2025",
     "keywords": "Book Covers, Book Covers, Siavash Akbari",
-    "disciplineSlug": "book-covers"
+    "disciplineSlug": "book-covers",
+    "uniqueCode": "1296"
   },
   {
     "code": "SA-DES-BOK-04",
@@ -4253,7 +4495,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2025",
     "keywords": "Book Covers, Book Covers, Siavash Akbari",
-    "disciplineSlug": "book-covers"
+    "disciplineSlug": "book-covers",
+    "uniqueCode": "1297"
   },
   {
     "code": "SA-DES-BOK-05",
@@ -4267,7 +4510,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2025",
     "keywords": "Book Covers, Book Covers, Siavash Akbari",
-    "disciplineSlug": "book-covers"
+    "disciplineSlug": "book-covers",
+    "uniqueCode": "1298"
   },
   {
     "code": "SA-DES-BOK-06",
@@ -4281,7 +4525,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2025",
     "keywords": "Book Covers, Book Covers, Siavash Akbari",
-    "disciplineSlug": "book-covers"
+    "disciplineSlug": "book-covers",
+    "uniqueCode": "1299"
   },
   {
     "code": "SA-DES-BOK-07",
@@ -4295,7 +4540,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2025",
     "keywords": "Book Covers, Book Covers, Siavash Akbari",
-    "disciplineSlug": "book-covers"
+    "disciplineSlug": "book-covers",
+    "uniqueCode": "1300"
   },
   {
     "code": "SA-DES-BOK-08",
@@ -4309,7 +4555,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2025",
     "keywords": "Book Covers, Book Covers, Siavash Akbari",
-    "disciplineSlug": "book-covers"
+    "disciplineSlug": "book-covers",
+    "uniqueCode": "1301"
   },
   {
     "code": "SA-DES-BOK-09",
@@ -4323,7 +4570,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2025",
     "keywords": "Book Covers, Book Covers, Siavash Akbari",
-    "disciplineSlug": "book-covers"
+    "disciplineSlug": "book-covers",
+    "uniqueCode": "1302"
   },
   {
     "code": "SA-DES-BOK-10",
@@ -4337,7 +4585,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2025",
     "keywords": "Book Covers, Book Covers, Siavash Akbari",
-    "disciplineSlug": "book-covers"
+    "disciplineSlug": "book-covers",
+    "uniqueCode": "1303"
   },
   {
     "code": "SA-DES-BOK-11",
@@ -4351,7 +4600,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2025",
     "keywords": "Book Covers, Book Covers, Siavash Akbari",
-    "disciplineSlug": "book-covers"
+    "disciplineSlug": "book-covers",
+    "uniqueCode": "1304"
   },
   {
     "code": "SA-DES-BOK-12",
@@ -4365,7 +4615,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2025",
     "keywords": "Book Covers, Book Covers, Siavash Akbari",
-    "disciplineSlug": "book-covers"
+    "disciplineSlug": "book-covers",
+    "uniqueCode": "1305"
   },
   {
     "code": "SA-DES-POS-01",
@@ -4379,7 +4630,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2025",
     "keywords": "Posters, Posters, Siavash Akbari",
-    "disciplineSlug": "posters"
+    "disciplineSlug": "posters",
+    "uniqueCode": "1306"
   },
   {
     "code": "SA-DES-POS-02",
@@ -4393,7 +4645,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2025",
     "keywords": "Posters, Posters, Siavash Akbari",
-    "disciplineSlug": "posters"
+    "disciplineSlug": "posters",
+    "uniqueCode": "1307"
   },
   {
     "code": "SA-DES-POS-03",
@@ -4407,7 +4660,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2025",
     "keywords": "Posters, Posters, Siavash Akbari",
-    "disciplineSlug": "posters"
+    "disciplineSlug": "posters",
+    "uniqueCode": "1308"
   },
   {
     "code": "SA-DES-POS-04",
@@ -4421,7 +4675,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2025",
     "keywords": "Posters, Posters, Siavash Akbari",
-    "disciplineSlug": "posters"
+    "disciplineSlug": "posters",
+    "uniqueCode": "1309"
   },
   {
     "code": "SA-DES-POS-05",
@@ -4435,7 +4690,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2025",
     "keywords": "Posters, Posters, Siavash Akbari",
-    "disciplineSlug": "posters"
+    "disciplineSlug": "posters",
+    "uniqueCode": "1310"
   },
   {
     "code": "SA-DES-POS-06",
@@ -4449,7 +4705,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2025",
     "keywords": "Posters, Posters, Siavash Akbari",
-    "disciplineSlug": "posters"
+    "disciplineSlug": "posters",
+    "uniqueCode": "1311"
   },
   {
     "code": "SA-DES-POS-07",
@@ -4463,7 +4720,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2025",
     "keywords": "Posters, Posters, Siavash Akbari",
-    "disciplineSlug": "posters"
+    "disciplineSlug": "posters",
+    "uniqueCode": "1312"
   },
   {
     "code": "SA-DES-POS-08",
@@ -4477,7 +4735,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "assistant": "",
     "date": "2025",
     "keywords": "Posters, Posters, Siavash Akbari",
-    "disciplineSlug": "posters"
+    "disciplineSlug": "posters",
+    "uniqueCode": "1313"
   },
   {
     "code": "SA-VID-ECH-01",
@@ -4494,7 +4753,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "makeupArtist": "",
     "assistant": "",
     "date": "2024",
-    "keywords": "Echo Prime, Video, Motion, VFX, Siavash Akbari"
+    "keywords": "Echo Prime, Video, Motion, VFX, Siavash Akbari",
+    "uniqueCode": "1314"
   },
   {
     "code": "SA-VID-ECH-02",
@@ -4511,7 +4771,8 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "makeupArtist": "",
     "assistant": "",
     "date": "2024",
-    "keywords": "Echo Prime, Video, Motion, VFX, Siavash Akbari"
+    "keywords": "Echo Prime, Video, Motion, VFX, Siavash Akbari",
+    "uniqueCode": "1315"
   },
   {
     "code": "SA-VID-ECH-03",
@@ -4528,7 +4789,68 @@ export const PHOTO_INVENTORY: PhotoInventoryItem[] = [
     "makeupArtist": "",
     "assistant": "",
     "date": "2024",
-    "keywords": "Echo Prime, Video, Motion, VFX, Siavash Akbari"
+    "keywords": "Echo Prime, Video, Motion, VFX, Siavash Akbari",
+    "uniqueCode": "1316"
+  },
+  {
+    "code": "SA-VI-MEAT-01",
+    "project": "Meatlab",
+    "discipline": "Visual Identity",
+    "imgSrc": "src/assets/graphic-design/meatlab/graphic-design-meatlab-01.jpg",
+    "subdiscipline": "Packaging & Brand Identity",
+    "model": "",
+    "client": "Meatlab",
+    "makeupArtist": "",
+    "assistant": "",
+    "date": "2025",
+    "keywords": "Meatlab, Visual Identity, Siavash Akbari",
+    "disciplineSlug": "visual-identity",
+    "uniqueCode": "1317"
+  },
+  {
+    "code": "SA-VI-MEAT-02",
+    "project": "Meatlab",
+    "discipline": "Visual Identity",
+    "imgSrc": "src/assets/graphic-design/meatlab/graphic-design-meatlab-02.jpg",
+    "subdiscipline": "Packaging & Brand Identity",
+    "model": "",
+    "client": "Meatlab",
+    "makeupArtist": "",
+    "assistant": "",
+    "date": "2025",
+    "keywords": "Meatlab, Visual Identity, Siavash Akbari",
+    "disciplineSlug": "visual-identity",
+    "uniqueCode": "1318"
+  },
+  {
+    "code": "SA-VI-MEAT-03",
+    "project": "Meatlab",
+    "discipline": "Visual Identity",
+    "imgSrc": "src/assets/graphic-design/meatlab/graphic-design-meatlab-03.jpg",
+    "subdiscipline": "Packaging & Brand Identity",
+    "model": "",
+    "client": "Meatlab",
+    "makeupArtist": "",
+    "assistant": "",
+    "date": "2025",
+    "keywords": "Meatlab, Visual Identity, Siavash Akbari",
+    "disciplineSlug": "visual-identity",
+    "uniqueCode": "1319"
+  },
+  {
+    "code": "SA-VI-MEAT-04",
+    "project": "Meatlab",
+    "discipline": "Visual Identity",
+    "imgSrc": "src/assets/graphic-design/meatlab/graphic-design-meatlab-04.jpg",
+    "subdiscipline": "Packaging & Brand Identity",
+    "model": "",
+    "client": "Meatlab",
+    "makeupArtist": "",
+    "assistant": "",
+    "date": "2025",
+    "keywords": "Meatlab, Visual Identity, Siavash Akbari",
+    "disciplineSlug": "visual-identity",
+    "uniqueCode": "1320"
   }
 ];
 
