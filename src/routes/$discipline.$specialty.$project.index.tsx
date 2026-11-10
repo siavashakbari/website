@@ -182,48 +182,43 @@ export const Route = createFileRoute("/$discipline/$specialty/$project/")({
   ),
 });
 
-function ProjectCaseStudyPage() {
-  const loaderData = Route.useLoaderData();
-  const [data, setData] = useState(loaderData);
-  const [vaultPage, setVaultPage] = useState<VaultPageItem | undefined>(undefined);
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const isDesktop = useIsDesktop();
-
+function computeProjectData(loaderData: any) {
+  if (typeof window === "undefined") {
+    return { data: loaderData, vaultPage: undefined as VaultPageItem | undefined };
+  }
   const currentRoute = `/${loaderData.disciplineSlug}/${loaderData.specialtySlug}/${loaderData.projectSlug}`;
+  const currentVaultPage = getPageByRoute(currentRoute);
 
-  const refreshProjectData = () => {
-    const currentVaultPage = getPageByRoute(currentRoute);
-    setVaultPage(currentVaultPage);
+  const allStudio = getStudioProjects();
+  const found = allStudio.find((p) => {
+    const pSlug = normalizeProjectSlug(p.title);
+    const pId = (p.id || "").toLowerCase();
+    const pIdSlug = normalizeProjectSlug(p.id);
+    return (
+      pSlug === loaderData.projectSlug ||
+      p.id === loaderData.projectSlug ||
+      pIdSlug === loaderData.projectSlug ||
+      pId.endsWith(`-${loaderData.projectSlug}`) ||
+      pId.includes(loaderData.projectSlug)
+    );
+  });
+  const projectPhotos = getPhotosByProject(loaderData.projectSlug);
 
-    const allStudio = getStudioProjects();
-    const found = allStudio.find((p) => {
-      const pSlug = normalizeProjectSlug(p.title);
-      const pId = (p.id || "").toLowerCase();
-      const pIdSlug = normalizeProjectSlug(p.id);
-      return (
-        pSlug === loaderData.projectSlug ||
-        p.id === loaderData.projectSlug ||
-        pIdSlug === loaderData.projectSlug ||
-        pId.endsWith(`-${loaderData.projectSlug}`) ||
-        pId.includes(loaderData.projectSlug)
-      );
-    });
-    const projectPhotos = getPhotosByProject(loaderData.projectSlug);
+  if (found || projectPhotos.length > 0) {
+    const fAny = found as any;
+    const updatedImages: string[] =
+      fAny?.images && fAny.images.length > 0
+        ? fAny.images.map((im: any) => im.url)
+        : projectPhotos.length > 0
+          ? projectPhotos.map((p) => p.imgSrc)
+          : fAny?.gallery && fAny.gallery.length > 0
+            ? fAny.gallery
+            : fAny?.image
+              ? [fAny.image]
+              : loaderData.images;
 
-    if (found || projectPhotos.length > 0) {
-      const fAny = found as any;
-      const updatedImages: string[] =
-        fAny?.images && fAny.images.length > 0
-          ? fAny.images.map((im: any) => im.url)
-          : projectPhotos.length > 0
-            ? projectPhotos.map((p) => p.imgSrc)
-            : fAny?.gallery && fAny.gallery.length > 0
-              ? fAny.gallery
-              : fAny?.image
-                ? [fAny.image]
-                : loaderData.images;
-
-      setData({
+    return {
+      data: {
         ...loaderData,
         title: found?.title || loaderData.title,
         year: found?.year ? String(found.year) : loaderData.year,
@@ -238,15 +233,37 @@ function ProjectCaseStudyPage() {
         caption: found?.caption !== undefined ? found.caption : loaderData.caption,
         images: updatedImages.length > 0 ? updatedImages : loaderData.images,
         coverImage: updatedImages[0] || loaderData.coverImage,
-      });
-    } else if (currentVaultPage) {
-      setData((prev) => ({
-        ...prev,
-        title: currentVaultPage.name || prev.title,
-        description: currentVaultPage.descriptionEn || prev.description,
-        coverImage: currentVaultPage.coverPhoto || prev.coverImage,
-      }));
-    }
+      },
+      vaultPage: currentVaultPage,
+    };
+  } else if (currentVaultPage) {
+    return {
+      data: {
+        ...loaderData,
+        title: currentVaultPage.name || loaderData.title,
+        description: currentVaultPage.descriptionEn || loaderData.description,
+        coverImage: currentVaultPage.coverPhoto || loaderData.coverImage,
+      },
+      vaultPage: currentVaultPage,
+    };
+  }
+  return { data: loaderData, vaultPage: currentVaultPage };
+}
+
+function ProjectCaseStudyPage() {
+  const loaderData = Route.useLoaderData();
+  const currentRoute = `/${loaderData.disciplineSlug}/${loaderData.specialtySlug}/${loaderData.projectSlug}`;
+  const [data, setData] = useState(() => computeProjectData(loaderData).data);
+  const [vaultPage, setVaultPage] = useState<VaultPageItem | undefined>(
+    () => computeProjectData(loaderData).vaultPage,
+  );
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const isDesktop = useIsDesktop();
+
+  const refreshProjectData = () => {
+    const computed = computeProjectData(loaderData);
+    setData(computed.data);
+    setVaultPage(computed.vaultPage);
   };
 
   // Client hydration for project updates saved in localStorage/vault
@@ -457,7 +474,7 @@ function ProjectCaseStudyPage() {
       ) : activeUiType === "UI03" ? (
         <div className="w-full max-w-6xl mx-auto px-4 pt-4">
           <UI03_EqualCardsGrid
-            cards={galleryMediaItems.map((item) => ({
+            cards={galleryMediaItems.map((item: { id: string; src: string; title?: string; href?: string }) => ({
               id: item.id,
               title: item.title || "",
               image: item.src,
@@ -468,7 +485,7 @@ function ProjectCaseStudyPage() {
       ) : activeUiType === "UI04" ? (
         <div className="w-full max-w-6xl mx-auto px-4 pt-4">
           <UI04_VideoShowcase
-            items={galleryMediaItems.map((item) => ({
+            items={galleryMediaItems.map((item: { id: string; src: string; title?: string }) => ({
               id: item.id,
               src: item.src,
               title: item.title || "",

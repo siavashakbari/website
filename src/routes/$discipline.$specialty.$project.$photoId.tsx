@@ -135,6 +135,85 @@ export const Route = createFileRoute("/$discipline/$specialty/$project/$photoId"
   ),
 });
 
+function computePhotoData(loaderData: any) {
+  if (typeof window === "undefined") {
+    return {
+      photo: loaderData.photo,
+      projectDescription: loaderData.projectDescription,
+      resolvedImage: loaderData.resolvedImage,
+      isHidden: loaderData.isHidden,
+    };
+  }
+  const vMedia = getMediaByCode(loaderData.photo.code);
+  const isHidden = vMedia ? vMedia.isHidden : loaderData.isHidden;
+  const currentPhoto =
+    getPhotoItemBySlugOrCode(
+      loaderData.photo.code,
+      loaderData.disciplineSlug,
+      loaderData.specialtySlug,
+      loaderData.projectSlug,
+    ) ||
+    getPhotoItemBySlugOrCode(
+      loaderData.photo.standardCode || "",
+      loaderData.disciplineSlug,
+      loaderData.specialtySlug,
+      loaderData.projectSlug,
+    );
+
+  const allProjects = getStudioProjects();
+  const parentProject =
+    allProjects.find(
+      (p) => normalizeProjectSlug(p.title) === loaderData.projectSlug || p.id === loaderData.projectSlug,
+    ) ||
+    projects.find(
+      (p) => normalizeProjectSlug(p.title) === loaderData.projectSlug || p.id === loaderData.projectSlug,
+    );
+
+  const projectDescription = parentProject?.description || loaderData.projectDescription;
+
+  if (currentPhoto) {
+    const client = currentPhoto.client || (parentProject as any)?.client || "";
+    const model =
+      currentPhoto.model ||
+      (parentProject
+        ? Array.isArray((parentProject as any).models)
+          ? (parentProject as any).models.join(", ")
+          : (parentProject as any).models
+        : "") ||
+      "";
+    const makeupArtist = currentPhoto.makeupArtist || (parentProject as any)?.makeupArtist || "";
+    const assistant = currentPhoto.assistant || (parentProject as any)?.assistant || "";
+    const year = currentPhoto.date || parentProject?.year || "2024";
+
+    const resolved: PhotoInventoryItem = {
+      ...currentPhoto,
+      client,
+      model,
+      makeupArtist,
+      assistant,
+      date: String(year),
+      subdiscipline:
+        currentPhoto.subdiscipline ||
+        (parentProject as any)?.subDiscipline ||
+        parentProject?.category ||
+        loaderData.specialtySlug,
+      caption: currentPhoto.caption || (parentProject as any)?.caption || parentProject?.description || "",
+    };
+    return {
+      photo: resolved,
+      projectDescription,
+      resolvedImage: resolveInventoryImage(resolved.imgSrc),
+      isHidden,
+    };
+  }
+  return {
+    photo: loaderData.photo,
+    projectDescription,
+    resolvedImage: loaderData.resolvedImage,
+    isHidden,
+  };
+}
+
 function DedicatedPhotoView() {
   const loaderData = Route.useLoaderData();
   const {
@@ -145,74 +224,21 @@ function DedicatedPhotoView() {
     nextPhoto,
   } = loaderData;
 
-  const [photo, setPhoto] = useState(loaderData.photo);
-  const [projectDescription, setProjectDescription] = useState(loaderData.projectDescription);
-  const [resolvedImage, setResolvedImage] = useState(loaderData.resolvedImage);
-  const [isHidden, setIsHidden] = useState(loaderData.isHidden);
+  const [photo, setPhoto] = useState(() => computePhotoData(loaderData).photo);
+  const [projectDescription, setProjectDescription] = useState(
+    () => computePhotoData(loaderData).projectDescription,
+  );
+  const [resolvedImage, setResolvedImage] = useState(
+    () => computePhotoData(loaderData).resolvedImage,
+  );
+  const [isHidden, setIsHidden] = useState(() => computePhotoData(loaderData).isHidden);
 
   const refreshPhotoData = () => {
-    const vMedia = getMediaByCode(loaderData.photo.code);
-    if (vMedia) {
-      setIsHidden(vMedia.isHidden);
-    }
-    const currentPhoto =
-      getPhotoItemBySlugOrCode(
-        loaderData.photo.code,
-        loaderData.disciplineSlug,
-        loaderData.specialtySlug,
-        loaderData.projectSlug,
-      ) ||
-      getPhotoItemBySlugOrCode(
-        loaderData.photo.standardCode || "",
-        loaderData.disciplineSlug,
-        loaderData.specialtySlug,
-        loaderData.projectSlug,
-      );
-
-    const allProjects = getStudioProjects();
-    const parentProject =
-      allProjects.find(
-        (p) => normalizeProjectSlug(p.title) === loaderData.projectSlug || p.id === loaderData.projectSlug,
-      ) ||
-      projects.find(
-        (p) => normalizeProjectSlug(p.title) === loaderData.projectSlug || p.id === loaderData.projectSlug,
-      );
-
-    if (parentProject?.description) {
-      setProjectDescription(parentProject.description);
-    }
-
-    if (currentPhoto) {
-      const client = currentPhoto.client || (parentProject as any)?.client || "";
-      const model =
-        currentPhoto.model ||
-        (parentProject
-          ? Array.isArray((parentProject as any).models)
-            ? (parentProject as any).models.join(", ")
-            : (parentProject as any).models
-          : "") ||
-        "";
-      const makeupArtist = currentPhoto.makeupArtist || (parentProject as any)?.makeupArtist || "";
-      const assistant = currentPhoto.assistant || (parentProject as any)?.assistant || "";
-      const year = currentPhoto.date || parentProject?.year || "2024";
-
-      const resolved: PhotoInventoryItem = {
-        ...currentPhoto,
-        client,
-        model,
-        makeupArtist,
-        assistant,
-        date: String(year),
-        subdiscipline:
-          currentPhoto.subdiscipline ||
-          (parentProject as any)?.subDiscipline ||
-          parentProject?.category ||
-          loaderData.specialtySlug,
-        caption: currentPhoto.caption || (parentProject as any)?.caption || parentProject?.description || "",
-      };
-      setPhoto(resolved);
-      setResolvedImage(resolveInventoryImage(resolved.imgSrc));
-    }
+    const computed = computePhotoData(loaderData);
+    setPhoto(computed.photo);
+    setProjectDescription(computed.projectDescription);
+    setResolvedImage(computed.resolvedImage);
+    setIsHidden(computed.isHidden);
   };
 
   // Client hydration from localStorage / studio store

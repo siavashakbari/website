@@ -379,9 +379,9 @@ export const projects: Project[] = [
     year: "2025",
     client: "Meatlab",
     description: "Visual identity and conceptual brand design for Meatlab.",
-    image: shekarchian1,
+    image: "",
     aspect: "portrait",
-    gallery: [shekarchian1, shekarchian2],
+    gallery: [],
   },
   {
     id: "shekarchian-sweets",

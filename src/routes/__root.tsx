@@ -432,10 +432,10 @@ function RootComponent() {
     return () => media.removeEventListener("change", update);
   }, []);
 
-  const isAdminPage = pathname.startsWith("/admin");
-  const lockProjectScroll = (isProjectPage || isPhotoPage || isSideScrollDiscipline) && isDesktop && !isAdminPage;
+  const isVaultPage = pathname.startsWith("/vault") || pathname.startsWith("/admin");
+  const lockProjectScroll = (isProjectPage || isPhotoPage || isSideScrollDiscipline) && isDesktop && !isVaultPage;
   const hideFooter =
-    isAdminPage || (isProjectPage && isDesktop) || isPhotoPage || pathname === "/about" || (isSideScrollDiscipline && isDesktop);
+    isVaultPage || (isProjectPage && isDesktop) || isPhotoPage || pathname === "/about" || (isSideScrollDiscipline && isDesktop);
 
   useEffect(() => {
     const html = document.documentElement;
@@ -453,7 +453,7 @@ function RootComponent() {
   }, [lockProjectScroll, pathname]);
 
   useEffect(() => {
-    if (pathname.startsWith("/admin")) return;
+    if (pathname.startsWith("/vault") || pathname.startsWith("/admin")) return;
 
     const isEditable = (target: EventTarget | null) => {
       if (!(target instanceof HTMLElement)) return false;
@@ -504,7 +504,7 @@ function RootComponent() {
           lockProjectScroll ? "h-dvh overflow-hidden overscroll-none" : "min-h-screen"
         }`}
       >
-        {!isAdminPage && <Header />}
+        {!isVaultPage && <Header />}
         <main
           className={`flex-1 ${lockProjectScroll ? "flex min-h-0 flex-col overflow-hidden" : ""}`}
         >

@@ -447,7 +447,7 @@ export function getInitialScannedPages(): VaultPageItem[] {
       route: "/graphic-design/visual-identity/meatlab",
       name: "Meatlab",
       parentRoute: "/graphic-design/visual-identity",
-      coverPhoto: "src/assets/graphic-design/shekarchian/graphic-design-shekarchian-01.jpg",
+      coverPhoto: "",
       descriptionEn: "Visual identity and conceptual brand design for Meatlab.",
       descriptionFa: "طراحی هویت بصری و سیستم برند میت‌لب.",
       uiType: "UI01",

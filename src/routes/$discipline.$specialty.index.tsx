@@ -80,6 +80,58 @@ function useIsDesktop() {
   return isDesktop;
 }
 
+function computeSpecialtyProjectCards(normDisc: string, normSpec: string): ProjectCardItem[] {
+  const allStudio = getStudioProjects();
+  const matching = allStudio.filter((p) => {
+    const disc = (p.discipline || "").toLowerCase();
+    const cat = (p.category || "").toLowerCase();
+    const sub = ((p as any).subDiscipline || "").toLowerCase();
+    return (
+      disc === "visual-identity" ||
+      disc === "graphic-design" ||
+      cat.includes("identity") ||
+      cat.includes("visual") ||
+      sub.includes("identity")
+    );
+  });
+  const cardMap = new Map<string, ProjectCardItem>();
+
+  matching.forEach((project) => {
+    const projSlug = normalizeProjectSlug(project.title || project.id);
+    const rawCover =
+      (project as any).coverImage ||
+      (project as any).image ||
+      (project.images && project.images[0]?.url) ||
+      "";
+    cardMap.set(projSlug, {
+      id: project.id,
+      title: project.title,
+      image: resolveInventoryImage(rawCover) || rawCover,
+      year: String(project.year || "2026"),
+      href: `/${normDisc}/${normSpec}/${projSlug}`,
+    });
+  });
+
+  // Overlay all Vault Pages under this specialty route
+  const allVault = getVaultPages();
+  const specRoute = `/${normDisc}/${normSpec}`.toLowerCase();
+  allVault
+    .filter((p) => (p.parentRoute || "").toLowerCase() === specRoute && !p.isHidden)
+    .forEach((vp) => {
+      const slug = normalizeProjectSlug(vp.route.split("/").pop() || vp.name);
+      const existing = cardMap.get(slug);
+      cardMap.set(slug, {
+        id: vp.id,
+        title: vp.name || existing?.title || slug,
+        image: resolveInventoryImage(vp.coverPhoto) || vp.coverPhoto || existing?.image || "",
+        year: existing?.year || "2026",
+        href: vp.route,
+      });
+    });
+
+  return Array.from(cardMap.values());
+}
+
 export const Route = createFileRoute("/$discipline/$specialty/")({
   loader: ({ params }) => {
     const normDisc = normalizeDisciplineSlug(params.discipline);
@@ -185,55 +237,7 @@ export const Route = createFileRoute("/$discipline/$specialty/")({
     const isVideo = normSpec === "videos" || normSpec === "video";
 
     if (isVisualIdentity) {
-      const allStudio = getStudioProjects();
-      const matching = allStudio.filter((p) => {
-        const disc = (p.discipline || "").toLowerCase();
-        const cat = (p.category || "").toLowerCase();
-        const sub = ((p as any).subDiscipline || "").toLowerCase();
-        return (
-          disc === "visual-identity" ||
-          disc === "graphic-design" ||
-          cat.includes("identity") ||
-          cat.includes("visual") ||
-          sub.includes("identity")
-        );
-      });
-      const cardMap = new Map<string, ProjectCardItem>();
-
-      matching.forEach((project) => {
-        const projSlug = normalizeProjectSlug(project.title || project.id);
-        const rawCover =
-          (project as any).coverImage ||
-          (project as any).image ||
-          (project.images && project.images[0]?.url) ||
-          "";
-        cardMap.set(projSlug, {
-          id: project.id,
-          title: project.title,
-          image: resolveInventoryImage(rawCover) || rawCover,
-          year: String(project.year || "2026"),
-          href: `/${normDisc}/${normSpec}/${projSlug}`,
-        });
-      });
-
-      // Overlay all Vault Pages under this specialty route
-      const allVault = getVaultPages();
-      const specRoute = `/${normDisc}/${normSpec}`.toLowerCase();
-      allVault
-        .filter((p) => (p.parentRoute || "").toLowerCase() === specRoute && !p.isHidden)
-        .forEach((vp) => {
-          const slug = normalizeProjectSlug(vp.route.split("/").pop() || vp.name);
-          const existing = cardMap.get(slug);
-          cardMap.set(slug, {
-            id: vp.id,
-            title: vp.name || existing?.title || slug,
-            image: resolveInventoryImage(vp.coverPhoto) || vp.coverPhoto || existing?.image || "",
-            year: existing?.year || "2026",
-            href: vp.route,
-          });
-        });
-
-      const projectCards: ProjectCardItem[] = Array.from(cardMap.values());
+      const projectCards = computeSpecialtyProjectCards(normDisc, normSpec);
       return {
         disciplineSlug: normDisc,
         specialtySlug: normSpec,
@@ -305,8 +309,19 @@ export const Route = createFileRoute("/$discipline/$specialty/")({
 
 function SpecialtyPage() {
   const loaderData = Route.useLoaderData();
-  const [data, setData] = useState(loaderData);
-  const [vaultPage, setVaultPage] = useState<VaultPageItem | undefined>(undefined);
+  const [data, setData] = useState(() => {
+    if (typeof window === "undefined" || !loaderData.isVisualIdentity) {
+      return loaderData;
+    }
+    return {
+      ...loaderData,
+      projectCards: computeSpecialtyProjectCards(loaderData.disciplineSlug, loaderData.specialtySlug),
+    };
+  });
+  const [vaultPage, setVaultPage] = useState<VaultPageItem | undefined>(() => {
+    if (typeof window === "undefined") return undefined;
+    return getPageByRoute(`/${loaderData.disciplineSlug}/${loaderData.specialtySlug}`);
+  });
   const isDesktop = useIsDesktop();
 
   useEffect(() => {
@@ -319,55 +334,7 @@ function SpecialtyPage() {
     setVaultPage(currentVaultPage);
 
     if (loaderData.isVisualIdentity) {
-      const allStudio = getStudioProjects();
-      const matching = allStudio.filter((p) => {
-        const disc = (p.discipline || "").toLowerCase();
-        const cat = (p.category || "").toLowerCase();
-        const sub = ((p as any).subDiscipline || "").toLowerCase();
-        return (
-          disc === "visual-identity" ||
-          disc === "graphic-design" ||
-          cat.includes("identity") ||
-          cat.includes("visual") ||
-          sub.includes("identity")
-        );
-      });
-      const cardMap = new Map<string, ProjectCardItem>();
-
-      matching.forEach((project) => {
-        const projSlug = normalizeProjectSlug(project.title || project.id);
-        const rawCover =
-          (project as any).coverImage ||
-          (project as any).image ||
-          (project.images && project.images[0]?.url) ||
-          "";
-        cardMap.set(projSlug, {
-          id: project.id,
-          title: project.title,
-          image: resolveInventoryImage(rawCover) || rawCover,
-          year: String(project.year || "2026"),
-          href: `/${loaderData.disciplineSlug}/${loaderData.specialtySlug}/${projSlug}`,
-        });
-      });
-
-      // Overlay all Vault Pages under this specialty route
-      const allVault = getVaultPages();
-      const specRoute = `/${loaderData.disciplineSlug}/${loaderData.specialtySlug}`.toLowerCase();
-      allVault
-        .filter((p) => (p.parentRoute || "").toLowerCase() === specRoute && !p.isHidden)
-        .forEach((vp) => {
-          const slug = normalizeProjectSlug(vp.route.split("/").pop() || vp.name);
-          const existing = cardMap.get(slug);
-          cardMap.set(slug, {
-            id: vp.id,
-            title: vp.name || existing?.title || slug,
-            image: resolveInventoryImage(vp.coverPhoto) || vp.coverPhoto || existing?.image || "",
-            year: existing?.year || "2026",
-            href: vp.route,
-          });
-        });
-
-      const projectCards: ProjectCardItem[] = Array.from(cardMap.values());
+      const projectCards = computeSpecialtyProjectCards(loaderData.disciplineSlug, loaderData.specialtySlug);
       setData((prev) => ({
         ...prev,
         projectCards,

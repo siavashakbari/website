@@ -223,10 +223,121 @@ export const Route = createFileRoute("/$discipline/")({
   ),
 });
 
+function computeDisciplineProjectCards(slug: string): ProjectCardItem[] {
+  if (slug === "product-design") {
+    const allStudio = getStudioProjects();
+    const matching = allStudio.filter((p) => {
+      const disc = (p.discipline || "").toLowerCase();
+      const cat = (p.category || "").toLowerCase();
+      const sub = ((p as any).subDiscipline || "").toLowerCase();
+      return (
+        disc === "product-design" ||
+        cat.includes("product design") ||
+        sub.includes("product design") ||
+        cat.includes("object")
+      );
+    });
+    const cardMap = new Map<string, ProjectCardItem>();
+    matching.forEach((project) => {
+      const projSlug = normalizeProjectSlug(project.title || project.id);
+      const rawCover =
+        (project as any).coverImage ||
+        (project as any).image ||
+        (project.images && project.images[0]?.url) ||
+        "";
+      cardMap.set(projSlug, {
+        id: project.id,
+        title: project.title,
+        image: resolveInventoryImage(rawCover) || rawCover,
+        year: String(project.year || "2026"),
+        href: `/product-design/${projSlug}`,
+      });
+    });
+    // Overlay Vault pages under /product-design
+    const allVault = getVaultPages();
+    allVault
+      .filter((p) => (p.parentRoute || "").toLowerCase() === "/product-design" && !p.isHidden)
+      .forEach((vp) => {
+        const pSlug = normalizeProjectSlug(vp.route.split("/").pop() || vp.name);
+        const existing = cardMap.get(pSlug);
+        cardMap.set(pSlug, {
+          id: vp.id,
+          title: vp.name || existing?.title || pSlug,
+          image: resolveInventoryImage(vp.coverPhoto) || vp.coverPhoto || existing?.image || "",
+          year: existing?.year || "2026",
+          href: vp.route,
+        });
+      });
+    return Array.from(cardMap.values());
+  }
+
+  const allStudio = getStudioProjects();
+  const matching = allStudio.filter((p) => {
+    const disc = (p.discipline || "").toLowerCase();
+    const cat = (p.category || "").toLowerCase();
+    const sub = ((p as any).subDiscipline || "").toLowerCase();
+    return (
+      disc === "visual-identity" ||
+      disc === "graphic-design" ||
+      cat.includes("identity") ||
+      cat.includes("visual") ||
+      sub.includes("identity")
+    );
+  });
+  const cardMap = new Map<string, ProjectCardItem>();
+  matching.forEach((project) => {
+    const projSlug = normalizeProjectSlug(project.title || project.id);
+    const rawCover =
+      (project as any).coverImage ||
+      (project as any).image ||
+      (project.images && project.images[0]?.url) ||
+      "";
+    cardMap.set(projSlug, {
+      id: project.id,
+      title: project.title,
+      image: resolveInventoryImage(rawCover) || rawCover,
+      year: String(project.year || "2026"),
+      href: `/graphic-design/visual-identity/${projSlug}`,
+    });
+  });
+  const allVault = getVaultPages();
+  allVault
+    .filter(
+      (p) =>
+        ((p.parentRoute || "").toLowerCase() === "/graphic-design/visual-identity" ||
+          (p.parentRoute || "").toLowerCase() === "/graphic-design") &&
+        !p.isHidden,
+    )
+    .forEach((vp) => {
+      const pSlug = normalizeProjectSlug(vp.route.split("/").pop() || vp.name);
+      const existing = cardMap.get(pSlug);
+      cardMap.set(pSlug, {
+        id: vp.id,
+        title: vp.name || existing?.title || pSlug,
+        image: resolveInventoryImage(vp.coverPhoto) || vp.coverPhoto || existing?.image || "",
+        year: existing?.year || "2026",
+        href: vp.route,
+      });
+    });
+  return Array.from(cardMap.values());
+}
+
 function DisciplinePage() {
   const loaderData = Route.useLoaderData();
-  const [data, setData] = useState(loaderData);
-  const [vaultPage, setVaultPage] = useState<VaultPageItem | undefined>(undefined);
+  const [data, setData] = useState(() => {
+    if (typeof window === "undefined") return loaderData;
+    if (loaderData.discipline.slug === "product-design" || loaderData.discipline.browseByProject) {
+      return {
+        ...loaderData,
+        projectCards: computeDisciplineProjectCards(loaderData.discipline.slug),
+      };
+    }
+    return loaderData;
+  });
+  const [vaultPage, setVaultPage] = useState<VaultPageItem | undefined>(() => {
+    if (typeof window === "undefined") return undefined;
+    return getPageByRoute(`/${normalizeDisciplineSlug(loaderData.discipline.slug)}`);
+  });
   const isDesktop = useIsDesktop();
 
   const refreshData = () => {
@@ -234,68 +345,10 @@ function DisciplinePage() {
     const currentVaultPage = getPageByRoute(routePath);
     setVaultPage(currentVaultPage);
 
-    if (loaderData.discipline.slug === "product-design") {
-      const allStudio = getStudioProjects();
-      const matching = allStudio.filter((p) => {
-        const disc = (p.discipline || "").toLowerCase();
-        const cat = (p.category || "").toLowerCase();
-        const sub = ((p as any).subDiscipline || "").toLowerCase();
-        return (
-          disc === "product-design" ||
-          cat.includes("product design") ||
-          sub.includes("product design") ||
-          cat.includes("object")
-        );
-      });
-      const projectCards: ProjectCardItem[] = matching.map((project) => {
-        const projSlug = normalizeProjectSlug(project.title || project.id);
-        const rawCover =
-          (project as any).coverImage ||
-          (project as any).image ||
-          (project.images && project.images[0]?.url) ||
-          "";
-        return {
-          id: project.id,
-          title: project.title,
-          image: resolveInventoryImage(rawCover) || rawCover,
-          year: String(project.year || "2026"),
-          href: `/product-design/${projSlug}`,
-        };
-      });
+    if (loaderData.discipline.slug === "product-design" || loaderData.discipline.browseByProject) {
+      const projectCards = computeDisciplineProjectCards(loaderData.discipline.slug);
       setData((prev) => ({ ...prev, projectCards }));
       return;
-    }
-
-    if (loaderData.discipline.browseByProject) {
-      const allStudio = getStudioProjects();
-      const matching = allStudio.filter((p) => {
-        const disc = (p.discipline || "").toLowerCase();
-        const cat = (p.category || "").toLowerCase();
-        const sub = ((p as any).subDiscipline || "").toLowerCase();
-        return (
-          disc === "visual-identity" ||
-          disc === "graphic-design" ||
-          cat.includes("identity") ||
-          cat.includes("visual") ||
-          sub.includes("identity")
-        );
-      });
-      const projectCards: ProjectCardItem[] = matching.map((project) => {
-        const projSlug = normalizeProjectSlug(project.title || project.id);
-        const rawCover =
-          (project as any).coverImage ||
-          (project as any).image ||
-          (project.images && project.images[0]?.url) ||
-          "";
-        return {
-          id: project.id,
-          title: project.title,
-          image: resolveInventoryImage(rawCover) || rawCover,
-          year: String(project.year || "2026"),
-          href: `/graphic-design/visual-identity/${projSlug}`,
-        };
-      });
-      setData((prev) => ({ ...prev, projectCards }));
     } else {
       // Re-hydrate photo items dynamically
       const photos = getPhotosByDiscipline(loaderData.discipline.slug);
