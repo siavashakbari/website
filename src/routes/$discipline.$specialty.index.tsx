@@ -14,6 +14,7 @@ import {
 import {
   buildMediaLiveDetailUrl,
   FLAT_FIELDS,
+  getDeletedVaultPageKeys,
   getGalleryMediaForRoute,
   getMediaByCode,
   getPageByRoute,
@@ -99,48 +100,48 @@ function computeSpecialtyProjectCards(normDisc: string, normSpec: string): Proje
   const specRoute = `/${normDisc}/${normSpec}`.toLowerCase();
   const cardMap = new Map<string, ProjectCardItem>();
   const deletedSet = getDeletedProjectIds();
+  const allVault = getVaultPages();
 
-  // 1. Pull studio projects strictly belonging to this discipline & specialty
-  const allStudio = getStudioProjects();
-  allStudio
+  // Enrich year/cover fallback only for active Vault Pages
+  const studioByRouteOrSlug = new Map<string, any>();
+  getStudioProjects()
     .filter((p) => {
       const pDisc = normalizeDisciplineSlug(p.discipline || "");
       const pSpec = normalizeSpecialtySlug(p.subDiscipline || p.category || "");
       return pDisc === normDisc && pSpec === normSpec;
     })
-    .forEach((project) => {
-      const projSlug = normalizeProjectSlug(project.title || project.id);
-      if (!projSlug || deletedSet.has(projSlug)) return;
-      const rawCover =
-        (project as any).coverImage ||
-        (project as any).image ||
-        (project.images && project.images[0]?.url) ||
-        "";
-      cardMap.set(projSlug, {
-        id: project.id,
-        title: project.title,
-        image: resolveInventoryImage(rawCover) || rawCover,
-        year: String(project.year || "2026"),
-        href: `/${normDisc}/${normSpec}/${projSlug}`,
-      });
+    .forEach((p) => {
+      const pSlug = normalizeProjectSlug(p.title || p.id);
+      if ((p as any).route) studioByRouteOrSlug.set(String((p as any).route).toLowerCase(), p);
+      if (pSlug) studioByRouteOrSlug.set(pSlug, p);
+      if (p.id) studioByRouteOrSlug.set(String(p.id).toLowerCase(), p);
     });
 
-  // 2. Overlay all Vault Pages whose parentRoute strictly matches specRoute
-  const allVault = getVaultPages();
+  // Authoritative list of visible child project cards strictly from Vault Pages
   allVault
     .filter((p) => (p.parentRoute || "").toLowerCase().replace(/\/+$/, "") === specRoute)
     .forEach((vp) => {
       const slug = normalizeProjectSlug(vp.route.split("/").pop() || vp.name);
       if (isRouteOrAncestorHidden(vp.route, allVault) || deletedSet.has(slug)) {
-        cardMap.delete(slug);
         return;
       }
-      const existing = cardMap.get(slug);
-      cardMap.set(slug, {
+      const meta =
+        studioByRouteOrSlug.get(vp.route.toLowerCase()) ||
+        studioByRouteOrSlug.get(slug) ||
+        studioByRouteOrSlug.get(vp.id.toLowerCase());
+      const fallbackCover =
+        (meta?.coverImage && !String(meta.coverImage).startsWith("blob:") ? meta.coverImage : "") ||
+        meta?.image ||
+        "";
+      cardMap.set(vp.route.toLowerCase(), {
         id: vp.id,
-        title: vp.name || existing?.title || slug,
-        image: resolveInventoryImage(vp.coverPhoto) || vp.coverPhoto || existing?.image || "",
-        year: existing?.year || "2026",
+        title: vp.name || meta?.title || slug,
+        image:
+          (vp.coverPhoto ? resolveInventoryImage(vp.coverPhoto) || vp.coverPhoto : "") ||
+          (fallbackCover ? resolveInventoryImage(fallbackCover) || fallbackCover : ""),
+        year:
+          vp.pairedBoxes?.find((b) => b.key.toLowerCase() === "year")?.value ||
+          (meta?.year ? String(meta.year) : "2026"),
         href: vp.route,
       });
     });
@@ -388,8 +389,11 @@ function computeClientSpecialtyState(loaderData: SpecialtyRouteData) {
 
   const fresh = buildSpecialtyData(loaderData.disciplineSlug, loaderData.specialtySlug);
   const vaultPage = getPageByRoute(fresh.canonicalRoute);
+  const isDeleted = getDeletedVaultPageKeys().has(fresh.canonicalRoute.toLowerCase());
   const isHidden = isRouteOrAncestorHidden(fresh.canonicalRoute);
-  const exists = fresh.serverFound || loaderData.serverFound || Boolean(vaultPage);
+  const exists =
+    !isDeleted &&
+    Boolean(vaultPage || fresh.projectCards.length > 0 || fresh.items.length > 0);
 
   return {
     notFound: !exists,

@@ -14,10 +14,10 @@ import type { PhotoInventoryItem } from "@/data/photo-inventory";
 import {
   buildMediaLiveDetailUrl,
   FLAT_FIELDS,
+  getDeletedVaultMediaKeys,
   getGalleryMediaForRoute,
   getMediaByCode,
   getPageByRoute,
-  getVaultMedia,
   isRouteOrAncestorHidden,
   subscribeToVaultStore,
   type VaultMediaItem,
@@ -129,6 +129,14 @@ function isVideoAsset(src?: string): boolean {
   return Boolean(src && (/\.(mp4|webm|mov)(\?|#|$)/i.test(src) || src.startsWith("data:video/")));
 }
 
+function formatSlugLabel(slug?: string): string {
+  return (slug || "")
+    .split("-")
+    .filter(Boolean)
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(" ");
+}
+
 function synthesizePhotoFromVault(vaultMedia: VaultMediaItem): PhotoInventoryItem {
   const all = getMergedPhotoInventory();
   const vmSrc = (vaultMedia.imgSrc || "").toLowerCase();
@@ -143,18 +151,34 @@ function synthesizePhotoFromVault(vaultMedia: VaultMediaItem): PhotoInventoryIte
     );
   });
 
+  const liveDiscSlug = vaultMedia.field || "photography";
+  const liveSpecSlug = vaultMedia.category || "";
+  const liveProjSlug = vaultMedia.project || "";
+  const discPage = getPageByRoute(`/${liveDiscSlug}`);
+  const specPage = liveSpecSlug ? getPageByRoute(`/${liveDiscSlug}/${liveSpecSlug}`) : undefined;
+  const projPage = getPageByRoute(vaultMedia.assignedRoute);
+
   if (matched) {
+    const sameProject =
+      normalizeProjectSlug(matched.projectSlug || matched.project || "") ===
+      normalizeProjectSlug(liveProjSlug);
+    const projectLabel =
+      projPage?.name ||
+      (sameProject ? matched.project : formatSlugLabel(liveProjSlug)) ||
+      formatSlugLabel(liveSpecSlug || liveDiscSlug);
     return {
       ...matched,
       code: vaultMedia.dynamicCode,
       standardCode: vaultMedia.dynamicCode,
       uniqueCode: vaultMedia.uniqueCode,
-      discipline: vaultMedia.field,
-      disciplineSlug: vaultMedia.field,
-      subdiscipline: vaultMedia.category || matched.subdiscipline || vaultMedia.field,
-      specialtySlug: vaultMedia.category,
-      project: matched.project || vaultMedia.project,
-      projectSlug: vaultMedia.project,
+      discipline: discPage?.name || formatSlugLabel(liveDiscSlug),
+      disciplineSlug: liveDiscSlug,
+      subdiscipline:
+        specPage?.name ||
+        (sameProject ? matched.subdiscipline : formatSlugLabel(liveSpecSlug || liveDiscSlug)),
+      specialtySlug: liveSpecSlug,
+      project: projectLabel,
+      projectSlug: liveProjSlug,
       displayName: vaultMedia.title,
       title: vaultMedia.title,
     };
@@ -164,12 +188,15 @@ function synthesizePhotoFromVault(vaultMedia: VaultMediaItem): PhotoInventoryIte
     code: vaultMedia.dynamicCode,
     standardCode: vaultMedia.dynamicCode,
     uniqueCode: vaultMedia.uniqueCode,
-    project: vaultMedia.project || (vaultMedia.category === "posters" ? "Posters" : vaultMedia.field),
-    discipline: vaultMedia.field,
-    disciplineSlug: vaultMedia.field,
-    subdiscipline: vaultMedia.category || vaultMedia.field,
-    specialtySlug: vaultMedia.category,
-    projectSlug: vaultMedia.project,
+    project:
+      projPage?.name ||
+      formatSlugLabel(liveProjSlug) ||
+      (liveSpecSlug === "posters" ? "Posters" : formatSlugLabel(liveDiscSlug)),
+    discipline: discPage?.name || formatSlugLabel(liveDiscSlug),
+    disciplineSlug: liveDiscSlug,
+    subdiscipline: specPage?.name || formatSlugLabel(liveSpecSlug || liveDiscSlug),
+    specialtySlug: liveSpecSlug,
+    projectSlug: liveProjSlug,
     imgSrc: vaultMedia.imgSrc,
     client: vaultMedia.client || "",
     model: vaultMedia.model || "",
@@ -179,7 +206,7 @@ function synthesizePhotoFromVault(vaultMedia: VaultMediaItem): PhotoInventoryIte
     caption: vaultMedia.caption,
     displayName: vaultMedia.title,
     title: vaultMedia.title,
-    keywords: `${vaultMedia.project || vaultMedia.category}, ${vaultMedia.field}`,
+    keywords: `${projPage?.name || liveProjSlug || liveSpecSlug}, ${discPage?.name || liveDiscSlug}`,
   };
 }
 
@@ -228,18 +255,40 @@ export function resolveDedicatedPhotoLoader(opts: {
     vaultMedia =
       getMediaByCode(photo.uniqueCode || photo.code) ||
       (photo.standardCode ? getMediaByCode(photo.standardCode) : undefined);
-    if (!vaultMedia) {
-      const allVault = getVaultMedia();
-      const pSrc = (photo.imgSrc || "").toLowerCase();
-      const pFilename = pSrc.split("/").pop() || "";
-      vaultMedia = allVault.find((m) => {
-        const mSrc = (m.imgSrc || "").toLowerCase();
-        return (
-          mSrc === pSrc ||
-          (pFilename && mSrc.endsWith(pFilename)) ||
-          (pSrc && pSrc.endsWith(mSrc.split("/").pop() || "__none__"))
-        );
-      });
+  }
+
+  // On SSR only: if requested with a valid full dynamic code (e.g. from a renamed/moved Vault route
+  // stored in browser localStorage), defer to client lookup instead of redirecting back to old static path.
+  const isFullDynamicUrlCode = /^\d{4}-[A-Z0-9-]+$/i.test(rawPhotoId);
+  if (
+    typeof window === "undefined" &&
+    isFullDynamicUrlCode &&
+    opts.currentRawPath.replace(/\/+$/, "").toLowerCase().endsWith(`/${rawPhotoId.toLowerCase()}`)
+  ) {
+    const staticCanon = vaultMedia ? buildMediaLiveDetailUrl(vaultMedia) : "";
+    if (staticCanon && opts.currentRawPath.replace(/\/+$/, "") !== staticCanon) {
+      return {
+        pendingClientLookup: true,
+        rawPhotoId,
+        currentRawPath: opts.currentRawPath,
+        disciplineSlug,
+        specialtySlug,
+        projectSlug,
+        galleryRoute:
+          FLAT_FIELDS.has(disciplineSlug)
+            ? `/${disciplineSlug}/${projectSlug}`
+            : projectSlug
+              ? `/${disciplineSlug}/${specialtySlug}/${projectSlug}`
+              : `/${disciplineSlug}/${specialtySlug}`,
+        photo: null,
+        projectDescription: "",
+        resolvedImage: "",
+        prevTarget: null,
+        nextTarget: null,
+        currentIndex: 1,
+        totalPhotos: 1,
+        isHidden: false,
+      };
     }
   }
 
@@ -365,27 +414,39 @@ function buildLivePhotoViewState(params: {
       )
     : undefined;
 
+  const discPage = getPageByRoute(`/${disciplineSlug}`);
+  const specPage = specialtySlug ? getPageByRoute(`/${disciplineSlug}/${specialtySlug}`) : undefined;
   const vaultPage = getPageByRoute(galleryRoute);
+  const sameStaticProject =
+    parentProject &&
+    normalizeProjectSlug(parentProject.title || parentProject.id || "") ===
+      normalizeProjectSlug(projectSlug);
 
-  const client = photo.client || (parentProject as any)?.client || "";
+  const client = photo.client || (sameStaticProject ? (parentProject as any)?.client : "") || "";
   const model =
     photo.model ||
-    (parentProject
+    (sameStaticProject && parentProject
       ? Array.isArray((parentProject as any).models)
         ? (parentProject as any).models.join(", ")
         : (parentProject as any).models
       : "") ||
     "";
-  const makeupArtist = photo.makeupArtist || (parentProject as any)?.makeupArtist || "";
-  const assistant = photo.assistant || (parentProject as any)?.assistant || "";
-  const year = vaultMedia?.year || photo.date || parentProject?.year || "2024";
+  const makeupArtist = photo.makeupArtist || (sameStaticProject ? (parentProject as any)?.makeupArtist : "") || "";
+  const assistant = photo.assistant || (sameStaticProject ? (parentProject as any)?.assistant : "") || "";
+  const year = vaultMedia?.year || photo.date || (sameStaticProject ? parentProject?.year : "") || "2024";
   const projectDescription =
-    vaultPage?.descriptionEn || parentProject?.description || "";
+    vaultPage?.descriptionEn || (sameStaticProject ? parentProject?.description : "") || "";
+  const disciplineDisplayTitle =
+    discPage?.name || photo.discipline || formatSlugLabel(disciplineSlug);
+  const specialtyDisplayTitle =
+    specPage?.name ||
+    (sameStaticProject ? photo.subdiscipline : "") ||
+    formatSlugLabel(specialtySlug);
   const projectDisplayTitle =
     vaultPage?.name ||
-    parentProject?.title ||
-    (photo.project && !FLAT_FIELDS.has(photo.project.toLowerCase()) ? photo.project : "") ||
-    (specialtySlug === "posters" ? "Posters" : projectSlug.replace(/-/g, " "));
+    (vaultMedia?.project ? formatSlugLabel(vaultMedia.project) : "") ||
+    (sameStaticProject ? parentProject?.title : "") ||
+    (specialtySlug === "posters" ? "Posters" : formatSlugLabel(projectSlug));
 
   const ext = extFromSrc(photo.imgSrc);
   const dynamicImageFileName = vaultMedia?.title || `${canonicalPhotoCode}${ext}`;
@@ -398,6 +459,8 @@ function buildLivePhotoViewState(params: {
     canonicalPath: vaultMedia
       ? buildMediaLiveDetailUrl(vaultMedia)
       : buildPhotoUrl(disciplineSlug, specialtySlug, projectSlug, canonicalPhotoCode),
+    discipline: disciplineDisplayTitle,
+    disciplineSlug,
     project: projectDisplayTitle,
     displayName: dynamicImageFileName,
     title: dynamicImageFileName,
@@ -406,16 +469,11 @@ function buildLivePhotoViewState(params: {
     makeupArtist: vaultMedia?.makeupArtist ?? makeupArtist,
     assistant: vaultMedia?.assistant ?? assistant,
     date: String(year),
-    subdiscipline:
-      photo.subdiscipline ||
-      (parentProject as any)?.subDiscipline ||
-      parentProject?.category ||
-      specialtySlug,
+    subdiscipline: specialtyDisplayTitle,
     caption:
       vaultMedia?.caption ||
       photo.caption ||
-      (parentProject as any)?.caption ||
-      parentProject?.description ||
+      (sameStaticProject ? (parentProject as any)?.caption || parentProject?.description : "") ||
       "",
   };
 
@@ -550,13 +608,33 @@ function computeClientPhotoState(loaderData: DedicatedPhotoLoaderData) {
     getMediaByCode(loaderData.photo?.standardCode || "") ||
     getMediaByCode(loaderData.photo?.uniqueCode || "");
 
-  if (loaderData.pendingClientLookup && !vMedia) {
-    const fallbackPhoto = getPhotoItemBySlugOrCode(
-      loaderData.rawPhotoId,
-      loaderData.disciplineSlug,
-      loaderData.specialtySlug || undefined,
-      loaderData.projectSlug || undefined,
-    );
+  const deletedMediaKeys = getDeletedVaultMediaKeys();
+  const extractedUnique =
+    loaderData.photo?.uniqueCode ||
+    loaderData.rawPhotoId.match(/^(\d{4})(?:-|$)/)?.[1] ||
+    "";
+  const isDeletedMedia = Boolean(
+    !vMedia &&
+      extractedUnique &&
+      (deletedMediaKeys.has(`media-${extractedUnique}`.toLowerCase()) ||
+        deletedMediaKeys.has(extractedUnique.toLowerCase())),
+  );
+  if (isDeletedMedia || (loaderData.pendingClientLookup && !vMedia)) {
+    let fallbackPhoto = isDeletedMedia
+      ? undefined
+      : getPhotoItemBySlugOrCode(
+          loaderData.rawPhotoId,
+          loaderData.disciplineSlug,
+          loaderData.specialtySlug || undefined,
+          loaderData.projectSlug || undefined,
+        );
+    if (
+      fallbackPhoto?.uniqueCode &&
+      (deletedMediaKeys.has(`media-${fallbackPhoto.uniqueCode}`.toLowerCase()) ||
+        deletedMediaKeys.has(fallbackPhoto.uniqueCode.toLowerCase()))
+    ) {
+      fallbackPhoto = undefined;
+    }
     if (!fallbackPhoto) {
       return {
         notFound: true,
@@ -740,15 +818,14 @@ export function DedicatedPhotoView({ loaderData }: { loaderData: DedicatedPhotoL
     );
   }
 
-  // Smart back link derived directly from the live assignedRoute
-  let backUrl = galleryRoute || `/${disciplineSlug}`;
-  let backLabel = `Back to ${photo.project || projectSlug.replace(/-/g, " ") || disciplineSlug.replace(/-/g, " ")}`;
+  // Smart back link derived directly from live Vault Page & assignedRoute (gated behind clientChecked to avoid SSR hydration mismatch)
+  const backUrl = galleryRoute || `/${disciplineSlug}`;
+  const liveBackPage = clientChecked ? getPageByRoute(backUrl) : undefined;
+  let backLabel = `Back to ${liveBackPage?.name || photo.project || formatSlugLabel(projectSlug || disciplineSlug)}`;
   if (disciplineSlug === "graphic-design" && specialtySlug === "posters" && !projectSlug) {
-    backUrl = "/graphic-design/posters";
-    backLabel = "Back to Posters";
+    backLabel = `Back to ${liveBackPage?.name || "Posters"}`;
   } else if (disciplineSlug === "graphic-design" && specialtySlug === "book-covers" && !projectSlug) {
-    backUrl = "/graphic-design/book-covers";
-    backLabel = "Back to Book Covers";
+    backLabel = `Back to ${liveBackPage?.name || "Book Covers"}`;
   }
 
   const handleCommissionClick = () => {

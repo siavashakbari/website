@@ -19,6 +19,7 @@ import {
   ArrowRight,
   SlidersHorizontal,
   Lock,
+  RotateCcw,
 } from "lucide-react";
 import {
   FLAT_FIELDS,
@@ -26,6 +27,8 @@ import {
   saveVaultPage,
   deleteVaultPage,
   getVaultMedia,
+  getDeletedVaultCounts,
+  restoreDeletedVaultPages,
   subscribeToVaultStore,
   type VaultPageItem,
 } from "@/lib/vault-store";
@@ -45,6 +48,7 @@ export const Route = createFileRoute("/vault/pages")({
 
 function VaultPagesView() {
   const [pages, setPages] = useState<VaultPageItem[]>([]);
+  const [deletedCounts, setDeletedCounts] = useState({ pages: 0, media: 0 });
   const [searchQuery, setSearchQuery] = useState("");
   const [collapsedSet, setCollapsedSet] = useState<Set<string>>(new Set());
   const [showAddModal, setShowAddModal] = useState(false);
@@ -72,6 +76,7 @@ function VaultPagesView() {
 
   const refreshPages = () => {
     setPages(getVaultPages());
+    setDeletedCounts(getDeletedVaultCounts());
   };
 
   useEffect(() => {
@@ -81,18 +86,17 @@ function VaultPagesView() {
     });
   }, []);
 
-  // Available root disciplines: pages with !parentRoute or standard roots
+  // Available root disciplines: live top-level Vault pages (excluding Landing "/" and special non-discipline roots)
   const availableDisciplines = useMemo(() => {
-    const defaultRoots = [
-      { route: "/photography", name: "Photography" },
-      { route: "/graphic-design", name: "Graphic Design" },
-      { route: "/product-design", name: "Product Design" },
-      { route: "/video", name: "Video" },
-    ];
-    const customRoots = pages
-      .filter((p) => !p.parentRoute && !defaultRoots.some((dr) => dr.route === p.route))
+    return pages
+      .filter(
+        (p) =>
+          !p.parentRoute &&
+          p.route !== "/" &&
+          p.route !== "/contact" &&
+          p.route !== "/brand-discovery",
+      )
       .map((p) => ({ route: p.route, name: p.name }));
-    return [...defaultRoots, ...customRoots];
   }, [pages]);
 
   const isFlatDiscipline = useMemo(
@@ -310,6 +314,25 @@ function VaultPagesView() {
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
+          {deletedCounts.pages > 0 && (
+            <button
+              type="button"
+              onClick={() => {
+                if (
+                  window.confirm(
+                    `Restore ${deletedCounts.pages} deleted/moved built-in page route key(s) back to Vault & website?`,
+                  )
+                ) {
+                  restoreDeletedVaultPages();
+                }
+              }}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-500/15 border border-amber-500/40 text-amber-300 text-xs font-mono hover:bg-amber-500/25 transition-colors cursor-pointer"
+              title="Restore deleted built-in pages"
+            >
+              <RotateCcw className="w-3.5 h-3.5" />
+              <span>Restore Built-in Pages ({deletedCounts.pages})</span>
+            </button>
+          )}
           <button
             type="button"
             onClick={expandAll}

@@ -10,17 +10,16 @@ import {
 } from "@/lib/studio-store";
 import {
   buildMediaLiveDetailUrl,
-  filenameKeyFromSrc,
   FLAT_FIELDS,
+  getDeletedVaultPageKeys,
   getGalleryMediaForRoute,
-  getMediaByRoute,
   getPageByRoute,
-  getVaultMedia,
   isRouteOrAncestorHidden,
   subscribeToVaultStore,
   type VaultMediaItem,
   type VaultPageItem,
 } from "@/lib/vault-store";
+import { useResolvedMediaSrc } from "@/lib/local-media-db";
 import {
   UI01_VerticalScroll,
   UI02_HorizontalScroll,
@@ -71,6 +70,7 @@ interface ProjectRouteLoaderData {
   title: string;
   year: string;
   category: string;
+  parentName: string;
   description: string;
   client?: string;
   models?: string;
@@ -93,39 +93,17 @@ function buildGalleryItemsForProject(
   canonicalRoute: string,
   projectSlug: string,
   displayTitle: string,
-  fallbackImages: string[],
 ): ResolvedGalleryItem[] {
   const vaultItems: VaultMediaItem[] = getGalleryMediaForRoute(canonicalRoute);
-  if (vaultItems.length > 0) {
-    return vaultItems.map((m, i) => ({
-      id: m.id || `${projectSlug}-${i}`,
-      src: resolveInventoryImage(m.imgSrc) || m.imgSrc,
-      title: m.title || `${displayTitle} — ${i + 1}`,
-      href: buildMediaLiveDetailUrl(m),
-      isVideo:
-        Boolean(m.isVideo) ||
-        /\.(mp4|webm|mov)(\?|#|$)|^data:video\//i.test(m.imgSrc || ""),
-    }));
-  }
-
-  // Never resurrect static fallback images if the route/items are already managed or hidden in Vault
-  if (isRouteOrAncestorHidden(canonicalRoute) || getMediaByRoute(canonicalRoute).length > 0) {
-    return [];
-  }
-
-  const trackedStems = new Set(getVaultMedia().map((m) => filenameKeyFromSrc(m.imgSrc)));
-  return fallbackImages
-    .filter((src) => !trackedStems.has(filenameKeyFromSrc(src)))
-    .map((src, i) => {
-      const resolved = resolveInventoryImage(src) || src;
-      return {
-        id: `${projectSlug}-${i}`,
-        src: resolved,
-        title: `${displayTitle} — ${i + 1}`,
-        href: "",
-        isVideo: /\.(mp4|webm|mov)(\?|#|$)|^data:video\//i.test(resolved),
-      };
-    });
+  return vaultItems.map((m, i) => ({
+    id: m.id || `${projectSlug}-${i}`,
+    src: resolveInventoryImage(m.imgSrc) || m.imgSrc,
+    title: m.title || `${displayTitle} — ${i + 1}`,
+    href: buildMediaLiveDetailUrl(m),
+    isVideo:
+      Boolean(m.isVideo) ||
+      /\.(mp4|webm|mov)(\?|#|$)|^data:video\//i.test(m.imgSrc || ""),
+  }));
 }
 
 function findMatchingProject(normProj: string) {
@@ -243,27 +221,34 @@ export const Route = createFileRoute("/$discipline/$specialty/$project/")({
     const vaultPage = getPageByRoute(canonicalRoute);
     const project = findMatchingProject(normProj);
     const pAny = project as any;
-    const rawFallbackImages: string[] =
-      pAny?.images && pAny.images.length > 0
-        ? pAny.images.map((im: any) => im.url)
-        : pAny?.gallery && pAny.gallery.length > 0
-          ? pAny.gallery
-          : pAny?.image
-            ? [pAny.image]
-            : [];
+    const sameStaticProject =
+      project &&
+      normalizeProjectSlug(project.title || project.id || "") === normProj;
 
-    const title = vaultPage?.name || project?.title || rawThird;
-    const items = buildGalleryItemsForProject(
-      canonicalRoute,
-      normProj,
-      title,
-      rawFallbackImages,
-    );
-    const serverFound = Boolean(vaultPage || project || items.length > 0);
+    const title =
+      vaultPage?.name ||
+      (sameStaticProject ? project?.title : "") ||
+      normProj
+        .split("-")
+        .filter(Boolean)
+        .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+        .join(" ");
+    const items = buildGalleryItemsForProject(canonicalRoute, normProj, title);
+    const serverFound = Boolean(vaultPage || (sameStaticProject && project) || items.length > 0);
     const coverImage =
       (vaultPage?.coverPhoto ? resolveInventoryImage(vaultPage.coverPhoto) || vaultPage.coverPhoto : "") ||
       items[0]?.src ||
       "";
+
+    const parentRoute = vaultPage?.parentRoute || `/${normDisc}/${normSpec}`;
+    const parentPage = getPageByRoute(parentRoute);
+    const parentName =
+      parentPage?.name ||
+      normSpec
+        .split("-")
+        .filter(Boolean)
+        .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+        .join(" ");
 
     return {
       kind: "project",
@@ -273,16 +258,27 @@ export const Route = createFileRoute("/$discipline/$specialty/$project/")({
       canonicalRoute,
       serverFound,
       title,
-      year: project?.year ? String(project.year) : "2026",
-      category: project?.subDiscipline || project?.category || normSpec,
-      description: vaultPage?.descriptionEn || project?.description || `${title} creative showcase.`,
-      client: project?.client,
-      models: Array.isArray(pAny?.models) ? pAny.models.join(", ") : project?.models,
-      makeupArtist: project?.makeupArtist,
-      assistant: project?.assistant,
-      stylist: project?.stylist,
-      location: project?.location,
-      caption: project?.caption,
+      year: sameStaticProject && project?.year ? String(project.year) : "2026",
+      category:
+        (sameStaticProject ? project?.subDiscipline || project?.category : "") ||
+        normSpec,
+      parentName,
+      description:
+        vaultPage?.descriptionEn ||
+        (sameStaticProject ? project?.description : "") ||
+        `${title} creative showcase.`,
+      client: sameStaticProject ? project?.client : undefined,
+      models:
+        sameStaticProject && pAny?.models
+          ? Array.isArray(pAny.models)
+            ? pAny.models.join(", ")
+            : pAny.models
+          : undefined,
+      makeupArtist: sameStaticProject ? project?.makeupArtist : undefined,
+      assistant: sameStaticProject ? project?.assistant : undefined,
+      stylist: sameStaticProject ? project?.stylist : undefined,
+      location: sameStaticProject ? project?.location : undefined,
+      caption: sameStaticProject ? project?.caption : undefined,
       items,
       coverImage,
       initialVaultPage: vaultPage,
@@ -335,28 +331,35 @@ function computeClientProjectState(loaderData: ProjectRouteLoaderData) {
   }
 
   const currentVaultPage = getPageByRoute(loaderData.canonicalRoute);
+  const isDeleted = getDeletedVaultPageKeys().has(loaderData.canonicalRoute.toLowerCase());
   const project = findMatchingProject(loaderData.projectSlug);
   const pAny = project as any;
-  const rawFallbackImages: string[] =
-    pAny?.images && pAny.images.length > 0
-      ? pAny.images.map((im: any) => im.url)
-      : pAny?.gallery && pAny.gallery.length > 0
-        ? pAny.gallery
-        : pAny?.image
-          ? [pAny.image]
-          : [];
+  const sameStaticProject =
+    project &&
+    normalizeProjectSlug(project.title || project.id || "") === loaderData.projectSlug;
 
-  const title = currentVaultPage?.name || project?.title || loaderData.title;
+  const title =
+    currentVaultPage?.name ||
+    (sameStaticProject ? project?.title : "") ||
+    loaderData.projectSlug
+      .split("-")
+      .filter(Boolean)
+      .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+      .join(" ");
   const items = buildGalleryItemsForProject(
     loaderData.canonicalRoute,
     loaderData.projectSlug,
     title,
-    rawFallbackImages,
   );
   const isHidden = isRouteOrAncestorHidden(loaderData.canonicalRoute);
-  const existsOnClient = Boolean(
-    currentVaultPage || project || items.length > 0 || loaderData.serverFound,
-  );
+  const existsOnClient = !isDeleted && Boolean(currentVaultPage || items.length > 0);
+  const parentRoute =
+    currentVaultPage?.parentRoute || `/${loaderData.disciplineSlug}/${loaderData.specialtySlug}`;
+  const parentPage = getPageByRoute(parentRoute);
+  const parentName =
+    parentPage?.name ||
+    loaderData.parentName ||
+    loaderData.specialtySlug.replace(/-/g, " ");
 
   return {
     notFound: !existsOnClient,
@@ -365,26 +368,43 @@ function computeClientProjectState(loaderData: ProjectRouteLoaderData) {
     data: {
       ...loaderData,
       title,
-      year: project?.year ? String(project.year) : loaderData.year,
-      category: project?.subDiscipline || project?.category || loaderData.category,
+      year: sameStaticProject && project?.year ? String(project.year) : loaderData.year,
+      category:
+        (sameStaticProject ? project?.subDiscipline || project?.category : "") ||
+        loaderData.category,
+      parentName,
       description:
-        currentVaultPage?.descriptionEn || project?.description || loaderData.description,
-      client: project?.client !== undefined ? project.client : loaderData.client,
+        currentVaultPage?.descriptionEn ||
+        (sameStaticProject ? project?.description : "") ||
+        loaderData.description,
+      client:
+        sameStaticProject && project?.client !== undefined ? project.client : loaderData.client,
       models:
-        pAny?.models !== undefined
+        sameStaticProject && pAny?.models !== undefined
           ? Array.isArray(pAny.models)
             ? pAny.models.join(", ")
             : pAny.models
           : loaderData.models,
       makeupArtist:
-        project?.makeupArtist !== undefined
+        sameStaticProject && project?.makeupArtist !== undefined
           ? project.makeupArtist
           : loaderData.makeupArtist,
       assistant:
-        project?.assistant !== undefined ? project.assistant : loaderData.assistant,
-      stylist: project?.stylist !== undefined ? project.stylist : loaderData.stylist,
-      location: project?.location !== undefined ? project.location : loaderData.location,
-      caption: project?.caption !== undefined ? project.caption : loaderData.caption,
+        sameStaticProject && project?.assistant !== undefined
+          ? project.assistant
+          : loaderData.assistant,
+      stylist:
+        sameStaticProject && project?.stylist !== undefined
+          ? project.stylist
+          : loaderData.stylist,
+      location:
+        sameStaticProject && project?.location !== undefined
+          ? project.location
+          : loaderData.location,
+      caption:
+        sameStaticProject && project?.caption !== undefined
+          ? project.caption
+          : loaderData.caption,
       items,
       coverImage: items[0]?.src || loaderData.coverImage,
     },
@@ -478,7 +498,9 @@ function ProjectCaseStudyPage({ loaderData }: { loaderData: ProjectRouteLoaderDa
     );
   }
 
-  const backUrl = `/${data.disciplineSlug}/${data.specialtySlug}`;
+  const defaultBackUrl = `/${data.disciplineSlug}/${data.specialtySlug}`;
+  const backUrl = vaultPage?.parentRoute || defaultBackUrl;
+  const backLabelName = data.parentName || data.specialtySlug.replace(/-/g, " ");
   const visibleItems = data.items;
 
   return (
@@ -491,7 +513,7 @@ function ProjectCaseStudyPage({ loaderData }: { loaderData: ProjectRouteLoaderDa
     >
       <div className="mx-auto grid w-full max-w-6xl shrink-0 grid-cols-[minmax(0,48rem)_auto] gap-x-4 px-4 pt-4 pb-2 md:pt-6 md:pb-3">
         <p className="col-start-1 text-xs font-semibold uppercase tracking-[0.25em] text-secondary">
-          {data.category} · {data.year}
+          {data.parentName || data.category} · {data.year}
         </p>
         <h1 className="col-start-1 mt-2 font-display text-4xl font-medium text-foreground md:text-6xl">
           {vaultPage?.name || data.title}
@@ -502,7 +524,7 @@ function ProjectCaseStudyPage({ loaderData }: { loaderData: ProjectRouteLoaderDa
           className={`${backBtnClass} hidden lg:inline-flex col-start-2 row-start-2 self-center justify-self-end translate-y-[5px]`}
         >
           <ArrowLeft className="h-4 w-4" />
-          <span className="capitalize">Back to {data.specialtySlug.replace(/-/g, " ")}</span>
+          <span className="capitalize">Back to {backLabelName}</span>
         </Link>
 
         <div className="col-start-1 col-span-full">
@@ -563,32 +585,12 @@ function ProjectCaseStudyPage({ loaderData }: { loaderData: ProjectRouteLoaderDa
           className="flex flex-col gap-4 px-3 pt-4 lg:scrollbar-hide lg:flex-row lg:min-h-0 lg:flex-1 lg:items-center lg:gap-6 lg:overflow-x-auto lg:overflow-y-hidden lg:px-6 lg:pb-4 lg:pt-1"
         >
           {visibleItems.map((item, i) => (
-            <Link
+            <ProjectStripItem
               key={item.id || i}
-              to={(item.href || data.canonicalRoute) as any}
-              className="group w-full cursor-pointer overflow-hidden bg-card transition-opacity hover:opacity-95 lg:flex lg:h-full lg:max-h-full lg:w-auto lg:shrink-0 lg:items-center lg:justify-center lg:overflow-visible lg:bg-transparent lg:py-1 lg:transition-transform lg:duration-300 lg:hover:scale-[1.01] lg:hover:opacity-100"
-              title={item.title}
-            >
-              {item.isVideo ? (
-                <video
-                  src={item.src}
-                  autoPlay
-                  muted
-                  loop
-                  playsInline
-                  draggable={false}
-                  className="w-full h-auto select-none bg-card object-contain transition-all lg:h-full lg:w-auto lg:max-h-full lg:max-w-none lg:group-hover:brightness-105"
-                />
-              ) : (
-                <img
-                  src={item.src}
-                  alt={item.title}
-                  loading={i < 2 ? "eager" : "lazy"}
-                  draggable={false}
-                  className="w-full h-auto select-none bg-card object-contain transition-all lg:h-full lg:w-auto lg:max-h-full lg:max-w-none lg:group-hover:brightness-105"
-                />
-              )}
-            </Link>
+              item={item}
+              index={i}
+              fallbackRoute={data.canonicalRoute}
+            />
           ))}
         </div>
       )}
@@ -596,9 +598,48 @@ function ProjectCaseStudyPage({ loaderData }: { loaderData: ProjectRouteLoaderDa
       <div className="mx-auto mt-6 flex lg:hidden w-full max-w-6xl justify-center px-3">
         <Link to={backUrl as any} className={backBtnMobileClass}>
           <ArrowLeft className="h-4 w-4" />
-          <span className="capitalize">Back to {data.specialtySlug.replace(/-/g, " ")}</span>
+          <span className="capitalize">Back to {backLabelName}</span>
         </Link>
       </div>
     </article>
+  );
+}
+
+function ProjectStripItem({
+  item,
+  index,
+  fallbackRoute,
+}: {
+  item: ResolvedGalleryItem;
+  index: number;
+  fallbackRoute: string;
+}) {
+  const resolvedSrc = useResolvedMediaSrc(item.src);
+  return (
+    <Link
+      to={(item.href || fallbackRoute) as any}
+      className="group w-full cursor-pointer overflow-hidden bg-card transition-opacity hover:opacity-95 lg:flex lg:h-full lg:max-h-full lg:w-auto lg:shrink-0 lg:items-center lg:justify-center lg:overflow-visible lg:bg-transparent lg:py-1 lg:transition-transform lg:duration-300 lg:hover:scale-[1.01] lg:hover:opacity-100"
+      title={item.title}
+    >
+      {item.isVideo ? (
+        <video
+          src={resolvedSrc || undefined}
+          autoPlay
+          muted
+          loop
+          playsInline
+          draggable={false}
+          className="w-full h-auto select-none bg-card object-contain transition-all lg:h-full lg:w-auto lg:max-h-full lg:max-w-none lg:group-hover:brightness-105"
+        />
+      ) : (
+        <img
+          src={resolvedSrc || undefined}
+          alt={item.title}
+          loading={index < 2 ? "eager" : "lazy"}
+          draggable={false}
+          className="w-full h-auto select-none bg-card object-contain transition-all lg:h-full lg:w-auto lg:max-h-full lg:max-w-none lg:group-hover:brightness-105"
+        />
+      )}
+    </Link>
   );
 }

@@ -10,6 +10,7 @@ import {
 } from "@/lib/studio-store";
 import {
   buildMediaLiveDetailUrl,
+  getDeletedVaultPageKeys,
   getGalleryMediaForRoute,
   getMediaByCode,
   getPageByRoute,
@@ -121,43 +122,38 @@ function computeDisciplineChildCards(slug: string): ProjectCardItem[] {
   const cardMap = new Map<string, ProjectCardItem>();
   const allVault = getVaultPages();
   const deletedSet = getDeletedProjectIds();
-
-  if (slug === "product-design") {
-    const allStudio = getStudioProjects();
-    allStudio
-      .filter((p) => normalizeDisciplineSlug(p.discipline || "") === "product-design")
-      .forEach((project) => {
-        const projSlug = normalizeProjectSlug(project.title || project.id);
-        if (!projSlug || deletedSet.has(projSlug)) return;
-        const rawCover =
-          (project as any).coverImage ||
-          (project as any).image ||
-          (project.images && project.images[0]?.url) ||
-          "";
-        cardMap.set(projSlug, {
-          id: project.id,
-          title: project.title,
-          image: resolveInventoryImage(rawCover) || rawCover,
-          year: String(project.year || "2026"),
-          href: `/product-design/${projSlug}`,
-        });
-      });
-  }
+  const studioByRouteOrSlug = new Map<string, any>();
+  getStudioProjects().forEach((p) => {
+    const pSlug = normalizeProjectSlug(p.title || p.id);
+    if ((p as any).route) studioByRouteOrSlug.set(String((p as any).route).toLowerCase(), p);
+    if (pSlug) studioByRouteOrSlug.set(pSlug, p);
+    if (p.id) studioByRouteOrSlug.set(String(p.id).toLowerCase(), p);
+  });
 
   allVault
     .filter((p) => (p.parentRoute || "").toLowerCase().replace(/\/+$/, "") === parentRoute)
     .forEach((vp) => {
       const childSlug = normalizeProjectSlug(vp.route.split("/").pop() || vp.name);
       if (isRouteOrAncestorHidden(vp.route, allVault) || deletedSet.has(childSlug)) {
-        cardMap.delete(childSlug);
         return;
       }
-      const existing = cardMap.get(childSlug);
-      cardMap.set(childSlug, {
+      const meta =
+        studioByRouteOrSlug.get(vp.route.toLowerCase()) ||
+        studioByRouteOrSlug.get(childSlug) ||
+        studioByRouteOrSlug.get(vp.id.toLowerCase());
+      const fallbackCover =
+        (meta?.coverImage && !String(meta.coverImage).startsWith("blob:") ? meta.coverImage : "") ||
+        meta?.image ||
+        "";
+      cardMap.set(vp.route.toLowerCase(), {
         id: vp.id,
-        title: vp.name || existing?.title || childSlug,
-        image: resolveInventoryImage(vp.coverPhoto) || vp.coverPhoto || existing?.image || "",
-        year: vp.pairedBoxes?.find((b) => b.key.toLowerCase() === "year")?.value || existing?.year || "2026",
+        title: vp.name || meta?.title || childSlug,
+        image:
+          (vp.coverPhoto ? resolveInventoryImage(vp.coverPhoto) || vp.coverPhoto : "") ||
+          (fallbackCover ? resolveInventoryImage(fallbackCover) || fallbackCover : ""),
+        year:
+          vp.pairedBoxes?.find((b) => b.key.toLowerCase() === "year")?.value ||
+          (meta?.year ? String(meta.year) : "2026"),
         href: vp.route,
       });
     });
@@ -308,8 +304,9 @@ function computeClientDisciplineState(loaderData: DisciplineRouteData) {
   }
   const fresh = buildDisciplineData(loaderData.slug);
   const vaultPage = getPageByRoute(fresh.canonicalRoute);
+  const isDeleted = getDeletedVaultPageKeys().has(fresh.canonicalRoute.toLowerCase());
   const isHidden = isRouteOrAncestorHidden(fresh.canonicalRoute);
-  const exists = fresh.serverFound || loaderData.serverFound || Boolean(vaultPage);
+  const exists = !isDeleted && Boolean(vaultPage || fresh.projectCards.length > 0 || fresh.items.length > 0);
 
   return {
     notFound: !exists,

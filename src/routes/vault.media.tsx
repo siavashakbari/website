@@ -19,6 +19,7 @@ import {
   ChevronRight,
   SlidersHorizontal,
   FolderTree,
+  RotateCcw,
 } from "lucide-react";
 import {
   FLAT_FIELDS,
@@ -31,6 +32,8 @@ import {
   getUsedMediaCodes,
   getAvailable4DigitCode,
   buildDynamicMediaCode,
+  getDeletedVaultCounts,
+  restoreDeletedVaultMedia,
   subscribeToVaultStore,
   type VaultMediaItem,
   type VaultPageItem,
@@ -68,7 +71,9 @@ function VaultMediaView() {
 
   // New media modal state
   const [uploadingFile, setUploadingFile] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<{ percent: number; message: string } | null>(null);
   const [savingMedia, setSavingMedia] = useState(false);
+  const [deletedCounts, setDeletedCounts] = useState({ pages: 0, media: 0 });
   const [newSizedMedia, setNewSizedMedia] = useState<SizedMediaResult | null>(null);
   const [newExternalUrl, setNewExternalUrl] = useState("");
   const [newTitle, setNewTitle] = useState("");
@@ -80,6 +85,7 @@ function VaultMediaView() {
   const refreshData = () => {
     setMediaList(getVaultMedia());
     setPages(getVaultPages());
+    setDeletedCounts(getDeletedVaultCounts());
   };
 
   useEffect(() => {
@@ -108,11 +114,11 @@ function VaultMediaView() {
     saveVaultMedia(updated);
   };
 
-  // Delete media: frees uniqueCode
+  // Delete media: removes built-in or custom media from Vault + website & frees uniqueCode
   const handleDeleteMedia = (item: VaultMediaItem) => {
     if (
       window.confirm(
-        `Are you sure you want to delete media ${item.dynamicCode}? Its unique code (${item.uniqueCode}) will be freed up.`,
+        `Delete media ${item.dynamicCode}? It will be removed from both the Vault and live website (its 4-digit code ${item.uniqueCode} will be freed).`,
       )
     ) {
       deleteVaultMedia(item.id);
@@ -200,8 +206,12 @@ function VaultMediaView() {
     if (!file) return;
 
     setUploadingFile(true);
+    setUploadProgress({ percent: 2, message: "Analyzing media file..." });
     try {
-      const sized = await processMediaUpload(file);
+      const sized = await processMediaUpload(file, {
+        compressOversizedVideo: true,
+        onProgress: (percent, message) => setUploadProgress({ percent, message }),
+      });
       if (newSizedMedia?.fullUrl?.startsWith("blob:")) {
         try {
           URL.revokeObjectURL(newSizedMedia.fullUrl);
@@ -215,6 +225,7 @@ function VaultMediaView() {
       alert(`Error processing media upload: ${err?.message || "Unsupported file"}`);
     } finally {
       setUploadingFile(false);
+      setUploadProgress(null);
       e.target.value = "";
     }
   };
@@ -381,11 +392,31 @@ function VaultMediaView() {
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 flex-wrap">
           <div className="hidden lg:flex flex-col text-right font-mono text-[11px] text-neutral-400 border-r border-white/10 pr-4">
             <span className="text-white font-bold">{freeCodesCount}</span>
             <span className="text-[10px] text-neutral-500">Free 4-Digit Codes</span>
           </div>
+
+          {deletedCounts.media > 0 && (
+            <button
+              type="button"
+              onClick={() => {
+                if (
+                  window.confirm(
+                    `Restore ${deletedCounts.media} deleted built-in media key(s) back to Vault & website?`,
+                  )
+                ) {
+                  restoreDeletedVaultMedia();
+                }
+              }}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-amber-500/15 border border-amber-500/40 text-amber-300 font-mono text-[11px] hover:bg-amber-500/25 transition-all cursor-pointer"
+              title="Restore deleted built-in media back into Vault"
+            >
+              <RotateCcw className="w-3.5 h-3.5" />
+              <span>Restore Built-in Media ({deletedCounts.media})</span>
+            </button>
+          )}
 
           <button
             type="button"
@@ -554,9 +585,19 @@ function VaultMediaView() {
                 </label>
                 <div className="border border-dashed border-white/20 hover:border-[#2CE3C0] rounded-xl p-5 text-center transition-colors bg-black/40">
                   {uploadingFile ? (
-                    <div className="py-6 flex flex-col items-center gap-2 text-xs text-[#2CE3C0] font-mono">
+                    <div className="py-6 flex flex-col items-center gap-2.5 text-xs text-[#2CE3C0] font-mono">
                       <div className="w-6 h-6 border-2 border-[#2CE3C0] border-t-transparent animate-spin rounded-full" />
-                      <span>Optimizing media dimensions & quality...</span>
+                      <span>
+                        {uploadProgress?.message || "Optimizing media dimensions & studio size..."}
+                      </span>
+                      {uploadProgress && (
+                        <div className="w-full max-w-xs bg-white/10 rounded-full h-1.5 overflow-hidden">
+                          <div
+                            className="bg-[#2CE3C0] h-full transition-all duration-200"
+                            style={{ width: `${Math.min(100, Math.max(4, uploadProgress.percent))}%` }}
+                          />
+                        </div>
+                      )}
                     </div>
                   ) : newSizedMedia ? (
                     <div className="flex items-center gap-4 text-left">
@@ -575,7 +616,9 @@ function VaultMediaView() {
                       </div>
                       <div className="space-y-1 font-mono text-[11px]">
                         <span className="text-[#2CE3C0] font-semibold block">
-                          {newSizedMedia.storedInIndexedDb
+                          {newSizedMedia.compressedFromKb
+                            ? `Compressed ${(newSizedMedia.compressedFromKb / 1024).toFixed(1)} MB -> ${(newSizedMedia.fullSizeKb / 1024).toFixed(1)} MB (Studio Spec)`
+                            : newSizedMedia.storedInIndexedDb
                             ? "Ready (Local IndexedDB Storage)"
                             : "Optimized Successfully!"}
                         </span>
@@ -587,7 +630,7 @@ function VaultMediaView() {
                         </span>
                         {newSizedMedia.storedInIndexedDb && (
                           <span className="text-amber-300/90 text-[10px] leading-snug block">
-                            Large files (&gt;1.5 MB) are saved in this browser&apos;s IndexedDB and persist across reloads here. For all global visitors, host on a CDN/Vercel Blob and paste its URL below, or commit to src/assets/.
+                            Saved in this browser&apos;s IndexedDB and persists across reloads here. Note: No external cloud media server is configured in .env yet, so cross-device publishing requires object storage (e.g. Supabase Storage / R2) or pasting a hosted URL below.
                           </span>
                         )}
                         <label className="text-xs text-[#2CE3C0] underline cursor-pointer inline-block pt-1">
@@ -775,10 +818,10 @@ function VaultMediaView() {
                 </button>
                 <button
                   type="submit"
-                  disabled={savingMedia || (!newSizedMedia && !newExternalUrl.trim())}
+                  disabled={uploadingFile || savingMedia || (!newSizedMedia && !newExternalUrl.trim())}
                   className="px-5 py-2.5 rounded-xl bg-[#2CE3C0] text-black font-semibold text-xs hover:bg-[#2CE3C0]/90 disabled:opacity-40 shadow-[0_0_15px_rgba(44,227,192,0.3)] cursor-pointer"
                 >
-                  {savingMedia ? "Saving..." : "Save Media"}
+                  {uploadingFile ? "Processing..." : savingMedia ? "Saving..." : "Save Media"}
                 </button>
               </div>
             </form>
@@ -887,17 +930,15 @@ function MediaCard({
               )}
             </button>
 
-            {/* Delete Button (only for user-uploaded custom media; built-in inventory items use Visible/Hidden) */}
-            {item.id.startsWith("custom-media-") && (
-              <button
-                type="button"
-                onClick={() => onDeleteMedia(item)}
-                className="p-1 rounded text-neutral-500 hover:text-red-400 hover:bg-red-500/10 transition-colors cursor-pointer"
-                title="Delete uploaded media and free unique code"
-              >
-                <Trash2 className="w-3.5 h-3.5" />
-              </button>
-            )}
+            {/* Delete Button (works for both custom & built-in media; removes from Vault & website) */}
+            <button
+              type="button"
+              onClick={() => onDeleteMedia(item)}
+              className="p-1 rounded text-neutral-500 hover:text-red-400 hover:bg-red-500/10 transition-colors cursor-pointer"
+              title="Delete media permanently from Vault & website"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+            </button>
           </div>
         </div>
 

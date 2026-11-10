@@ -148,7 +148,117 @@ export function buildMediaLiveDetailUrl(item: Pick<VaultMediaItem, "field" | "as
 
 const STORAGE_VAULT_PAGES = "siavash_vault_pages_v2";
 const STORAGE_VAULT_MEDIA = "siavash_vault_media_v2";
+const STORAGE_DELETED_VAULT_PAGES = "siavash_vault_deleted_pages_v1";
+const STORAGE_DELETED_VAULT_MEDIA = "siavash_vault_deleted_media_v1";
 export const VAULT_STORE_CHANGED_EVENT = "siavash_vault_store_changed";
+
+function readDeletedKeySet(storageKey: string): Set<string> {
+  if (typeof window === "undefined") return new Set();
+  try {
+    const raw = localStorage.getItem(storageKey);
+    if (!raw) return new Set();
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return new Set();
+    return new Set(parsed.map((s) => String(s).trim().toLowerCase()).filter(Boolean));
+  } catch {
+    return new Set();
+  }
+}
+
+function writeDeletedKeySet(storageKey: string, keys: Set<string>): void {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.setItem(storageKey, JSON.stringify(Array.from(keys)));
+  } catch {
+    /* ignore */
+  }
+}
+
+function addDeletedKeys(storageKey: string, values: string[]): void {
+  if (typeof window === "undefined" || values.length === 0) return;
+  const set = readDeletedKeySet(storageKey);
+  let changed = false;
+  values.forEach((v) => {
+    const clean = (v || "").trim().toLowerCase();
+    if (clean && !set.has(clean)) {
+      set.add(clean);
+      changed = true;
+    }
+  });
+  if (changed) writeDeletedKeySet(storageKey, set);
+}
+
+function removeDeletedKeys(storageKey: string, values: string[]): void {
+  if (typeof window === "undefined" || values.length === 0) return;
+  const set = readDeletedKeySet(storageKey);
+  let changed = false;
+  values.forEach((v) => {
+    const clean = (v || "").trim().toLowerCase();
+    if (clean && set.delete(clean)) {
+      changed = true;
+    }
+  });
+  if (changed) writeDeletedKeySet(storageKey, set);
+}
+
+export function getDeletedVaultPageKeys(): Set<string> {
+  return readDeletedKeySet(STORAGE_DELETED_VAULT_PAGES);
+}
+
+export function getDeletedVaultMediaKeys(): Set<string> {
+  return readDeletedKeySet(STORAGE_DELETED_VAULT_MEDIA);
+}
+
+export function getDeletedVaultCounts(): { pages: number; media: number } {
+  const basePages = getInitialScannedPages();
+  const baseMedia = getInitialScannedMedia();
+  const delPages = getDeletedVaultPageKeys();
+  const delMedia = getDeletedVaultMediaKeys();
+  const pages = basePages.filter(
+    (p) => delPages.has(p.route.toLowerCase()) || delPages.has(p.id.toLowerCase()),
+  ).length;
+  const media = baseMedia.filter(
+    (m) => delMedia.has(m.id.toLowerCase()) || delMedia.has(m.uniqueCode.toLowerCase()),
+  ).length;
+  return { pages, media };
+}
+
+export function restoreDeletedVaultPages(): void {
+  if (typeof window === "undefined") return;
+  localStorage.removeItem(STORAGE_DELETED_VAULT_PAGES);
+  try {
+    const baseById = new Map<string, VaultPageItem>();
+    getInitialScannedPages().forEach((bp) => baseById.set(bp.id.toLowerCase(), bp));
+    const savedRaw = localStorage.getItem(STORAGE_VAULT_PAGES);
+    if (savedRaw) {
+      const savedList: VaultPageItem[] = JSON.parse(savedRaw);
+      if (Array.isArray(savedList)) {
+        let changed = false;
+        const nextList = savedList.map((item) => {
+          const base = item?.id ? baseById.get(item.id.toLowerCase()) : undefined;
+          if (base && normalizeRouteStr(item.route) !== normalizeRouteStr(base.route)) {
+            changed = true;
+            const seg = normalizeProjectSlug(item.route.split("/").pop() || "custom");
+            return { ...item, id: `custom-page-${base.id}-${seg}` };
+          }
+          return item;
+        });
+        if (changed) {
+          localStorage.setItem(STORAGE_VAULT_PAGES, JSON.stringify(nextList));
+        }
+      }
+    }
+  } catch {
+    /* ignore */
+  }
+  notifyVaultUpdated({ type: "pages_restored" });
+}
+
+export function restoreDeletedVaultMedia(): void {
+  if (typeof window === "undefined") return;
+  localStorage.removeItem(STORAGE_DELETED_VAULT_MEDIA);
+  notifyVaultUpdated({ type: "media_restored" });
+}
 
 let vaultBroadcastChannel: BroadcastChannel | null = null;
 if (typeof window !== "undefined" && "BroadcastChannel" in window) {
@@ -909,10 +1019,15 @@ export function getInitialScannedMedia(): VaultMediaItem[] {
 export function getVaultPages(): VaultPageItem[] {
   const basePages = getInitialScannedPages();
   const pagesMap = new Map<string, VaultPageItem>();
+  const allBaseById = new Map<string, VaultPageItem>(basePages.map((p) => [p.id, p]));
+  const deletedKeys = readDeletedKeySet(STORAGE_DELETED_VAULT_PAGES);
+  const movedFromRoutes = new Set<string>();
 
-  // 1. Populate all static base pages
+  // 1. Populate all active (non-deleted/non-retired) static base pages
   basePages.forEach((p) => {
-    pagesMap.set(p.route.toLowerCase(), p);
+    const rKey = p.route.toLowerCase();
+    if (deletedKeys.has(rKey) || deletedKeys.has(p.id.toLowerCase())) return;
+    pagesMap.set(rKey, p);
   });
 
   // 2. Discover any custom projects from studio store (in browser)
@@ -949,6 +1064,7 @@ export function getVaultPages(): VaultPageItem[] {
               : `/${discNorm}/${specNorm}`;
 
             const key = route.toLowerCase();
+            if (deletedKeys.has(key) || deletedKeys.has(rawId)) return;
             if (!pagesMap.has(key)) {
               const safeCover =
                 cp.coverImage && !String(cp.coverImage).startsWith("blob:")
@@ -975,7 +1091,7 @@ export function getVaultPages(): VaultPageItem[] {
       /* ignore */
     }
 
-    // 3. Merge user customizations saved in STORAGE_VAULT_PAGES with automatic self-healing
+    // 3. Merge user customizations saved in STORAGE_VAULT_PAGES (supporting renames, moves, and deletions)
     let needsWriteBack = false;
     try {
       const savedRaw = localStorage.getItem(STORAGE_VAULT_PAGES);
@@ -1057,24 +1173,50 @@ export function getVaultPages(): VaultPageItem[] {
             }
 
             const key = route.toLowerCase();
-            const existing = pagesMap.get(key) || Array.from(pagesMap.values()).find((p) => p.id === id);
+            if (deletedKeys.has(key) || (id && deletedKeys.has(id.toLowerCase()))) {
+              return;
+            }
 
-            if (existing) {
-              // Validate saved coverPhoto against expired blob URLs or dead stale /assets/ hashes
-              let chosenCover = existing.coverPhoto;
+            const baseMatch = id ? allBaseById.get(id) : undefined;
+            const existingAtKey = pagesMap.get(key);
+            const existingById = id
+              ? Array.from(pagesMap.values()).find((p) => p.id === id)
+              : undefined;
+
+            // If this built-in or existing page was moved/renamed to a NEW route key,
+            // remove the old route slot and retire the old built-in route so it isn't resurrected!
+            if (existingById && existingById.route.toLowerCase() !== key) {
+              const oldKey = existingById.route.toLowerCase();
+              pagesMap.delete(oldKey);
+              movedFromRoutes.add(oldKey);
+              needsWriteBack = true;
+            } else if (baseMatch && baseMatch.route.toLowerCase() !== key) {
+              const oldKey = baseMatch.route.toLowerCase();
+              pagesMap.delete(oldKey);
+              movedFromRoutes.add(oldKey);
+            }
+
+            const template = existingAtKey || existingById || baseMatch;
+            if (template) {
+              let chosenCover = template.coverPhoto;
               const rawSavedCover = (saved.coverPhoto || "").trim();
               if (rawSavedCover && !rawSavedCover.startsWith("blob:")) {
                 const resolvedCover = resolveInventoryImage(rawSavedCover);
-                const resolvedExisting = resolveInventoryImage(existing.coverPhoto);
+                const resolvedExisting = resolveInventoryImage(template.coverPhoto);
                 const isKnownAsset =
                   resolvedCover.startsWith("data:") ||
+                  resolvedCover.startsWith("idb://") ||
                   resolvedCover.startsWith("http://") ||
                   resolvedCover.startsWith("https://") ||
                   resolvedCover !== rawSavedCover ||
                   !rawSavedCover.startsWith("/assets/");
 
                 if (isKnownAsset) {
-                  if (saved.coverModifiedByUser || !rawSavedCover.startsWith("/assets/") || resolvedCover === resolvedExisting) {
+                  if (
+                    saved.coverModifiedByUser ||
+                    !rawSavedCover.startsWith("/assets/") ||
+                    resolvedCover === resolvedExisting
+                  ) {
                     chosenCover = rawSavedCover;
                   } else {
                     needsWriteBack = true;
@@ -1087,29 +1229,33 @@ export function getVaultPages(): VaultPageItem[] {
               }
 
               // Heal legacy un-edited Visual Identity project pages that accidentally cached UI03 directory cards
-              let resolvedUiType = saved.uiType || existing.uiType;
+              let resolvedUiType = saved.uiType || template.uiType;
               if (
                 !saved.uiTypeModifiedByUser &&
-                existing.parentRoute === "/graphic-design/visual-identity" &&
+                parentRoute === "/graphic-design/visual-identity" &&
                 resolvedUiType === "UI03"
               ) {
-                resolvedUiType = existing.uiType;
+                resolvedUiType = template.uiType;
                 needsWriteBack = true;
               }
 
-              // Existing base page: update its customizable attributes, but PRESERVE its canonical route and ID
-              pagesMap.set(existing.route.toLowerCase(), {
-                ...existing,
-                name: name && name !== existing.id ? name : existing.name,
-                descriptionEn: saved.descriptionEn !== undefined ? saved.descriptionEn : existing.descriptionEn,
-                descriptionFa: saved.descriptionFa !== undefined ? saved.descriptionFa : existing.descriptionFa,
+              pagesMap.set(key, {
+                ...template,
+                id: template.id || id,
+                route,
+                parentRoute,
+                name: name && name !== template.id ? name : template.name,
+                descriptionEn:
+                  saved.descriptionEn !== undefined ? saved.descriptionEn : template.descriptionEn,
+                descriptionFa:
+                  saved.descriptionFa !== undefined ? saved.descriptionFa : template.descriptionFa,
                 coverPhoto: chosenCover,
-                coverModifiedByUser: saved.coverModifiedByUser ?? existing.coverModifiedByUser,
+                coverModifiedByUser: saved.coverModifiedByUser ?? template.coverModifiedByUser,
                 uiType: resolvedUiType,
-                uiTypeModifiedByUser: saved.uiTypeModifiedByUser ?? existing.uiTypeModifiedByUser,
-                isHidden: saved.isHidden !== undefined ? saved.isHidden : existing.isHidden,
-                pairedBoxes: saved.pairedBoxes || existing.pairedBoxes,
-                order: saved.order !== undefined ? saved.order : existing.order,
+                uiTypeModifiedByUser: saved.uiTypeModifiedByUser ?? template.uiTypeModifiedByUser,
+                isHidden: saved.isHidden !== undefined ? saved.isHidden : template.isHidden,
+                pairedBoxes: saved.pairedBoxes || template.pairedBoxes,
+                order: saved.order !== undefined ? saved.order : template.order,
               });
             } else {
               // Custom user-created page (drop stale expired blob: covers)
@@ -1133,10 +1279,20 @@ export function getVaultPages(): VaultPageItem[] {
       console.error("Error merging saved vault pages:", e);
     }
 
-    // 4. Invariant: Guarantee all base pages are present and restored
+    if (movedFromRoutes.size > 0) {
+      addDeletedKeys(STORAGE_DELETED_VAULT_PAGES, Array.from(movedFromRoutes));
+    }
+
+    // 4. Restore missing default base pages ONLY if neither deleted nor moved elsewhere
+    const latestDeleted = readDeletedKeySet(STORAGE_DELETED_VAULT_PAGES);
     basePages.forEach((bp) => {
       const k = bp.route.toLowerCase();
-      if (!pagesMap.has(k)) {
+      if (
+        !pagesMap.has(k) &&
+        !latestDeleted.has(k) &&
+        !latestDeleted.has(bp.id.toLowerCase()) &&
+        !movedFromRoutes.has(k)
+      ) {
         pagesMap.set(k, bp);
         needsWriteBack = true;
       }
@@ -1220,6 +1376,11 @@ export function saveVaultPage(page: VaultPageItem): void {
   }
 
   localStorage.setItem(STORAGE_VAULT_PAGES, JSON.stringify(currentPages));
+  // Active route & id are un-deleted if recreated/reused; old retired route becomes deleted
+  removeDeletedKeys(STORAGE_DELETED_VAULT_PAGES, [normRoute.toLowerCase(), normalizedPage.id.toLowerCase()]);
+  if (oldRoute && oldRoute.toLowerCase() !== normRoute.toLowerCase()) {
+    addDeletedKeys(STORAGE_DELETED_VAULT_PAGES, [oldRoute.toLowerCase()]);
+  }
 
   const oldProjSlug = oldRoute ? normalizeProjectSlug(oldRoute.split("/").pop() || "") : "";
 
@@ -1337,31 +1498,50 @@ export function deleteVaultPage(id: string): void {
   if (typeof window === "undefined") return;
   const current = getVaultPages();
   const target = current.find((p) => p.id === id);
-  const list = current.filter((p) => p.id !== id);
+  if (!target) return;
+
+  const targetRouteNorm = normalizeRouteStr(target.route);
+  const toDelete = current.filter(
+    (p) =>
+      p.id === id ||
+      normalizeRouteStr(p.route) === targetRouteNorm ||
+      normalizeRouteStr(p.route).startsWith(`${targetRouteNorm}/`),
+  );
+  const deleteIdSet = new Set(toDelete.map((p) => p.id));
+  const deleteTombstones: string[] = [];
+  toDelete.forEach((p) => {
+    deleteTombstones.push(p.id.toLowerCase(), p.route.toLowerCase());
+  });
+  addDeletedKeys(STORAGE_DELETED_VAULT_PAGES, deleteTombstones);
+
+  const list = current.filter((p) => !deleteIdSet.has(p.id));
   localStorage.setItem(STORAGE_VAULT_PAGES, JSON.stringify(list));
 
-  if (target) {
-    try {
-      const targetProj = normalizeProjectSlug(target.route.split("/").pop() || target.name);
-      const targetRouteLower = target.route.toLowerCase();
-      const rawStudio = localStorage.getItem("siavash_studio_custom_projects");
-      if (rawStudio) {
-        const studioList = JSON.parse(rawStudio);
-        if (Array.isArray(studioList)) {
-          const filtered = studioList.filter(
-            (cp: any) =>
-              cp &&
-              (cp.route || "").toLowerCase() !== targetRouteLower &&
-              cp.id !== targetProj &&
-              normalizeProjectSlug(cp.title || "") !== targetProj
-          );
-          localStorage.setItem("siavash_studio_custom_projects", JSON.stringify(filtered));
-          notifyStudioStoreUpdated({ type: "project_deleted", id: targetProj });
-        }
+  try {
+    const rawStudio = localStorage.getItem("siavash_studio_custom_projects");
+    if (rawStudio) {
+      const studioList = JSON.parse(rawStudio);
+      if (Array.isArray(studioList)) {
+        const deletedRouteSet = new Set(toDelete.map((p) => p.route.toLowerCase()));
+        const deletedSlugSet = new Set(
+          toDelete.map((p) => normalizeProjectSlug(p.route.split("/").pop() || p.name)),
+        );
+        const filtered = studioList.filter(
+          (cp: any) =>
+            cp &&
+            !deletedRouteSet.has((cp.route || "").toLowerCase()) &&
+            !deletedSlugSet.has(String(cp.id || "").toLowerCase()) &&
+            !deletedSlugSet.has(normalizeProjectSlug(cp.title || "")),
+        );
+        localStorage.setItem("siavash_studio_custom_projects", JSON.stringify(filtered));
+        toDelete.forEach((p) => {
+          const slug = normalizeProjectSlug(p.route.split("/").pop() || p.name);
+          notifyStudioStoreUpdated({ type: "project_deleted", id: slug });
+        });
       }
-    } catch (e) {
-      /* ignore */
     }
+  } catch (e) {
+    /* ignore */
   }
 
   notifyVaultUpdated({ type: "page_deleted", id });
@@ -1435,14 +1615,25 @@ export function getVaultMedia(): VaultMediaItem[] {
   const byFileKey = new Map<string, string>();
   const byStemKey = new Map<string, string>();
   const byUniqueCode = new Map<string, string>();
+  const deletedMediaKeys = readDeletedKeySet(STORAGE_DELETED_VAULT_MEDIA);
+  const deletedFileKeys = new Set<string>();
+  const deletedStemKeys = new Set<string>();
 
-  // 1. Load all base scanned items
+  // 1. Load all active (non-deleted) base scanned items
   baseList.forEach((item) => {
+    const fKey = filenameKeyFromSrc(item.imgSrc);
+    const sKey = stemKeyFromSrc(item.imgSrc);
+    if (
+      deletedMediaKeys.has(item.id.toLowerCase()) ||
+      deletedMediaKeys.has(item.uniqueCode.toLowerCase())
+    ) {
+      if (fKey) deletedFileKeys.add(fKey);
+      if (sKey) deletedStemKeys.add(sKey);
+      return;
+    }
     const key = (item.imgSrc || item.uniqueCode).toLowerCase();
     mediaMap.set(key, item);
-    const fKey = filenameKeyFromSrc(item.imgSrc);
     if (fKey) byFileKey.set(fKey, key);
-    const sKey = stemKeyFromSrc(item.imgSrc);
     if (sKey) byStemKey.set(sKey, key);
     if (item.uniqueCode) byUniqueCode.set(item.uniqueCode, key);
   });
@@ -1465,6 +1656,12 @@ export function getVaultMedia(): VaultMediaItem[] {
             const key = src.toLowerCase();
             const fKey = filenameKeyFromSrc(src);
             const sKey = stemKeyFromSrc(src);
+            if (
+              (fKey && deletedFileKeys.has(fKey)) ||
+              (sKey && deletedStemKeys.has(sKey))
+            ) {
+              return;
+            }
             if (
               !mediaMap.has(key) &&
               !(fKey && byFileKey.has(fKey)) &&
@@ -1524,6 +1721,12 @@ export function getVaultMedia(): VaultMediaItem[] {
       if (Array.isArray(savedList)) {
         savedList.forEach((saved) => {
           if (!saved) return;
+          if (
+            (saved.id && deletedMediaKeys.has(saved.id.toLowerCase())) ||
+            (saved.uniqueCode && deletedMediaKeys.has(saved.uniqueCode.toLowerCase()))
+          ) {
+            return;
+          }
           const sSrc = (saved.imgSrc || "").toLowerCase();
           const sFileKey = filenameKeyFromSrc(saved.imgSrc);
           const sStemKey = stemKeyFromSrc(saved.imgSrc);
@@ -1617,9 +1820,15 @@ export function getVaultMedia(): VaultMediaItem[] {
     console.error("Error loading vault media:", e);
   }
 
-  // 4. Invariant: Guarantee all base inventory media items are always present & un-shadowed,
+  // 4. Invariant: Guarantee active non-deleted base inventory media items are present & un-shadowed,
   // while respecting explicit user-moved taxonomy (`taxonomyModifiedByUser === true`)
   baseList.forEach((bm) => {
+    if (
+      deletedMediaKeys.has(bm.id.toLowerCase()) ||
+      deletedMediaKeys.has(bm.uniqueCode.toLowerCase())
+    ) {
+      return;
+    }
     const k = (bm.imgSrc || bm.uniqueCode).toLowerCase();
     const current = mediaMap.get(k);
     if (!current) {
@@ -1748,17 +1957,19 @@ export function deleteVaultMedia(idOrCode: string): void {
   const list = getVaultMedia();
   const target = list.find((m) => m.id === idOrCode || m.uniqueCode === idOrCode);
   if (target) {
-    if (target.id.startsWith("custom-media-")) {
-      if (target.imgSrc && isIndexedDbMediaUrl(target.imgSrc)) {
-        void deleteMediaBlob(target.imgSrc);
-      }
-      const filtered = list.filter((m) => m.id !== idOrCode && m.uniqueCode !== idOrCode);
-      localStorage.setItem(STORAGE_VAULT_MEDIA, JSON.stringify(filtered));
-    } else {
-      // Base inventory media is marked isHidden so it does not break inventory indexing
-      target.isHidden = true;
-      localStorage.setItem(STORAGE_VAULT_MEDIA, JSON.stringify(list));
+    if (target.imgSrc && isIndexedDbMediaUrl(target.imgSrc)) {
+      void deleteMediaBlob(target.imgSrc);
     }
+    if (!target.id.startsWith("custom-media-")) {
+      addDeletedKeys(STORAGE_DELETED_VAULT_MEDIA, [
+        target.id.toLowerCase(),
+        target.uniqueCode.toLowerCase(),
+      ]);
+    }
+    const filtered = list.filter(
+      (m) => m.id !== target.id && m.uniqueCode !== target.uniqueCode,
+    );
+    localStorage.setItem(STORAGE_VAULT_MEDIA, JSON.stringify(filtered));
     notifyVaultUpdated({ type: "media_deleted", id: idOrCode });
   }
 }
