@@ -447,7 +447,7 @@ export function getInitialScannedPages(): VaultPageItem[] {
       route: "/graphic-design/visual-identity/meatlab",
       name: "Meatlab",
       parentRoute: "/graphic-design/visual-identity",
-      coverPhoto: "",
+      coverPhoto: "src/assets/graphic-design/meatlab/graphic-design-meatlab-01.jpg",
       descriptionEn: "Visual identity and conceptual brand design for Meatlab.",
       descriptionFa: "طراحی هویت بصری و سیستم برند میت‌لب.",
       uiType: "UI01",
@@ -886,7 +886,7 @@ export function getVaultPages(): VaultPageItem[] {
                 name: saved.name !== undefined ? saved.name : existing.name,
                 route: saved.route !== undefined ? saved.route : existing.route,
                 parentRoute: saved.parentRoute !== undefined ? saved.parentRoute : existing.parentRoute,
-                coverPhoto: saved.coverPhoto !== undefined ? saved.coverPhoto : existing.coverPhoto,
+                coverPhoto: (saved.coverPhoto && saved.coverPhoto.trim()) ? saved.coverPhoto : existing.coverPhoto,
                 descriptionEn: saved.descriptionEn !== undefined ? saved.descriptionEn : existing.descriptionEn,
                 descriptionFa: saved.descriptionFa !== undefined ? saved.descriptionFa : existing.descriptionFa,
                 uiType: saved.uiType || existing.uiType,
@@ -1027,21 +1027,104 @@ export function getPageByRoute(route: string): VaultPageItem | undefined {
 // -------------------------------------------------------------
 
 export function getVaultMedia(): VaultMediaItem[] {
-  if (typeof window === "undefined") return getInitialScannedMedia();
+  const baseList = getInitialScannedMedia();
+  if (typeof window === "undefined") return baseList;
+
+  // Use a map keyed by uniqueCode or imgSrc to seamlessly merge base items + custom items + saved user edits
+  const mediaMap = new Map<string, VaultMediaItem>();
+
+  // 1. Load all base scanned items
+  baseList.forEach((item) => {
+    const key = (item.imgSrc || item.uniqueCode).toLowerCase();
+    mediaMap.set(key, item);
+  });
+
+  // 2. Discover media from custom projects (e.g. from studio store in browser)
   try {
-    const raw = localStorage.getItem(STORAGE_VAULT_MEDIA);
-    if (raw) {
-      const parsed: VaultMediaItem[] = JSON.parse(raw);
-      if (Array.isArray(parsed) && parsed.length > 0) {
-        return parsed;
+    const customRaw = localStorage.getItem("siavash_studio_custom_projects");
+    if (customRaw) {
+      const customProjects = JSON.parse(customRaw);
+      if (Array.isArray(customProjects)) {
+        customProjects.forEach((cp) => {
+          if (!cp || !cp.id) return;
+          const cpImages: string[] = Array.isArray(cp.images)
+            ? cp.images.map((im: any) => (typeof im === "string" ? im : im.url))
+            : cp.coverImage
+            ? [cp.coverImage]
+            : [];
+          cpImages.forEach((src, idx) => {
+            if (!src) return;
+            const key = src.toLowerCase();
+            if (!mediaMap.has(key)) {
+              const uCode = String(8000 + mediaMap.size);
+              const field = normalizeDisciplineSlug(cp.discipline || "graphic-design");
+              const category = normalizeSpecialtySlug(cp.subDiscipline || cp.category || "visual-identity");
+              const project = normalizeProjectSlug(cp.title || cp.id || "project");
+              mediaMap.set(key, {
+                id: `custom-media-${uCode}`,
+                uniqueCode: uCode,
+                dynamicCode: buildDynamicMediaCode(uCode, field, category, project),
+                imgSrc: src,
+                thumbSrc: src,
+                field,
+                category,
+                project,
+                assignedRoute: `/${field}/${category}/${project}`,
+                title: `${cp.title || project} — ${idx + 1}`,
+                year: String(cp.year || "2025"),
+                client: cp.client || "",
+                model: cp.models || "",
+                makeupArtist: cp.makeupArtist || "",
+                assistant: cp.assistant || "",
+                caption: cp.caption || cp.description || "",
+                isHidden: false,
+                pairedBoxes: cp.client ? [{ key: "Client", value: cp.client }] : [],
+                isVideo: Boolean(src.endsWith(".mp4")),
+                createdAt: new Date().toISOString(),
+              });
+            }
+          });
+        });
+      }
+    }
+  } catch (e) {
+    console.error("Error discovering custom project media:", e);
+  }
+
+  // 3. Merge user edits from localStorage (toggled isHidden, modified pairedBoxes, etc.)
+  try {
+    const savedRaw = localStorage.getItem(STORAGE_VAULT_MEDIA);
+    if (savedRaw) {
+      const savedList: VaultMediaItem[] = JSON.parse(savedRaw);
+      if (Array.isArray(savedList)) {
+        savedList.forEach((saved) => {
+          if (!saved) return;
+          const key = (saved.imgSrc || saved.uniqueCode).toLowerCase();
+          const existing =
+            mediaMap.get(key) ||
+            Array.from(mediaMap.values()).find(
+              (m) => m.uniqueCode === saved.uniqueCode || m.id === saved.id,
+            );
+          if (existing) {
+            mediaMap.set((existing.imgSrc || existing.uniqueCode).toLowerCase(), {
+              ...existing,
+              ...saved,
+              imgSrc: saved.imgSrc || existing.imgSrc,
+              thumbSrc: saved.thumbSrc || existing.thumbSrc,
+            });
+          } else {
+            // New user-uploaded media item added directly in Vault
+            mediaMap.set(key, saved);
+          }
+        });
       }
     }
   } catch (e) {
     console.error("Error loading vault media:", e);
   }
-  const initial = getInitialScannedMedia();
-  localStorage.setItem(STORAGE_VAULT_MEDIA, JSON.stringify(initial));
-  return initial;
+
+  const result = Array.from(mediaMap.values());
+  return result;
 }
 
 export function saveVaultMedia(item: VaultMediaItem): void {

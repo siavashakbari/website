@@ -1,6 +1,10 @@
 import echoPrimeVid1 from "../assets/video/echo-prime/video-echo-prime-01.mp4";
 import echoPrimeVid2 from "../assets/video/echo-prime/video-echo-prime-02.mp4";
 import echoPrimeVid3 from "../assets/video/echo-prime/video-echo-prime-03.mp4";
+import meatlab1 from "../assets/graphic-design/meatlab/graphic-design-meatlab-01.jpg";
+import meatlab2 from "../assets/graphic-design/meatlab/graphic-design-meatlab-02.jpg";
+import meatlab3 from "../assets/graphic-design/meatlab/graphic-design-meatlab-03.jpg";
+import meatlab4 from "../assets/graphic-design/meatlab/graphic-design-meatlab-04.jpg";
 import shekarchian1 from "../assets/graphic-design/shekarchian/graphic-design-shekarchian-01.jpg";
 import shekarchian2 from "../assets/graphic-design/shekarchian/graphic-design-shekarchian-02.jpg";
 import shekarchian3 from "../assets/graphic-design/shekarchian/graphic-design-shekarchian-03.jpg";
@@ -379,9 +383,9 @@ export const projects: Project[] = [
     year: "2025",
     client: "Meatlab",
     description: "Visual identity and conceptual brand design for Meatlab.",
-    image: "",
+    image: meatlab1,
     aspect: "portrait",
-    gallery: [],
+    gallery: [meatlab1, meatlab2, meatlab3, meatlab4],
   },
   {
     id: "shekarchian-sweets",
