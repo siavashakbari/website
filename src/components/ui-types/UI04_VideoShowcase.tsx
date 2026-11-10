@@ -134,12 +134,13 @@ function VideoShowcaseCard({
   onSelect: (item: VideoShowcaseItem) => void;
 }) {
   const resolvedSrc = useResolvedMediaSrc(item.src);
-  const itemRatio = item.aspectRatio || metaFromSrc(item.src).ratio || 0.5625;
 
+  // Grid cards are ALWAYS 9:16 vertical, regardless of the source video's
+  // dimensions. The theater modal on click reads the natural ratio.
   return (
     <div
       onClick={() => onSelect(item)}
-      style={{ aspectRatio: `${itemRatio}` }}
+      style={{ aspectRatio: "9 / 16" }}
       className="group relative cursor-pointer overflow-hidden rounded-[20px] bg-[#141414] transition-all duration-300 hover:scale-[1.015] hover:shadow-2xl border border-white/5 flex items-center justify-center"
     >
       <video

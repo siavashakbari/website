@@ -105,13 +105,24 @@ export const VideoPlayer = ({
 
   const handleLoadedMetadata = () => {
     if (videoRef.current) {
-      const { videoWidth, videoHeight, duration: dur } = videoRef.current;
+      const { videoWidth, videoHeight } = videoRef.current;
       if (videoWidth && videoHeight) {
         onRatioChange?.(videoWidth / videoHeight);
       }
-      if (dur && !isNaN(dur)) {
-        setDuration(dur);
-      }
+      readDuration();
+    }
+  };
+
+  const handleDurationChange = () => readDuration();
+
+  const readDuration = () => {
+    const v = videoRef.current;
+    if (!v) return;
+    const dur = v.duration;
+    // Freshly remuxed MP4s report duration=Infinity in loadedmetadata.
+    // The real duration only becomes available on durationchange / timeupdate.
+    if (dur && isFinite(dur) && dur > 0 && dur !== duration) {
+      setDuration(dur);
     }
   };
 
@@ -120,9 +131,14 @@ export const VideoPlayer = ({
       const cur = videoRef.current.currentTime;
       const dur = videoRef.current.duration;
       setCurrentTime(cur);
-      if (dur && !isNaN(dur) && dur > 0) {
-        setDuration(dur);
+      if (dur && isFinite(dur) && dur > 0) {
+        if (dur !== duration) setDuration(dur);
         setProgress((cur / dur) * 100);
+      } else if (dur === Infinity) {
+        // Some browsers report Infinity until the browser has scanned the whole
+        // stream — seek hack: once playback actually starts, the real value appears.
+        // Show 0 progress rather than NaN.
+        setProgress(0);
       }
     }
   };
