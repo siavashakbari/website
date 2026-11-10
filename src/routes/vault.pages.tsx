@@ -20,6 +20,7 @@ import {
   SlidersHorizontal,
   Lock,
   RotateCcw,
+  Play,
 } from "lucide-react";
 import {
   FLAT_FIELDS,
@@ -85,6 +86,27 @@ function VaultPagesView() {
       refreshPages();
     });
   }, []);
+
+  // Lock the background page from scrolling while the cover picker is open.
+  useEffect(() => {
+    if (!mediaPickerPageId) return;
+    const y = window.scrollY;
+    const prevOverflow = document.body.style.overflow;
+    const prevPos = document.body.style.position;
+    document.body.style.overflow = "hidden";
+    document.body.style.position = "fixed";
+    document.body.style.top = `-${y}px`;
+    document.body.style.left = "0";
+    document.body.style.right = "0";
+    return () => {
+      document.body.style.overflow = prevOverflow;
+      document.body.style.position = prevPos;
+      document.body.style.top = "";
+      document.body.style.left = "";
+      document.body.style.right = "";
+      window.scrollTo(0, y);
+    };
+  }, [mediaPickerPageId]);
 
   // Available root disciplines: live top-level Vault pages (excluding Landing "/" and special non-discipline roots)
   const availableDisciplines = useMemo(() => {
@@ -415,7 +437,7 @@ function VaultPagesView() {
       {/* Media Picker Modal */}
       {mediaPickerPageId && (
         <MediaCoverPickerModal
-          pageId={mediaPickerPageId}
+          page={pages.find((p) => p.id === mediaPickerPageId)}
           onClose={() => setMediaPickerPageId(null)}
           onSelectCover={(url) => {
             setPendingCoverPatches((prev) => ({
@@ -1040,7 +1062,7 @@ function PageNodeCard({
             {/* 3.1 Cover Photo */}
             <div className="space-y-2">
               <label className="block text-[11px] font-mono uppercase tracking-wider text-neutral-400">
-                3.1 Cover Photo
+                3.1 Cover (Photo or Video)
               </label>
               <div className="relative aspect-[16/10] rounded-xl overflow-hidden bg-black/60 border border-white/10 group flex items-center justify-center">
                 {draft.coverPhoto ? (
@@ -1209,32 +1231,61 @@ function PageNodeCard({
 // -------------------------------------------------------------
 
 function MediaCoverPickerModal({
-  pageId,
+  page,
   onClose,
   onSelectCover,
 }: {
-  pageId: string;
+  page?: VaultPageItem;
   onClose: () => void;
   onSelectCover: (url: string) => void;
 }) {
-  const [mediaList, setMediaList] = useState(getVaultMedia());
   const [filter, setFilter] = useState("");
+  const [scope, setScope] = useState<"route" | "all">("route");
+
+  // All media, keyed to the page this cover belongs to.
+  const mediaList = useMemo(() => getVaultMedia(), []);
+  const pageRoute = (page?.route || "").toLowerCase().replace(/\/+$/, "");
+
+  // Media living under this page's own route (e.g. every item inside
+  // /product-design/samanwood) — the default scope when picking a cover.
+  const routeMedia = useMemo(() => {
+    if (!pageRoute) return [];
+    return mediaList.filter((m) => {
+      const aRoute = (m.assignedRoute || "").toLowerCase().replace(/\/+$/, "");
+      return aRoute === pageRoute || aRoute.startsWith(`${pageRoute}/`);
+    });
+  }, [mediaList, pageRoute]);
+
+  const pool = scope === "route" ? routeMedia : mediaList;
 
   const filtered = useMemo(() => {
-    if (!filter) return mediaList.slice(0, 36);
-    const q = filter.toLowerCase();
-    return mediaList
-      .filter((m) => m.title.toLowerCase().includes(q) || m.dynamicCode.toLowerCase().includes(q))
-      .slice(0, 36);
-  }, [mediaList, filter]);
+    const q = filter.trim().toLowerCase();
+    if (!q) return pool.slice(0, 60);
+    return pool
+      .filter(
+        (m) =>
+          (m.title || "").toLowerCase().includes(q) ||
+          (m.dynamicCode || "").toLowerCase().includes(q) ||
+          (m.project || "").toLowerCase().includes(q) ||
+          (m.category || "").toLowerCase().includes(q) ||
+          (m.field || "").toLowerCase().includes(q),
+      )
+      .slice(0, 60);
+  }, [pool, filter]);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md">
-      <div className="bg-[#141414] border border-white/15 rounded-2xl max-w-3xl w-full p-6 shadow-2xl space-y-4 max-h-[85vh] flex flex-col">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md"
+      onWheel={(e) => e.stopPropagation()}
+    >
+      <div className="bg-[#141414] border border-white/15 rounded-2xl max-w-3xl w-full p-6 shadow-2xl space-y-4 max-h-[85vh] flex flex-col min-h-0">
         <div className="flex items-center justify-between border-b border-white/10 pb-3">
           <div>
-            <h3 className="text-base font-bold text-white">Choose Cover Photo from Media</h3>
-            <p className="text-xs text-neutral-400">Click any media item to assign as page cover.</p>
+            <h3 className="text-base font-bold text-white">Choose Cover from Media</h3>
+            <p className="text-xs text-neutral-400">
+              Photos and videos living under{" "}
+              <span className="font-mono text-[#2CE3C0]">{page?.route || "this page"}</span>
+            </p>
           </div>
           <button
             type="button"
@@ -1245,22 +1296,54 @@ function MediaCoverPickerModal({
           </button>
         </div>
 
-        <input
-          type="text"
-          value={filter}
-          onChange={(e) => setFilter(e.target.value)}
-          placeholder="Filter media items..."
-          className="bg-black/60 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-[#2CE3C0]"
-        />
+        <div className="flex flex-wrap items-center gap-2">
+          <input
+            type="text"
+            value={filter}
+            onChange={(e) => setFilter(e.target.value)}
+            placeholder="Filter by title, code, project..."
+            className="flex-1 min-w-[12rem] bg-black/60 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-[#2CE3C0]"
+          />
+          <div className="flex items-center gap-1 rounded-xl border border-white/10 bg-black/40 p-1">
+            <button
+              type="button"
+              onClick={() => setScope("route")}
+              className={`px-2.5 py-1 rounded-lg text-[11px] font-mono transition-colors ${
+                scope === "route"
+                  ? "bg-[#2CE3C0] text-black"
+                  : "text-neutral-400 hover:text-white"
+              }`}
+            >
+              This page ({routeMedia.length})
+            </button>
+            <button
+              type="button"
+              onClick={() => setScope("all")}
+              className={`px-2.5 py-1 rounded-lg text-[11px] font-mono transition-colors ${
+                scope === "all" ? "bg-[#2CE3C0] text-black" : "text-neutral-400 hover:text-white"
+              }`}
+            >
+              All media
+            </button>
+          </div>
+        </div>
 
-        <div className="flex-1 overflow-y-auto grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2.5 p-1">
-          {filtered.map((item) => (
-            <PickerMediaCell
-              key={item.id}
-              item={item}
-              onSelect={() => onSelectCover(item.imgSrc)}
-            />
-          ))}
+        <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2.5 p-1">
+          {filtered.length === 0 ? (
+            <p className="col-span-full py-12 text-center text-xs text-neutral-500 font-mono">
+              {scope === "route"
+                ? "No media is placed under this page yet. Add media to this project in Vault → Media, or switch to All media."
+                : "No media matches this filter."}
+            </p>
+          ) : (
+            filtered.map((item) => (
+              <PickerMediaCell
+                key={item.id}
+                item={item}
+                onSelect={() => onSelectCover(item.imgSrc)}
+              />
+            ))
+          )}
         </div>
       </div>
     </div>
@@ -1308,6 +1391,15 @@ function PickerMediaCell({ item, onSelect }: { item: any; onSelect: () => void }
           className="w-full h-full object-cover group-hover:scale-105 transition-transform"
         />
       )}
+      {itemIsVideo && (
+        <span className="absolute top-1.5 right-1.5 inline-flex items-center gap-1 rounded-md border border-[#2CE3C0]/40 bg-black/75 px-1.5 py-0.5 text-[9px] font-mono uppercase tracking-wider text-[#2CE3C0]">
+          <Play className="w-3 h-3" />
+          Video
+        </span>
+      )}
+      <div className="absolute bottom-0 inset-x-0 truncate bg-black/60 px-1.5 py-0.5 text-[9px] font-mono text-neutral-300">
+        {item.dynamicCode}
+      </div>
       <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
         <Check className="w-5 h-5 text-[#2CE3C0]" />
       </div>
