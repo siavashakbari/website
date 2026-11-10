@@ -332,10 +332,15 @@ export function getStudioProjects(): StudioProjectItem[] {
 
   const result = Array.from(canonicalMap.values());
 
-  // Scrub historical duplicates and deleted items from localStorage
+  // Scrub historical duplicates and deleted items from localStorage.
+  // Idempotent: skip the write when the canonical result already matches storage,
+  // so reads can't thrash storage or fire redundant cross-tab events.
   if (typeof window !== "undefined") {
     try {
-      localStorage.setItem(STORAGE_PROJECTS_KEY, JSON.stringify(result));
+      const next = JSON.stringify(result);
+      if (localStorage.getItem(STORAGE_PROJECTS_KEY) !== next) {
+        localStorage.setItem(STORAGE_PROJECTS_KEY, next);
+      }
     } catch (e) {
       /* ignore */
     }

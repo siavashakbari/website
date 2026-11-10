@@ -1034,20 +1034,39 @@ export function getVaultPages(): VaultPageItem[] {
           customList.forEach((cp) => {
             if (!cp || !cp.id) return;
             const rawId = String(cp.id).toLowerCase().trim();
-            const discNorm = normalizeDisciplineSlug(cp.discipline || "photography");
-            const isFlat = FLAT_FIELDS.has(discNorm);
-            let specNorm = isFlat ? "" : normalizeSpecialtySlug(cp.subDiscipline || cp.category || "");
-            if (!isFlat && (!specNorm || specNorm === "general")) {
-              if (discNorm === "photography") specNorm = "food-photography";
-              else if (discNorm === "graphic-design") specNorm = "visual-identity";
+            const cpRouteSegs = cp.route
+              ? String(cp.route).split("/").filter(Boolean)
+              : [];
+
+            // The record's own route is authoritative. Deriving a route from
+            // discipline/category invents phantom pages at the wrong address
+            // (e.g. an empty category defaulting to food-photography) whenever the
+            // studio record is stale or only partially filled in.
+            let discNorm = "";
+            let specNorm = "";
+            let projSlug = "";
+
+            if (cpRouteSegs.length >= 2) {
+              discNorm = normalizeDisciplineSlug(cpRouteSegs[0]);
+              projSlug = normalizeProjectSlug(cpRouteSegs[cpRouteSegs.length - 1]);
+              if (!FLAT_FIELDS.has(discNorm)) {
+                // A 2-segment non-flat route is a category, not a project page.
+                if (cpRouteSegs.length < 3) return;
+                specNorm = normalizeSpecialtySlug(cpRouteSegs[1]);
+              }
+            } else {
+              // Legacy records without a route: require explicit taxonomy, never guess.
+              discNorm = normalizeDisciplineSlug(cp.discipline || "photography");
+              const isFlatDisc = FLAT_FIELDS.has(discNorm);
+              if (!isFlatDisc) {
+                specNorm = normalizeSpecialtySlug(cp.subDiscipline || cp.category || "");
+                if (!specNorm || specNorm === "general") return;
+              }
+              projSlug = normalizeProjectSlug(cp.id || cp.title);
             }
-            const cpRouteSlug = cp.route ? String(cp.route).split("/").filter(Boolean).pop() : "";
-            const projSlug = normalizeProjectSlug(cpRouteSlug || cp.id || cp.title);
-            if (
-              !projSlug ||
-              NON_PROJECT_SLUGS.has(projSlug) ||
-              NON_PROJECT_SLUGS.has(rawId)
-            ) {
+
+            const isFlat = FLAT_FIELDS.has(discNorm);
+            if (!projSlug || NON_PROJECT_SLUGS.has(projSlug) || NON_PROJECT_SLUGS.has(rawId)) {
               return;
             }
             const route = isFlat
@@ -1292,10 +1311,16 @@ export function getVaultPages(): VaultPageItem[] {
       }
     });
 
-    // 5. Write-back healed state to localStorage if corrections were made
+    // 5. Write-back healed state to localStorage if corrections were made.
+    //    Idempotent: only persist when the merged result actually differs from what's
+    //    stored, so repeated reads/refresh ticks can't thrash storage and trigger
+    //    redundant re-renders across subscribers.
     if (needsWriteBack) {
       try {
-        localStorage.setItem(STORAGE_VAULT_PAGES, JSON.stringify(Array.from(pagesMap.values())));
+        const next = JSON.stringify(Array.from(pagesMap.values()));
+        if (localStorage.getItem(STORAGE_VAULT_PAGES) !== next) {
+          localStorage.setItem(STORAGE_VAULT_PAGES, next);
+        }
       } catch (e) {
         /* ignore */
       }
@@ -1904,13 +1929,16 @@ export function getVaultMedia(): VaultMediaItem[] {
   });
 
   // 5. Write-back healed state to localStorage if corrections were made
-  if (mediaNeedsWriteBack) {
-    try {
-      localStorage.setItem(STORAGE_VAULT_MEDIA, JSON.stringify(Array.from(mediaMap.values())));
-    } catch (e) {
-      /* ignore */
+    if (mediaNeedsWriteBack) {
+      try {
+        const next = JSON.stringify(Array.from(mediaMap.values()));
+        if (localStorage.getItem(STORAGE_VAULT_MEDIA) !== next) {
+          localStorage.setItem(STORAGE_VAULT_MEDIA, next);
+        }
+      } catch (e) {
+        /* ignore */
+      }
     }
-  }
 
   const processed = Array.from(mediaMap.values()).map(ensureMediaItemDynamicFields);
   const customUploads = processed
