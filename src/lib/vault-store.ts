@@ -4,19 +4,16 @@
  * Manages all Pages (routes hierarchy), Media (unique 4-digit + dynamic codes), Sizing, and UI Types.
  */
 
-import { PHOTO_INVENTORY, type PhotoInventoryItem } from "@/data/photo-inventory";
+import { PHOTO_INVENTORY } from "@/data/photo-inventory";
 import { projects as DEFAULT_PROJECTS } from "@/data/projects";
-import { DISCIPLINES } from "@/data/disciplines";
 import { resolveInventoryImage, resolveKnownAssetFile } from "@/lib/inventory-assets";
-import { deleteMediaBlob, isIndexedDbMediaUrl } from "@/lib/local-media-db";
+import { deleteMediaBlob, isIndexedDbMediaUrl, listMediaBlobKeys } from "@/lib/local-media-db";
 import type { UITypeCode } from "@/components/ui-types";
 import type { KeyValuePair } from "@/components/vault/PairedBoxesEditor";
 import {
   normalizeDisciplineSlug,
   normalizeSpecialtySlug,
   normalizeProjectSlug,
-  buildPhotoUrl,
-  slugify,
 } from "@/lib/taxonomy";
 import { notifyStudioStoreUpdated } from "@/lib/studio-store";
 
@@ -285,15 +282,12 @@ export function subscribeToVaultStore(callback: () => void): () => void {
   const handler = () => callback();
   window.addEventListener(VAULT_STORE_CHANGED_EVENT, handler);
   window.addEventListener("storage", handler);
-  if (vaultBroadcastChannel) {
-    vaultBroadcastChannel.onmessage = handler;
-  }
+  const channelHandler = () => callback();
+  vaultBroadcastChannel?.addEventListener("message", channelHandler);
   return () => {
     window.removeEventListener(VAULT_STORE_CHANGED_EVENT, handler);
     window.removeEventListener("storage", handler);
-    if (vaultBroadcastChannel) {
-      vaultBroadcastChannel.onmessage = null;
-    }
+    vaultBroadcastChannel?.removeEventListener("message", channelHandler);
   };
 }
 
@@ -1362,12 +1356,20 @@ export function saveVaultPage(page: VaultPageItem): void {
   if (byRouteIdx >= 0) {
     oldRoute = currentPages[byRouteIdx].route;
     currentPages[byRouteIdx] = { ...currentPages[byRouteIdx], ...normalizedPage };
-
-    // If route was changed, update any children parentRoute
-    if (oldRoute && oldRoute.toLowerCase() !== normalizedPage.route.toLowerCase()) {
+    const oldRouteLower = oldRoute.toLowerCase();
+    if (oldRoute && oldRouteLower !== normalizedPage.route.toLowerCase()) {
+      // Cascade rename to ALL descendants: their route was an extension of the
+      // old parent prefix, otherwise they become unreachable orphans.
       currentPages.forEach((item) => {
-        if (item.parentRoute.toLowerCase() === oldRoute.toLowerCase()) {
+        const itemRouteLower = (item.route || "").toLowerCase();
+        if (itemRouteLower.startsWith(`${oldRouteLower}/`)) {
+          item.route = `${normalizedPage.route}${item.route.slice(oldRoute.length)}`;
+        }
+        const parentLower = (item.parentRoute || "").toLowerCase();
+        if (parentLower === oldRouteLower) {
           item.parentRoute = normalizedPage.route;
+        } else if (parentLower.startsWith(`${oldRouteLower}/`)) {
+          item.parentRoute = `${normalizedPage.route}${(item.parentRoute || "").slice(oldRoute.length)}`;
         }
       });
     }
@@ -1375,43 +1377,84 @@ export function saveVaultPage(page: VaultPageItem): void {
     currentPages.push(normalizedPage);
   }
 
+  // Collect every route that moved in this save (the page itself + every descendant
+  // whose prefix was rewritten) so media can be rebound and old routes tombstoned.
+  const routeRebinds: { oldRoute: string; newRoute: string }[] = [];
+  const renaming = Boolean(oldRoute) && oldRoute.toLowerCase() !== normalizedPage.route.toLowerCase();
+  if (renaming) {
+    const oldRouteLower = oldRoute.toLowerCase();
+    const rebound = new Set<string>();
+    currentPages.forEach((item) => {
+      const itemRouteLower = (item.route || "").toLowerCase();
+      const newPrefixLower = normalizedPage.route.toLowerCase();
+      if (itemRouteLower === newPrefixLower || itemRouteLower.startsWith(`${newPrefixLower}/`)) {
+        const suffix = item.route.slice(normalizedPage.route.length);
+        const impliedOld = `${oldRoute}${suffix}`;
+        const impliedOldLower = impliedOld.toLowerCase();
+        if (
+          impliedOldLower !== itemRouteLower &&
+          (impliedOldLower === oldRouteLower || impliedOldLower.startsWith(`${oldRouteLower}/`)) &&
+          !rebound.has(impliedOldLower)
+        ) {
+          rebound.add(impliedOldLower);
+          routeRebinds.push({ oldRoute: impliedOld, newRoute: item.route });
+        }
+      }
+    });
+    const renamedLower = oldRouteLower;
+    if (!rebound.has(renamedLower)) {
+      routeRebinds.push({ oldRoute, newRoute: normalizedPage.route });
+    }
+  }
+
   localStorage.setItem(STORAGE_VAULT_PAGES, JSON.stringify(currentPages));
-  // Active route & id are un-deleted if recreated/reused; old retired route becomes deleted
+  // Active route & id are un-deleted if recreated/reused; every retired route
+  // (including descendants) becomes tombstoned so the built-ins don't resurrect.
   removeDeletedKeys(STORAGE_DELETED_VAULT_PAGES, [normRoute.toLowerCase(), normalizedPage.id.toLowerCase()]);
-  if (oldRoute && oldRoute.toLowerCase() !== normRoute.toLowerCase()) {
-    addDeletedKeys(STORAGE_DELETED_VAULT_PAGES, [oldRoute.toLowerCase()]);
+  if (renaming) {
+    addDeletedKeys(
+      STORAGE_DELETED_VAULT_PAGES,
+      routeRebinds.map((r) => r.oldRoute.toLowerCase()),
+    );
   }
 
   const oldProjSlug = oldRoute ? normalizeProjectSlug(oldRoute.split("/").pop() || "") : "";
 
-  // Rebind assigned media if an existing page's route changed
-  if (oldRoute && oldRoute.toLowerCase() !== normalizedPage.route.toLowerCase()) {
+  // Rebind assigned media for EVERY moved route (page + descendants), preserving
+  // the relative remainder of each route so nested media follows its page.
+  if (routeRebinds.length > 0) {
     try {
-      const oldNorm = normalizeRouteStr(oldRoute);
-      const newSegs = normRoute.split("/").filter(Boolean);
-      const newField = normalizeDisciplineSlug(newSegs[0] || "photography");
-      const newFlat = FLAT_FIELDS.has(newField);
-      const newCat = newFlat ? "" : normalizeSpecialtySlug(newSegs[1] || "");
-      const newProj = newSegs.length >= 3
-        ? normalizeProjectSlug(newSegs[2])
-        : newSegs.length === 2 && newFlat
-          ? normalizeProjectSlug(newSegs[1])
-          : "";
       const currentMedia = getVaultMedia();
       let mediaMoved = false;
       const nextMedia = currentMedia.map((m) => {
-        if (normalizeRouteStr(m.assignedRoute) === oldNorm) {
-          mediaMoved = true;
-          return ensureMediaItemDynamicFields({
-            ...m,
-            field: newField,
-            category: newCat,
-            project: newProj,
-            assignedRoute: normRoute,
-            taxonomyModifiedByUser: true,
-          });
-        }
-        return m;
+        const mRoute = normalizeRouteStr(m.assignedRoute);
+        const hit = routeRebinds.find(
+          (r) =>
+            mRoute === normalizeRouteStr(r.oldRoute) ||
+            mRoute.startsWith(`${normalizeRouteStr(r.oldRoute)}/`),
+        );
+        if (!hit) return m;
+        const hitOldNorm = normalizeRouteStr(hit.oldRoute);
+        const newAssigned = `${hit.newRoute}${mRoute.slice(hitOldNorm.length)}`;
+        const newSegs = newAssigned.split("/").filter(Boolean);
+        const newField = normalizeDisciplineSlug(newSegs[0] || "photography");
+        const newFlat = FLAT_FIELDS.has(newField);
+        const newCat = newFlat ? "" : normalizeSpecialtySlug(newSegs[1] || "");
+        const newProj =
+          newSegs.length >= 3
+            ? normalizeProjectSlug(newSegs[2])
+            : newSegs.length === 2 && newFlat
+              ? normalizeProjectSlug(newSegs[1])
+              : "";
+        mediaMoved = true;
+        return ensureMediaItemDynamicFields({
+          ...m,
+          field: newField,
+          category: newCat,
+          project: newProj,
+          assignedRoute: newAssigned,
+          taxonomyModifiedByUser: true,
+        });
       });
       if (mediaMoved) {
         localStorage.setItem(STORAGE_VAULT_MEDIA, JSON.stringify(nextMedia));
@@ -2065,4 +2108,91 @@ export function getGalleryMediaForRoute(
 export function getUsedMediaCodes(): Set<string> {
   const list = getVaultMedia();
   return new Set(list.map((m) => m.uniqueCode));
+}
+
+// -------------------------------------------------------------
+// Orphan Blob Purge & Vault Diagnostics
+// -------------------------------------------------------------
+
+export interface VaultDiagnostics {
+  pageCount: number;
+  mediaCount: number;
+  hiddenPages: number;
+  hiddenMedia: number;
+  orphanBlobCount: number;
+  orphanBlobKeys: string[];
+  tombstonedPages: number;
+  tombstonedMedia: number;
+  duplicateCodes: string[];
+  duplicateRoutes: string[];
+  customPages: number;
+  customMedia: number;
+}
+
+/**
+ * Scans Vault state for inconsistencies: orphaned IndexedDB blobs (uploads whose
+ * metadata no longer references them), duplicate unique codes, duplicate routes,
+ * and tombstone counts. Read-only; never mutates state.
+ */
+export function computeVaultDiagnostics(): Promise<VaultDiagnostics> {
+  return new Promise((resolve) => {
+    const pages = getVaultPages();
+    const media = getVaultMedia();
+    const codeCounts = new Map<string, number>();
+    media.forEach((m) => {
+      const c = (m.uniqueCode || "").trim();
+      if (c) codeCounts.set(c, (codeCounts.get(c) || 0) + 1);
+    });
+    const routeCounts = new Map<string, number>();
+    pages.forEach((p) => {
+      const r = normalizeRouteStr(p.route);
+      routeCounts.set(r, (routeCounts.get(r) || 0) + 1);
+    });
+
+    const activeIdbUrls = new Set<string>();
+    media.forEach((m) => {
+      [m.imgSrc, m.thumbSrc].forEach((s) => {
+        if (s && isIndexedDbMediaUrl(s)) activeIdbUrls.add(s);
+      });
+    });
+    pages.forEach((p) => {
+      if (p.coverPhoto && isIndexedDbMediaUrl(p.coverPhoto)) activeIdbUrls.add(p.coverPhoto);
+    });
+
+    listMediaBlobKeys().then((blobKeys) => {
+      const orphanBlobKeys = blobKeys.filter((k) => !activeIdbUrls.has(k));
+      resolve({
+        pageCount: pages.length,
+        mediaCount: media.length,
+        hiddenPages: pages.filter((p) => p.isHidden).length,
+        hiddenMedia: media.filter((m) => m.isHidden).length,
+        orphanBlobCount: orphanBlobKeys.length,
+        orphanBlobKeys,
+        tombstonedPages: getDeletedVaultPageKeys().size,
+        tombstonedMedia: getDeletedVaultMediaKeys().size,
+        duplicateCodes: Array.from(codeCounts.entries())
+          .filter(([, n]) => n > 1)
+          .map(([c]) => c),
+        duplicateRoutes: Array.from(routeCounts.entries())
+          .filter(([, n]) => n > 1)
+          .map(([r]) => r),
+        customPages: pages.filter((p) => p.id.startsWith("custom-page-")).length,
+        customMedia: media.filter((m) => m.id.startsWith("custom-media-")).length,
+      });
+    });
+  });
+}
+
+/**
+ * Deletes every IndexedDB blob that no media item or page cover references.
+ * Returns the number of blobs removed.
+ */
+export async function purgeOrphanBlobs(): Promise<number> {
+  const diag = await computeVaultDiagnostics();
+  let purged = 0;
+  for (const key of diag.orphanBlobKeys) {
+    await deleteMediaBlob(key);
+    purged++;
+  }
+  return purged;
 }

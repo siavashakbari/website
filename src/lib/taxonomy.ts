@@ -126,62 +126,137 @@ export function to4LetterCode(text: string, fallback = "GENR"): string {
   return clean.slice(0, 4);
 }
 
+// Exact-match canonical tables. Custom/user-created slugs are PRESERVED as-is
+// (slugify only) so a page a user renames to e.g. "/graphic-design/posters-2"
+// no longer snaps back to a built-in route via substring matching.
+const KNOWN_DISCIPLINES = new Set([
+  "photography",
+  "graphic-design",
+  "video",
+  "product-design",
+]);
+
+const DISCIPLINE_ALIASES: Record<string, string> = {
+  photo: "photography",
+  photos: "photography",
+  photography: "photography",
+  "fashion-photography": "photography",
+  "food-photography": "photography",
+  "portrait-photography": "photography",
+  "product-photography": "photography",
+  graphic: "graphic-design",
+  graphics: "graphic-design",
+  design: "graphic-design",
+  "graphic design": "graphic-design",
+  "visual-identity": "graphic-design",
+  "visual identity": "graphic-design",
+  "book-covers": "graphic-design",
+  "book covers": "graphic-design",
+  books: "graphic-design",
+  book: "graphic-design",
+  posters: "graphic-design",
+  poster: "graphic-design",
+  video: "video",
+  videos: "video",
+  motion: "video",
+  "product-design": "product-design",
+  "product design": "product-design",
+  products: "product-design",
+};
+
+const KNOWN_SPECIALTIES = new Set([
+  "fashion-photography",
+  "food-photography",
+  "portrait-photography",
+  "product-photography",
+  "visual-identity",
+  "book-covers",
+  "posters",
+  "videos",
+  "products",
+]);
+
+const SPECIALTY_ALIASES: Record<string, string> = {
+  fashion: "fashion-photography",
+  "fashion photography": "fashion-photography",
+  food: "food-photography",
+  "food photography": "food-photography",
+  portrait: "portrait-photography",
+  "portrait photography": "portrait-photography",
+  product: "product-photography",
+  "product photography": "product-photography",
+  identity: "visual-identity",
+  branding: "visual-identity",
+  brand: "visual-identity",
+  "visual identity": "visual-identity",
+  "visual-identity": "visual-identity",
+  book: "book-covers",
+  books: "book-covers",
+  "book covers": "book-covers",
+  "book-covers": "book-covers",
+  poster: "posters",
+  posters: "posters",
+  video: "videos",
+  videos: "videos",
+  products: "products",
+  "product-design": "products",
+  "product design": "products",
+};
+
+const PROJECT_ALIASES: Record<string, string> = {
+  tasting: "gastronomie",
+  signature: "signature-restaurant",
+  "signature-cafe": "signature-restaurant",
+  "signature-cafe-restaurant": "signature-restaurant",
+  "signature-restaurant": "signature-restaurant",
+  dodareh: "dobareh",
+  "dobareh-accesories": "dobareh",
+  "dobareh-accessories": "dobareh",
+  shekarchian: "shekarchian-sweets",
+  "shekarchian-honey": "shekarchian-sweets",
+  "on-swipe": "onswipe",
+  "polarity-atelier": "polarity",
+  "nozad-publication": "nozad-publication-visual-identity",
+  "nozad-publication-visual-identity": "nozad-publication-visual-identity",
+  "nozad-vi": "nozad-publication-visual-identity",
+  goats: "goats-coffee",
+  "zen-studio-products": "zen-studio",
+};
+
 /**
  * Maps any discipline text to its canonical URL slug (e.g. "Photography" -> "photography").
+ * Exact matches and known aliases win; anything else is kept as a clean slug so
+ * user-created disciplines are never rewritten into a built-in one.
  */
 export function normalizeDisciplineSlug(discipline: string): string {
   const q = (discipline || "").toLowerCase().trim();
-  if (q.includes("product-design") || q.includes("product design")) return "product-design";
-  if (q.includes("photo")) return "photography";
-  if (q.includes("graphic") || q.includes("identity") || q.includes("book") || q.includes("poster")) {
-    return "graphic-design";
-  }
-  if (q.includes("video") || q.includes("motion")) return "video";
-  return slugify(discipline) || "photography";
+  if (!q) return "photography";
+  const slug = slugify(q);
+  if (KNOWN_DISCIPLINES.has(slug)) return slug;
+  return DISCIPLINE_ALIASES[slug] ?? DISCIPLINE_ALIASES[q] ?? (slug || "photography");
 }
 
 /**
  * Maps any specialty text to its canonical URL slug (e.g. "Fashion Photography" -> "fashion-photography").
+ * Exact matches and known aliases win; anything else is kept as a clean slug so
+ * user-created specialties (e.g. "posters-2") are never rewritten into built-ins.
  */
 export function normalizeSpecialtySlug(specialty: string): string {
   const q = (specialty || "").toLowerCase().trim();
-  if (q.includes("fashion")) return "fashion-photography";
-  if (q.includes("food")) return "food-photography";
-  if (q.includes("portrait")) return "portrait-photography";
-  if (q.includes("product") && !q.includes("design")) return "product-photography";
-  if (q.includes("visual") || q.includes("identity") || q.includes("brand")) return "visual-identity";
-  if (q.includes("book")) return "book-covers";
-  if (q.includes("poster")) return "posters";
-  if (q.includes("video")) return "videos";
-  if (q.includes("product-design") || q.includes("product design") || q.includes("products")) return "products";
-  return slugify(specialty) || "general";
+  if (!q) return "general";
+  const slug = slugify(q);
+  if (KNOWN_SPECIALTIES.has(slug)) return slug;
+  return SPECIALTY_ALIASES[slug] ?? SPECIALTY_ALIASES[q] ?? (slug || "general");
 }
 
 /**
  * Maps any project name to its canonical URL slug (e.g. "Sepidar" -> "sepidar").
+ * Only exact known aliases are rewritten; custom project slugs are preserved.
  */
 export function normalizeProjectSlug(project: string): string {
   const base = slugify(project);
   if (!base) return "";
-  if (base === "tasting") return "gastronomie";
-  if (
-    base === "signature-cafe-restaurant" ||
-    base === "signature-cafe" ||
-    base === "signature-restaurant" ||
-    base === "signature"
-  ) {
-    return "signature-restaurant";
-  }
-  if (base === "dodareh" || base === "dobareh-accesories" || base === "dobareh-accessories") return "dobareh";
-  if (base === "shekarchian" || base === "shekarchian-honey") return "shekarchian-sweets";
-  if (base === "on-swipe") return "onswipe";
-  if (base === "polarity-atelier") return "polarity";
-  if (base === "nozad-publication" || base === "nozad-publication-visual-identity" || base === "nozad-vi") {
-    return "nozad-publication-visual-identity";
-  }
-  if (base === "goats") return "goats-coffee";
-  if (base === "zen-studio" || base === "zen-studio-products") return "zen-studio";
-  return base;
+  return PROJECT_ALIASES[base] ?? base;
 }
 
 /**

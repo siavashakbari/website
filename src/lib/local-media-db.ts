@@ -90,6 +90,20 @@ export async function getMediaObjectUrl(idbUrl: string): Promise<string> {
   return promise;
 }
 
+export async function listMediaBlobKeys(): Promise<string[]> {
+  try {
+    const db = await openBlobDb();
+    return await new Promise<string[]>((resolve, reject) => {
+      const tx = db.transaction(STORE_NAME, "readonly");
+      const req = tx.objectStore(STORE_NAME).getAllKeys();
+      req.onsuccess = () => resolve((req.result as IDBValidKey[]).map(String));
+      req.onerror = () => reject(req.error || new Error("Failed to list media keys."));
+    });
+  } catch {
+    return [];
+  }
+}
+
 export async function deleteMediaBlob(idbUrl: string): Promise<void> {
   if (!isIndexedDbMediaUrl(idbUrl)) return;
   const cached = objectUrlCache.get(idbUrl);

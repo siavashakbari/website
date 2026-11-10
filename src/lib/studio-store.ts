@@ -50,27 +50,17 @@ export function subscribeToStudioStore(callback: () => void): () => void {
   const handler = () => callback();
   window.addEventListener(STUDIO_STORE_CHANGED_EVENT, handler);
   window.addEventListener("storage", handler);
-  if (studioBroadcastChannel) {
-    studioBroadcastChannel.onmessage = handler;
-  }
+  const channelHandler = () => callback();
+  studioBroadcastChannel?.addEventListener("message", channelHandler);
   return () => {
     window.removeEventListener(STUDIO_STORE_CHANGED_EVENT, handler);
     window.removeEventListener("storage", handler);
-    if (studioBroadcastChannel) {
-      studioBroadcastChannel.onmessage = null;
-    }
+    studioBroadcastChannel?.removeEventListener("message", channelHandler);
   };
 }
 
-function normalizeDisciplineSlug(discipline: string, category?: string): string {
-  const q = (discipline || "").toLowerCase().trim();
-  if (q.includes("product-design") || q.includes("product design")) return "product-design";
-  if (q.includes("photo")) return "photography";
-  if (q.includes("graphic") || q.includes("identity") || q.includes("book") || q.includes("poster")) {
-    return "graphic-design";
-  }
-  if (q.includes("video") || q.includes("motion")) return "video";
-  return discipline || "photography";
+function normalizeDisciplineSlug(discipline: string, _category?: string): string {
+  return taxNormDisc(discipline);
 }
 
 function defaultProjectToStudioItem(p: Project): StudioProjectItem {
