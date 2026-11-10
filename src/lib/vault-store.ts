@@ -10,6 +10,13 @@ import { DISCIPLINES } from "@/data/disciplines";
 import { resolveInventoryImage } from "@/lib/inventory-assets";
 import type { UITypeCode } from "@/components/ui-types";
 import type { KeyValuePair } from "@/components/vault/PairedBoxesEditor";
+import {
+  normalizeDisciplineSlug,
+  normalizeSpecialtySlug,
+  normalizeProjectSlug,
+  buildPhotoUrl,
+} from "@/lib/taxonomy";
+import { notifyStudioStoreUpdated } from "@/lib/studio-store";
 
 export interface VaultPageItem {
   id: string;
@@ -142,12 +149,12 @@ export function getAvailable4DigitCode(existingCodes: Set<string>): string {
 }
 
 // -------------------------------------------------------------
-// Initial Pre-Scanned Default Pages
+// Complete Pre-Scanned Default Pages
 // -------------------------------------------------------------
 
 export function getInitialScannedPages(): VaultPageItem[] {
   const pages: VaultPageItem[] = [
-    // 1. Root Fields
+    // 1. Root Fields (Level 0)
     {
       id: "photography",
       route: "/photography",
@@ -201,7 +208,7 @@ export function getInitialScannedPages(): VaultPageItem[] {
       order: 4,
     },
 
-    // 2. Specialties under Photography
+    // 2. Specialties under Photography (Level 1)
     {
       id: "photography-fashion-photography",
       route: "/photography/fashion-photography",
@@ -255,7 +262,7 @@ export function getInitialScannedPages(): VaultPageItem[] {
       order: 13,
     },
 
-    // 3. Specialties under Graphic Design
+    // 3. Specialties under Graphic Design (Level 1)
     {
       id: "graphic-design-visual-identity",
       route: "/graphic-design/visual-identity",
@@ -296,7 +303,7 @@ export function getInitialScannedPages(): VaultPageItem[] {
       order: 22,
     },
 
-    // 4. Projects under Photography Fashion
+    // 4. Projects under Fashion Photography (Level 2)
     {
       id: "photography-fashion-sepidar",
       route: "/photography/fashion-photography/sepidar",
@@ -337,7 +344,20 @@ export function getInitialScannedPages(): VaultPageItem[] {
       order: 32,
     },
 
-    // 5. Projects under Food Photography
+    // 5. Projects under Food Photography (Level 2)
+    {
+      id: "photography-food-signature-restaurant",
+      route: "/photography/food-photography/signature-restaurant",
+      name: "Signature Restaurant",
+      parentRoute: "/photography/food-photography",
+      coverPhoto: "src/assets/food/gastronomie/food-gastronomie-19.jpg",
+      descriptionEn: "Fine dining culinary showcase, atmospheric interior lighting, and signature dish plating.",
+      descriptionFa: "عکاسی غذا و فضای رستوران سیگنچر — روایتی از طعم، نورپردازی و هنر پذیرایی مدرن.",
+      uiType: "UI01",
+      isHidden: false,
+      pairedBoxes: [{ key: "Category", value: "Fine Dining" }, { key: "Year", value: "2026" }],
+      order: 40,
+    },
     {
       id: "photography-food-gastronomie",
       route: "/photography/food-photography/gastronomie",
@@ -349,7 +369,7 @@ export function getInitialScannedPages(): VaultPageItem[] {
       uiType: "UI01",
       isHidden: false,
       pairedBoxes: [{ key: "Year", value: "2024" }],
-      order: 40,
+      order: 41,
     },
     {
       id: "photography-food-cuisine",
@@ -357,23 +377,23 @@ export function getInitialScannedPages(): VaultPageItem[] {
       name: "Cuisine",
       parentRoute: "/photography/food-photography",
       coverPhoto: "src/assets/food/cuisine/food-cuisine-01.jpg",
-      descriptionEn: "Artisanal cuisine and ingredient studies.",
-      descriptionFa: "مطالعات تصویری مواد غذایی و نوشیدنی‌ها.",
+      descriptionEn: "Fresh culinary preparations and textural restaurant storytelling.",
+      descriptionFa: "روایت تازه از آماده‌سازی غذا و طعم‌های رستورانی.",
       uiType: "UI01",
       isHidden: false,
-      pairedBoxes: [{ key: "Year", value: "2023" }],
-      order: 41,
+      pairedBoxes: [{ key: "Year", value: "2024" }],
+      order: 42,
     },
 
-    // 6. Projects under Portrait Photography
+    // 6. Projects under Portrait Photography (Level 2)
     {
       id: "photography-portrait-calligraphy",
       route: "/photography/portrait-photography/calligraphy",
       name: "Calligraphy",
       parentRoute: "/photography/portrait-photography",
       coverPhoto: "src/assets/portrait/calligraphy/portrait-calligraphy-02.jpg",
-      descriptionEn: "Calligraphers and ink masters portraits in studio light.",
-      descriptionFa: "پرتره اساتید خوشنویسی و مرکب در نور استودیو.",
+      descriptionEn: "Calligraphy conceptual portrait series.",
+      descriptionFa: "مجموعه پرتره مفهومی کالیگرافی.",
       uiType: "UI01",
       isHidden: false,
       pairedBoxes: [{ key: "Year", value: "2024" }],
@@ -406,7 +426,7 @@ export function getInitialScannedPages(): VaultPageItem[] {
       order: 52,
     },
 
-    // 7. Projects under Product Photography
+    // 7. Projects under Product Photography (Level 2)
     {
       id: "photography-product-objects",
       route: "/photography/product-photography/objects",
@@ -421,7 +441,7 @@ export function getInitialScannedPages(): VaultPageItem[] {
       order: 60,
     },
 
-    // 8. Projects under Visual Identity
+    // 8. Projects under Visual Identity (Level 2)
     {
       id: "graphic-design-shekarchian-sweets",
       route: "/graphic-design/visual-identity/shekarchian-sweets",
@@ -462,6 +482,19 @@ export function getInitialScannedPages(): VaultPageItem[] {
       order: 72,
     },
     {
+      id: "graphic-design-femiq",
+      route: "/graphic-design/visual-identity/femiq",
+      name: "FEMIQ",
+      parentRoute: "/graphic-design/visual-identity",
+      coverPhoto: "src/assets/graphic-design/femiq/graphic-design-femiq-01.jpg",
+      descriptionEn: "Brand identity, pattern system, and cosmetics packaging for FEMIQ.",
+      descriptionFa: "هویت بصری و بسته‌بندی محصولات فمیک.",
+      uiType: "UI03",
+      isHidden: false,
+      pairedBoxes: [{ key: "Client", value: "FEMIQ" }, { key: "Year", value: "2024" }],
+      order: 73,
+    },
+    {
       id: "graphic-design-polarity",
       route: "/graphic-design/visual-identity/polarity",
       name: "Polarity",
@@ -472,7 +505,7 @@ export function getInitialScannedPages(): VaultPageItem[] {
       uiType: "UI03",
       isHidden: false,
       pairedBoxes: [{ key: "Year", value: "2024" }],
-      order: 73,
+      order: 74,
     },
     {
       id: "graphic-design-echo-supplements",
@@ -485,7 +518,7 @@ export function getInitialScannedPages(): VaultPageItem[] {
       uiType: "UI03",
       isHidden: false,
       pairedBoxes: [{ key: "Year", value: "2024" }],
-      order: 74,
+      order: 75,
     },
     {
       id: "graphic-design-goats-coffee",
@@ -498,7 +531,20 @@ export function getInitialScannedPages(): VaultPageItem[] {
       uiType: "UI03",
       isHidden: false,
       pairedBoxes: [{ key: "Year", value: "2023" }],
-      order: 75,
+      order: 76,
+    },
+    {
+      id: "graphic-design-nozad-publication-visual-identity",
+      route: "/graphic-design/visual-identity/nozad-publication-visual-identity",
+      name: "Nozad Publication",
+      parentRoute: "/graphic-design/visual-identity",
+      coverPhoto: "src/assets/graphic-design/nozad-publication/graphic-design-nozad-publication-01.jpg",
+      descriptionEn: "Publishing house identity, colophon mark, and stationery system.",
+      descriptionFa: "هویت بصری و نشان نشر نوزاد.",
+      uiType: "UI03",
+      isHidden: false,
+      pairedBoxes: [{ key: "Year", value: "2024" }],
+      order: 77,
     },
     {
       id: "graphic-design-onswipe",
@@ -511,7 +557,7 @@ export function getInitialScannedPages(): VaultPageItem[] {
       uiType: "UI03",
       isHidden: false,
       pairedBoxes: [{ key: "Year", value: "2024" }],
-      order: 76,
+      order: 78,
     },
     {
       id: "graphic-design-zen-studio",
@@ -524,10 +570,129 @@ export function getInitialScannedPages(): VaultPageItem[] {
       uiType: "UI03",
       isHidden: false,
       pairedBoxes: [{ key: "Year", value: "2024" }],
-      order: 77,
+      order: 79,
+    },
+    {
+      id: "graphic-design-artemis",
+      route: "/graphic-design/visual-identity/artemis",
+      name: "Artemis",
+      parentRoute: "/graphic-design/visual-identity",
+      coverPhoto: "src/assets/graphic-design/artemis/graphic-design-artemis-01.jpg",
+      descriptionEn: "Artisanal food jar packaging and visual branding.",
+      descriptionFa: "هویت و بسته‌بندی آرتمیس.",
+      uiType: "UI03",
+      isHidden: false,
+      pairedBoxes: [{ key: "Year", value: "2024" }],
+      order: 80,
+    },
+    {
+      id: "graphic-design-cichon",
+      route: "/graphic-design/visual-identity/cichon",
+      name: "Cichon",
+      parentRoute: "/graphic-design/visual-identity",
+      coverPhoto: "src/assets/graphic-design/cichon/graphic-design-cichon-01.jpg",
+      descriptionEn: "Typographic brand system and stationery suite.",
+      descriptionFa: "سیستم تایپوگرافی و ست اداری سیچون.",
+      uiType: "UI03",
+      isHidden: false,
+      pairedBoxes: [{ key: "Year", value: "2024" }],
+      order: 81,
+    },
+    {
+      id: "graphic-design-farshid-rahimi",
+      route: "/graphic-design/visual-identity/farshid-rahimi",
+      name: "Farshid Rahimi",
+      parentRoute: "/graphic-design/visual-identity",
+      coverPhoto: "src/assets/graphic-design/farshid-rahimi/graphic-design-farshid-rahimi-01.jpg",
+      descriptionEn: "Personal identity and signature stationery system.",
+      descriptionFa: "هویت بصری شخصی فرشید رحیمی.",
+      uiType: "UI03",
+      isHidden: false,
+      pairedBoxes: [{ key: "Year", value: "2024" }],
+      order: 82,
+    },
+    {
+      id: "graphic-design-maanaar",
+      route: "/graphic-design/visual-identity/maanaar",
+      name: "Maanaar",
+      parentRoute: "/graphic-design/visual-identity",
+      coverPhoto: "src/assets/graphic-design/maanaar/graphic-design-maanaar-01.jpg",
+      descriptionEn: "Minimalist architectural identity and monogram.",
+      descriptionFa: "هویت مینیمال مانار.",
+      uiType: "UI03",
+      isHidden: false,
+      pairedBoxes: [{ key: "Year", value: "2024" }],
+      order: 83,
+    },
+    {
+      id: "graphic-design-mamrezz",
+      route: "/graphic-design/visual-identity/mamrezz",
+      name: "Mamrezz",
+      parentRoute: "/graphic-design/visual-identity",
+      coverPhoto: "src/assets/graphic-design/mamrezz/graphic-design-mamrezz-01.jpg",
+      descriptionEn: "Bold contemporary emblem and graphic brand expression.",
+      descriptionFa: "نشان گرافیکی و هویت بصری ممرز.",
+      uiType: "UI03",
+      isHidden: false,
+      pairedBoxes: [{ key: "Year", value: "2024" }],
+      order: 84,
+    },
+    {
+      id: "graphic-design-snow-snack",
+      route: "/graphic-design/visual-identity/snow-snack",
+      name: "Snow Snack",
+      parentRoute: "/graphic-design/visual-identity",
+      coverPhoto: "src/assets/graphic-design/snow-snack/graphic-design-snow-snack-01.jpg",
+      descriptionEn: "Playful packaging patterns and identity for frozen treats.",
+      descriptionFa: "طراحی بسته‌بندی و هویت اسنو اسنک.",
+      uiType: "UI03",
+      isHidden: false,
+      pairedBoxes: [{ key: "Year", value: "2024" }],
+      order: 85,
+    },
+    {
+      id: "graphic-design-zeee-products",
+      route: "/graphic-design/visual-identity/zeee-products",
+      name: "ZEEE Products",
+      parentRoute: "/graphic-design/visual-identity",
+      coverPhoto: "src/assets/graphic-design/zeee-products/graphic-design-zeee-products-01.jpg",
+      descriptionEn: "Industrial design packaging and product branding system.",
+      descriptionFa: "هویت صنعتی و بسته‌بندی محصولات زی.",
+      uiType: "UI03",
+      isHidden: false,
+      pairedBoxes: [{ key: "Year", value: "2024" }],
+      order: 86,
+    },
+    {
+      id: "graphic-design-awli",
+      route: "/graphic-design/visual-identity/awli",
+      name: "AWLI",
+      parentRoute: "/graphic-design/visual-identity",
+      coverPhoto: "src/assets/graphic-design/awli/graphic-design-awli-01.jpg",
+      descriptionEn: "Dynamic digital symbol and motion logo identity.",
+      descriptionFa: "هویت بصری و لوگوموشن عالی.",
+      uiType: "UI03",
+      isHidden: false,
+      pairedBoxes: [{ key: "Year", value: "2024" }],
+      order: 87,
     },
 
-    // 9. Video Projects
+    // 9. Book Covers Projects (Level 2)
+    {
+      id: "graphic-design-nozad-publications",
+      route: "/graphic-design/book-covers/nozad-publications",
+      name: "Nozad Publications",
+      parentRoute: "/graphic-design/book-covers",
+      coverPhoto: "src/assets/graphic-design/book-covers/graphic-design-book-covers-01.jpg",
+      descriptionEn: "Literary book cover designs and typographic layouts for Nozad Publications.",
+      descriptionFa: "طراحی جلدهای ادبی و لی‌اوت کتاب نشر نوزاد.",
+      uiType: "UI02",
+      isHidden: false,
+      pairedBoxes: [{ key: "Client", value: "Nozad" }, { key: "Year", value: "2024" }],
+      order: 95,
+    },
+
+    // 10. Video Projects (Level 2)
     {
       id: "video-echo-prime",
       route: "/video/echo-prime",
@@ -539,7 +704,7 @@ export function getInitialScannedPages(): VaultPageItem[] {
       uiType: "UI04",
       isHidden: false,
       pairedBoxes: [{ key: "Director", value: "Siavash Akbari" }, { key: "Year", value: "2026" }],
-      order: 90,
+      order: 100,
     },
   ];
 
@@ -621,37 +786,171 @@ export function getInitialScannedMedia(): VaultMediaItem[] {
 }
 
 // -------------------------------------------------------------
-// Pages CRUD
+// Pages CRUD with Dynamic Route Discovery & Synchronization
 // -------------------------------------------------------------
 
 export function getVaultPages(): VaultPageItem[] {
-  if (typeof window === "undefined") return getInitialScannedPages();
-  try {
-    const raw = localStorage.getItem(STORAGE_VAULT_PAGES);
-    if (raw) {
-      const parsed: VaultPageItem[] = JSON.parse(raw);
-      if (Array.isArray(parsed) && parsed.length > 0) {
-        return parsed;
+  const basePages = getInitialScannedPages();
+  const pagesMap = new Map<string, VaultPageItem>();
+
+  // 1. Populate all static base pages
+  basePages.forEach((p) => {
+    pagesMap.set(p.route.toLowerCase(), p);
+  });
+
+  // 2. Discover any custom projects from studio store (in browser)
+  if (typeof window !== "undefined") {
+    try {
+      const customRaw = localStorage.getItem("siavash_studio_custom_projects");
+      if (customRaw) {
+        const customList = JSON.parse(customRaw);
+        if (Array.isArray(customList)) {
+          customList.forEach((cp) => {
+            if (!cp || !cp.id) return;
+            const discNorm = normalizeDisciplineSlug(cp.discipline || "photography");
+            let specNorm = normalizeSpecialtySlug(cp.subDiscipline || cp.category || "");
+            if (!specNorm || specNorm === "general") {
+              if (discNorm === "photography") specNorm = "food-photography";
+              else if (discNorm === "graphic-design") specNorm = "visual-identity";
+              else if (discNorm === "product-design") specNorm = "products";
+              else if (discNorm === "video") specNorm = "videos";
+            }
+            const projSlug = normalizeProjectSlug(cp.title || cp.id);
+            const route =
+              discNorm === "video"
+                ? `/video/${projSlug}`
+                : discNorm === "product-design"
+                ? `/product-design/${projSlug}`
+                : `/${discNorm}/${specNorm}/${projSlug}`;
+            const parentRoute =
+              discNorm === "video"
+                ? "/video"
+                : discNorm === "product-design"
+                ? "/product-design"
+                : `/${discNorm}/${specNorm}`;
+
+            const key = route.toLowerCase();
+            if (!pagesMap.has(key)) {
+              pagesMap.set(key, {
+                id: `page-${discNorm}-${specNorm}-${projSlug}`,
+                route,
+                name: cp.title || projSlug,
+                parentRoute,
+                coverPhoto: cp.coverImage || "",
+                descriptionEn: cp.description || "",
+                descriptionFa: cp.descriptionFa || "",
+                uiType: discNorm === "video" ? "UI04" : "UI01",
+                isHidden: false,
+                pairedBoxes: cp.year ? [{ key: "Year", value: String(cp.year) }] : [],
+                order: 40,
+              });
+            }
+          });
+        }
       }
+    } catch (e) {
+      /* ignore */
     }
-  } catch (e) {
-    console.error("Error loading vault pages:", e);
+
+    // 3. Merge user customizations saved in STORAGE_VAULT_PAGES
+    try {
+      const savedRaw = localStorage.getItem(STORAGE_VAULT_PAGES);
+      if (savedRaw) {
+        const savedList: VaultPageItem[] = JSON.parse(savedRaw);
+        if (Array.isArray(savedList)) {
+          savedList.forEach((saved) => {
+            if (!saved || !saved.route) return;
+            const key = saved.route.toLowerCase();
+            const existing = pagesMap.get(key) || Array.from(pagesMap.values()).find((p) => p.id === saved.id);
+            if (existing) {
+              pagesMap.set(existing.route.toLowerCase(), {
+                ...existing,
+                ...saved,
+                name: saved.name !== undefined ? saved.name : existing.name,
+                route: saved.route !== undefined ? saved.route : existing.route,
+                parentRoute: saved.parentRoute !== undefined ? saved.parentRoute : existing.parentRoute,
+                coverPhoto: saved.coverPhoto !== undefined ? saved.coverPhoto : existing.coverPhoto,
+                descriptionEn: saved.descriptionEn !== undefined ? saved.descriptionEn : existing.descriptionEn,
+                descriptionFa: saved.descriptionFa !== undefined ? saved.descriptionFa : existing.descriptionFa,
+                uiType: saved.uiType || existing.uiType,
+                isHidden: saved.isHidden !== undefined ? saved.isHidden : existing.isHidden,
+                pairedBoxes: saved.pairedBoxes || existing.pairedBoxes,
+              });
+            } else {
+              // Custom user-created page
+              pagesMap.set(key, saved);
+            }
+          });
+        }
+      }
+    } catch (e) {
+      console.error("Error merging saved vault pages:", e);
+    }
   }
-  const initial = getInitialScannedPages();
-  localStorage.setItem(STORAGE_VAULT_PAGES, JSON.stringify(initial));
-  return initial;
+
+  const result = Array.from(pagesMap.values());
+  return result;
 }
 
 export function saveVaultPage(page: VaultPageItem): void {
   if (typeof window === "undefined") return;
-  const list = getVaultPages();
-  const idx = list.findIndex((p) => p.id === page.id || p.route === page.route);
+  const currentPages = getVaultPages();
+  const idx = currentPages.findIndex((p) => p.id === page.id || p.route.toLowerCase() === page.route.toLowerCase());
+
   if (idx >= 0) {
-    list[idx] = { ...list[idx], ...page };
+    const oldRoute = currentPages[idx].route;
+    currentPages[idx] = { ...currentPages[idx], ...page };
+
+    // If route was changed, update any children parentRoute
+    if (oldRoute && oldRoute.toLowerCase() !== page.route.toLowerCase()) {
+      currentPages.forEach((item) => {
+        if (item.parentRoute.toLowerCase() === oldRoute.toLowerCase()) {
+          item.parentRoute = page.route;
+        }
+      });
+    }
   } else {
-    list.push(page);
+    currentPages.push(page);
   }
-  localStorage.setItem(STORAGE_VAULT_PAGES, JSON.stringify(list));
+
+  localStorage.setItem(STORAGE_VAULT_PAGES, JSON.stringify(currentPages));
+
+  // Sync to studio store custom projects if it matches a project
+  try {
+    const rawStudio = localStorage.getItem("siavash_studio_custom_projects");
+    let studioList: any[] = rawStudio ? JSON.parse(rawStudio) : [];
+    if (!Array.isArray(studioList)) studioList = [];
+
+    const projSlug = normalizeProjectSlug(page.route.split("/").pop() || page.name);
+    const sIdx = studioList.findIndex((p) => normalizeProjectSlug(p.title) === projSlug || p.id === projSlug);
+
+    if (sIdx >= 0) {
+      studioList[sIdx] = {
+        ...studioList[sIdx],
+        title: page.name,
+        description: page.descriptionEn,
+        descriptionFa: page.descriptionFa,
+        coverImage: page.coverPhoto || studioList[sIdx].coverImage,
+      };
+    } else {
+      studioList.push({
+        id: projSlug,
+        title: page.name,
+        description: page.descriptionEn,
+        descriptionFa: page.descriptionFa,
+        coverImage: page.coverPhoto || "",
+        discipline: page.route.includes("photo") ? "photography" : page.route.includes("graphic") ? "graphic-design" : page.route.includes("video") ? "video" : "product-design",
+        category: page.parentRoute.split("/").pop() || "general",
+        year: "2026",
+        images: [],
+      });
+    }
+    localStorage.setItem("siavash_studio_custom_projects", JSON.stringify(studioList));
+    notifyStudioStoreUpdated({ type: "project_updated", id: projSlug });
+  } catch (e) {
+    /* ignore */
+  }
+
   notifyVaultUpdated({ type: "page_saved", id: page.id });
 }
 
@@ -662,13 +961,48 @@ export function deleteVaultPage(id: string): void {
   notifyVaultUpdated({ type: "page_deleted", id });
 }
 
+/**
+ * Resilient lookup matching exact route, normalized route, or project slug
+ */
 export function getPageByRoute(route: string): VaultPageItem | undefined {
-  const norm = route.replace(/\/+$/, "") || "/";
+  if (!route) return undefined;
   const list = getVaultPages();
-  return list.find((p) => {
-    const pNorm = p.route.replace(/\/+$/, "") || "/";
-    return pNorm === norm;
-  });
+  const clean = route.trim().toLowerCase().replace(/\/+$/, "") || "/";
+
+  // 1. Direct match
+  const direct = list.find((p) => (p.route || "").trim().toLowerCase().replace(/\/+$/, "") === clean);
+  if (direct) return direct;
+
+  // 2. Trailing slug matching
+  const segments = clean.split("/").filter(Boolean);
+  if (segments.length >= 2) {
+    const lastSeg = segments[segments.length - 1];
+    const prevSeg = segments[segments.length - 2];
+
+    const byTwo = list.find((p) => {
+      const pClean = (p.route || "").trim().toLowerCase().replace(/\/+$/, "");
+      return pClean.endsWith(`/${prevSeg}/${lastSeg}`) || pClean.endsWith(`/${lastSeg}`);
+    });
+    if (byTwo) return byTwo;
+
+    const bySlug = list.find((p) => {
+      const pSlug = normalizeProjectSlug(p.name || p.id);
+      return pSlug === lastSeg || p.id.toLowerCase().includes(lastSeg);
+    });
+    if (bySlug) return bySlug;
+  }
+
+  // 3. Single segment match
+  if (segments.length === 1) {
+    const seg = segments[0];
+    const single = list.find((p) => {
+      const pClean = (p.route || "").trim().toLowerCase().replace(/\/+$/, "");
+      return pClean === `/${seg}` || p.id.toLowerCase() === seg;
+    });
+    if (single) return single;
+  }
+
+  return undefined;
 }
 
 // -------------------------------------------------------------

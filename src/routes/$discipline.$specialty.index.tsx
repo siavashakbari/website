@@ -12,6 +12,7 @@ import {
 import {
   getPageByRoute,
   getVaultMedia,
+  getVaultPages,
   subscribeToVaultStore,
   type VaultPageItem,
 } from "@/lib/vault-store";
@@ -385,6 +386,14 @@ function SpecialtyPage() {
     refreshSpecialtyData();
   }, [loaderData.isVisualIdentity, loaderData.disciplineSlug, loaderData.specialtySlug]);
 
+  // Keep browser tab title synchronized with vault page name or custom title
+  useEffect(() => {
+    const pageTitle = vaultPage?.name || data.label;
+    if (pageTitle && typeof document !== "undefined") {
+      document.title = `Siavash Akbari - ${pageTitle}`;
+    }
+  }, [vaultPage?.name, data.label]);
+
   // Real-time listener: updates view as soon as vault edits anything
   useEffect(() => {
     const unsub1 = subscribeToStudioStore(() => refreshSpecialtyData());
@@ -416,8 +425,19 @@ function SpecialtyPage() {
     return !hiddenCodeSet.has(code);
   });
 
+  // Filter out hidden project cards
+  const allVaultPages = typeof window !== "undefined" ? getVaultPages() : [];
+  const hiddenRoutes = new Set(
+    allVaultPages.filter((p) => p.isHidden).map((p) => p.route.toLowerCase().replace(/\/+$/, ""))
+  );
+
+  const visibleProjectCards = data.projectCards.filter((card) => {
+    const cardHref = (card.href || "").toLowerCase().replace(/\/+$/, "");
+    return !hiddenRoutes.has(cardHref);
+  });
+
   const isEmpty = data.isVisualIdentity
-    ? data.projectCards.length === 0
+    ? visibleProjectCards.length === 0
     : visibleItems.length === 0;
 
   const useSideScroll = data.layout === "scroll" && isDesktop;
@@ -471,7 +491,7 @@ function SpecialtyPage() {
         />
       ) : activeUiType === "UI03" || data.isVisualIdentity ? (
         <UI03_EqualCardsGrid
-          cards={data.projectCards.map((p) => ({
+          cards={visibleProjectCards.map((p) => ({
             id: p.id,
             title: p.title,
             image: p.image,

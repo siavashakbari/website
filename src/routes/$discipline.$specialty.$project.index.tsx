@@ -239,6 +239,13 @@ function ProjectCaseStudyPage() {
         images: updatedImages.length > 0 ? updatedImages : loaderData.images,
         coverImage: updatedImages[0] || loaderData.coverImage,
       });
+    } else if (currentVaultPage) {
+      setData((prev) => ({
+        ...prev,
+        title: currentVaultPage.name || prev.title,
+        description: currentVaultPage.descriptionEn || prev.description,
+        coverImage: currentVaultPage.coverPhoto || prev.coverImage,
+      }));
     }
   };
 
@@ -246,6 +253,14 @@ function ProjectCaseStudyPage() {
   useEffect(() => {
     refreshProjectData();
   }, [loaderData.projectSlug]);
+
+  // Keep browser tab title synchronized with vault page name or custom title
+  useEffect(() => {
+    const pageTitle = vaultPage?.name || data.title;
+    if (pageTitle && typeof document !== "undefined") {
+      document.title = `Siavash Akbari - ${pageTitle}`;
+    }
+  }, [vaultPage?.name, data.title]);
 
   // Real-time listener: updates view as soon as vault edits anything
   useEffect(() => {
@@ -262,10 +277,52 @@ function ProjectCaseStudyPage() {
     return <HiddenPageNotice title={vaultPage.name} routePath={currentRoute} />;
   }
 
-  const images = data.images;
+  // Filter out any hidden media from display
+  const allVaultMedia = typeof window !== "undefined" ? getVaultMedia() : [];
+  const hiddenCodeSet = new Set(
+    allVaultMedia.filter((m) => m.isHidden).map((m) => m.uniqueCode.toUpperCase()),
+  );
+
+  const visibleImages = (data.images || []).filter((src: string, i: number) => {
+    const projectPhotos = getPhotosByProject(data.projectSlug);
+    const cleanSrc = src.replace(/^file:/, "").toLowerCase();
+    const filename = cleanSrc.split("/").pop() || "";
+    const stem = assetStemFromSrc(cleanSrc).toLowerCase();
+
+    const matched = projectPhotos.find((p) => {
+      const pSrc = (p.imgSrc || "").replace(/^file:/, "").toLowerCase();
+      const pStem = assetStemFromSrc(pSrc).toLowerCase();
+      return (
+        pStem === stem ||
+        pSrc === cleanSrc ||
+        pSrc.endsWith(filename) ||
+        cleanSrc.endsWith(pSrc.split("/").pop() || "")
+      );
+    });
+
+    const photoCode = (
+      matched?.standardCode ||
+      matched?.code ||
+      projectPhotos[i]?.standardCode ||
+      projectPhotos[i]?.code ||
+      ""
+    ).toUpperCase();
+
+    if (photoCode && hiddenCodeSet.has(photoCode)) {
+      return false;
+    }
+    return true;
+  });
+
+  // Determine active UI type: explicit Vault selection or natural default
+  const activeUiType: UITypeCode =
+    vaultPage?.uiType ||
+    (data.disciplineSlug === "video" ? "UI04" : isDesktop ? "UI02" : "UI01");
+
+  const isHorizontalMode = activeUiType === "UI02" && isDesktop;
 
   useEffect(() => {
-    if (!isDesktop) return;
+    if (!isHorizontalMode) return;
     const el = scrollRef.current;
     if (!el) return;
 
@@ -278,7 +335,7 @@ function ProjectCaseStudyPage() {
 
     el.addEventListener("wheel", onWheel, { passive: false });
     return () => el.removeEventListener("wheel", onWheel);
-  }, [isDesktop]);
+  }, [isHorizontalMode]);
 
   const getPhotoUrlForIndex = (src: string, i: number) => {
     const projectPhotos = getPhotosByProject(data.projectSlug);
@@ -308,6 +365,18 @@ function ProjectCaseStudyPage() {
     return buildPhotoUrl(data.disciplineSlug, data.specialtySlug, data.projectSlug, photoIdentifier);
   };
 
+  const galleryMediaItems = visibleImages.map((src: string, i: number) => {
+    const photoUrl = getPhotoUrlForIndex(src, i);
+    const resolvedSrc = resolveInventoryImage(src) || src;
+    return {
+      id: `${data.projectSlug}-${i}`,
+      src: resolvedSrc,
+      alt: `${vaultPage?.name || data.title} — ${i + 1}`,
+      title: `${vaultPage?.name || data.title} — ${i + 1}`,
+      href: photoUrl,
+    };
+  });
+
   const hasCredits =
     Boolean(data.client) ||
     Boolean(data.models) ||
@@ -321,9 +390,9 @@ function ProjectCaseStudyPage() {
   return (
     <article
       className={
-        isDesktop
+        isHorizontalMode
           ? "flex h-[calc(100dvh-3.5rem)] max-h-[calc(100dvh-3.5rem)] flex-col overflow-hidden"
-          : "flex flex-col pb-16"
+          : "flex flex-col min-h-screen pb-24"
       }
     >
       <div className="mx-auto grid w-full max-w-6xl shrink-0 grid-cols-[minmax(0,48rem)_auto] gap-x-4 px-4 pt-4 pb-2 md:pt-6 md:pb-3">
@@ -331,7 +400,7 @@ function ProjectCaseStudyPage() {
           {data.category} · {data.year}
         </p>
         <h1 className="col-start-1 mt-2 font-display text-4xl font-medium text-foreground md:text-6xl">
-          {data.title}
+          {vaultPage?.name || data.title}
         </h1>
 
         {isDesktop && (
@@ -404,19 +473,47 @@ function ProjectCaseStudyPage() {
         )}
       </div>
 
-      {/* Media Presentation */}
-      {images.length === 0 ? (
+      {/* Media Presentation dynamically driven by activeUiType */}
+      {visibleImages.length === 0 ? (
         <div className="flex flex-1 items-center justify-center py-24 px-4 text-center">
           <p className="text-sm font-light text-muted-foreground">
-            Photos for <span className="font-medium text-foreground">{data.title}</span> will appear here once linked in Assets.
+            Photos for <span className="font-medium text-foreground">{vaultPage?.name || data.title}</span> will appear here once linked in Media.
           </p>
         </div>
+      ) : activeUiType === "UI01" ? (
+        <div className="w-full max-w-6xl mx-auto px-4 pt-4">
+          <UI01_VerticalScroll items={galleryMediaItems} />
+        </div>
+      ) : activeUiType === "UI03" ? (
+        <div className="w-full max-w-6xl mx-auto px-4 pt-4">
+          <UI03_EqualCardsGrid
+            cards={galleryMediaItems.map((item) => ({
+              id: item.id,
+              title: item.title || "",
+              image: item.src,
+              href: item.href || "",
+            }))}
+          />
+        </div>
+      ) : activeUiType === "UI04" ? (
+        <div className="w-full max-w-6xl mx-auto px-4 pt-4">
+          <UI04_VideoShowcase
+            items={galleryMediaItems.map((item) => ({
+              id: item.id,
+              src: item.src,
+              title: item.title || "",
+              category: data.category,
+              year: data.year,
+            }))}
+          />
+        </div>
       ) : isDesktop ? (
+        /* UI02 Horizontal Strip on Desktop */
         <div
           ref={scrollRef}
           className="scrollbar-hide flex min-h-0 flex-1 items-center gap-6 overflow-x-auto overflow-y-hidden px-6 pb-4 pt-1"
         >
-          {images.map((src: string, i: number) => {
+          {visibleImages.map((src: string, i: number) => {
             const isVideo = src.endsWith(".mp4");
             const photoUrl = getPhotoUrlForIndex(src, i);
             const resolvedSrc = resolveInventoryImage(src) || src;
@@ -425,7 +522,7 @@ function ProjectCaseStudyPage() {
                 key={src}
                 to={photoUrl as any}
                 className="group flex h-full max-h-full shrink-0 cursor-pointer items-center justify-center py-1 transition-transform duration-300 hover:scale-[1.01]"
-                title={`${data.title} — Photo ${i + 1}`}
+                title={`${vaultPage?.name || data.title} — Photo ${i + 1}`}
               >
                 {isVideo ? (
                   <video
@@ -440,7 +537,7 @@ function ProjectCaseStudyPage() {
                 ) : (
                   <img
                     src={resolvedSrc}
-                    alt={`${data.title} — image ${i + 1}`}
+                    alt={`${vaultPage?.name || data.title} — image ${i + 1}`}
                     loading={i < 2 ? "eager" : "lazy"}
                     draggable={false}
                     className="h-full w-auto max-h-full max-w-none select-none bg-card object-contain group-hover:brightness-105 transition-all"
@@ -451,8 +548,9 @@ function ProjectCaseStudyPage() {
           })}
         </div>
       ) : (
+        /* Mobile fallback for UI02 */
         <div className="flex flex-col gap-4 px-3 pt-6">
-          {images.map((src: string, i: number) => {
+          {visibleImages.map((src: string, i: number) => {
             const isVideo = src.endsWith(".mp4");
             const photoUrl = getPhotoUrlForIndex(src, i);
             const resolvedSrc = resolveInventoryImage(src) || src;
@@ -461,7 +559,7 @@ function ProjectCaseStudyPage() {
                 key={src}
                 to={photoUrl as any}
                 className="w-full cursor-pointer overflow-hidden bg-card transition-opacity hover:opacity-95"
-                title={`${data.title} — Photo ${i + 1}`}
+                title={`${vaultPage?.name || data.title} — Photo ${i + 1}`}
               >
                 {isVideo ? (
                   <video
@@ -475,7 +573,7 @@ function ProjectCaseStudyPage() {
                 ) : (
                   <img
                     src={resolvedSrc}
-                    alt={`${data.title} — image ${i + 1}`}
+                    alt={`${vaultPage?.name || data.title} — image ${i + 1}`}
                     loading={i < 2 ? "eager" : "lazy"}
                     className="w-full object-contain"
                   />

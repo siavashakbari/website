@@ -220,6 +220,14 @@ function DedicatedPhotoView() {
     refreshPhotoData();
   }, [loaderData.photo.code, loaderData.projectSlug]);
 
+  // Synchronize browser tab title on client
+  useEffect(() => {
+    const displayHeading = photo.displayName || photo.title || photo.code;
+    if (displayHeading && typeof document !== "undefined") {
+      document.title = `Siavash Akbari - ${displayHeading}`;
+    }
+  }, [photo.displayName, photo.title, photo.code]);
+
   useEffect(() => {
     const unsub1 = subscribeToStudioStore(() => refreshPhotoData());
     const unsub2 = subscribeToVaultStore(() => refreshPhotoData());
