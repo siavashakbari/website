@@ -3,8 +3,10 @@
  *
  * When VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY are configured, compressed
  * uploads go to the public `vault-media` bucket and only the public URL is kept
- * in Vault. Without credentials the caller falls back to IndexedDB.
+ * in Vault. Failed uploads are surfaced; they never silently fall back to this device.
  */
+
+import { requireVaultToken } from "./supabase-client";
 
 const SUPABASE_URL = (import.meta.env.VITE_SUPABASE_URL as string | undefined)?.replace(/\/+$/, "") || "";
 const SUPABASE_ANON_KEY = (import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined) || "";
@@ -35,6 +37,12 @@ export interface CloudUploadResult {
   sizeBytes: number;
 }
 
+export async function publishInlineMedia(src: string, name: string): Promise<string> {
+  if (!src.startsWith("data:")) return src;
+  const blob = await (await fetch(src)).blob();
+  return (await uploadToCloudStorage(blob, name)).url;
+}
+
 /**
  * Uploads a Blob/File to the public vault-media bucket and returns its public URL.
  */
@@ -50,7 +58,8 @@ export async function uploadToCloudStorage(
 
   const contentType = options.contentType || blob.type || "application/octet-stream";
   const clean = sanitizeFileName(fileName);
-  const objectPath = `${Date.now()}-${clean}`;
+  const token = await requireVaultToken();
+  const objectPath = `${crypto.randomUUID()}-${clean}`;
   const endpoint = `${cfg.url}/storage/v1/object/${cfg.bucket}/${encodeURIComponent(objectPath)}`;
 
   options.onProgress?.(5);
@@ -60,9 +69,9 @@ export async function uploadToCloudStorage(
   const result = await new Promise<CloudUploadResult>((resolve, reject) => {
     xhr.open("POST", endpoint, true);
     xhr.setRequestHeader("apikey", cfg.key);
-    xhr.setRequestHeader("Authorization", `Bearer ${cfg.key}`);
+    xhr.setRequestHeader("Authorization", `Bearer ${token}`);
     xhr.setRequestHeader("Content-Type", contentType);
-    xhr.setRequestHeader("x-upsert", "true");
+    xhr.setRequestHeader("x-upsert", "false");
     xhr.upload.onprogress = (ev) => {
       if (ev.lengthComputable) {
         options.onProgress?.(Math.round((ev.loaded / ev.total) * 90) + 5);

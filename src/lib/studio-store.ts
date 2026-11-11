@@ -1,3 +1,4 @@
+import { contentStorage, queueContentSave } from "./published-store";
 import type { StudioProjectItem, StudioBlogItem } from "@/types/admin";
 export type { StudioProjectItem, StudioBlogItem };
 import type { InvoiceData } from "@/types/invoice";
@@ -36,6 +37,7 @@ if (typeof window !== "undefined" && "BroadcastChannel" in window) {
 
 export function notifyStudioStoreUpdated(detail?: { type: string; id?: string }): void {
   if (typeof window === "undefined") return;
+  queueContentSave();
   try {
     window.dispatchEvent(new CustomEvent(STUDIO_STORE_CHANGED_EVENT, { detail }));
     window.dispatchEvent(new Event("storage"));
@@ -98,7 +100,7 @@ function defaultProjectToStudioItem(p: Project): StudioProjectItem {
 export function getDeletedProjectIds(): Set<string> {
   if (typeof window === "undefined") return new Set();
   try {
-    const raw = localStorage.getItem(STORAGE_DELETED_PROJECTS_KEY);
+    const raw = contentStorage.getItem(STORAGE_DELETED_PROJECTS_KEY);
     if (raw) {
       const parsed = JSON.parse(raw);
       if (Array.isArray(parsed)) {
@@ -218,7 +220,7 @@ export function getStudioProjects(): StudioProjectItem[] {
   // 1. Process custom projects from localStorage
   if (typeof window !== "undefined") {
     try {
-      const raw = localStorage.getItem(STORAGE_PROJECTS_KEY);
+      const raw = contentStorage.getItem(STORAGE_PROJECTS_KEY);
       if (raw) {
         const parsed: StudioProjectItem[] = JSON.parse(raw);
         parsed.forEach((item) => {
@@ -332,14 +334,14 @@ export function getStudioProjects(): StudioProjectItem[] {
 
   const result = Array.from(canonicalMap.values());
 
-  // Scrub historical duplicates and deleted items from localStorage.
+  // Scrub historical duplicates and deleted items from contentStorage.
   // Idempotent: skip the write when the canonical result already matches storage,
   // so reads can't thrash storage or fire redundant cross-tab events.
   if (typeof window !== "undefined") {
     try {
       const next = JSON.stringify(result);
-      if (localStorage.getItem(STORAGE_PROJECTS_KEY) !== next) {
-        localStorage.setItem(STORAGE_PROJECTS_KEY, next);
+      if (contentStorage.getItem(STORAGE_PROJECTS_KEY) !== next) {
+        contentStorage.setItem(STORAGE_PROJECTS_KEY, next);
       }
     } catch (e) {
       /* ignore */
@@ -400,11 +402,11 @@ export function saveStudioProject(project: StudioProjectItem): void {
     deletedSet.delete(project.title.toLowerCase().trim());
     deletedSet.delete(taxNormProj(project.title));
   }
-  localStorage.setItem(STORAGE_DELETED_PROJECTS_KEY, JSON.stringify(Array.from(deletedSet)));
+  contentStorage.setItem(STORAGE_DELETED_PROJECTS_KEY, JSON.stringify(Array.from(deletedSet)));
 
   let list: StudioProjectItem[] = [];
   try {
-    const raw = localStorage.getItem(STORAGE_PROJECTS_KEY);
+    const raw = contentStorage.getItem(STORAGE_PROJECTS_KEY);
     if (raw) {
       list = JSON.parse(raw);
     }
@@ -430,7 +432,7 @@ export function saveStudioProject(project: StudioProjectItem): void {
     return !isProjectDeleted(p, deletedSet);
   });
 
-  localStorage.setItem(STORAGE_PROJECTS_KEY, JSON.stringify(list));
+  contentStorage.setItem(STORAGE_PROJECTS_KEY, JSON.stringify(list));
   notifyStudioStoreUpdated({ type: "project_saved", id: project.id });
 }
 
@@ -476,15 +478,15 @@ export function deleteStudioProject(id: string): void {
   }
 
   // Persist deletion tombstones
-  localStorage.setItem(STORAGE_DELETED_PROJECTS_KEY, JSON.stringify(Array.from(deletedSet)));
+  contentStorage.setItem(STORAGE_DELETED_PROJECTS_KEY, JSON.stringify(Array.from(deletedSet)));
 
   // Remove from custom projects store
   try {
-    const raw = localStorage.getItem(STORAGE_PROJECTS_KEY);
+    const raw = contentStorage.getItem(STORAGE_PROJECTS_KEY);
     if (raw) {
       const parsed: StudioProjectItem[] = JSON.parse(raw);
       const filtered = parsed.filter((p) => !isProjectDeleted(p, deletedSet) && p.id !== id);
-      localStorage.setItem(STORAGE_PROJECTS_KEY, JSON.stringify(filtered));
+      contentStorage.setItem(STORAGE_PROJECTS_KEY, JSON.stringify(filtered));
     }
   } catch (e) {
     console.error("Error updating custom projects on delete:", e);
@@ -492,14 +494,14 @@ export function deleteStudioProject(id: string): void {
 
   // Also remove custom photos belonging to this project
   try {
-    const rawPhotos = localStorage.getItem(STORAGE_CUSTOM_PHOTOS_KEY);
+    const rawPhotos = contentStorage.getItem(STORAGE_CUSTOM_PHOTOS_KEY);
     if (rawPhotos) {
       const parsedPhotos: PhotoInventoryItem[] = JSON.parse(rawPhotos);
       const filteredPhotos = parsedPhotos.filter((item) => {
         const itemProjSlug = taxNormProj(item.projectSlug || item.project || "");
         return !deletedSet.has(itemProjSlug);
       });
-      localStorage.setItem(STORAGE_CUSTOM_PHOTOS_KEY, JSON.stringify(filteredPhotos));
+      contentStorage.setItem(STORAGE_CUSTOM_PHOTOS_KEY, JSON.stringify(filteredPhotos));
     }
   } catch (e) {
     console.error("Error updating custom photos on project delete:", e);
@@ -512,7 +514,7 @@ export function deleteStudioProject(id: string): void {
 export function getStudioBlogPosts(): StudioBlogItem[] {
   if (typeof window === "undefined") return [];
   try {
-    const raw = localStorage.getItem(STORAGE_BLOG_KEY);
+    const raw = contentStorage.getItem(STORAGE_BLOG_KEY);
     if (raw) return JSON.parse(raw);
   } catch (e) {
     console.error("Error reading blog posts:", e);
@@ -613,20 +615,22 @@ export function saveStudioBlogPost(post: StudioBlogItem): void {
   } else {
     list.unshift(post);
   }
-  localStorage.setItem(STORAGE_BLOG_KEY, JSON.stringify(list));
+  contentStorage.setItem(STORAGE_BLOG_KEY, JSON.stringify(list));
+  notifyStudioStoreUpdated({ type: "blog_saved", id: post.slug });
 }
 
 export function deleteStudioBlogPost(slug: string): void {
   if (typeof window === "undefined") return;
   const list = getStudioBlogPosts().filter((p) => p.slug !== slug);
-  localStorage.setItem(STORAGE_BLOG_KEY, JSON.stringify(list));
+  contentStorage.setItem(STORAGE_BLOG_KEY, JSON.stringify(list));
+  notifyStudioStoreUpdated({ type: "blog_deleted", id: slug });
 }
 
 // 3. Invoice Store
 export function getSavedInvoices(): InvoiceData[] {
   if (typeof window === "undefined") return [INITIAL_INVOICE_DATA];
   try {
-    const raw = localStorage.getItem(STORAGE_INVOICES_KEY);
+    const raw = contentStorage.getItem(STORAGE_INVOICES_KEY);
     if (raw) return JSON.parse(raw);
   } catch (e) {
     console.error("Error reading invoices:", e);
@@ -643,13 +647,13 @@ export function saveInvoice(invoice: InvoiceData): void {
   } else {
     list.unshift(invoice);
   }
-  localStorage.setItem(STORAGE_INVOICES_KEY, JSON.stringify(list));
+  contentStorage.setItem(STORAGE_INVOICES_KEY, JSON.stringify(list));
 }
 
 export function deleteInvoice(id: string): void {
   if (typeof window === "undefined") return;
   const list = getSavedInvoices().filter((inv) => inv.id !== id);
-  localStorage.setItem(STORAGE_INVOICES_KEY, JSON.stringify(list));
+  contentStorage.setItem(STORAGE_INVOICES_KEY, JSON.stringify(list));
 }
 
 // 4. Photo Inventory Metadata Store (Matching PHOTO_INVENTORY_VIEWER.html)
@@ -717,7 +721,7 @@ export function getCustomTaxonomy(): CustomTaxonomyState {
     return { disciplines: [], specialties: [], projects: [] };
   }
   try {
-    const raw = localStorage.getItem(STORAGE_TAXONOMY_KEY);
+    const raw = contentStorage.getItem(STORAGE_TAXONOMY_KEY);
     if (raw) return JSON.parse(raw);
   } catch (e) {
     console.error("Error reading custom taxonomy:", e);
@@ -727,7 +731,7 @@ export function getCustomTaxonomy(): CustomTaxonomyState {
 
 export function saveCustomTaxonomy(state: CustomTaxonomyState): void {
   if (typeof window === "undefined") return;
-  localStorage.setItem(STORAGE_TAXONOMY_KEY, JSON.stringify(state));
+  contentStorage.setItem(STORAGE_TAXONOMY_KEY, JSON.stringify(state));
   notifyStudioStoreUpdated({ type: "taxonomy_updated" });
 }
 
@@ -842,7 +846,7 @@ export function getPhotoDedupeKey(item: Partial<PhotoInventoryItem>): string {
 export function getCustomPhotoAssets(): PhotoInventoryItem[] {
   if (typeof window === "undefined") return [];
   try {
-    const raw = localStorage.getItem(STORAGE_CUSTOM_PHOTOS_KEY);
+    const raw = contentStorage.getItem(STORAGE_CUSTOM_PHOTOS_KEY);
     if (raw) {
       const parsed: PhotoInventoryItem[] = JSON.parse(raw);
       // Clean up and deduplicate so historical duplicates in localStorage are purged
@@ -892,21 +896,21 @@ export function saveCustomPhotoAsset(photo: PhotoInventoryItem): void {
     return true;
   });
 
-  localStorage.setItem(STORAGE_CUSTOM_PHOTOS_KEY, JSON.stringify(cleanList));
+  contentStorage.setItem(STORAGE_CUSTOM_PHOTOS_KEY, JSON.stringify(cleanList));
   notifyStudioStoreUpdated({ type: "photo_saved", id: photo.code });
 }
 
 export function deleteCustomPhotoAsset(code: string): void {
   if (typeof window === "undefined") return;
   const list = getCustomPhotoAssets().filter((p) => p.code !== code && p.standardCode !== code);
-  localStorage.setItem(STORAGE_CUSTOM_PHOTOS_KEY, JSON.stringify(list));
+  contentStorage.setItem(STORAGE_CUSTOM_PHOTOS_KEY, JSON.stringify(list));
   notifyStudioStoreUpdated({ type: "photo_deleted", id: code });
 }
 
 export function getCustomPhotoMetadata(): Record<string, Partial<PhotoInventoryItem>> {
   if (typeof window === "undefined") return {};
   try {
-    const raw = localStorage.getItem(STORAGE_INVENTORY_KEY);
+    const raw = contentStorage.getItem(STORAGE_INVENTORY_KEY);
     if (raw) return JSON.parse(raw);
   } catch (e) {
     console.error("Error reading photo inventory metadata:", e);
@@ -1219,7 +1223,7 @@ export function savePhotoInventoryItem(
       ...customList[cIdx],
       ...item,
     };
-    localStorage.setItem(STORAGE_CUSTOM_PHOTOS_KEY, JSON.stringify(customList));
+    contentStorage.setItem(STORAGE_CUSTOM_PHOTOS_KEY, JSON.stringify(customList));
   }
 
   // 2. Update custom metadata overlay
@@ -1233,7 +1237,7 @@ export function savePhotoInventoryItem(
       ...item,
     };
   }
-  localStorage.setItem(STORAGE_INVENTORY_KEY, JSON.stringify(map));
+  contentStorage.setItem(STORAGE_INVENTORY_KEY, JSON.stringify(map));
   notifyStudioStoreUpdated({ type: "inventory_item_saved", id: item.code });
 }
 
@@ -1243,7 +1247,7 @@ export function deletePhotoInventoryItem(code: string): void {
   const map = getCustomPhotoMetadata();
   if (map[code]) {
     delete map[code];
-    localStorage.setItem(STORAGE_INVENTORY_KEY, JSON.stringify(map));
+    contentStorage.setItem(STORAGE_INVENTORY_KEY, JSON.stringify(map));
   }
   notifyStudioStoreUpdated({ type: "inventory_item_deleted", id: code });
 }
@@ -1252,6 +1256,6 @@ export function saveBulkPhotoInventory(items: Record<string, Partial<PhotoInvent
   if (typeof window === "undefined") return;
   const current = getCustomPhotoMetadata();
   const merged = { ...current, ...items };
-  localStorage.setItem(STORAGE_INVENTORY_KEY, JSON.stringify(merged));
+  contentStorage.setItem(STORAGE_INVENTORY_KEY, JSON.stringify(merged));
   notifyStudioStoreUpdated({ type: "bulk_inventory_saved" });
 }

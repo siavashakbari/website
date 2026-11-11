@@ -1,6 +1,7 @@
+import { contentStorage, queueContentSave } from "./published-store";
 /**
  * Studio Vault Master Store
- * Replaces legacy database dependencies with a resilient, reactive, zero-trust client-side architecture.
+ * Synchronous portfolio views backed by the shared published-content store.
  * Manages all Pages (routes hierarchy), Media (unique 4-digit + dynamic codes), Sizing, and UI Types.
  */
 
@@ -152,7 +153,7 @@ export const VAULT_STORE_CHANGED_EVENT = "siavash_vault_store_changed";
 function readDeletedKeySet(storageKey: string): Set<string> {
   if (typeof window === "undefined") return new Set();
   try {
-    const raw = localStorage.getItem(storageKey);
+    const raw = contentStorage.getItem(storageKey);
     if (!raw) return new Set();
     const parsed = JSON.parse(raw);
     if (!Array.isArray(parsed)) return new Set();
@@ -165,7 +166,7 @@ function readDeletedKeySet(storageKey: string): Set<string> {
 function writeDeletedKeySet(storageKey: string, keys: Set<string>): void {
   if (typeof window === "undefined") return;
   try {
-    localStorage.setItem(storageKey, JSON.stringify(Array.from(keys)));
+    contentStorage.setItem(storageKey, JSON.stringify(Array.from(keys)));
   } catch {
     /* ignore */
   }
@@ -222,11 +223,11 @@ export function getDeletedVaultCounts(): { pages: number; media: number } {
 
 export function restoreDeletedVaultPages(): void {
   if (typeof window === "undefined") return;
-  localStorage.removeItem(STORAGE_DELETED_VAULT_PAGES);
+  contentStorage.removeItem(STORAGE_DELETED_VAULT_PAGES);
   try {
     const baseById = new Map<string, VaultPageItem>();
     getInitialScannedPages().forEach((bp) => baseById.set(bp.id.toLowerCase(), bp));
-    const savedRaw = localStorage.getItem(STORAGE_VAULT_PAGES);
+    const savedRaw = contentStorage.getItem(STORAGE_VAULT_PAGES);
     if (savedRaw) {
       const savedList: VaultPageItem[] = JSON.parse(savedRaw);
       if (Array.isArray(savedList)) {
@@ -241,7 +242,7 @@ export function restoreDeletedVaultPages(): void {
           return item;
         });
         if (changed) {
-          localStorage.setItem(STORAGE_VAULT_PAGES, JSON.stringify(nextList));
+          contentStorage.setItem(STORAGE_VAULT_PAGES, JSON.stringify(nextList));
         }
       }
     }
@@ -253,7 +254,7 @@ export function restoreDeletedVaultPages(): void {
 
 export function restoreDeletedVaultMedia(): void {
   if (typeof window === "undefined") return;
-  localStorage.removeItem(STORAGE_DELETED_VAULT_MEDIA);
+  contentStorage.removeItem(STORAGE_DELETED_VAULT_MEDIA);
   notifyVaultUpdated({ type: "media_restored" });
 }
 
@@ -268,6 +269,7 @@ if (typeof window !== "undefined" && "BroadcastChannel" in window) {
 
 export function notifyVaultUpdated(detail?: { type: string; id?: string }): void {
   if (typeof window === "undefined") return;
+  queueContentSave();
   try {
     window.dispatchEvent(new CustomEvent(VAULT_STORE_CHANGED_EVENT, { detail }));
     window.dispatchEvent(new Event("storage"));
@@ -1027,7 +1029,7 @@ export function getVaultPages(): VaultPageItem[] {
   // 2. Discover any custom projects from studio store (in browser)
   if (typeof window !== "undefined") {
     try {
-      const customRaw = localStorage.getItem("siavash_studio_custom_projects");
+      const customRaw = contentStorage.getItem("siavash_studio_custom_projects");
       if (customRaw) {
         const customList = JSON.parse(customRaw);
         if (Array.isArray(customList)) {
@@ -1107,7 +1109,7 @@ export function getVaultPages(): VaultPageItem[] {
     // 3. Merge user customizations saved in STORAGE_VAULT_PAGES (supporting renames, moves, and deletions)
     let needsWriteBack = false;
     try {
-      const savedRaw = localStorage.getItem(STORAGE_VAULT_PAGES);
+      const savedRaw = contentStorage.getItem(STORAGE_VAULT_PAGES);
       if (savedRaw) {
         const savedList: VaultPageItem[] = JSON.parse(savedRaw);
         if (Array.isArray(savedList)) {
@@ -1318,8 +1320,8 @@ export function getVaultPages(): VaultPageItem[] {
     if (needsWriteBack) {
       try {
         const next = JSON.stringify(Array.from(pagesMap.values()));
-        if (localStorage.getItem(STORAGE_VAULT_PAGES) !== next) {
-          localStorage.setItem(STORAGE_VAULT_PAGES, next);
+        if (contentStorage.getItem(STORAGE_VAULT_PAGES) !== next) {
+          contentStorage.setItem(STORAGE_VAULT_PAGES, next);
         }
       } catch (e) {
         /* ignore */
@@ -1432,7 +1434,7 @@ export function saveVaultPage(page: VaultPageItem): void {
     }
   }
 
-  localStorage.setItem(STORAGE_VAULT_PAGES, JSON.stringify(currentPages));
+  contentStorage.setItem(STORAGE_VAULT_PAGES, JSON.stringify(currentPages));
   // Active route & id are un-deleted if recreated/reused; every retired route
   // (including descendants) becomes tombstoned so the built-ins don't resurrect.
   removeDeletedKeys(STORAGE_DELETED_VAULT_PAGES, [normRoute.toLowerCase(), normalizedPage.id.toLowerCase()]);
@@ -1482,7 +1484,7 @@ export function saveVaultPage(page: VaultPageItem): void {
         });
       });
       if (mediaMoved) {
-        localStorage.setItem(STORAGE_VAULT_MEDIA, JSON.stringify(nextMedia));
+        contentStorage.setItem(STORAGE_VAULT_MEDIA, JSON.stringify(nextMedia));
       }
     } catch {
       /* ignore */
@@ -1497,7 +1499,7 @@ export function saveVaultPage(page: VaultPageItem): void {
 
   if (isProjectLevel) {
     try {
-      const rawStudio = localStorage.getItem("siavash_studio_custom_projects");
+      const rawStudio = contentStorage.getItem("siavash_studio_custom_projects");
       let studioList: any[] = rawStudio ? JSON.parse(rawStudio) : [];
       if (!Array.isArray(studioList)) studioList = [];
 
@@ -1551,7 +1553,7 @@ export function saveVaultPage(page: VaultPageItem): void {
             images: [],
           });
         }
-        localStorage.setItem("siavash_studio_custom_projects", JSON.stringify(studioList));
+        contentStorage.setItem("siavash_studio_custom_projects", JSON.stringify(studioList));
         notifyStudioStoreUpdated({ type: "project_updated", id: projSlug });
       }
     } catch (e) {
@@ -1583,10 +1585,10 @@ export function deleteVaultPage(id: string): void {
   addDeletedKeys(STORAGE_DELETED_VAULT_PAGES, deleteTombstones);
 
   const list = current.filter((p) => !deleteIdSet.has(p.id));
-  localStorage.setItem(STORAGE_VAULT_PAGES, JSON.stringify(list));
+  contentStorage.setItem(STORAGE_VAULT_PAGES, JSON.stringify(list));
 
   try {
-    const rawStudio = localStorage.getItem("siavash_studio_custom_projects");
+    const rawStudio = contentStorage.getItem("siavash_studio_custom_projects");
     if (rawStudio) {
       const studioList = JSON.parse(rawStudio);
       if (Array.isArray(studioList)) {
@@ -1601,7 +1603,7 @@ export function deleteVaultPage(id: string): void {
             !deletedSlugSet.has(String(cp.id || "").toLowerCase()) &&
             !deletedSlugSet.has(normalizeProjectSlug(cp.title || "")),
         );
-        localStorage.setItem("siavash_studio_custom_projects", JSON.stringify(filtered));
+        contentStorage.setItem("siavash_studio_custom_projects", JSON.stringify(filtered));
         toDelete.forEach((p) => {
           const slug = normalizeProjectSlug(p.route.split("/").pop() || p.name);
           notifyStudioStoreUpdated({ type: "project_deleted", id: slug });
@@ -1708,7 +1710,7 @@ export function getVaultMedia(): VaultMediaItem[] {
 
   // 2. Discover media from custom projects (e.g. from studio store in browser)
   try {
-    const customRaw = localStorage.getItem("siavash_studio_custom_projects");
+    const customRaw = contentStorage.getItem("siavash_studio_custom_projects");
     if (customRaw) {
       const customProjects = JSON.parse(customRaw);
       if (Array.isArray(customProjects)) {
@@ -1783,7 +1785,7 @@ export function getVaultMedia(): VaultMediaItem[] {
   // 3. Merge user edits from localStorage with self-healing
   let mediaNeedsWriteBack = false;
   try {
-    const savedRaw = localStorage.getItem(STORAGE_VAULT_MEDIA);
+    const savedRaw = contentStorage.getItem(STORAGE_VAULT_MEDIA);
     if (savedRaw) {
       const savedList: VaultMediaItem[] = JSON.parse(savedRaw);
       if (Array.isArray(savedList)) {
@@ -1932,8 +1934,8 @@ export function getVaultMedia(): VaultMediaItem[] {
     if (mediaNeedsWriteBack) {
       try {
         const next = JSON.stringify(Array.from(mediaMap.values()));
-        if (localStorage.getItem(STORAGE_VAULT_MEDIA) !== next) {
-          localStorage.setItem(STORAGE_VAULT_MEDIA, next);
+        if (contentStorage.getItem(STORAGE_VAULT_MEDIA) !== next) {
+          contentStorage.setItem(STORAGE_VAULT_MEDIA, next);
         }
       } catch (e) {
         /* ignore */
@@ -2013,7 +2015,7 @@ export function saveVaultMedia(item: VaultMediaItem): void {
     list.unshift(processed);
   }
   try {
-    localStorage.setItem(STORAGE_VAULT_MEDIA, JSON.stringify(list));
+    contentStorage.setItem(STORAGE_VAULT_MEDIA, JSON.stringify(list));
   } catch (err) {
     throw new Error(
       "Could not save media metadata to browser localStorage (quota exceeded). Try deleting unused large inline uploads or use IndexedDB / hosted URLs.",
@@ -2040,7 +2042,7 @@ export function deleteVaultMedia(idOrCode: string): void {
     const filtered = list.filter(
       (m) => m.id !== target.id && m.uniqueCode !== target.uniqueCode,
     );
-    localStorage.setItem(STORAGE_VAULT_MEDIA, JSON.stringify(filtered));
+    contentStorage.setItem(STORAGE_VAULT_MEDIA, JSON.stringify(filtered));
     notifyVaultUpdated({ type: "media_deleted", id: idOrCode });
   }
 }

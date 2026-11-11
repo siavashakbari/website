@@ -1,3 +1,4 @@
+import { subscribeToStudioStore } from "@/lib/studio-store";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState, useMemo, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
@@ -73,6 +74,7 @@ function BlogIndexPage() {
 
   useEffect(() => {
     setPosts(getMergedBlogPosts());
+    return subscribeToStudioStore(() => setPosts(getMergedBlogPosts()));
   }, []);
 
   const filteredPosts = useMemo(() => {

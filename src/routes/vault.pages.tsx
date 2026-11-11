@@ -1,3 +1,4 @@
+import { publishInlineMedia, uploadToCloudStorage } from "@/lib/cloud-storage";
 import { createFileRoute } from "@tanstack/react-router";
 import React, { useState, useEffect, useMemo } from "react";
 import {
@@ -36,7 +37,7 @@ import {
 import { UI_TYPE_LIST, type UITypeCode } from "@/components/ui-types";
 import { PairedBoxesEditor, type KeyValuePair } from "@/components/vault/PairedBoxesEditor";
 import { processMediaUpload } from "@/lib/media-sizing";
-import { putMediaBlob, resolveVideoPoster, useResolvedMediaSrc } from "@/lib/local-media-db";
+import { resolveVideoPoster, useResolvedMediaSrc } from "@/lib/local-media-db";
 import { normalizeProjectSlug } from "@/lib/taxonomy";
 
 function isVideoAssetUrl(url?: string): boolean {
@@ -844,8 +845,7 @@ function PageNodeCard({
       let finalCover = sized.fullUrl;
       if (sized.blob) {
         const extLower = (sized.rawExt || (sized.isVideo ? ".mp4" : ".jpg")).toLowerCase();
-        const idbKey = `idb://page-cover-${page.id}-${Date.now()}${extLower}`;
-        await putMediaBlob(idbKey, sized.blob);
+        const uploaded = await uploadToCloudStorage(sized.blob, `cover${extLower}`);
         if (sized.fullUrl.startsWith("blob:")) {
           try {
             URL.revokeObjectURL(sized.fullUrl);
@@ -853,8 +853,9 @@ function PageNodeCard({
             /* ignore */
           }
         }
-        finalCover = idbKey;
+        finalCover = uploaded.url;
       }
+      finalCover = await publishInlineMedia(finalCover, "cover.jpg");
       setDraft((prev) => ({
         ...prev,
         coverPhoto: finalCover,
@@ -1163,10 +1164,10 @@ function PageNodeCard({
               ) : justSaved ? (
                 <span className="inline-flex items-center gap-1.5 text-[#2CE3C0]">
                   <Check className="w-3.5 h-3.5" />
-                  Changes submitted &amp; live
+                  Submitted — check server status above
                 </span>
               ) : (
-                <span className="text-neutral-500">All changes saved</span>
+                <span className="text-neutral-500">No pending form changes</span>
               )}
             </div>
 

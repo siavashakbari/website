@@ -1,3 +1,4 @@
+import { subscribeToStudioStore } from "@/lib/studio-store";
 import { useState, useEffect } from "react";
 import { createFileRoute, notFound, Link } from "@tanstack/react-router";
 import {
@@ -27,10 +28,7 @@ export const Route = createFileRoute("/blog/$slug")({
     // In SSR (where localStorage is empty) a custom post created in admin might not exist on the server yet.
     // Instead of throwing a hard 404, we pass null or empty placeholder so client can hydrate from localStorage.
     if (!post) {
-      if (typeof window === "undefined") {
-        return { post: null, slug: params.slug };
-      }
-      throw notFound();
+      return { post: null, slug: params.slug };
     }
     return { post, slug: params.slug };
   },
@@ -142,6 +140,10 @@ function BlogPostDetailPage() {
       setPost(livePost as any);
     }
     setAllPosts(getMergedBlogPosts());
+    return subscribeToStudioStore(() => {
+      setPost(getBlogPostBySlug(slug));
+      setAllPosts(getMergedBlogPosts());
+    });
   }, [slug, initialPost]);
 
   if (!post) {

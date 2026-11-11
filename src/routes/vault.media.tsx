@@ -40,8 +40,8 @@ import {
 } from "@/lib/vault-store";
 import { PairedBoxesEditor, type KeyValuePair } from "@/components/vault/PairedBoxesEditor";
 import { processMediaUpload, type SizedMediaResult } from "@/lib/media-sizing";
-import { isCloudStorageConfigured, uploadToCloudStorage } from "@/lib/cloud-storage";
-import { putMediaBlob, resolveVideoPoster, useResolvedMediaSrc } from "@/lib/local-media-db";
+import { publishInlineMedia, uploadToCloudStorage } from "@/lib/cloud-storage";
+import { resolveVideoPoster, useResolvedMediaSrc } from "@/lib/local-media-db";
 
 export const Route = createFileRoute("/vault/media")({
   component: VaultMediaView,
@@ -217,14 +217,14 @@ function VaultMediaView() {
       // Large media (videos over the inline limit) go straight to cloud storage
       // when configured, so the Vault entry works on every device. The local
       // blob is discarded after a successful upload.
-      if (sized.isVideo && sized.blob && isCloudStorageConfigured()) {
+      if (sized.blob) {
         const cloudName = sized.rawExt
           ? `media${sized.rawExt.toLowerCase()}`
           : "media.mp4";
         setUploadProgress({ percent: 90, message: "Uploading compressed video to cloud storage..." });
         try {
           const uploaded = await uploadToCloudStorage(sized.blob, cloudName, {
-            contentType: sized.rawExt === ".webm" ? "video/webm" : "video/mp4",
+            contentType: sized.blob.type,
             onProgress: (pct: number) =>
               setUploadProgress({
                 percent: Math.min(99, 90 + Math.round(pct * 0.09)),
@@ -242,11 +242,7 @@ function VaultMediaView() {
           sized.blob = undefined;
           sized.storedInIndexedDb = false;
         } catch (err: any) {
-          // Fall back to local IndexedDB persistence if the upload fails
-          setUploadProgress({
-            percent: 95,
-            message: `Cloud upload failed (${err?.message ?? err}); keeping local copy...`,
-          });
+          throw err;
         }
       }
 
@@ -304,8 +300,7 @@ function VaultMediaView() {
         const rawExt = newSizedMedia.rawExt || (isVideo ? ".mp4" : ".jpg");
         ext = rawExt.toUpperCase();
         if (newSizedMedia.blob) {
-          const idbUrl = `idb://custom-media-${uniqueCode}${rawExt.toLowerCase()}`;
-          await putMediaBlob(idbUrl, newSizedMedia.blob);
+          const uploaded = await uploadToCloudStorage(newSizedMedia.blob, `media${rawExt.toLowerCase()}`);
           if (newSizedMedia.fullUrl.startsWith("blob:")) {
             try {
               URL.revokeObjectURL(newSizedMedia.fullUrl);
@@ -313,7 +308,7 @@ function VaultMediaView() {
               /* ignore */
             }
           }
-          imgSrc = idbUrl;
+          imgSrc = uploaded.url;
           thumbSrc = newSizedMedia.thumbUrl || "";
         } else {
           imgSrc = newSizedMedia.fullUrl;
@@ -326,6 +321,8 @@ function VaultMediaView() {
         thumbSrc = externalUrl;
       }
 
+      imgSrc = await publishInlineMedia(imgSrc, `media${ext.toLowerCase()}`);
+      thumbSrc = await publishInlineMedia(thumbSrc, "thumbnail.jpg");
       const dynamicTitle = newTitle.trim() || `${dynamicCode}${ext}`;
 
       const newMedia: VaultMediaItem = {
@@ -657,7 +654,7 @@ function VaultMediaView() {
                           {newSizedMedia.compressedFromKb
                             ? `Compressed ${(newSizedMedia.compressedFromKb / 1024).toFixed(1)} MB -> ${(newSizedMedia.fullSizeKb / 1024).toFixed(1)} MB (Studio Spec)`
                             : newSizedMedia.storedInIndexedDb
-                            ? "Ready (Local IndexedDB Storage)"
+                            ? "Ready to upload"
                             : "Optimized Successfully!"}
                         </span>
                         <span className="text-neutral-400 block">
@@ -666,11 +663,7 @@ function VaultMediaView() {
                         <span className="text-neutral-400 block">
                           Full: {(newSizedMedia.fullSizeKb / 1024).toFixed(1)} MB ({newSizedMedia.fullSizeKb} KB) | Thumb: {newSizedMedia.thumbSizeKb} KB
                         </span>
-                        {newSizedMedia.storedInIndexedDb && (
-                          <span className="text-amber-300/90 text-[10px] leading-snug block">
-                            Saved in this browser&apos;s IndexedDB and persists across reloads here. Note: No external cloud media server is configured in .env yet, so cross-device publishing requires object storage (e.g. Supabase Storage / R2) or pasting a hosted URL below.
-                          </span>
-                        )}
+
                         <label className="text-xs text-[#2CE3C0] underline cursor-pointer inline-block pt-1">
                           Replace file
                           <input

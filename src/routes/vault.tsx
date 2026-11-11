@@ -1,3 +1,5 @@
+import { supabase } from "@/lib/supabase-client";
+import { PublishStatus } from "@/components/vault/PublishStatus";
 import { createFileRoute, Outlet, Link, useLocation } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
 import {
@@ -23,19 +25,6 @@ interface VaultSession {
   loginTime: string;
 }
 
-const VAULT_SESSION_KEY = "siavash_studio_vault_session";
-
-function getVaultSession(): VaultSession | null {
-  if (typeof window === "undefined") return null;
-  try {
-    const raw = sessionStorage.getItem(VAULT_SESSION_KEY);
-    if (raw) return JSON.parse(raw);
-  } catch {
-    /* ignore */
-  }
-  return null;
-}
-
 function VaultLayout() {
   const location = useLocation();
   const pathname = location.pathname;
@@ -44,43 +33,39 @@ function VaultLayout() {
 
   // Login form state
   const [passphrase, setPassphrase] = useState("");
-  const [username, setUsername] = useState("siavash");
+  const [username, setUsername] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    const current = getVaultSession();
-    // Default open session if previously authenticated or in local dev
-    if (current) {
-      setSession(current);
-    }
-    setCheckingAuth(false);
+    if (!supabase) { setCheckingAuth(false); return; }
+    const apply = (user: import("@supabase/supabase-js").User | undefined) => {
+      setSession(user?.app_metadata.vault_admin === true ? {
+        authenticated: true, username: user.email || "Admin", loginTime: new Date().toISOString(),
+      } : null);
+      setCheckingAuth(false);
+    };
+    void supabase.auth.getSession().then(({ data }) => apply(data.session?.user));
+    const { data } = supabase.auth.onAuthStateChange((_event, session) => apply(session?.user));
+    return () => data.subscription.unsubscribe();
   }, []);
 
-  const handleLogin = (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    setErrorMsg("");
-
-    setTimeout(() => {
-      // Local zero-trust authentication (free from external broken database)
-      if (passphrase.trim().length >= 3) {
-        const newSession: VaultSession = {
-          authenticated: true,
-          username: username.trim() || "siavash",
-          loginTime: new Date().toISOString(),
-        };
-        sessionStorage.setItem(VAULT_SESSION_KEY, JSON.stringify(newSession));
-        setSession(newSession);
-      } else {
-        setErrorMsg("Please enter a valid vault key (at least 3 characters).");
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault(); setIsSubmitting(true); setErrorMsg("");
+    try {
+      if (!supabase) throw new Error("Supabase is not configured.");
+      const { data, error } = await supabase.auth.signInWithPassword({ email: username.trim(), password: passphrase });
+      if (error) throw error;
+      if (data.user?.app_metadata.vault_admin !== true) {
+        await supabase.auth.signOut();
+        throw new Error("This account does not have Vault administrator access.");
       }
-      setIsSubmitting(false);
-    }, 200);
+    } catch (error) { setErrorMsg(error instanceof Error ? error.message : "Could not sign in."); }
+    finally { setIsSubmitting(false); }
   };
 
-  const handleLogout = () => {
-    sessionStorage.removeItem(VAULT_SESSION_KEY);
+  const handleLogout = async () => {
+    await supabase?.auth.signOut();
     setSession(null);
   };
 
@@ -129,7 +114,7 @@ function VaultLayout() {
                 Studio Vault Gate
               </h1>
               <p className="text-xs text-neutral-400 leading-relaxed">
-                Direct client-side control center for Pages, Media, Invoices, and Editorial.
+                Sign in to manage and publish your portfolio.
               </p>
             </div>
 
@@ -142,13 +127,13 @@ function VaultLayout() {
             <form onSubmit={handleLogin} className="space-y-4">
               <div>
                 <label className="block text-xs font-mono uppercase tracking-wider text-neutral-400 mb-1.5">
-                  Vault User
+                  Email
                 </label>
                 <input
-                  type="text"
+                  type="email"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  placeholder="siavash"
+                  placeholder="you@example.com"
                   required
                   className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[#2CE3C0] transition-colors font-mono"
                 />
@@ -156,14 +141,14 @@ function VaultLayout() {
 
               <div>
                 <label className="block text-xs font-mono uppercase tracking-wider text-neutral-400 mb-1.5 flex items-center justify-between">
-                  <span>Vault Access Key</span>
+                  <span>Password</span>
                   <Key className="w-3.5 h-3.5 text-[#2CE3C0]" />
                 </label>
                 <input
                   type="password"
                   value={passphrase}
                   onChange={(e) => setPassphrase(e.target.value)}
-                  placeholder="Enter vault key (e.g. 1234 or your passphrase)"
+                  placeholder="Enter your Vault account password"
                   required
                   autoFocus
                   className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[#2CE3C0] transition-colors"
@@ -283,7 +268,7 @@ function VaultLayout() {
 
       {/* Main Vault Content */}
       <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 md:p-8">
-        <Outlet />
+        <PublishStatus><Outlet /></PublishStatus>
       </main>
     </div>
   );

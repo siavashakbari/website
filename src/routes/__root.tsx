@@ -1,3 +1,4 @@
+import { startPublishedContentSync } from "@/lib/published-store";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
   Outlet,
@@ -455,6 +456,7 @@ function MobileNav() {
 }
 
 function RootComponent() {
+  useEffect(startPublishedContentSync, []);
   const { queryClient } = Route.useRouteContext();
   const router = useRouter();
   const pathname = router.state.location.pathname;
