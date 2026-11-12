@@ -1,14 +1,4 @@
-import type { Discipline } from "@/data/projects";
 import type { BlogCategory, BlogAuthor } from "@/data/blog-posts";
-
-export interface AdminSession {
-  authenticated: boolean;
-  username: string;
-  loginTime: string;
-  mfaVerified: boolean;
-  vaultKeyHash?: string;
-  source: "vault" | "local_master";
-}
 
 export interface StudioProjectItem {
   id: string;

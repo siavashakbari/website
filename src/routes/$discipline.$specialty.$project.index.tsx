@@ -22,7 +22,6 @@ import {
 import { useResolvedMediaSrc } from "@/lib/local-media-db";
 import {
   UI01_VerticalScroll,
-  UI02_HorizontalScroll,
   UI03_EqualCardsGrid,
   UI04_VideoShowcase,
   PageHeader,

@@ -11,7 +11,7 @@
 
 import { Muxer, ArrayBufferTarget } from "mp4-muxer";
 import { createFile, MP4BoxBuffer } from "mp4box";
-import type { ISOFile, Sample } from "mp4box";
+import type { Sample } from "mp4box";
 
 export interface WebCodecsTranscodeOptions {
   onProgress?: (percent: number, message: string) => void;

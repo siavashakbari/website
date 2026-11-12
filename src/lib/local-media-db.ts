@@ -30,30 +30,6 @@ function openBlobDb(): Promise<IDBDatabase> {
   });
 }
 
-export async function putMediaBlob(idbUrl: string, blob: Blob): Promise<string> {
-  const db = await openBlobDb();
-  await new Promise<void>((resolve, reject) => {
-    const tx = db.transaction(STORE_NAME, "readwrite");
-    const store = tx.objectStore(STORE_NAME);
-    store.put(blob, idbUrl);
-    tx.oncomplete = () => resolve();
-    tx.onerror = () => reject(tx.error || new Error("Failed to store media in IndexedDB."));
-    tx.onabort = () => reject(tx.error || new Error("IndexedDB transaction aborted."));
-  });
-
-  const existing = objectUrlCache.get(idbUrl);
-  if (existing) {
-    try {
-      URL.revokeObjectURL(existing);
-    } catch {
-      /* ignore */
-    }
-  }
-  const objUrl = URL.createObjectURL(blob);
-  objectUrlCache.set(idbUrl, objUrl);
-  return objUrl;
-}
-
 export async function getMediaObjectUrl(idbUrl: string): Promise<string> {
   if (!isIndexedDbMediaUrl(idbUrl)) {
     return resolveInventoryImage(idbUrl) || idbUrl;

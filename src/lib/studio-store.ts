@@ -10,7 +10,6 @@ import {
   generate4PartPhotoCode,
   getDiscipline4Code,
   getSpecialty4Code,
-  getProject4Code,
   normalizeDisciplineSlug as taxNormDisc,
   normalizeSpecialtySlug as taxNormSpec,
   normalizeProjectSlug as taxNormProj,
@@ -609,7 +608,11 @@ export const STORAGE_INVENTORY_KEY = "siavash_portfolio_inventory_v3";
 export const STORAGE_CUSTOM_PHOTOS_KEY = "siavash_custom_photo_assets_v2";
 export const STORAGE_TAXONOMY_KEY = "siavash_custom_taxonomy_v2";
 
-import { PHOTO_INVENTORY, computeItemSeoSlug, type PhotoInventoryItem } from "@/data/photo-inventory";
+import {
+  PHOTO_INVENTORY,
+  computeItemSeoSlug,
+  type PhotoInventoryItem,
+} from "@/data/photo-inventory";
 
 // -------------------------------------------------------------
 // Dynamic Taxonomy Models & Defaults

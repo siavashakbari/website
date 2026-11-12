@@ -1,9 +1,5 @@
 // Taxonomy & Slug Generation Helpers for Siavash Akbari Studio
-import {
-  DISCIPLINE_CODE_MAP,
-  type DisciplineCode,
-  type DisciplineSlug,
-} from "@/types/portfolio-schema";
+import { DISCIPLINE_CODE_MAP } from "@/types/portfolio-schema";
 
 /**
  * Normalizes any string to a clean kebab-case URL slug.

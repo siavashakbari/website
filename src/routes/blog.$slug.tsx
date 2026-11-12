@@ -15,7 +15,7 @@ import {
   ChevronRight,
   Hash,
 } from "lucide-react";
-import { getBlogPostBySlug, getMergedBlogPosts, type StudioBlogItem } from "@/lib/studio-store";
+import { getBlogPostBySlug, getMergedBlogPosts } from "@/lib/studio-store";
 import { getSiteUrl, absoluteUrl, pageHead, jsonLdScript } from "@/lib/seo";
 import { BackToTop } from "@/components/BackToTop";
 

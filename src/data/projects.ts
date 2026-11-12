@@ -100,14 +100,7 @@ import bookCovers9 from "../assets/graphic-design/book-covers/graphic-design-boo
 import bookCovers10 from "../assets/graphic-design/book-covers/graphic-design-book-covers-10.jpg";
 import bookCovers11 from "../assets/graphic-design/book-covers/graphic-design-book-covers-11.jpg";
 import bookCovers12 from "../assets/graphic-design/book-covers/graphic-design-book-covers-12.jpg";
-import posters1 from "../assets/graphic-design/posters/graphic-design-posters-01.jpg";
-import posters2 from "../assets/graphic-design/posters/graphic-design-posters-02.jpg";
-import posters3 from "../assets/graphic-design/posters/graphic-design-posters-03.jpg";
-import posters4 from "../assets/graphic-design/posters/graphic-design-posters-04.jpg";
-import posters5 from "../assets/graphic-design/posters/graphic-design-posters-05.jpg";
-import posters6 from "../assets/graphic-design/posters/graphic-design-posters-06.jpg";
-import posters7 from "../assets/graphic-design/posters/graphic-design-posters-07.jpg";
-import posters8 from "../assets/graphic-design/posters/graphic-design-posters-08.jpg";
+
 import gastronomie1 from "../assets/food/gastronomie/food-gastronomie-01.jpg";
 import gastronomie2 from "../assets/food/gastronomie/food-gastronomie-02.jpg";
 import gastronomie3 from "../assets/food/gastronomie/food-gastronomie-03.jpg";

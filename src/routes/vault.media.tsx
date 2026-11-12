@@ -7,18 +7,14 @@ import {
   Eye,
   EyeOff,
   Search,
-  Filter,
   Copy,
   Check,
   ExternalLink,
   Upload,
   Play,
   Film,
-  Sparkles,
   ChevronLeft,
   ChevronRight,
-  SlidersHorizontal,
-  FolderTree,
   RotateCcw,
 } from "lucide-react";
 import {

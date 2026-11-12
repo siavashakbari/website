@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Code2, ListPlus, Plus, Trash2, Copy, Check, AlertCircle } from "lucide-react";
 
 export interface KeyValuePair {

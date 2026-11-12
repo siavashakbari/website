@@ -1,23 +1,12 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
-import { 
-  Plus, 
-  Trash2, 
-  Edit3, 
-  FileText, 
-  Calendar, 
-  Clock, 
-  Search, 
-  X, 
-  Check, 
-  ExternalLink,
-  Sparkles,
-  Bot,
-  Eye,
-  CheckCircle2,
-  Download
-} from "lucide-react";
-import { getStudioBlogPosts, saveStudioBlogPost, deleteStudioBlogPost, subscribeToStudioStore } from "@/lib/studio-store";
+import { Plus, Trash2, Edit3, Search, X, Check, ExternalLink, Bot, Download } from "lucide-react";
+import {
+  getStudioBlogPosts,
+  saveStudioBlogPost,
+  deleteStudioBlogPost,
+  subscribeToStudioStore,
+} from "@/lib/studio-store";
 import type { StudioBlogItem } from "@/types/admin";
 import { BLOG_CATEGORIES, type BlogCategory } from "@/data/blog-posts";
 
@@ -165,7 +154,6 @@ function AdminBlogView() {
       setIsEditorOpen(false);
     }, 800);
   };
-
 
   const handleDelete = (postSlug: string, postTitle: string) => {
     if (window.confirm(`Are you sure you want to delete blog post "${postTitle}"?`)) {
@@ -585,7 +573,6 @@ function AdminBlogView() {
                   </div>
                 </div>
               </div>
-
 
               {/* Publication Status */}
               <div className="flex items-center gap-2 pt-2">

@@ -8,12 +8,9 @@ export const Route = createFileRoute("/api/brand-discovery")({
           const body = await request.json();
           const {
             formData,
-            selectedMoodboardIndices,
             moodboardImages,
             selections,
-            chosenImages,
             adminPdfBase64,
-            userPdfBase64,
             pdfBase64,
           } = body;
 

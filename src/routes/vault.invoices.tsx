@@ -1,26 +1,22 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState, useEffect, useRef } from "react";
-import { 
-  Download, 
-  Plus, 
-  Trash2, 
-  Save, 
-  RotateCcw, 
-  Check, 
-  FileText, 
-  CreditCard, 
-  Calendar, 
-  User, 
+import {
+  Download,
+  Plus,
+  Trash2,
+  Check,
+  FileText,
+  CreditCard,
+  User,
   Sparkles,
   Printer,
-  ChevronDown
 } from "lucide-react";
 import "@/styles/invoice-sandbox.css";
 import { Logo } from "@/components/Logo";
 import { SIGNATURE_DATA_URL } from "@/assets/signature-data";
 import type { InvoiceData, InvoiceItem, BankInfo } from "@/types/invoice";
-import { INITIAL_INVOICE_DATA, DEFAULT_BANK_INFO, PRESET_BANK_CARDS } from "@/types/invoice";
-import { getSavedInvoices, saveInvoice, deleteInvoice } from "@/lib/studio-store";
+import { INITIAL_INVOICE_DATA, PRESET_BANK_CARDS } from "@/types/invoice";
+import { getSavedInvoices, saveInvoice } from "@/lib/studio-store";
 import { exportInvoiceToPDF } from "@/lib/invoice-pdf-export";
 
 export const Route = createFileRoute("/vault/invoices")({

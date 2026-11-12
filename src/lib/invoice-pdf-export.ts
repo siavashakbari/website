@@ -20,7 +20,7 @@ export async function exportInvoiceToPDF(
     pixelRatio: 3, // 300 DPI Retina print quality
     backgroundColor: "#000000",
     cacheBust: true,
-    filter: (node) => {
+    filter: () => {
       // Exclude interactive buttons or unwanted overlays if any
       return true;
     },

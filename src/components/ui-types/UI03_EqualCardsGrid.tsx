@@ -1,4 +1,3 @@
-import React from "react";
 import { CoverTile } from "@/components/CoverTile";
 
 export interface EqualCardItem {

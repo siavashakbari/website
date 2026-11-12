@@ -128,9 +128,6 @@ const activeActionBtnClass =
 const inputPillClass =
   "w-full h-12 rounded-full border border-foreground/15 bg-background/60 px-5 text-sm font-normal text-foreground placeholder:text-foreground/35 placeholder:font-thin focus:border-secondary focus:outline-none transition-all";
 
-const selectPillClass =
-  "w-full h-12 rounded-full border border-foreground/15 bg-background/60 px-5 text-sm font-normal text-foreground focus:border-secondary focus:outline-none transition-all appearance-none cursor-pointer";
-
 const textareaPillClass =
   "w-full rounded-3xl border border-foreground/15 bg-background/60 p-4 text-sm font-normal text-foreground placeholder:text-foreground/35 placeholder:font-thin focus:border-secondary focus:outline-none transition-all";
 
