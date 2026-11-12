@@ -38,6 +38,7 @@ import {
 } from "@/components/DedicatedPhotoView";
 import { NotFoundPage } from "@/components/NotFoundPage";
 import { pageHead } from "@/lib/seo";
+import { isContentReady } from "@/lib/published-store";
 import { resolveInventoryImage } from "@/lib/inventory-assets";
 import {
   normalizeDisciplineSlug,
@@ -383,7 +384,7 @@ function computeInitialSpecialtyState(loaderData: SpecialtyRouteData) {
 }
 
 function computeClientSpecialtyState(loaderData: SpecialtyRouteData) {
-  if (loaderData.pendingPhotoRedirect || typeof window === "undefined") {
+  if (loaderData.pendingPhotoRedirect || typeof window === "undefined" || !isContentReady()) {
     return computeInitialSpecialtyState(loaderData);
   }
 

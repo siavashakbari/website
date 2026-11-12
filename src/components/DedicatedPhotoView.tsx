@@ -24,6 +24,7 @@ import {
   type VaultMediaItem,
 } from "@/lib/vault-store";
 import { HiddenPageNotice } from "@/components/ui-types";
+import { isContentReady } from "@/lib/published-store";
 import { NotFoundPage } from "@/components/NotFoundPage";
 import { resolveInventoryImage } from "@/lib/inventory-assets";
 import { useResolvedMediaSrc } from "@/lib/local-media-db";
@@ -715,6 +716,7 @@ export function DedicatedPhotoView({ loaderData }: { loaderData: DedicatedPhotoL
   const liveResolvedMedia = useResolvedMediaSrc(state.resolvedImage);
 
   const refreshPhotoData = () => {
+    if (typeof window !== "undefined" && !isContentReady()) return;
     const next = computeClientPhotoState(loaderData);
     setState(next);
     setClientChecked(true);

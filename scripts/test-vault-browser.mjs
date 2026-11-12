@@ -17,12 +17,14 @@ const user = {
   aud: "authenticated",
 };
 const token = `${b64({ alg: "HS256", typ: "JWT" })}.${b64({ sub: user.id, role: "authenticated", exp: Math.floor(Date.now() / 1000) + 3600, app_metadata: user.app_metadata })}.fake`;
-async function context(admin = false) {
+async function context(admin = false, readDelayMs = 0) {
   const ctx = await browser.newContext();
   await ctx.route(`${remote}/**`, async (route) => {
     const url = route.request().url();
-    if (url.includes("/rest/v1/vault_content"))
+    if (url.includes("/rest/v1/vault_content")) {
+      if (readDelayMs) await new Promise((resolve) => setTimeout(resolve, readDelayMs));
       return route.fulfill({ json: { revision, content } });
+    }
     if (url.includes("/rest/v1/rpc/save_vault_content")) {
       const data = route.request().postDataJSON();
       if (failWrites)
@@ -86,6 +88,21 @@ try {
   });
   await admin.page.getByText("Saved to server", { exact: true }).waitFor();
   assert.equal(revision, 1);
+  const directVisitor = await context(false, 800);
+  await directVisitor.page.addInitScript(() => {
+    window.__sawTransient404 = false;
+    document.addEventListener("DOMContentLoaded", () => {
+      const check = () => {
+        if (document.body?.textContent?.includes("NOT FOUND !")) window.__sawTransient404 = true;
+      };
+      new MutationObserver(check).observe(document.body, { subtree: true, childList: true });
+      check();
+    });
+  });
+  await directVisitor.page.goto("http://127.0.0.1:8080/video/vishnu");
+  await directVisitor.page.locator('video[src="https://example.com/vishnu.mp4"]').first().waitFor({ state: "attached" });
+  assert.equal(await directVisitor.page.evaluate(() => window.__sawTransient404), false);
+  console.log("PASS: Direct Vishnu URL never flashes a 404 while published content loads");
   const visitor = await context();
   await visitor.page.goto("http://127.0.0.1:8080/video");
   await visitor.page.waitForFunction(async () => {

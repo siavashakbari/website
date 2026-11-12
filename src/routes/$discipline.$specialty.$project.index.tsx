@@ -39,6 +39,7 @@ import {
 } from "@/components/DedicatedPhotoView";
 import { NotFoundPage } from "@/components/NotFoundPage";
 import { pageHead } from "@/lib/seo";
+import { isContentReady } from "@/lib/published-store";
 import {
   normalizeDisciplineSlug,
   normalizeSpecialtySlug,
@@ -320,7 +321,7 @@ function computeInitialProjectState(loaderData: ProjectRouteLoaderData) {
 }
 
 function computeClientProjectState(loaderData: ProjectRouteLoaderData) {
-  if (typeof window === "undefined") {
+  if (typeof window === "undefined" || !isContentReady()) {
     return computeInitialProjectState(loaderData);
   }
 
