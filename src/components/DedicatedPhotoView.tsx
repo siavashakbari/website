@@ -834,7 +834,9 @@ export function DedicatedPhotoView({ loaderData }: { loaderData: DedicatedPhotoL
 
   const isVideo = isVideoAsset(resolvedImage) || vaultMedia?.isVideo;
 
-  const list = [...(vaultMedia?.pairedBoxes || [])];
+  const list = (vaultMedia?.pairedBoxes || []).filter(
+    (pair) => !["year", "date", "year / date"].includes(pair.key?.trim().toLowerCase()),
+  );
   const hasKey = (k: string) => list.some((p) => p.key?.toLowerCase() === k.toLowerCase());
   if (photo.client && !hasKey("client")) {
     list.push({ key: "Client", value: photo.client });
@@ -847,9 +849,6 @@ export function DedicatedPhotoView({ loaderData }: { loaderData: DedicatedPhotoL
   }
   if (photo.assistant && !hasKey("assistant")) {
     list.push({ key: "Assistant", value: photo.assistant });
-  }
-  if (photo.date && !hasKey("year") && !hasKey("date")) {
-    list.push({ key: "Year", value: String(photo.date) });
   }
 
   return (
@@ -864,11 +863,6 @@ export function DedicatedPhotoView({ loaderData }: { loaderData: DedicatedPhotoL
           <span className="capitalize">{backLabel}</span>
         </Link>
 
-        <div className="flex items-center gap-2.5">
-          <span className="font-mono text-xs px-2.5 py-1 rounded-full bg-white/5 border border-white/10 text-[#2CE3C0] font-semibold">
-            {photo.code}
-          </span>
-        </div>
       </div>
 
       {/* Main Split: Media on Left, Info on Right */}
@@ -980,28 +974,6 @@ export function DedicatedPhotoView({ loaderData }: { loaderData: DedicatedPhotoL
                 </div>
               </div>
 
-              {/* Details */}
-              <div className="grid grid-cols-1 sm:grid-cols-[110px_1fr] py-3.5 gap-2 sm:gap-4 items-baseline">
-                <div className="text-neutral-500 font-mono uppercase tracking-wider text-xs">
-                  Details
-                </div>
-                <div className="space-y-1.5 text-neutral-200 font-sans">
-                  <div>
-                    Asset Code: <span className="font-mono text-[#2CE3C0] font-semibold">{photo.code}</span>
-                  </div>
-                  <div>
-                    Image Name:{" "}
-                    <span className="font-mono text-white font-medium break-all">
-                      {photo.displayName || photo.title || `${photo.code}.JPG`}
-                    </span>
-                  </div>
-                  {photo.date && <div>Year / Date: {photo.date}</div>}
-                  {photo.keywords && (
-                    <div className="text-xs text-neutral-400">Keywords: {photo.keywords}</div>
-                  )}
-                </div>
-              </div>
-
               {/* Unified Credits & Paired Boxes from Vault Media */}
               {list.length > 0 && (
                 <div className="grid grid-cols-1 sm:grid-cols-[110px_1fr] py-3.5 gap-2 sm:gap-4 items-baseline">
@@ -1021,6 +993,14 @@ export function DedicatedPhotoView({ loaderData }: { loaderData: DedicatedPhotoL
                       </button>
                     ))}
                   </div>
+                </div>
+              )}
+              {photo.keywords && (
+                <div className="grid grid-cols-1 sm:grid-cols-[110px_1fr] py-3.5 gap-2 sm:gap-4 items-baseline">
+                  <div className="text-neutral-500 font-mono uppercase tracking-wider text-xs">
+                    Keywords
+                  </div>
+                  <div className="text-xs text-neutral-400 font-sans">{photo.keywords}</div>
                 </div>
               )}
             </div>
