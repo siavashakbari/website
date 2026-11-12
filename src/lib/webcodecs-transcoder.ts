@@ -64,11 +64,14 @@ interface ParsedVideo {
 /** Reads track info and the avcC description needed to configure the decoder. */
 function parseFile(arrayBuffer: ArrayBuffer): Promise<{ parsed: ParsedVideo; mp4: any }> {
   return new Promise((resolve, reject) => {
-    const mp4: any = createFile();
+    // Parsing finishes before extraction starts, so retain samples already read.
+    const mp4: any = createFile(true);
     let settled = false;
+    const timeout = setTimeout(() => fail("This video container could not be parsed. Try MP4 (H.264), or upload the original file."), 15000);
     const fail = (msg: string) => {
       if (settled) return;
       settled = true;
+      clearTimeout(timeout);
       reject(new Error(msg));
     };
 
@@ -87,15 +90,25 @@ function parseFile(arrayBuffer: ArrayBuffer): Promise<{ parsed: ParsedVideo; mp4
           if (avcC) {
             // avcC boxes parsed by mp4box keep a `data` Uint8Array of the payload
             if (avcC.data) avcDescription = new Uint8Array(avcC.data);
-            else if (typeof avcC.write === "function") {
-              const DS = (MP4BoxBuffer as any).DataStream;
-              if (DS) {
-                const ds = new DS(undefined, 0, DS.BIG_ENDIAN);
-                avcC.write(ds);
-                const out = new Uint8Array(ds.buffer, ds.position ?? 0);
-                // strip box header (8 bytes) to get the raw avcC payload
-                avcDescription = out.slice(8);
+            else if (avcC.SPS?.length && avcC.PPS?.length) {
+              // mp4box exposes parsed SPS/PPS fields, not the original avcC
+              // payload. WebCodecs needs the configuration record for AVCC.
+              const bytes: number[] = [
+                1,
+                avcC.AVCProfileIndication,
+                avcC.profile_compatibility,
+                avcC.AVCLevelIndication,
+                0xfc | avcC.lengthSizeMinusOne,
+                0xe0 | avcC.SPS.length,
+              ];
+              for (const sps of avcC.SPS) {
+                bytes.push(sps.length >> 8, sps.length & 0xff, ...sps.data);
               }
+              bytes.push(avcC.PPS.length);
+              for (const pps of avcC.PPS) {
+                bytes.push(pps.length >> 8, pps.length & 0xff, ...pps.data);
+              }
+              avcDescription = new Uint8Array(bytes);
             }
           }
         } catch {
@@ -103,6 +116,7 @@ function parseFile(arrayBuffer: ArrayBuffer): Promise<{ parsed: ParsedVideo; mp4
         }
 
         settled = true;
+        clearTimeout(timeout);
         resolve({
           mp4,
           parsed: {
@@ -137,17 +151,14 @@ function extractVideoSamples(mp4: any, trackId: number): Promise<Sample[]> {
     mp4.onSamples = (_id: number, _user: any, batch: Sample[]) => {
       for (const s of batch) samples.push(s);
     };
-    const originalFlush = mp4.flush.bind(mp4);
-    mp4.flush = () => {
-      try {
-        originalFlush();
-        resolve(samples);
-      } catch (e: any) {
-        reject(new Error(`Sample extraction failed: ${e?.message ?? e}`));
-      }
-    };
-    mp4.setExtractionOptions(trackId, null, { nbSamples: Number.MAX_SAFE_INTEGER });
-    mp4.start();
+    try {
+      mp4.setExtractionOptions(trackId, null, { nbSamples: Number.MAX_SAFE_INTEGER });
+      mp4.start();
+      mp4.flush();
+      resolve(samples);
+    } catch (e: any) {
+      reject(new Error(`Sample extraction failed: ${e?.message ?? e}`));
+    }
   });
 }
 
