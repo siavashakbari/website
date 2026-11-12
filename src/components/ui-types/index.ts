@@ -2,7 +2,6 @@ export * from "./UI01_VerticalScroll";
 export * from "./UI02_HorizontalScroll";
 export * from "./UI03_EqualCardsGrid";
 export * from "./UI04_VideoShowcase";
-export * from "./UI05_DedicatedMedia";
 export * from "./PageHeader";
 export * from "./HiddenPageNotice";
 

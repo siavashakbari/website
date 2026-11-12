@@ -8,14 +8,10 @@ import { projects as DEFAULT_PROJECTS, type Project } from "@/data/projects";
 import { resolveInventoryImage } from "@/lib/inventory-assets";
 import {
   generate4PartPhotoCode,
-  getDiscipline4Code,
-  getSpecialty4Code,
   normalizeDisciplineSlug as taxNormDisc,
   normalizeSpecialtySlug as taxNormSpec,
   normalizeProjectSlug as taxNormProj,
   buildPhotoUrl,
-  to4LetterCode,
-  slugify,
 } from "@/lib/taxonomy";
 
 const STORAGE_PROJECTS_KEY = "siavash_studio_custom_projects";
@@ -350,165 +346,6 @@ export function getStudioProjects(): StudioProjectItem[] {
   return result;
 }
 
-export function getProjectById(id: string): Project | undefined {
-  if (typeof window !== "undefined") {
-    const list = getStudioProjects();
-    const found = list.find((p) => p.id === id || getCanonicalProjectSlug(p) === taxNormProj(id));
-    if (found) {
-      const gallery = found.images && found.images.length > 0 ? found.images.map((im: any) => im.url) : [found.coverImage];
-      return {
-        id: found.id,
-        title: found.title,
-        titleFa: found.titleFa,
-        discipline: (found.discipline as any) || "photography",
-        category: found.category || found.discipline,
-        subDiscipline: found.subDiscipline,
-        year: String(found.year),
-        description: found.description,
-        caption: found.caption,
-        image: found.coverImage,
-        aspect: "portrait",
-        gallery,
-        client: found.client,
-        models: Array.isArray(found.models) ? found.models.join(", ") : found.models,
-        makeupArtist: found.makeupArtist,
-        assistant: found.assistant,
-        stylist: found.stylist,
-        location: found.location,
-        seoKeywords: found.seoKeywords,
-        videoUrl: found.videoUrl,
-      };
-    }
-  }
-  const deletedSet = getDeletedProjectIds();
-  const def = DEFAULT_PROJECTS.find((p) => p.id === id || taxNormProj(p.id) === taxNormProj(id));
-  if (def && !isProjectDeleted(def, deletedSet)) {
-    return def;
-  }
-  return undefined;
-}
-
-export function saveStudioProject(project: StudioProjectItem): void {
-  if (typeof window === "undefined") return;
-
-  // Unmark from deleted set
-  const deletedSet = getDeletedProjectIds();
-  const canonical = getCanonicalProjectSlug(project);
-  deletedSet.delete(canonical);
-  deletedSet.delete(project.id.toLowerCase().trim());
-  deletedSet.delete(taxNormProj(project.id));
-  if (project.title) {
-    deletedSet.delete(project.title.toLowerCase().trim());
-    deletedSet.delete(taxNormProj(project.title));
-  }
-  contentStorage.setItem(STORAGE_DELETED_PROJECTS_KEY, JSON.stringify(Array.from(deletedSet)));
-
-  let list: StudioProjectItem[] = [];
-  try {
-    const raw = contentStorage.getItem(STORAGE_PROJECTS_KEY);
-    if (raw) {
-      list = JSON.parse(raw);
-    }
-  } catch (e) {
-    console.error("Error reading projects:", e);
-  }
-
-  const existingIdx = list.findIndex(
-    (p) => p.id === project.id || getCanonicalProjectSlug(p) === canonical
-  );
-
-  if (existingIdx >= 0) {
-    list[existingIdx] = { ...list[existingIdx], ...project };
-  } else {
-    list.unshift(project);
-  }
-
-  // Deduplicate list so multiple projects of same canonical slug cannot coexist
-  list = list.filter((p, idx) => {
-    if (getCanonicalProjectSlug(p) === canonical) {
-      return idx === (existingIdx >= 0 ? existingIdx : 0);
-    }
-    return !isProjectDeleted(p, deletedSet);
-  });
-
-  contentStorage.setItem(STORAGE_PROJECTS_KEY, JSON.stringify(list));
-  notifyStudioStoreUpdated({ type: "project_saved", id: project.id });
-}
-
-export function deleteStudioProject(id: string): void {
-  if (typeof window === "undefined") return;
-
-  const allCurrent = getStudioProjects();
-  const target = allCurrent.find(
-    (p) =>
-      p.id === id ||
-      taxNormProj(p.id) === taxNormProj(id) ||
-      taxNormProj(p.title) === taxNormProj(id)
-  );
-
-  const deletedSet = getDeletedProjectIds();
-  const idNorm = id.toLowerCase().trim();
-  const idSlug = taxNormProj(id);
-  deletedSet.add(idNorm);
-  deletedSet.add(idSlug);
-
-  if (target) {
-    const canonical = getCanonicalProjectSlug(target);
-    deletedSet.add(canonical);
-    deletedSet.add(target.id.toLowerCase().trim());
-    deletedSet.add(taxNormProj(target.id));
-    if (target.title) {
-      deletedSet.add(target.title.toLowerCase().trim());
-      deletedSet.add(taxNormProj(target.title));
-    }
-  }
-
-  if (idNorm.includes("shekarchian") || target?.title?.toLowerCase().includes("shekarchian")) {
-    deletedSet.add("shekarchian");
-    deletedSet.add("shekarchian-honey");
-    deletedSet.add("shekarchian-sweets");
-    deletedSet.add("shekarchian sweets");
-  }
-  if (idNorm.includes("dobareh") || target?.title?.toLowerCase().includes("dobareh")) {
-    deletedSet.add("dobareh");
-    deletedSet.add("dobareh-accesories");
-    deletedSet.add("dobareh-accessories");
-    deletedSet.add("dodareh");
-  }
-
-  // Persist deletion tombstones
-  contentStorage.setItem(STORAGE_DELETED_PROJECTS_KEY, JSON.stringify(Array.from(deletedSet)));
-
-  // Remove from custom projects store
-  try {
-    const raw = contentStorage.getItem(STORAGE_PROJECTS_KEY);
-    if (raw) {
-      const parsed: StudioProjectItem[] = JSON.parse(raw);
-      const filtered = parsed.filter((p) => !isProjectDeleted(p, deletedSet) && p.id !== id);
-      contentStorage.setItem(STORAGE_PROJECTS_KEY, JSON.stringify(filtered));
-    }
-  } catch (e) {
-    console.error("Error updating custom projects on delete:", e);
-  }
-
-  // Also remove custom photos belonging to this project
-  try {
-    const rawPhotos = contentStorage.getItem(STORAGE_CUSTOM_PHOTOS_KEY);
-    if (rawPhotos) {
-      const parsedPhotos: PhotoInventoryItem[] = JSON.parse(rawPhotos);
-      const filteredPhotos = parsedPhotos.filter((item) => {
-        const itemProjSlug = taxNormProj(item.projectSlug || item.project || "");
-        return !deletedSet.has(itemProjSlug);
-      });
-      contentStorage.setItem(STORAGE_CUSTOM_PHOTOS_KEY, JSON.stringify(filteredPhotos));
-    }
-  } catch (e) {
-    console.error("Error updating custom photos on project delete:", e);
-  }
-
-  notifyStudioStoreUpdated({ type: "project_deleted", id });
-}
-
 // 2. Blog Posts Store
 export function getStudioBlogPosts(): StudioBlogItem[] {
   try {
@@ -686,71 +523,6 @@ export function saveCustomTaxonomy(state: CustomTaxonomyState): void {
   notifyStudioStoreUpdated({ type: "taxonomy_updated" });
 }
 
-export function getTaxonomyDisciplines(): TaxonomyDiscipline[] {
-  const custom = getCustomTaxonomy().disciplines;
-  const list = [...DEFAULT_TAXONOMY_DISCIPLINES];
-  custom.forEach((c) => {
-    if (!list.some((d) => d.slug === c.slug)) {
-      list.push(c);
-    }
-  });
-  return list;
-}
-
-export function getTaxonomySpecialties(disciplineSlug?: string): TaxonomySpecialty[] {
-  const custom = getCustomTaxonomy().specialties;
-  const list = [...DEFAULT_TAXONOMY_SPECIALTIES];
-  custom.forEach((c) => {
-    if (!list.some((s) => s.slug === c.slug && s.disciplineSlug === c.disciplineSlug)) {
-      list.push(c);
-    }
-  });
-  if (disciplineSlug) {
-    const norm = taxNormDisc(disciplineSlug);
-    return list.filter((s) => taxNormDisc(s.disciplineSlug) === norm);
-  }
-  return list;
-}
-
-export function addCustomDiscipline(title: string, code?: string, slug?: string): TaxonomyDiscipline {
-  const discSlug = slug || slugify(title);
-  const discCode = code ? to4LetterCode(code) : getDiscipline4Code(discSlug);
-  const newDisc: TaxonomyDiscipline = {
-    slug: discSlug,
-    label: title.trim(),
-    code: discCode,
-  };
-  const tax = getCustomTaxonomy();
-  if (!tax.disciplines.some((d) => d.slug === discSlug)) {
-    tax.disciplines.push(newDisc);
-    saveCustomTaxonomy(tax);
-  }
-  return newDisc;
-}
-
-export function addCustomSpecialty(
-  disciplineSlug: string,
-  title: string,
-  code?: string,
-  slug?: string,
-): TaxonomySpecialty {
-  const dSlug = taxNormDisc(disciplineSlug);
-  const sSlug = slug || slugify(title);
-  const sCode = code ? to4LetterCode(code) : getSpecialty4Code(sSlug);
-  const newSpec: TaxonomySpecialty = {
-    slug: sSlug,
-    label: title.trim(),
-    disciplineSlug: dSlug,
-    code: sCode,
-  };
-  const tax = getCustomTaxonomy();
-  if (!tax.specialties.some((s) => s.slug === sSlug && s.disciplineSlug === dSlug)) {
-    tax.specialties.push(newSpec);
-    saveCustomTaxonomy(tax);
-  }
-  return newSpec;
-}
-
 // -------------------------------------------------------------
 // Custom Photos & Merged Inventory (with Robust Deduplication)
 // -------------------------------------------------------------
@@ -816,39 +588,6 @@ export function getCustomPhotoAssets(): PhotoInventoryItem[] {
     console.error("Error reading custom photos:", e);
   }
   return [];
-}
-
-export function saveCustomPhotoAsset(photo: PhotoInventoryItem): void {
-  if (typeof window === "undefined") return;
-  const list = getCustomPhotoAssets();
-  const photoKey = getPhotoDedupeKey(photo);
-
-  const idx = list.findIndex(
-    (p) =>
-      getPhotoDedupeKey(p) === photoKey ||
-      p.code === photo.code ||
-      p.standardCode === photo.code ||
-      (photo.standardCode &&
-        (p.code === photo.standardCode || p.standardCode === photo.standardCode)),
-  );
-
-  if (idx >= 0) {
-    list[idx] = { ...list[idx], ...photo };
-  } else {
-    list.unshift(photo);
-  }
-
-  // Deduplicate before saving back
-  const seen = new Set<string>();
-  const cleanList = list.filter((p) => {
-    const k = getPhotoDedupeKey(p);
-    if (seen.has(k)) return false;
-    seen.add(k);
-    return true;
-  });
-
-  contentStorage.setItem(STORAGE_CUSTOM_PHOTOS_KEY, JSON.stringify(cleanList));
-  notifyStudioStoreUpdated({ type: "photo_saved", id: photo.code });
 }
 
 export function deleteCustomPhotoAsset(code: string): void {
@@ -1033,17 +772,6 @@ export function getMergedPhotoInventory(): PhotoInventoryItem[] {
   return Array.from(resultMap.values());
 }
 
-export function getPhotoItemByCode(code: string): PhotoInventoryItem | undefined {
-  if (!code) return undefined;
-  const q = code.toUpperCase().trim();
-  const all = getMergedPhotoInventory();
-  return all.find(
-    (i) =>
-      i.code.toUpperCase() === q ||
-      (i.standardCode && i.standardCode.toUpperCase() === q),
-  );
-}
-
 /**
  * Universal lookup for photos matching 4-part code, legacy code, slug, or stem.
  */
@@ -1131,82 +859,7 @@ export function getPhotoItemBySlugOrCode(
   return undefined;
 }
 
-export function getPhotosByDiscipline(disciplineSlug: string): PhotoInventoryItem[] {
-  const norm = taxNormDisc(disciplineSlug);
-  return getMergedPhotoInventory().filter((i) => taxNormDisc(i.disciplineSlug || i.discipline) === norm);
-}
-
-export function getPhotosBySpecialty(
-  specialtySlug: string,
-  disciplineSlug?: string,
-): PhotoInventoryItem[] {
-  const sNorm = taxNormSpec(specialtySlug);
-  const dNorm = disciplineSlug ? taxNormDisc(disciplineSlug) : null;
-  return getMergedPhotoInventory().filter((i) => {
-    if (dNorm && taxNormDisc(i.disciplineSlug || i.discipline) !== dNorm) return false;
-    const itemSpec = taxNormSpec(i.specialtySlug || i.subdiscipline || "");
-    return itemSpec === sNorm;
-  });
-}
-
 export function getPhotosByProject(projectSlug: string): PhotoInventoryItem[] {
   const norm = taxNormProj(projectSlug);
   return getMergedPhotoInventory().filter((i) => taxNormProj(i.projectSlug || i.project) === norm);
-}
-
-export function savePhotoInventoryItem(
-  item: Partial<PhotoInventoryItem> & { code: string },
-  previousCode?: string,
-): void {
-  if (typeof window === "undefined") return;
-
-  // 1. Update in custom photo assets if present
-  const customList = getCustomPhotoAssets();
-  const cIdx = customList.findIndex(
-    (p) =>
-      p.code === item.code ||
-      (previousCode && p.code === previousCode) ||
-      p.standardCode === item.code ||
-      (previousCode && p.standardCode === previousCode),
-  );
-  if (cIdx >= 0) {
-    customList[cIdx] = {
-      ...customList[cIdx],
-      ...item,
-    };
-    contentStorage.setItem(STORAGE_CUSTOM_PHOTOS_KEY, JSON.stringify(customList));
-  }
-
-  // 2. Update custom metadata overlay
-  const map = getCustomPhotoMetadata();
-  if (previousCode && previousCode !== item.code && map[previousCode]) {
-    map[item.code] = { ...map[previousCode], ...item };
-    delete map[previousCode];
-  } else {
-    map[item.code] = {
-      ...(map[item.code] || {}),
-      ...item,
-    };
-  }
-  contentStorage.setItem(STORAGE_INVENTORY_KEY, JSON.stringify(map));
-  notifyStudioStoreUpdated({ type: "inventory_item_saved", id: item.code });
-}
-
-export function deletePhotoInventoryItem(code: string): void {
-  if (typeof window === "undefined") return;
-  deleteCustomPhotoAsset(code);
-  const map = getCustomPhotoMetadata();
-  if (map[code]) {
-    delete map[code];
-    contentStorage.setItem(STORAGE_INVENTORY_KEY, JSON.stringify(map));
-  }
-  notifyStudioStoreUpdated({ type: "inventory_item_deleted", id: code });
-}
-
-export function saveBulkPhotoInventory(items: Record<string, Partial<PhotoInventoryItem>>): void {
-  if (typeof window === "undefined") return;
-  const current = getCustomPhotoMetadata();
-  const merged = { ...current, ...items };
-  contentStorage.setItem(STORAGE_INVENTORY_KEY, JSON.stringify(merged));
-  notifyStudioStoreUpdated({ type: "bulk_inventory_saved" });
 }

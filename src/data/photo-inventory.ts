@@ -4914,7 +4914,3 @@ export function getPhotoByStem(stemOrSrc: string): PhotoInventoryItem | undefine
   const stem = stemOrSrc.split("/").pop()?.replace(/\.[^.]+$/, "").toLowerCase() || "";
   return stemMap.get(stem);
 }
-
-export function getPhotosByDisciplineSlug(slug: string): PhotoInventoryItem[] {
-  return PHOTO_INVENTORY.filter((item) => item.disciplineSlug === slug);
-}

@@ -2068,15 +2068,6 @@ export function getMediaByCode(code: string): VaultMediaItem | undefined {
   });
 }
 
-export function getMediaByRoute(route: string): VaultMediaItem[] {
-  const norm = normalizeRouteStr(route);
-  const list = getVaultMedia();
-  return list.filter((m) => {
-    const aRoute = normalizeRouteStr(m.assignedRoute);
-    return aRoute === norm || aRoute.startsWith(`${norm}/`);
-  });
-}
-
 /**
  * Returns visible Vault media items for a public gallery route (project, specialty, or discipline).
  * Enforces both item.isHidden and ancestor page isHidden flags, and preserves curated DEFAULT_PROJECTS
@@ -2211,18 +2202,4 @@ export function computeVaultDiagnostics(): Promise<VaultDiagnostics> {
       });
     });
   });
-}
-
-/**
- * Deletes every IndexedDB blob that no media item or page cover references.
- * Returns the number of blobs removed.
- */
-export async function purgeOrphanBlobs(): Promise<number> {
-  const diag = await computeVaultDiagnostics();
-  let purged = 0;
-  for (const key of diag.orphanBlobKeys) {
-    await deleteMediaBlob(key);
-    purged++;
-  }
-  return purged;
 }

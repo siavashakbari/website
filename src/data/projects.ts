@@ -338,24 +338,6 @@ export interface Project {
   videoUrl?: string;
 }
 
-export const disciplines: { id: Discipline; label: string; description: string }[] = [
-  {
-    id: "photography",
-    label: "Photography",
-    description: "Food, portrait, and fashion stories told through light and shadow.",
-  },
-  {
-    id: "graphic-design",
-    label: "Graphic Design",
-    description: "Visual identities and book covers that carry a brand's voice.",
-  },
-  {
-    id: "product-design",
-    label: "Product Design",
-    description: "Objects shaped by purpose, material, and quiet detail.",
-  },
-];
-
 export const projects: Project[] = [
   {
     id: "echo-prime",
@@ -991,7 +973,3 @@ export const projects: Project[] = [
     ],
   },
 ];
-
-export function projectsByDiscipline(discipline: Discipline): Project[] {
-  return projects.filter((p) => p.discipline === discipline);
-}

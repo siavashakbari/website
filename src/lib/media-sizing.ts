@@ -1,7 +1,7 @@
 /**
  * Portfolio Media Sizing Guidelines & Processing Engine
  *
- * Guidelines derived from production optimization scripts (scripts/optimize-for-web.mjs & scripts/generate-thumbnails.py):
+ * Guidelines derived from production image optimization settings:
  *
  * 1. HIGH-RESOLUTION DISPLAY VARIANT:
  *    - Max long edge: 2000px (maintains original aspect ratio, no upscale)

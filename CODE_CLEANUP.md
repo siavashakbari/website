@@ -45,3 +45,16 @@ items with no active consumers; no content records or media files were deleted.
 Browser editing tests use mocked server data, not live portfolio records.
 These checks cover existing automated scenarios; they are not a claim that
 every possible interaction or external integration has been tested.
+
+## Follow-up cleanup
+
+With the owner's approval, removed unused project/photo editing APIs, taxonomy
+URL/metadata generators, duplicate SEO builders, a legacy detail component,
+and two unused Vault diagnostic accessors. Removed old feature notes, page
+content notes, and standalone Python asset-generation scripts. No route file,
+media asset, PDF, inventory viewer, or architecture page was removed.
+
+The follow-up verification passed TypeScript with unused-code checks, the
+production build, seven sync tests, 320 media connections, 42 page connections,
+367 canonical routes, six rendering regressions, and 11 redirects. Browser
+tests also passed for live-content loading, edits, and cross-browser sync.
