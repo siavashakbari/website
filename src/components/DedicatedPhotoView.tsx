@@ -3,6 +3,7 @@ import { useEffect, useLayoutEffect, useState } from "react";
 const useIsomorphicLayoutEffect = typeof window !== "undefined" ? useLayoutEffect : useEffect;
 import { Link, notFound, redirect, rootRouteId, useNavigate } from "@tanstack/react-router";
 import { ArrowLeft, ChevronLeft, ChevronRight, ExternalLink } from "lucide-react";
+import { projectBackButtonClass, projectBackButtonMobileClass } from "@/components/ui-types/project-navigation";
 import {
   getPhotoItemBySlugOrCode,
   getPhotosByProject,
@@ -853,16 +854,15 @@ export function DedicatedPhotoView({ loaderData }: { loaderData: DedicatedPhotoL
 
   return (
     <div className="flex h-full md:h-[calc(100dvh-3.5rem)] md:max-h-[calc(100dvh-3.5rem)] flex-col bg-[#0F0F0F] text-foreground overflow-hidden">
-      {/* Top Header Bar */}
-      <div className="shrink-0 w-full px-4 sm:px-6 py-3.5 flex items-center justify-between border-b border-white/5 bg-[#0F0F0F]">
+      {/* Match the project page's desktop back button placement. */}
+      <div className="mx-auto hidden w-full max-w-6xl shrink-0 justify-end px-4 pb-3 pt-12 lg:flex">
         <Link
           to={backUrl as any}
-          className="inline-flex items-center gap-2 text-xs font-mono uppercase tracking-widest text-[#2CE3C0] hover:text-white transition-colors px-3 py-1.5 rounded-full border border-[#2CE3C0]/30 hover:border-white bg-[#2CE3C0]/10 hover:bg-white/10"
+          className={projectBackButtonClass}
         >
-          <ArrowLeft className="w-3.5 h-3.5" />
+          <ArrowLeft className="h-4 w-4" />
           <span className="capitalize">{backLabel}</span>
         </Link>
-
       </div>
 
       {/* Main Split: Media on Left, Info on Right */}
@@ -1018,6 +1018,12 @@ export function DedicatedPhotoView({ loaderData }: { loaderData: DedicatedPhotoL
             </a>
           </div>
         </div>
+      </div>
+      <div className="flex w-full shrink-0 justify-center px-3 pb-4 lg:hidden">
+        <Link to={backUrl as any} className={projectBackButtonMobileClass}>
+          <ArrowLeft className="h-4 w-4" />
+          <span className="capitalize">{backLabel}</span>
+        </Link>
       </div>
     </div>
   );

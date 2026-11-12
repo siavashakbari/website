@@ -3,6 +3,7 @@ import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 const useIsomorphicLayoutEffect = typeof window !== "undefined" ? useLayoutEffect : useEffect;
 import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import { ArrowLeft } from "lucide-react";
+import { projectBackButtonClass, projectBackButtonMobileClass } from "@/components/ui-types/project-navigation";
 import { projects } from "@/data/projects";
 import {
   getStudioProjects,
@@ -44,12 +45,6 @@ import {
   normalizeProjectSlug,
 } from "@/lib/taxonomy";
 import { resolveInventoryImage } from "@/lib/inventory-assets";
-
-const backBtnClass =
-  "inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-full border border-[#EFEFEF] bg-transparent px-5 text-sm font-medium text-[#EFEFEF] shadow-none transition-[background-color,border-color,color,box-shadow] duration-300 ease-out hover:border-transparent hover:bg-secondary hover:text-secondary-foreground hover:shadow-[0_0_8px_color-mix(in_oklab,var(--secondary)_42%,transparent),0_0_17px_color-mix(in_oklab,var(--secondary)_24%,transparent),0_0_25px_color-mix(in_oklab,var(--secondary)_12%,transparent)]";
-
-const backBtnMobileClass =
-  "inline-flex h-11 shrink-0 scale-[0.8] items-center justify-center gap-2 whitespace-nowrap rounded-full border border-transparent bg-secondary px-5 text-sm font-medium text-secondary-foreground shadow-[0_0_8px_color-mix(in_oklab,var(--secondary)_42%,transparent),0_0_17px_color-mix(in_oklab,var(--secondary)_24%,transparent),0_0_25px_color-mix(in_oklab,var(--secondary)_12%,transparent)]";
 
 interface ResolvedGalleryItem {
   id: string;
@@ -514,13 +509,13 @@ function ProjectCaseStudyPage({ loaderData }: { loaderData: ProjectRouteLoaderDa
         <p className="col-start-1 text-xs font-semibold uppercase tracking-[0.25em] text-secondary">
           {data.parentName || data.category} · {data.year}
         </p>
-        <h1 className="col-start-1 mt-2 font-display text-4xl font-medium text-foreground md:text-6xl">
+        <h1 className="col-start-1 mt-2 font-display text-lg font-medium text-foreground md:text-3xl">
           {vaultPage?.name || data.title}
         </h1>
 
         <Link
           to={backUrl as any}
-          className={`${backBtnClass} hidden lg:inline-flex col-start-2 row-start-2 self-center justify-self-end translate-y-[5px]`}
+          className={`${projectBackButtonClass} hidden lg:inline-flex col-start-2 row-start-2 self-center justify-self-end translate-y-[5px]`}
         >
           <ArrowLeft className="h-4 w-4" />
           <span className="capitalize">Back to {backLabelName}</span>
@@ -595,7 +590,7 @@ function ProjectCaseStudyPage({ loaderData }: { loaderData: ProjectRouteLoaderDa
       )}
 
       <div className="mx-auto mt-6 flex lg:hidden w-full max-w-6xl justify-center px-3">
-        <Link to={backUrl as any} className={backBtnMobileClass}>
+        <Link to={backUrl as any} className={projectBackButtonMobileClass}>
           <ArrowLeft className="h-4 w-4" />
           <span className="capitalize">Back to {backLabelName}</span>
         </Link>
