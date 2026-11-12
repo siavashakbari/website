@@ -26,6 +26,7 @@ import {
 import { HiddenPageNotice } from "@/components/ui-types";
 import { isContentReady } from "@/lib/published-store";
 import { NotFoundPage } from "@/components/NotFoundPage";
+import { PublishedPageLoading } from "@/components/PublishedPageLoading";
 import { resolveInventoryImage } from "@/lib/inventory-assets";
 import { useResolvedMediaSrc } from "@/lib/local-media-db";
 import { pageHead } from "@/lib/seo";
@@ -713,6 +714,7 @@ export function DedicatedPhotoView({ loaderData }: { loaderData: DedicatedPhotoL
   const navigate = useNavigate();
   const [state, setState] = useState(() => computeInitialPhotoState(loaderData));
   const [clientChecked, setClientChecked] = useState(false);
+  const [contentReady, setContentReady] = useState(false);
   const liveResolvedMedia = useResolvedMediaSrc(state.resolvedImage);
 
   const refreshPhotoData = () => {
@@ -720,6 +722,7 @@ export function DedicatedPhotoView({ loaderData }: { loaderData: DedicatedPhotoL
     const next = computeClientPhotoState(loaderData);
     setState(next);
     setClientChecked(true);
+    setContentReady(true);
     if (typeof window !== "undefined" && !next.notFound && next.vaultMedia) {
       const liveUrl = buildMediaLiveDetailUrl(next.vaultMedia);
       const currentUrl = window.location.pathname.replace(/\/+$/, "");
@@ -790,6 +793,8 @@ export function DedicatedPhotoView({ loaderData }: { loaderData: DedicatedPhotoL
 
     trackPortfolioAssetView(assetMeta);
   }, [state.photo]);
+
+  if (!contentReady) return <PublishedPageLoading />;
 
   if (state.notFound || !state.photo) {
     if (loaderData.pendingClientLookup && !clientChecked) {

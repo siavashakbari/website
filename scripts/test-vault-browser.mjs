@@ -91,9 +91,11 @@ try {
   const directVisitor = await context(false, 800);
   await directVisitor.page.addInitScript(() => {
     window.__sawTransient404 = false;
+    window.__sawPrematureEmpty = false;
     document.addEventListener("DOMContentLoaded", () => {
       const check = () => {
         if (document.body?.textContent?.includes("NOT FOUND !")) window.__sawTransient404 = true;
+        if (document.body?.textContent?.includes("More coming soon.")) window.__sawPrematureEmpty = true;
       };
       new MutationObserver(check).observe(document.body, { subtree: true, childList: true });
       check();
@@ -102,7 +104,13 @@ try {
   await directVisitor.page.goto("http://127.0.0.1:8080/video/vishnu");
   await directVisitor.page.locator('video[src="https://example.com/vishnu.mp4"]').first().waitFor({ state: "attached" });
   assert.equal(await directVisitor.page.evaluate(() => window.__sawTransient404), false);
-  console.log("PASS: Direct Vishnu URL never flashes a 404 while published content loads");
+  assert.equal(await directVisitor.page.evaluate(() => window.__sawPrematureEmpty), false);
+  console.log("PASS: Direct Vishnu URL never flashes a 404 or empty gallery while published content loads");
+  const directProject = await context(false, 800);
+  await directProject.page.goto("http://127.0.0.1:8080/photography/fashion-photography/sepidar", { waitUntil: "domcontentloaded" });
+  await directProject.page.locator('[aria-label="Loading portfolio page"]').waitFor();
+  await directProject.page.getByRole("heading", { name: "Sepidar", exact: true }).waitFor();
+  console.log("PASS: Direct project URL waits for published UI selection before rendering");
   const visitor = await context();
   await visitor.page.goto("http://127.0.0.1:8080/video");
   await visitor.page.waitForFunction(async () => {

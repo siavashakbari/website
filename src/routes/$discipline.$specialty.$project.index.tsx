@@ -38,6 +38,7 @@ import {
   type DedicatedPhotoLoaderData,
 } from "@/components/DedicatedPhotoView";
 import { NotFoundPage } from "@/components/NotFoundPage";
+import { PublishedPageLoading } from "@/components/PublishedPageLoading";
 import { pageHead } from "@/lib/seo";
 import { isContentReady } from "@/lib/published-store";
 import {
@@ -416,10 +417,13 @@ function ProjectOrPhotoRouteComponent() {
 
 function ProjectCaseStudyPage({ loaderData }: { loaderData: ProjectRouteLoaderData }) {
   const [state, setState] = useState(() => computeInitialProjectState(loaderData));
+  const [contentReady, setContentReady] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const refreshProjectData = () => {
+    if (!isContentReady()) return;
     setState(computeClientProjectState(loaderData));
+    setContentReady(true);
   };
 
   useIsomorphicLayoutEffect(() => {
@@ -479,6 +483,8 @@ function ProjectCaseStudyPage({ loaderData }: { loaderData: ProjectRouteLoaderDa
     if (data.stylist) list.push({ key: "Stylist", value: data.stylist });
     return list;
   }, [vaultPage, data.client, data.models, data.makeupArtist, data.assistant, data.stylist, data.year]);
+
+  if (!contentReady) return <PublishedPageLoading />;
 
   if (notFoundOnClient) {
     return <NotFoundPage />;

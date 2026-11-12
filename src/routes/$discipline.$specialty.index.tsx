@@ -37,6 +37,7 @@ import {
   redirectToCanonicalPath,
 } from "@/components/DedicatedPhotoView";
 import { NotFoundPage } from "@/components/NotFoundPage";
+import { PublishedPageLoading } from "@/components/PublishedPageLoading";
 import { pageHead } from "@/lib/seo";
 import { isContentReady } from "@/lib/published-store";
 import { resolveInventoryImage } from "@/lib/inventory-assets";
@@ -408,10 +409,12 @@ function computeClientSpecialtyState(loaderData: SpecialtyRouteData) {
 function SpecialtyPage() {
   const loaderData = Route.useLoaderData();
   const [state, setState] = useState(() => computeInitialSpecialtyState(loaderData));
+  const [contentReady, setContentReady] = useState(false);
   const [photoLookupDone, setPhotoLookupDone] = useState(false);
   const isDesktop = useIsDesktop();
 
   const refreshSpecialtyData = () => {
+    if (!isContentReady()) return;
     if (loaderData.pendingPhotoRedirect && loaderData.rawPhotoCode) {
       const vm = getMediaByCode(loaderData.rawPhotoCode);
       if (vm && typeof window !== "undefined") {
@@ -422,6 +425,7 @@ function SpecialtyPage() {
       return;
     }
     setState(computeClientSpecialtyState(loaderData));
+    setContentReady(true);
   };
 
   useIsomorphicLayoutEffect(() => {
@@ -452,6 +456,8 @@ function SpecialtyPage() {
     }
     return <NotFoundPage />;
   }
+
+  if (!contentReady) return <PublishedPageLoading />;
 
   if (notFoundOnClient) {
     return <NotFoundPage />;
