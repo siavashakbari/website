@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useResolvedMediaSrc } from "@/lib/local-media-db";
+import { resolveKnownAssetStem } from "@/lib/inventory-assets";
 
 type CoverTileProps = {
   label: string;
@@ -18,14 +19,38 @@ type CoverTileProps = {
 export function CoverTile({ to, params, href, label, image, ariaLabel, index }: CoverTileProps) {
   const linkProps = href ? { to: href as any } : { to: to as any, params };
   const [imgFailed, setImgFailed] = useState(false);
+  const [videoInView, setVideoInView] = useState(false);
+  const [videoElement, setVideoElement] = useState<HTMLVideoElement | null>(null);
   const resolvedImage = useResolvedMediaSrc(image);
+  const isVideo = Boolean(image && /\.(mp4|webm|mov)(\?|#|$)|^data:video\//i.test(image));
+
+  useEffect(() => {
+    if (!isVideo || !videoElement) return;
+    if (typeof IntersectionObserver === "undefined") {
+      setVideoInView(true);
+      return;
+    }
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setVideoInView(true);
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.01 },
+    );
+    observer.observe(videoElement);
+    return () => observer.disconnect();
+  }, [isVideo, videoElement]);
 
   useEffect(() => {
     setImgFailed(false);
   }, [image]);
 
   const hasValidImage = Boolean(resolvedImage && !imgFailed && !(image && image.startsWith("blob:")));
-  const isVideo = Boolean(image && /\.(mp4|webm|mov)(\?|#|$)|^data:video\//i.test(image));
+  const videoPoster = resolveKnownAssetStem(image || "") === "video-echo-prime-01"
+    ? "/video-echo-prime-poster.webp"
+    : undefined;
 
   return (
     <Link
@@ -36,7 +61,10 @@ export function CoverTile({ to, params, href, label, image, ariaLabel, index }: 
       {hasValidImage ? (
         isVideo ? (
           <video
-            src={resolvedImage}
+            ref={setVideoElement}
+            src={videoInView ? resolvedImage : undefined}
+            poster={videoPoster}
+            preload="none"
             muted
             loop
             playsInline

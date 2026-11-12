@@ -2,7 +2,13 @@ import { useEffect, useLayoutEffect, useState } from "react";
 import { CoverTile } from "@/components/CoverTile";
 import { DISCIPLINES } from "@/data/disciplines";
 import { getVaultPages, isRouteOrAncestorHidden, subscribeToVaultStore } from "@/lib/vault-store";
-import { resolveInventoryImage } from "@/lib/inventory-assets";
+import { resolveInventoryImage, resolveKnownAssetStem } from "@/lib/inventory-assets";
+
+function coverTileImage(image: string) {
+  return resolveKnownAssetStem(image) === "graphic-design-posters-06"
+    ? "/graphic-design-posters-06-cover.webp"
+    : image;
+}
 
 const useIsomorphicLayoutEffect = typeof window !== "undefined" ? useLayoutEffect : useEffect;
 
@@ -20,7 +26,7 @@ export function DisciplinesMarquee() {
         key: d.path || d.slug,
         href: d.path,
         label: vp?.name || d.label,
-        image: (vp?.coverPhoto ? resolveInventoryImage(vp.coverPhoto) || vp.coverPhoto : "") || d.image,
+        image: coverTileImage((vp?.coverPhoto ? resolveInventoryImage(vp.coverPhoto) || vp.coverPhoto : "") || d.image || ""),
       };
     });
 
@@ -34,7 +40,7 @@ export function DisciplinesMarquee() {
           key: p.route,
           href: p.route,
           label: p.name,
-          image: p.coverPhoto ? resolveInventoryImage(p.coverPhoto) || p.coverPhoto : "",
+          image: coverTileImage(p.coverPhoto ? resolveInventoryImage(p.coverPhoto) || p.coverPhoto : ""),
         });
       });
 
@@ -46,7 +52,7 @@ export function DisciplinesMarquee() {
       key: d.path || d.slug,
       href: d.path,
       label: d.label,
-      image: d.image,
+      image: coverTileImage(d.image || ""),
     })),
   );
 

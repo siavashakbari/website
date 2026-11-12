@@ -13,6 +13,8 @@ import { ChevronDown } from "lucide-react";
 
 import appCss from "../styles.css?url";
 import satoshiMedium from "../assets/fonts/Satoshi-Medium.woff2?url";
+import satoshiRegular from "../assets/fonts/Satoshi-Regular.woff2?url";
+import satoshiBold from "../assets/fonts/Satoshi-Bold.woff2?url";
 import { Logo } from "@/components/Logo";
 import { NotFoundPage } from "@/components/NotFoundPage";
 import { DISCIPLINES } from "@/data/disciplines";
@@ -114,6 +116,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       ],
       links: [
         { rel: "stylesheet", href: appCss },
+        { rel: "preload", href: satoshiRegular, as: "font", type: "font/woff2", crossOrigin: "anonymous" },
+        { rel: "preload", href: satoshiBold, as: "font", type: "font/woff2", crossOrigin: "anonymous" },
         { rel: "icon", href: "/favicon.svg", type: "image/svg+xml" },
         { rel: "apple-touch-icon", href: "/favicon.svg" },
         { rel: "manifest", href: "/site.webmanifest" },
