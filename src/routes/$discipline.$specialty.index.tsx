@@ -409,7 +409,7 @@ function computeClientSpecialtyState(loaderData: SpecialtyRouteData) {
 function SpecialtyPage() {
   const loaderData = Route.useLoaderData();
   const [state, setState] = useState(() => computeInitialSpecialtyState(loaderData));
-  const [contentReady, setContentReady] = useState(false);
+  const [contentReady, setContentReady] = useState(isContentReady);
   const [photoLookupDone, setPhotoLookupDone] = useState(false);
   const isDesktop = useIsDesktop();
 

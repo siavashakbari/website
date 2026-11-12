@@ -1,4 +1,4 @@
-import { contentStorage, queueContentSave } from "./published-store";
+import { contentStorage, getPublishedArray, isContentReady, isVercelContentBackend, queueContentSave } from "./published-store";
 /**
  * Studio Vault Master Store
  * Synchronous portfolio views backed by the shared published-content store.
@@ -151,7 +151,7 @@ const STORAGE_DELETED_VAULT_MEDIA = "siavash_vault_deleted_media_v1";
 export const VAULT_STORE_CHANGED_EVENT = "siavash_vault_store_changed";
 
 function readDeletedKeySet(storageKey: string): Set<string> {
-  if (typeof window === "undefined") return new Set();
+  if (!isContentReady()) return new Set();
   try {
     const raw = contentStorage.getItem(storageKey);
     if (!raw) return new Set();
@@ -1013,6 +1013,12 @@ export function getInitialScannedMedia(): VaultMediaItem[] {
 // -------------------------------------------------------------
 
 export function getVaultPages(): VaultPageItem[] {
+  if (isVercelContentBackend && isContentReady()) {
+    const deleted = readDeletedKeySet(STORAGE_DELETED_VAULT_PAGES);
+    return getPublishedArray<VaultPageItem>(STORAGE_VAULT_PAGES).filter((page) =>
+      page?.route && !deleted.has(page.route.toLowerCase()) && !deleted.has(page.id?.toLowerCase()),
+    );
+  }
   const basePages = getInitialScannedPages();
   const pagesMap = new Map<string, VaultPageItem>();
   const allBaseById = new Map<string, VaultPageItem>(basePages.map((p) => [p.id, p]));
@@ -1026,8 +1032,8 @@ export function getVaultPages(): VaultPageItem[] {
     pagesMap.set(rKey, p);
   });
 
-  // 2. Discover any custom projects from studio store (in browser)
-  if (typeof window !== "undefined") {
+  // 2. Discover published custom projects on both server and browser.
+  if (isContentReady()) {
     try {
       const customRaw = contentStorage.getItem("siavash_studio_custom_projects");
       if (customRaw) {
@@ -1317,7 +1323,7 @@ export function getVaultPages(): VaultPageItem[] {
     //    Idempotent: only persist when the merged result actually differs from what's
     //    stored, so repeated reads/refresh ticks can't thrash storage and trigger
     //    redundant re-renders across subscribers.
-    if (needsWriteBack) {
+    if (needsWriteBack && typeof window !== "undefined") {
       try {
         const next = JSON.stringify(Array.from(pagesMap.values()));
         if (contentStorage.getItem(STORAGE_VAULT_PAGES) !== next) {
@@ -1677,8 +1683,14 @@ export function getPageByRoute(route: string): VaultPageItem | undefined {
 // -------------------------------------------------------------
 
 export function getVaultMedia(): VaultMediaItem[] {
+  if (isVercelContentBackend && isContentReady()) {
+    const deleted = readDeletedKeySet(STORAGE_DELETED_VAULT_MEDIA);
+    return getPublishedArray<VaultMediaItem>(STORAGE_VAULT_MEDIA)
+      .filter((item) => item && !deleted.has(item.id?.toLowerCase()) && !deleted.has(item.uniqueCode?.toLowerCase()))
+      .map(ensureMediaItemDynamicFields);
+  }
   const baseList = getInitialScannedMedia();
-  if (typeof window === "undefined") return baseList;
+  if (!isContentReady()) return baseList;
 
   // Use maps keyed by normalized asset src/filename/stem/uniqueCode so base items, custom items, and edits merge cleanly
   const mediaMap = new Map<string, VaultMediaItem>();
@@ -1931,7 +1943,7 @@ export function getVaultMedia(): VaultMediaItem[] {
   });
 
   // 5. Write-back healed state to localStorage if corrections were made
-    if (mediaNeedsWriteBack) {
+    if (mediaNeedsWriteBack && typeof window !== "undefined") {
       try {
         const next = JSON.stringify(Array.from(mediaMap.values()));
         if (contentStorage.getItem(STORAGE_VAULT_MEDIA) !== next) {

@@ -24,8 +24,12 @@ import { Route as AdminBlogRouteImport } from './routes/admin.blog'
 import { Route as AdminInventoryRouteImport } from './routes/admin.inventory'
 import { Route as AdminInvoicesRouteImport } from './routes/admin.invoices'
 import { Route as AdminProjectsRouteImport } from './routes/admin.projects'
+import { Route as ApiBlobMediaRouteImport } from './routes/api.blob-media'
+import { Route as ApiBlobUploadRouteImport } from './routes/api.blob-upload'
 import { Route as ApiBrandDiscoveryRouteImport } from './routes/api.brand-discovery'
 import { Route as ApiContactRouteImport } from './routes/api.contact'
+import { Route as ApiContentRouteImport } from './routes/api.content'
+import { Route as ApiPrivateContentRouteImport } from './routes/api.private-content'
 import { Route as BlogIndexRouteImport } from './routes/blog.index'
 import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
 import { Route as VaultIndexRouteImport } from './routes/vault.index'
@@ -112,6 +116,16 @@ const AdminProjectsRoute = AdminProjectsRouteImport.update({
   path: '/projects',
   getParentRoute: () => AdminRoute,
 } as any)
+const ApiBlobMediaRoute = ApiBlobMediaRouteImport.update({
+  id: '/api/blob-media',
+  path: '/api/blob-media',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiBlobUploadRoute = ApiBlobUploadRouteImport.update({
+  id: '/api/blob-upload',
+  path: '/api/blob-upload',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiBrandDiscoveryRoute = ApiBrandDiscoveryRouteImport.update({
   id: '/api/brand-discovery',
   path: '/api/brand-discovery',
@@ -120,6 +134,16 @@ const ApiBrandDiscoveryRoute = ApiBrandDiscoveryRouteImport.update({
 const ApiContactRoute = ApiContactRouteImport.update({
   id: '/api/contact',
   path: '/api/contact',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiContentRoute = ApiContentRouteImport.update({
+  id: '/api/content',
+  path: '/api/content',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPrivateContentRoute = ApiPrivateContentRouteImport.update({
+  id: '/api/private-content',
+  path: '/api/private-content',
   getParentRoute: () => rootRouteImport,
 } as any)
 const BlogIndexRoute = BlogIndexRouteImport.update({
@@ -190,8 +214,12 @@ export interface FileRoutesByFullPath {
   '/admin/inventory': typeof AdminInventoryRoute
   '/admin/invoices': typeof AdminInvoicesRoute
   '/admin/projects': typeof AdminProjectsRoute
+  '/api/blob-media': typeof ApiBlobMediaRoute
+  '/api/blob-upload': typeof ApiBlobUploadRoute
   '/api/brand-discovery': typeof ApiBrandDiscoveryRoute
   '/api/contact': typeof ApiContactRoute
+  '/api/content': typeof ApiContentRoute
+  '/api/private-content': typeof ApiPrivateContentRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/vault/blog': typeof VaultBlogRoute
   '/vault/invoices': typeof VaultInvoicesRoute
@@ -217,8 +245,12 @@ export interface FileRoutesByTo {
   '/admin/inventory': typeof AdminInventoryRoute
   '/admin/invoices': typeof AdminInvoicesRoute
   '/admin/projects': typeof AdminProjectsRoute
+  '/api/blob-media': typeof ApiBlobMediaRoute
+  '/api/blob-upload': typeof ApiBlobUploadRoute
   '/api/brand-discovery': typeof ApiBrandDiscoveryRoute
   '/api/contact': typeof ApiContactRoute
+  '/api/content': typeof ApiContentRoute
+  '/api/private-content': typeof ApiPrivateContentRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/vault/blog': typeof VaultBlogRoute
   '/vault/invoices': typeof VaultInvoicesRoute
@@ -247,8 +279,12 @@ export interface FileRoutesById {
   '/admin/inventory': typeof AdminInventoryRoute
   '/admin/invoices': typeof AdminInvoicesRoute
   '/admin/projects': typeof AdminProjectsRoute
+  '/api/blob-media': typeof ApiBlobMediaRoute
+  '/api/blob-upload': typeof ApiBlobUploadRoute
   '/api/brand-discovery': typeof ApiBrandDiscoveryRoute
   '/api/contact': typeof ApiContactRoute
+  '/api/content': typeof ApiContentRoute
+  '/api/private-content': typeof ApiPrivateContentRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/vault/blog': typeof VaultBlogRoute
   '/vault/invoices': typeof VaultInvoicesRoute
@@ -278,8 +314,12 @@ export interface FileRouteTypes {
     | '/admin/inventory'
     | '/admin/invoices'
     | '/admin/projects'
+    | '/api/blob-media'
+    | '/api/blob-upload'
     | '/api/brand-discovery'
     | '/api/contact'
+    | '/api/content'
+    | '/api/private-content'
     | '/blog/$slug'
     | '/vault/blog'
     | '/vault/invoices'
@@ -305,8 +345,12 @@ export interface FileRouteTypes {
     | '/admin/inventory'
     | '/admin/invoices'
     | '/admin/projects'
+    | '/api/blob-media'
+    | '/api/blob-upload'
     | '/api/brand-discovery'
     | '/api/contact'
+    | '/api/content'
+    | '/api/private-content'
     | '/blog/$slug'
     | '/vault/blog'
     | '/vault/invoices'
@@ -334,8 +378,12 @@ export interface FileRouteTypes {
     | '/admin/inventory'
     | '/admin/invoices'
     | '/admin/projects'
+    | '/api/blob-media'
+    | '/api/blob-upload'
     | '/api/brand-discovery'
     | '/api/contact'
+    | '/api/content'
+    | '/api/private-content'
     | '/blog/$slug'
     | '/vault/blog'
     | '/vault/invoices'
@@ -360,8 +408,12 @@ export interface RootRouteChildren {
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   VaultRoute: typeof VaultRouteWithChildren
   DisciplinePhotoIdRoute: typeof DisciplinePhotoIdRoute
+  ApiBlobMediaRoute: typeof ApiBlobMediaRoute
+  ApiBlobUploadRoute: typeof ApiBlobUploadRoute
   ApiBrandDiscoveryRoute: typeof ApiBrandDiscoveryRoute
   ApiContactRoute: typeof ApiContactRoute
+  ApiContentRoute: typeof ApiContentRoute
+  ApiPrivateContentRoute: typeof ApiPrivateContentRoute
   BlogSlugRoute: typeof BlogSlugRoute
   DisciplineIndexRoute: typeof DisciplineIndexRoute
   BlogIndexRoute: typeof BlogIndexRoute
@@ -477,6 +529,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminProjectsRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/api/blob-media': {
+      id: '/api/blob-media'
+      path: '/api/blob-media'
+      fullPath: '/api/blob-media'
+      preLoaderRoute: typeof ApiBlobMediaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/blob-upload': {
+      id: '/api/blob-upload'
+      path: '/api/blob-upload'
+      fullPath: '/api/blob-upload'
+      preLoaderRoute: typeof ApiBlobUploadRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/brand-discovery': {
       id: '/api/brand-discovery'
       path: '/api/brand-discovery'
@@ -489,6 +555,20 @@ declare module '@tanstack/react-router' {
       path: '/api/contact'
       fullPath: '/api/contact'
       preLoaderRoute: typeof ApiContactRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/content': {
+      id: '/api/content'
+      path: '/api/content'
+      fullPath: '/api/content'
+      preLoaderRoute: typeof ApiContentRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/private-content': {
+      id: '/api/private-content'
+      path: '/api/private-content'
+      fullPath: '/api/private-content'
+      preLoaderRoute: typeof ApiPrivateContentRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/blog/': {
@@ -610,8 +690,12 @@ const rootRouteChildren: RootRouteChildren = {
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   VaultRoute: VaultRouteWithChildren,
   DisciplinePhotoIdRoute: DisciplinePhotoIdRoute,
+  ApiBlobMediaRoute: ApiBlobMediaRoute,
+  ApiBlobUploadRoute: ApiBlobUploadRoute,
   ApiBrandDiscoveryRoute: ApiBrandDiscoveryRoute,
   ApiContactRoute: ApiContactRoute,
+  ApiContentRoute: ApiContentRoute,
+  ApiPrivateContentRoute: ApiPrivateContentRoute,
   BlogSlugRoute: BlogSlugRoute,
   DisciplineIndexRoute: DisciplineIndexRoute,
   BlogIndexRoute: BlogIndexRoute,
