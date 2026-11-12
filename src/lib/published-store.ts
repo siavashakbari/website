@@ -1,5 +1,10 @@
 import { supabase, requireVaultToken } from "./supabase-client";
-import { commitSnapshot, PUBLIC_CONTENT_KEYS, type ContentSnapshot } from "./published-store-core";
+import {
+  commitSnapshot,
+  PUBLIC_CONTENT_KEYS,
+  validateSnapshot,
+  type ContentSnapshot,
+} from "./published-store-core";
 
 const OUTBOX = "siavash_pending_public_content_v1";
 export const CONTENT_STATUS_EVENT = "siavash_content_status";
@@ -73,7 +78,7 @@ export async function refreshPublishedContent(): Promise<void> {
       }
       setStatus(
         localStorage.getItem(OUTBOX)
-          ? "Unpublished edits are stored in this browser. Recover them before editing."
+          ? "Unsaved changes are waiting to be sent. Retry saving."
           : "Published content loaded",
       );
     } catch (error) {
@@ -95,7 +100,7 @@ export function queueContentSave() {
     return;
   }
   if (hasPendingRecovery()) {
-    setStatus("Not saved: recover or export the existing unpublished edits first.");
+    setStatus("Not saved: retry the pending save before editing.");
     return;
   }
   dirty = true;
@@ -140,69 +145,46 @@ export async function flushContentSave(): Promise<void> {
   }
 }
 
-export function hasBrowserRecovery(): boolean {
-  return (
-    Boolean(localStorage.getItem(OUTBOX)) ||
-    PUBLIC_CONTENT_KEYS.some((key) => localStorage.getItem(key))
-  );
-}
-
-export function browserRecoverySnapshot(): ContentSnapshot {
-  const pending = localStorage.getItem(OUTBOX);
-  if (pending) return JSON.parse(pending).content;
-  return Object.fromEntries(
-    PUBLIC_CONTENT_KEYS.flatMap((key) => {
-      const value = localStorage.getItem(key);
-      return value === null ? [] : [[key, value]];
-    }),
-  );
-}
-
-export async function recoverBrowserContent() {
-  if (revision < 0) throw new Error("Load the server content first.");
-  await requireVaultToken();
-  const { getMediaObjectUrl } = await import("./local-media-db");
-  const { uploadToCloudStorage } = await import("./cloud-storage");
-  const urls = new Map<string, string>();
-  async function migrate(value: unknown): Promise<unknown> {
-    if (typeof value === "string" && /^(idb:|blob:|data:(image|video)\/)/.test(value)) {
-      if (urls.has(value)) return urls.get(value);
-      const source = value.startsWith("idb:") ? await getMediaObjectUrl(value) : value;
-      if (!source)
-        throw new Error(`Missing browser media: ${value}. Open Vault in the original browser.`);
-      const response = await fetch(source);
-      if (!response.ok) throw new Error("Cannot read browser media.");
-      const blob = await response.blob();
-      const ext = blob.type.includes("video")
-        ? blob.type.includes("webm")
-          ? "webm"
-          : "mp4"
-        : "jpg";
-      const result = await uploadToCloudStorage(blob, `recovered.${ext}`);
-      urls.set(value, result.url);
-      return result.url;
-    }
-    if (Array.isArray(value)) return Promise.all(value.map(migrate));
-    if (value && typeof value === "object") {
-      return Object.fromEntries(
-        await Promise.all(
-          Object.entries(value).map(async ([key, item]) => [key, await migrate(item)]),
-        ),
+/** Resume only the queued save, never historical localStorage collections. */
+export async function retryContentSave() {
+  if (saving) return;
+  if (dirty) {
+    await flushContentSave();
+    return;
+  }
+  const raw = localStorage.getItem(OUTBOX);
+  if (!raw) {
+    await refreshPublishedContent();
+    return;
+  }
+  try {
+    await requireVaultToken();
+    await refreshPublishedContent();
+    if (revision < 0) return;
+    const pending = JSON.parse(raw);
+    validateSnapshot(pending.content);
+    if (pending.revision !== revision) {
+      throw new Error(
+        "Newer changes exist on the server. Your pending edits were kept; discard them to load the latest version, then reapply your changes.",
       );
     }
-    return value;
+    content = pending.content;
+    dirty = true;
+    generation++;
+    announceContent();
+    await flushContentSave();
+  } catch (error) {
+    setStatus("Not saved: " + (error instanceof Error ? error.message : String(error)));
   }
-  setStatus("Recovering browser media…");
-  const recovered: ContentSnapshot = {};
-  for (const [key, value] of Object.entries(browserRecoverySnapshot())) {
-    recovered[key] = JSON.stringify(await migrate(JSON.parse(value)));
-  }
-  content = { ...content, ...recovered };
-  // Keep the previous outbox until the replacement snapshot has been persisted.
-  dirty = true;
-  queueContentSave();
-  announceContent();
-  await flushContentSave();
+}
+
+export async function discardPendingContentSave() {
+  if (saving) return;
+  localStorage.removeItem(OUTBOX);
+  dirty = false;
+  generation++;
+  revision = -1;
+  await refreshPublishedContent();
 }
 
 export function startPublishedContentSync() {
@@ -212,7 +194,16 @@ export function startPublishedContentSync() {
   };
   const timer = window.setInterval(refresh, 30000);
   window.addEventListener("focus", refresh);
-  window.addEventListener("online", refresh);
+  const reconnect = () => {
+    if (dirty) void flushContentSave();
+    else refresh();
+  };
+  const storageChanged = (event: StorageEvent) => {
+    if (event.key === OUTBOX && event.newValue === null) refresh();
+  };
+  window.addEventListener("online", reconnect);
+  window.addEventListener("storage", storageChanged);
+  document.addEventListener("visibilitychange", refresh);
   const warn = (event: BeforeUnloadEvent) => {
     if (dirty) {
       event.preventDefault();
@@ -223,7 +214,9 @@ export function startPublishedContentSync() {
   return () => {
     window.clearInterval(timer);
     window.removeEventListener("focus", refresh);
-    window.removeEventListener("online", refresh);
+    window.removeEventListener("online", reconnect);
+    window.removeEventListener("storage", storageChanged);
+    document.removeEventListener("visibilitychange", refresh);
     window.removeEventListener("beforeunload", warn);
   };
 }

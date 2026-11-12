@@ -4,22 +4,22 @@ view of published content; a pending snapshot is retained locally if a save fail
 The status above Vault's editor says **Saved to server** only after the database
 acknowledges the write. Revision checks reject stale browser writes.
 
-## Recover existing browser edits
+## Save and refresh behavior
 
-1. Open the deployed site's `/vault/media` in the original browser and origin
-   (including the same `www` hostname) containing the missing media.
-2. Sign in with the existing Supabase administrator email and password. The old
-   arbitrary three-character Vault key no longer authenticates.
-3. Use **Export browser backup** first. This JSON backs up metadata; keep the
-   original browser data intact because IndexedDB video bytes are not in that JSON.
-4. Select **Recover and publish browser data**. This explicitly replaces the
-   corresponding server collections with that browser's snapshot. It uploads
-   IndexedDB/inline media and replaces device-only references with public URLs.
-5. Wait for **Saved to server**, then verify from a separate browser or phone.
+The one-time browser migration is complete and its export/recovery panel has been
+removed. Historical browser collections are never automatically republished.
 
-Original browser records and media blobs are preserved during recovery. If the
-browser is missing a referenced blob, recovery fails visibly instead of publishing
-a broken link. Do not run legacy recovery from an older browser over newer edits.
+- Successful edits display **Saved to server**.
+- Failed saves remain queued locally and can be retried after a reload. Vault
+  attempts to resume its pending save when reopened; it never overwrites a newer
+  server revision. Conflicts stay visible until resolved or explicitly discarded.
+- Public pages and other Vault sessions refresh on focus, when the tab becomes
+  visible, and every 30 seconds while visible. Other tabs also refresh when a save
+  completes. Network reconnection retries an in-memory failed save.
+- Pages, media details, assignments, covers, visibility, deletions, and blog edits
+  share this persistence path. Deleted/unpublished articles no longer resolve via
+  fallback defaults; renaming a blog slug replaces its previous record.
+- The compact status indicator retains retry/discard controls only when needed.
 
 ## Deployment and access
 

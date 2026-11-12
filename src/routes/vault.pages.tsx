@@ -1244,7 +1244,8 @@ function MediaCoverPickerModal({
   const [scope, setScope] = useState<"route" | "all">("route");
 
   // All media, keyed to the page this cover belongs to.
-  const mediaList = useMemo(() => getVaultMedia(), []);
+  const [mediaList, setMediaList] = useState(getVaultMedia);
+  useEffect(() => subscribeToVaultStore(() => setMediaList(getVaultMedia())), []);
   const pageRoute = (page?.route || "").toLowerCase().replace(/\/+$/, "");
 
   // Media living under this page's own route (e.g. every item inside

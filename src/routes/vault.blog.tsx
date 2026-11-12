@@ -17,7 +17,7 @@ import {
   CheckCircle2,
   Download
 } from "lucide-react";
-import { getStudioBlogPosts, saveStudioBlogPost, deleteStudioBlogPost } from "@/lib/studio-store";
+import { getStudioBlogPosts, saveStudioBlogPost, deleteStudioBlogPost, subscribeToStudioStore } from "@/lib/studio-store";
 import type { StudioBlogItem } from "@/types/admin";
 import { BLOG_CATEGORIES, type BlogCategory } from "@/data/blog-posts";
 
@@ -52,6 +52,7 @@ function AdminBlogView() {
 
   useEffect(() => {
     setPosts(getStudioBlogPosts());
+    return subscribeToStudioStore(() => setPosts(getStudioBlogPosts()));
   }, []);
 
   const openNewPostForm = () => {
@@ -156,7 +157,7 @@ function AdminBlogView() {
       },
     };
 
-    saveStudioBlogPost(postToSave);
+    saveStudioBlogPost(postToSave, editingPost?.slug);
     setPosts(getStudioBlogPosts());
     setSaveSuccess(true);
     setTimeout(() => {

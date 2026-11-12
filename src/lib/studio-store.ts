@@ -512,7 +512,6 @@ export function deleteStudioProject(id: string): void {
 
 // 2. Blog Posts Store
 export function getStudioBlogPosts(): StudioBlogItem[] {
-  if (typeof window === "undefined") return [];
   try {
     const raw = contentStorage.getItem(STORAGE_BLOG_KEY);
     if (raw) return JSON.parse(raw);
@@ -545,70 +544,19 @@ export function getStudioBlogPosts(): StudioBlogItem[] {
 }
 
 export function getMergedBlogPosts(): StudioBlogItem[] {
-  const custom = getStudioBlogPosts();
-  if (custom && custom.length > 0) {
-    return custom;
-  }
-  return BLOG_POSTS.map((bp) => ({
-    slug: bp.slug,
-    title: bp.title,
-    titleFa: bp.titleFa,
-    excerpt: bp.excerpt,
-    excerptFa: bp.excerptFa,
-    category: bp.category,
-    categoryLabel: bp.categoryLabel,
-    coverImage: bp.coverImage,
-    publishedAt: bp.publishedAt,
-    readTime: bp.readTime,
-    contentMarkdown: bp.contentMarkdown || bp.excerpt,
-    contentMarkdownFa: bp.contentMarkdownFa || bp.excerptFa,
-    published: true,
-    featured: bp.featured,
-    tags: bp.tags || [],
-    tagsFa: bp.tagsFa || [],
-    author: bp.author,
-    aiSummary: bp.aiSummary?.join("\n"),
-    aiSummaryFa: bp.aiSummaryFa?.join("\n"),
-  }));
+  // An empty saved collection means all posts were deleted, not missing data.
+  return getStudioBlogPosts();
 }
 
 export function getBlogPostBySlug(slug: string): StudioBlogItem | undefined {
-  if (typeof window !== "undefined") {
-    const customPosts = getStudioBlogPosts();
-    const found = customPosts.find((p) => p.slug === slug);
-    if (found) return found;
-  }
-  const defaultFound = BLOG_POSTS.find((p) => p.slug === slug);
-  if (defaultFound) {
-    return {
-      slug: defaultFound.slug,
-      title: defaultFound.title,
-      titleFa: defaultFound.titleFa,
-      excerpt: defaultFound.excerpt,
-      excerptFa: defaultFound.excerptFa,
-      category: defaultFound.category,
-      categoryLabel: defaultFound.categoryLabel,
-      coverImage: defaultFound.coverImage,
-      publishedAt: defaultFound.publishedAt,
-      readTime: defaultFound.readTime,
-      contentMarkdown: defaultFound.contentMarkdown || defaultFound.excerpt,
-      contentMarkdownFa: defaultFound.contentMarkdownFa || defaultFound.excerptFa,
-      published: true,
-      featured: defaultFound.featured,
-      tags: defaultFound.tags || [],
-      tagsFa: defaultFound.tagsFa || [],
-      author: defaultFound.author,
-      aiSummary: defaultFound.aiSummary?.join("\n"),
-      aiSummaryFa: defaultFound.aiSummaryFa?.join("\n"),
-    };
-  }
-  return undefined;
+  return getMergedBlogPosts().find((post) => post.slug === slug && post.published !== false);
 }
 
-
-export function saveStudioBlogPost(post: StudioBlogItem): void {
+export function saveStudioBlogPost(post: StudioBlogItem, originalSlug?: string): void {
   if (typeof window === "undefined") return;
-  const list = getStudioBlogPosts();
+  const list = getStudioBlogPosts().filter(
+    (item) => !originalSlug || originalSlug === post.slug || item.slug !== originalSlug,
+  );
   const index = list.findIndex((p) => p.slug === post.slug);
   if (index >= 0) {
     list[index] = post;

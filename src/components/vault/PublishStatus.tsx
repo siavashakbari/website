@@ -1,97 +1,55 @@
 import { useEffect, useState } from "react";
 import {
-  browserRecoverySnapshot,
   CONTENT_STATUS_EVENT,
-  flushContentSave,
+  discardPendingContentSave,
   getContentStatus,
-  hasBrowserRecovery,
   hasPendingRecovery,
   isContentReady,
-  recoverBrowserContent,
-  refreshPublishedContent,
+  retryContentSave,
 } from "@/lib/published-store";
 
 export function PublishStatus({ children }: { children: React.ReactNode }) {
   const [status, setStatus] = useState(getContentStatus);
-  const [busy, setBusy] = useState(false);
-  const [recovery, setRecovery] = useState(false);
   useEffect(() => {
-    setRecovery(hasBrowserRecovery());
     const update = () => setStatus(getContentStatus());
     window.addEventListener(CONTENT_STATUS_EVENT, update);
     update();
+    void retryContentSave();
     return () => window.removeEventListener(CONTENT_STATUS_EVENT, update);
   }, []);
-  const exportBackup = () => {
-    const url = URL.createObjectURL(
-      new Blob([JSON.stringify(browserRecoverySnapshot(), null, 2)], { type: "application/json" }),
-    );
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = "vault-browser-backup.json";
-    link.click();
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
-  };
+  const failed =
+    status.startsWith("Not saved:") || status.startsWith("Cannot load") || hasPendingRecovery();
   return (
     <>
-      <section className="mb-6 rounded-xl border border-white/20 p-4 text-sm space-y-3">
-        <p role="status" aria-live="polite">
+      <div className="mb-4 flex flex-wrap items-center gap-3 text-xs text-neutral-400">
+        <span role="status" aria-live="polite">
           {status}
-        </p>
-        <div className="flex flex-wrap gap-4">
-          <button
-            type="button"
-            className="underline"
-            onClick={() => {
-              void refreshPublishedContent();
-              void flushContentSave();
-            }}
-          >
-            Retry connection / save
-          </button>
-          {recovery && (
-            <>
-              <button type="button" className="underline" onClick={exportBackup}>
-                Export browser backup
-              </button>
+        </span>
+        {failed && (
+          <>
+            <button
+              type="button"
+              className="underline text-white"
+              onClick={() => void retryContentSave()}
+            >
+              Retry save / connection
+            </button>
+            {(hasPendingRecovery() || status.startsWith("Not saved:")) && (
               <button
                 type="button"
                 className="underline"
-                disabled={busy || !isContentReady()}
-                onClick={async () => {
-                  if (
-                    !window.confirm(
-                      "Publish this browser’s saved portfolio data? This replaces the corresponding server records. Export a backup first. Use the original browser containing your latest edits.",
-                    )
-                  )
-                    return;
-                  setBusy(true);
-                  try {
-                    await recoverBrowserContent();
-                  } catch (error) {
-                    alert(error instanceof Error ? error.message : String(error));
-                  } finally {
-                    setBusy(false);
-                  }
+                onClick={() => {
+                  if (window.confirm("Discard unsaved changes and load the latest server version?"))
+                    void discardPendingContentSave();
                 }}
               >
-                {busy ? "Recovering…" : "Recover and publish browser data"}
+                Discard unsaved changes
               </button>
-            </>
-          )}
-        </div>
-        {recovery && (
-          <p>
-            Older edits are available in this browser. Export a backup, then recover them here to
-            publish your media and page details.
-          </p>
+            )}
+          </>
         )}
-      </section>
-      {isContentReady() && !busy && !hasPendingRecovery() ? (
-        children
-      ) : (
-        <p>Connect and recover any unpublished edits before editing.</p>
-      )}
+      </div>
+      {isContentReady() && !hasPendingRecovery() ? children : <p>Connecting to saved content...</p>}
     </>
   );
 }

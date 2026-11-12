@@ -102,10 +102,15 @@ test("offline saves remain recoverable after reload and are not shown as saved",
   const reopened = await browser(server, Object.fromEntries(editor.storage));
   await reopened.api.refreshPublishedContent();
   assert.equal(reopened.api.hasPendingRecovery(), true);
-  assert.match(reopened.api.browserRecoverySnapshot().siavash_vault_pages_v2, /vishnu/);
+  assert.match(
+    JSON.parse(reopened.storage.get("siavash_pending_public_content_v1")).content
+      .siavash_vault_pages_v2,
+    /vishnu/,
+  );
   server.fail = false;
-  await editor.api.flushContentSave();
-  assert.equal(editor.api.getContentStatus(), "Saved to server");
+  await reopened.api.retryContentSave();
+  assert.equal(reopened.api.getContentStatus(), "Saved to server");
+  assert.match(server.content.siavash_vault_pages_v2, /vishnu/);
 });
 
 test("stale editor cannot overwrite changes from another browser", async () => {
@@ -122,6 +127,14 @@ test("stale editor cannot overwrite changes from another browser", async () => {
   await second.api.flushContentSave();
   assert.match(second.api.getContentStatus(), /Not saved: Newer/);
   assert.match(server.content.siavash_vault_pages_v2, /newer/);
+  const reopened = await browser(server, Object.fromEntries(second.storage));
+  await reopened.api.refreshPublishedContent();
+  await reopened.api.retryContentSave();
+  assert.match(reopened.api.getContentStatus(), /Not saved: Newer/);
+  assert.match(server.content.siavash_vault_pages_v2, /newer/);
+  await reopened.api.discardPendingContentSave();
+  assert.equal(reopened.api.hasPendingRecovery(), false);
+  assert.match(reopened.api.contentStorage.getItem("siavash_vault_pages_v2"), /newer/);
 });
 
 test("read-time normalization does not cause a server write", async () => {

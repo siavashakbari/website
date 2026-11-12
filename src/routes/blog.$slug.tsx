@@ -1,6 +1,6 @@
 import { subscribeToStudioStore } from "@/lib/studio-store";
 import { useState, useEffect } from "react";
-import { createFileRoute, notFound, Link } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import {
   ArrowLeft,
   ArrowRight,
@@ -15,7 +15,6 @@ import {
   ChevronRight,
   Hash,
 } from "lucide-react";
-import { BLOG_POSTS } from "@/data/blog-posts";
 import { getBlogPostBySlug, getMergedBlogPosts, type StudioBlogItem } from "@/lib/studio-store";
 import { getSiteUrl, absoluteUrl, pageHead, jsonLdScript } from "@/lib/seo";
 import { BackToTop } from "@/components/BackToTop";
@@ -23,7 +22,7 @@ import { BackToTop } from "@/components/BackToTop";
 export const Route = createFileRoute("/blog/$slug")({
   loader: ({ params }) => {
     // 1. Direct match in persistent studio-store or default BLOG_POSTS
-    const post = getBlogPostBySlug(params.slug) || BLOG_POSTS.find((p) => p.slug === params.slug);
+    const post = getBlogPostBySlug(params.slug);
     
     // In SSR (where localStorage is empty) a custom post created in admin might not exist on the server yet.
     // Instead of throwing a hard 404, we pass null or empty placeholder so client can hydrate from localStorage.
@@ -136,9 +135,7 @@ function BlogPostDetailPage() {
       setShareUrl(window.location.href);
     }
     const livePost = getBlogPostBySlug(slug) || (initialPost ? getBlogPostBySlug(initialPost.slug) : undefined);
-    if (livePost) {
-      setPost(livePost as any);
-    }
+    setPost(livePost);
     setAllPosts(getMergedBlogPosts());
     return subscribeToStudioStore(() => {
       setPost(getBlogPostBySlug(slug));
