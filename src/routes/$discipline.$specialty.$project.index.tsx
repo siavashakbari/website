@@ -149,7 +149,7 @@ export const Route = createFileRoute("/$discipline/$specialty/$project/")({
       return { kind: "photo", photoLoaderData: resolvedPhoto };
     }
 
-    if (typeof window === "undefined" && !isContentReady() && looksLikeMediaCode(rawThird)) {
+    if (typeof window === "undefined" && looksLikeMediaCode(rawThird)) {
       return {
         kind: "photo",
         photoLoaderData: {
@@ -417,7 +417,7 @@ function ProjectOrPhotoRouteComponent() {
 
 function ProjectCaseStudyPage({ loaderData }: { loaderData: ProjectRouteLoaderData }) {
   const [state, setState] = useState(() => computeInitialProjectState(loaderData));
-  const [contentReady, setContentReady] = useState(isContentReady);
+  const [contentReady, setContentReady] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const refreshProjectData = () => {

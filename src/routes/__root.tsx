@@ -1,4 +1,4 @@
-import { CONTENT_STATUS_EVENT, getPublishedHydrationSnapshot, isContentReady, refreshPublishedContent, seedPublishedContent, startPublishedContentSync } from "@/lib/published-store";
+import { startPublishedContentSync } from "@/lib/published-store";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
   Outlet,
@@ -17,7 +17,6 @@ import satoshiRegular from "../assets/fonts/Satoshi-Regular.woff2?url";
 import satoshiBold from "../assets/fonts/Satoshi-Bold.woff2?url";
 import { Logo } from "@/components/Logo";
 import { NotFoundPage } from "@/components/NotFoundPage";
-import { PublishedPageLoading } from "@/components/PublishedPageLoading";
 import { DISCIPLINES } from "@/data/disciplines";
 import {
   getVaultPages,
@@ -81,10 +80,6 @@ function ErrorComponent({ error, reset }: { error: any; reset: () => void }) {
 }
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
-  beforeLoad: async () => {
-    if (typeof window !== "undefined") await refreshPublishedContent();
-  },
-  loader: () => getPublishedHydrationSnapshot(),
   head: () => {
     const siteUrl = getSiteUrl();
     const ogImage = absoluteUrl("/og.jpg");
@@ -465,15 +460,7 @@ function MobileNav() {
 }
 
 function RootComponent() {
-  seedPublishedContent(Route.useLoaderData());
   useEffect(startPublishedContentSync, []);
-  const [publishedReady, setPublishedReady] = useState(isContentReady);
-  useEffect(() => {
-    const update = () => setPublishedReady(isContentReady());
-    window.addEventListener(CONTENT_STATUS_EVENT, update);
-    update();
-    return () => window.removeEventListener(CONTENT_STATUS_EVENT, update);
-  }, []);
   const { queryClient } = Route.useRouteContext();
   const router = useRouter();
   const pathname = router.state.location.pathname;
@@ -582,7 +569,7 @@ function RootComponent() {
         <main
           className={`flex-1 ${lockProjectScroll ? "flex min-h-0 flex-col overflow-hidden" : ""}`}
         >
-          {isVaultPage || publishedReady ? <Outlet /> : <PublishedPageLoading />}
+          <Outlet />
         </main>
         {!hideFooter && (
           <Suspense fallback={null}>

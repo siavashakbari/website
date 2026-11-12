@@ -1,4 +1,4 @@
-import { contentStorage, getPublishedArray, isContentReady, isVercelContentBackend, queueContentSave } from "./published-store";
+import { contentStorage, queueContentSave } from "./published-store";
 import type { StudioProjectItem, StudioBlogItem } from "@/types/admin";
 export type { StudioProjectItem, StudioBlogItem };
 import type { InvoiceData } from "@/types/invoice";
@@ -93,7 +93,7 @@ function defaultProjectToStudioItem(p: Project): StudioProjectItem {
 }
 
 export function getDeletedProjectIds(): Set<string> {
-  if (!isContentReady()) return new Set();
+  if (typeof window === "undefined") return new Set();
   try {
     const raw = contentStorage.getItem(STORAGE_DELETED_PROJECTS_KEY);
     if (raw) {
@@ -209,17 +209,11 @@ export function isProjectDeleted(
 
 // 1. Projects Store
 export function getStudioProjects(): StudioProjectItem[] {
-  if (isVercelContentBackend && isContentReady()) {
-    const deleted = getDeletedProjectIds();
-    return getPublishedArray<StudioProjectItem>(STORAGE_PROJECTS_KEY).filter((item) =>
-      item?.id && !isProjectDeleted(item, deleted),
-    );
-  }
   const deletedSet = getDeletedProjectIds();
   const canonicalMap = new Map<string, StudioProjectItem>();
 
-  // 1. Process published custom projects on both server and browser.
-  if (isContentReady()) {
+  // 1. Process custom projects from localStorage
+  if (typeof window !== "undefined") {
     try {
       const raw = contentStorage.getItem(STORAGE_PROJECTS_KEY);
       if (raw) {
@@ -511,7 +505,7 @@ interface CustomTaxonomyState {
 }
 
 export function getCustomTaxonomy(): CustomTaxonomyState {
-  if (!isContentReady()) {
+  if (typeof window === "undefined") {
     return { disciplines: [], specialties: [], projects: [] };
   }
   try {
@@ -573,7 +567,7 @@ export function getPhotoDedupeKey(item: Partial<PhotoInventoryItem>): string {
 }
 
 export function getCustomPhotoAssets(): PhotoInventoryItem[] {
-  if (!isContentReady()) return [];
+  if (typeof window === "undefined") return [];
   try {
     const raw = contentStorage.getItem(STORAGE_CUSTOM_PHOTOS_KEY);
     if (raw) {
@@ -604,7 +598,7 @@ export function deleteCustomPhotoAsset(code: string): void {
 }
 
 export function getCustomPhotoMetadata(): Record<string, Partial<PhotoInventoryItem>> {
-  if (!isContentReady()) return {};
+  if (typeof window === "undefined") return {};
   try {
     const raw = contentStorage.getItem(STORAGE_INVENTORY_KEY);
     if (raw) return JSON.parse(raw);

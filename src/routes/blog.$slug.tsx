@@ -24,8 +24,8 @@ export const Route = createFileRoute("/blog/$slug")({
     // 1. Direct match in persistent studio-store or default BLOG_POSTS
     const post = getBlogPostBySlug(params.slug);
     
-    // During a temporary published-content outage, let the root loading state
-    // wait for the browser refresh before deciding whether the post exists.
+    // In SSR (where localStorage is empty) a custom post created in admin might not exist on the server yet.
+    // Instead of throwing a hard 404, we pass null or empty placeholder so client can hydrate from localStorage.
     if (!post) {
       return { post: null, slug: params.slug };
     }

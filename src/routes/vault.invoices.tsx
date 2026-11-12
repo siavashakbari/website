@@ -18,9 +18,6 @@ import type { InvoiceData, InvoiceItem, BankInfo } from "@/types/invoice";
 import { INITIAL_INVOICE_DATA, PRESET_BANK_CARDS } from "@/types/invoice";
 import { getSavedInvoices, saveInvoice } from "@/lib/studio-store";
 import { exportInvoiceToPDF } from "@/lib/invoice-pdf-export";
-import { isVercelContentBackend } from "@/lib/published-store";
-import { loadPrivateVaultContent, savePrivateVaultContent } from "@/lib/private-vault-client";
-import type { PrivateVaultData } from "@/lib/vercel-private-content.server";
 
 export const Route = createFileRoute("/vault/invoices")({
   component: AdminInvoicesView,
@@ -28,33 +25,17 @@ export const Route = createFileRoute("/vault/invoices")({
 
 const STORAGE_BANK_CARDS_KEY = "siavash_studio_saved_bank_cards";
 const STORAGE_DEFAULT_PRESET_KEY = "siavash_invoice_default_preset";
-const STORAGE_INVOICES_KEY = "siavash_studio_invoices_archive";
-
-function readLocalCollection<T>(key: string, fallback: T): T {
-  try {
-    const raw = localStorage.getItem(key);
-    return raw ? JSON.parse(raw) as T : fallback;
-  } catch {
-    return fallback;
-  }
-}
 
 function AdminInvoicesView() {
   const [invoices, setInvoices] = useState<InvoiceData[]>([]);
   const [currentInvoice, setCurrentInvoice] = useState<InvoiceData>(INITIAL_INVOICE_DATA);
-  const [defaultPreset, setDefaultPreset] = useState<InvoiceData | null>(null);
   const [isExporting, setIsExporting] = useState(false);
   const [defaultSuccess, setDefaultSuccess] = useState(false);
   const [cardSaveSuccess, setCardSaveSuccess] = useState(false);
-  const [privateRevision, setPrivateRevision] = useState<number | null>(null);
-  const [privateReady, setPrivateReady] = useState(!isVercelContentBackend);
-  const [privateBusy, setPrivateBusy] = useState(false);
-  const [privateError, setPrivateError] = useState("");
   const canvasRef = useRef<HTMLDivElement>(null);
 
   // Bank cards presets
   const [savedCards, setSavedCards] = useState<BankInfo[]>(() => {
-    if (isVercelContentBackend) return [];
     if (typeof window !== "undefined") {
       try {
         const raw = localStorage.getItem(STORAGE_BANK_CARDS_KEY);
@@ -67,22 +48,6 @@ function AdminInvoicesView() {
   });
 
   useEffect(() => {
-    if (isVercelContentBackend) {
-      void loadPrivateVaultContent().then((snapshot) => {
-        if (snapshot) {
-          setPrivateRevision(snapshot.revision);
-          setInvoices(snapshot.data.invoices);
-          setSavedCards(snapshot.data.savedCards);
-          setDefaultPreset(snapshot.data.defaultPreset);
-          setCurrentInvoice(snapshot.data.defaultPreset || snapshot.data.invoices[0] || INITIAL_INVOICE_DATA);
-        }
-        setPrivateReady(true);
-      }).catch((error) => {
-        setPrivateError(error instanceof Error ? error.message : "Could not load private Vault data.");
-        setPrivateReady(true);
-      });
-      return;
-    }
     let defaultData: InvoiceData | null = null;
     if (typeof window !== "undefined") {
       try {
@@ -98,60 +63,11 @@ function AdminInvoicesView() {
     const list = getSavedInvoices();
     setInvoices(list);
     if (defaultData) {
-      setDefaultPreset(defaultData);
       setCurrentInvoice(defaultData);
     } else if (list.length > 0) {
       setCurrentInvoice(list[0]);
     }
   }, []);
-
-  const savePrivate = async (data: PrivateVaultData, onSuccess: () => void) => {
-    if (privateRevision === null) return;
-    setPrivateBusy(true);
-    setPrivateError("");
-    try {
-      const revision = await savePrivateVaultContent(data, privateRevision);
-      setPrivateRevision(revision);
-      setInvoices(data.invoices);
-      setSavedCards(data.savedCards);
-      setDefaultPreset(data.defaultPreset);
-      onSuccess();
-    } catch (error) {
-      setPrivateError(error instanceof Error ? error.message : "Could not save private Vault data.");
-    } finally {
-      setPrivateBusy(false);
-    }
-  };
-
-  const importLocalPrivateData = async () => {
-    setPrivateBusy(true);
-    setPrivateError("");
-    try {
-      const existing = await loadPrivateVaultContent();
-      const localInvoices = readLocalCollection<InvoiceData[]>(STORAGE_INVOICES_KEY, []);
-      const localCards = readLocalCollection<BankInfo[]>(STORAGE_BANK_CARDS_KEY, []);
-      const localPreset = readLocalCollection<InvoiceData | null>(STORAGE_DEFAULT_PRESET_KEY, null);
-      const invoicesById = new Map((existing?.data.invoices || []).map((invoice) => [invoice.id, invoice]));
-      for (const invoice of localInvoices) invoicesById.set(invoice.id, invoice);
-      const cardsById = new Map((existing?.data.savedCards || []).map((card) => [card.id || card.cardNumber, card]));
-      for (const card of localCards) cardsById.set(card.id || card.cardNumber, card);
-      const data: PrivateVaultData = {
-        invoices: [...invoicesById.values()],
-        savedCards: [...cardsById.values()],
-        defaultPreset: localPreset || existing?.data.defaultPreset || null,
-      };
-      const revision = await savePrivateVaultContent(data, existing?.revision ?? -1);
-      setPrivateRevision(revision);
-      setInvoices(data.invoices);
-      setSavedCards(data.savedCards);
-      setDefaultPreset(data.defaultPreset);
-      setCurrentInvoice(data.defaultPreset || data.invoices[0] || INITIAL_INVOICE_DATA);
-    } catch (error) {
-      setPrivateError(error instanceof Error ? error.message : "Could not import this browser's private data.");
-    } finally {
-      setPrivateBusy(false);
-    }
-  };
 
   // Format numbers with commas (e.g. 154,000,000)
   const formatNumber = (val: number | string) => {
@@ -202,17 +118,6 @@ function AdminInvoicesView() {
   };
 
   const handleSetAsDefault = () => {
-    if (isVercelContentBackend) {
-      void savePrivate({
-        invoices: [currentInvoice, ...invoices.filter((invoice) => invoice.id !== currentInvoice.id)],
-        savedCards,
-        defaultPreset: currentInvoice,
-      }, () => {
-        setDefaultSuccess(true);
-        setTimeout(() => setDefaultSuccess(false), 1500);
-      });
-      return;
-    }
     if (typeof window !== "undefined") {
       localStorage.setItem(STORAGE_DEFAULT_PRESET_KEY, JSON.stringify(currentInvoice));
     }
@@ -227,7 +132,7 @@ function AdminInvoicesView() {
     const now = new Date();
     const newNumber = `${String(now.getMonth() + 1).padStart(2, "0")}${String(now.getDate()).padStart(2, "0")}${String(Math.floor(Math.random() * 90 + 10))}`;
     const newInv: InvoiceData = {
-      ...(defaultPreset || INITIAL_INVOICE_DATA),
+      ...INITIAL_INVOICE_DATA,
       id: `inv-${Date.now()}`,
       invoiceNumber: newNumber,
       clientName: "New Client",
@@ -236,9 +141,9 @@ function AdminInvoicesView() {
       items: [
         {
           id: `item-1`,
-        description: "",
-        subDescription: "",
-        rate: 0,
+          description: "Art Direction & Production",
+          subDescription: "Creative concepting and studio shoot execution",
+          rate: 25000000,
           quantity: 1,
         },
       ],
@@ -260,13 +165,6 @@ function AdminInvoicesView() {
       id: `card-${Date.now()}`,
     };
     const updated = [...savedCards, newCard];
-    if (isVercelContentBackend) {
-      void savePrivate({ invoices, savedCards: updated, defaultPreset }, () => {
-        setCardSaveSuccess(true);
-        setTimeout(() => setCardSaveSuccess(false), 1200);
-      });
-      return;
-    }
     setSavedCards(updated);
     if (typeof window !== "undefined") {
       localStorage.setItem(STORAGE_BANK_CARDS_KEY, JSON.stringify(updated));
@@ -295,28 +193,8 @@ function AdminInvoicesView() {
     window.print();
   };
 
-  if (isVercelContentBackend && !privateReady) {
-    return <div className="p-6 text-xs text-neutral-300">Loading private Vault data...</div>;
-  }
-
   return (
     <div className="space-y-6">
-      {isVercelContentBackend && (
-        <div className="rounded-xl border border-white/10 bg-[#121212] p-4 text-xs text-neutral-300">
-          {!privateReady ? "Loading private Vault data..." : privateRevision === null ? (
-            <div className="space-y-3">
-              <p>Private invoice data has not been moved to Vercel yet. Open this page in the browser where you created your invoices, then import it once.</p>
-              <button type="button" disabled={privateBusy} onClick={importLocalPrivateData} className="rounded-lg bg-[#2CE3C0] px-3 py-2 font-semibold text-black disabled:opacity-50">Import this browser's invoices and cards</button>
-            </div>
-          ) : (
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <span>Invoices and saved cards are stored in your private Vercel Vault.</span>
-              <button type="button" disabled={privateBusy} onClick={importLocalPrivateData} className="text-[#2CE3C0] underline disabled:opacity-50">Import older records from this browser</button>
-            </div>
-          )}
-          {privateError && <p role="alert" className="mt-2 text-red-300">{privateError}</p>}
-        </div>
-      )}
       {/* Studio Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
@@ -352,7 +230,6 @@ function AdminInvoicesView() {
 
           <button
             onClick={handleSetAsDefault}
-            disabled={isVercelContentBackend && (privateBusy || privateRevision === null)}
             title="Save current invoice data as your default template for future sessions"
             className="px-3.5 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer"
           >
@@ -614,7 +491,6 @@ function AdminInvoicesView() {
                 <button
                   type="button"
                   onClick={handleSaveCurrentCardAsPreset}
-                  disabled={isVercelContentBackend && (privateBusy || privateRevision === null)}
                   className="text-[#2CE3C0] hover:underline cursor-pointer flex items-center gap-1"
                 >
                   {cardSaveSuccess ? (
@@ -696,7 +572,7 @@ function AdminInvoicesView() {
                       bankInfo: { ...prev.bankInfo, cardNumber: e.target.value },
                     }))
                   }
-                  placeholder="Card number"
+                  placeholder="6219861835930404"
                   className="w-full bg-neutral-900 border border-white/10 rounded px-2 py-1 text-xs font-mono text-white"
                 />
               </div>
@@ -712,7 +588,7 @@ function AdminInvoicesView() {
                       bankInfo: { ...prev.bankInfo, shebaNumber: e.target.value },
                     }))
                   }
-                  placeholder="IBAN"
+                  placeholder="IR700560611828005126957701"
                   className="w-full bg-neutral-900 border border-white/10 rounded px-2 py-1 text-xs font-mono text-white"
                 />
               </div>
