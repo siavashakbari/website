@@ -265,6 +265,7 @@ export function resolveDedicatedPhotoLoader(opts: {
   const isFullDynamicUrlCode = /^\d{4}-[A-Z0-9-]+$/i.test(rawPhotoId);
   if (
     typeof window === "undefined" &&
+    !isContentReady() &&
     isFullDynamicUrlCode &&
     opts.currentRawPath.replace(/\/+$/, "").toLowerCase().endsWith(`/${rawPhotoId.toLowerCase()}`)
   ) {
@@ -299,7 +300,7 @@ export function resolveDedicatedPhotoLoader(opts: {
     if (opts.allowMissingReturnNull) {
       return null;
     }
-    if (typeof window === "undefined" && looksLikeMediaCode(rawPhotoId)) {
+    if (typeof window === "undefined" && !isContentReady() && looksLikeMediaCode(rawPhotoId)) {
       return {
         pendingClientLookup: true,
         rawPhotoId,
@@ -714,7 +715,7 @@ export function DedicatedPhotoView({ loaderData }: { loaderData: DedicatedPhotoL
   const navigate = useNavigate();
   const [state, setState] = useState(() => computeInitialPhotoState(loaderData));
   const [clientChecked, setClientChecked] = useState(false);
-  const [contentReady, setContentReady] = useState(false);
+  const [contentReady, setContentReady] = useState(isContentReady);
   const liveResolvedMedia = useResolvedMediaSrc(state.resolvedImage);
 
   const refreshPhotoData = () => {
@@ -826,15 +827,23 @@ export function DedicatedPhotoView({ loaderData }: { loaderData: DedicatedPhotoL
     );
   }
 
-  // Smart back link derived directly from live Vault Page & assignedRoute (gated behind clientChecked to avoid SSR hydration mismatch)
+  // Resolve navigation labels from the live Vault pages after hydration.
   const backUrl = galleryRoute || `/${disciplineSlug}`;
   const liveBackPage = clientChecked ? getPageByRoute(backUrl) : undefined;
-  let backLabel = `Back to ${liveBackPage?.name || photo.project || formatSlugLabel(projectSlug || disciplineSlug)}`;
+  let backLabel = `To ${liveBackPage?.name || photo.project || formatSlugLabel(projectSlug || disciplineSlug)}`;
   if (disciplineSlug === "graphic-design" && specialtySlug === "posters" && !projectSlug) {
-    backLabel = `Back to ${liveBackPage?.name || "Posters"}`;
+    backLabel = `To ${liveBackPage?.name || "Posters"}`;
   } else if (disciplineSlug === "graphic-design" && specialtySlug === "book-covers" && !projectSlug) {
-    backLabel = `Back to ${liveBackPage?.name || "Book Covers"}`;
+    backLabel = `To ${liveBackPage?.name || "Book Covers"}`;
   }
+  const categoryUrl = projectSlug && specialtySlug
+    ? `/${disciplineSlug}/${specialtySlug}`
+    : `/${disciplineSlug}`;
+  const liveCategoryPage = clientChecked ? getPageByRoute(categoryUrl) : undefined;
+  const categoryLabel = liveCategoryPage?.name ||
+    (projectSlug && specialtySlug
+      ? photo.subdiscipline || formatSlugLabel(specialtySlug)
+      : photo.discipline || formatSlugLabel(disciplineSlug));
 
   const handleCommissionClick = () => {
     trackCommissionInquiryFromAsset(photo.code, photo.project);
@@ -910,7 +919,7 @@ export function DedicatedPhotoView({ loaderData }: { loaderData: DedicatedPhotoL
           <div className="space-y-6">
             {/* Top Project Context & Description */}
             <div className="space-y-2 pb-4 border-b border-white/10">
-              <div className="flex flex-wrap items-center justify-between gap-2">
+              <div className="flex flex-wrap items-center justify-start gap-2">
                 <Link
                   to={backUrl as any}
                   className={projectBackButtonClass}
@@ -918,8 +927,9 @@ export function DedicatedPhotoView({ loaderData }: { loaderData: DedicatedPhotoL
                   <ArrowLeft />
                   <span className="capitalize">{backLabel}</span>
                 </Link>
-                <Link to={`/${disciplineSlug}` as any} className={projectBackButtonClass}>
-                  {photo.discipline || formatSlugLabel(disciplineSlug)}
+                <Link to={categoryUrl as any} className={projectBackButtonClass}>
+                  <ArrowLeft />
+                  <span>To {categoryLabel}</span>
                 </Link>
               </div>
               {projectDescription && (

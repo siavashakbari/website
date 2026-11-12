@@ -7,6 +7,7 @@
  */
 
 import { requireVaultToken } from "./supabase-client";
+import { uploadPresigned } from "@vercel/blob/client";
 
 const SUPABASE_URL = (import.meta.env.VITE_SUPABASE_URL as string | undefined)?.replace(/\/+$/, "") || "";
 const SUPABASE_ANON_KEY = (import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined) || "";
@@ -51,12 +52,29 @@ export async function uploadToCloudStorage(
   fileName: string,
   options: { contentType?: string; onProgress?: (percent: number) => void } = {},
 ): Promise<CloudUploadResult> {
+  const contentType = options.contentType || blob.type || "application/octet-stream";
+  if (import.meta.env.VITE_VAULT_BACKEND !== "supabase" && contentType.startsWith("image/")) {
+    const clean = sanitizeFileName(fileName);
+    const pathname = `images/${crypto.randomUUID()}-${clean}`;
+    const uploaded = await uploadPresigned(pathname, blob, {
+      access: "private",
+      contentType,
+      handleUploadUrl: "/api/blob-upload",
+      headers: { authorization: `Bearer ${await requireVaultToken()}` },
+      onUploadProgress: ({ percentage }) => options.onProgress?.(Math.round(percentage)),
+    });
+    options.onProgress?.(100);
+    return {
+      url: `/api/blob-media?pathname=${encodeURIComponent(uploaded.pathname)}`,
+      path: uploaded.pathname,
+      sizeBytes: blob.size,
+    };
+  }
   const cfg = getSupabaseConfig();
   if (!cfg) {
     throw new Error("Cloud storage is not configured (missing VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY).");
   }
 
-  const contentType = options.contentType || blob.type || "application/octet-stream";
   const clean = sanitizeFileName(fileName);
   const token = await requireVaultToken();
   const objectPath = `${crypto.randomUUID()}-${clean}`;

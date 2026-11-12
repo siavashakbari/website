@@ -16,12 +16,36 @@ let saving = false;
 let loading: Promise<void> | null = null;
 let status = "Loading published content…";
 const publicKeys = new Set<string>(PUBLIC_CONTENT_KEYS);
+const useVercelBlob = import.meta.env.VITE_VAULT_BACKEND !== "supabase";
+export const isVercelContentBackend = useVercelBlob;
+
+type PublishedSnapshot = { revision: number; content: ContentSnapshot };
+declare global {
+  var __getRequestPublishedSnapshot: (() => PublishedSnapshot | undefined) | undefined;
+}
+
+function requestSnapshot(): PublishedSnapshot | undefined {
+  return typeof window === "undefined" ? globalThis.__getRequestPublishedSnapshot?.() : undefined;
+}
+
+export function getPublishedHydrationSnapshot(): PublishedSnapshot {
+  return requestSnapshot() || { revision, content };
+}
+
+export function seedPublishedContent(snapshot: PublishedSnapshot) {
+  if (typeof window === "undefined" || dirty || saving) return;
+  if (snapshot.revision > revision) {
+    validateSnapshot(snapshot.content);
+    content = snapshot.content;
+    revision = snapshot.revision;
+  }
+}
 
 export function getContentStatus() {
   return status;
 }
 export function isContentReady() {
-  return revision >= 0;
+  return (requestSnapshot()?.revision ?? revision) >= 0;
 }
 function setStatus(message: string) {
   status = message;
@@ -35,13 +59,16 @@ export function hasPendingRecovery() {
   return !dirty && typeof window !== "undefined" && Boolean(localStorage.getItem(OUTBOX));
 }
 
-// Existing synchronous readers now read the shared snapshot, not old browser edits.
-// Non-public data (including invoices) retains its separate local storage.
+// Existing synchronous readers use the shared snapshot. Private invoice data
+// has its own authenticated Vercel endpoint; legacy local storage stays available
+// only for a one-time import from the original browser.
 export const contentStorage = {
   getItem(key: string): string | null {
-    return publicKeys.has(key) ? (content[key] ?? null) : localStorage.getItem(key);
+    if (publicKeys.has(key)) return (requestSnapshot()?.content ?? content)[key] ?? null;
+    return typeof window === "undefined" ? null : localStorage.getItem(key);
   },
   setItem(key: string, value: string) {
+    if (typeof window === "undefined") return;
     if (!publicKeys.has(key)) {
       localStorage.setItem(key, value);
       return;
@@ -49,6 +76,7 @@ export const contentStorage = {
     content[key] = value;
   },
   removeItem(key: string) {
+    if (typeof window === "undefined") return;
     if (!publicKeys.has(key)) {
       localStorage.removeItem(key);
       return;
@@ -57,21 +85,38 @@ export const contentStorage = {
   },
 };
 
+export function getPublishedArray<T>(key: string): T[] {
+  const raw = contentStorage.getItem(key);
+  if (!raw) throw new Error(`Published content is missing ${key}.`);
+  const parsed = JSON.parse(raw);
+  if (!Array.isArray(parsed)) throw new Error(`Published content has an invalid ${key} collection.`);
+  return parsed as T[];
+}
+
 export async function refreshPublishedContent(): Promise<void> {
   if (dirty || saving) return;
   if (loading) return loading;
   const started = generation;
   loading = (async () => {
     try {
-      if (!supabase) throw new Error("Supabase is not configured.");
-      const { data, error } = await supabase
-        .from("vault_content")
-        .select("revision,content")
-        .eq("id", 1)
-        .single();
-      if (error) throw error;
+      let data: PublishedSnapshot;
+      if (useVercelBlob) {
+        const response = await fetch("/api/content", { cache: "no-store" });
+        if (!response.ok) throw new Error(`Published content request failed (${response.status}).`);
+        data = await response.json();
+        validateSnapshot(data.content);
+      } else {
+        if (!supabase) throw new Error("Supabase is not configured.");
+        const result = await supabase
+          .from("vault_content")
+          .select("revision,content")
+          .eq("id", 1)
+          .single();
+        if (result.error) throw result.error;
+        data = result.data;
+      }
       if (dirty || generation !== started) return;
-      if (revision !== data.revision) {
+      if (data.revision > revision) {
         content = data.content;
         revision = data.revision;
         announceContent();
@@ -126,6 +171,19 @@ export async function flushContentSave(): Promise<void> {
       const started = generation;
       const snapshot = { ...content };
       revision = await commitSnapshot(snapshot, revision, async (next, expected) => {
+        if (useVercelBlob) {
+          const response = await fetch("/api/content", {
+            method: "POST",
+            headers: {
+              "content-type": "application/json",
+              authorization: `Bearer ${await requireVaultToken()}`,
+            },
+            body: JSON.stringify({ expected_revision: expected, next_content: next }),
+          });
+          const result = await response.json();
+          if (!response.ok) throw new Error(result.error || `Save failed (${response.status}).`);
+          return result.revision as number;
+        }
         const { data, error } = await supabase!.rpc("save_vault_content", {
           expected_revision: expected,
           next_content: next,

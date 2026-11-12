@@ -245,7 +245,7 @@ async function main() {
       {
         path: "/graphic-design/posters/1306-GRAPHIC-DESIGN-POSTERS",
         mustInclude: ["1306-GRAPHIC-DESIGN-POSTERS", "/assets/"],
-        mustExclude: ["404"],
+        mustExclude: ["404 â€”", "Page not found"],
       },
       {
         path: "/video/echo-prime",
