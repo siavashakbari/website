@@ -3,7 +3,7 @@ import { useEffect, useLayoutEffect, useState } from "react";
 const useIsomorphicLayoutEffect = typeof window !== "undefined" ? useLayoutEffect : useEffect;
 import { Link, notFound, redirect, rootRouteId, useNavigate } from "@tanstack/react-router";
 import { ArrowLeft, ChevronLeft, ChevronRight, ExternalLink } from "lucide-react";
-import { projectBackButtonClass, projectBackButtonMobileClass } from "@/components/ui-types/project-navigation";
+import { projectBackButtonClass } from "@/components/ui-types/project-navigation";
 import {
   getPhotoItemBySlugOrCode,
   getPhotosByProject,
@@ -861,17 +861,6 @@ export function DedicatedPhotoView({ loaderData }: { loaderData: DedicatedPhotoL
 
   return (
     <div className="flex h-full md:h-[calc(100dvh-3.5rem)] md:max-h-[calc(100dvh-3.5rem)] flex-col bg-[#0F0F0F] text-foreground overflow-hidden">
-      {/* Match the project page's desktop back button placement. */}
-      <div className="mx-auto hidden w-full max-w-6xl shrink-0 justify-end px-4 pb-3 pt-12 lg:flex">
-        <Link
-          to={backUrl as any}
-          className={projectBackButtonClass}
-        >
-          <ArrowLeft className="h-4 w-4" />
-          <span className="capitalize">{backLabel}</span>
-        </Link>
-      </div>
-
       {/* Main Split: Media on Left, Info on Right */}
       <div className="flex-1 min-h-0 flex flex-col md:flex-row overflow-hidden">
         {/* Left Side: Media showcase with sibling navigation */}
@@ -921,17 +910,17 @@ export function DedicatedPhotoView({ loaderData }: { loaderData: DedicatedPhotoL
           <div className="space-y-6">
             {/* Top Project Context & Description */}
             <div className="space-y-2 pb-4 border-b border-white/10">
-              <div className="flex items-center justify-between">
+              <div className="flex flex-wrap items-center justify-between gap-2">
                 <Link
-                  to={galleryRoute as any}
-                  className="group inline-flex items-center gap-1.5 text-xs font-mono uppercase tracking-wider text-[#2CE3C0] hover:text-white transition-colors"
+                  to={backUrl as any}
+                  className={projectBackButtonClass}
                 >
-                  <span className="font-semibold">{photo.project || galleryRoute}</span>
-                  <ExternalLink className="w-3 h-3 text-[#2CE3C0] group-hover:text-white" />
+                  <ArrowLeft />
+                  <span className="capitalize">{backLabel}</span>
                 </Link>
-                <span className="text-[10px] font-mono text-neutral-500 uppercase tracking-widest">
-                  {photo.discipline}
-                </span>
+                <Link to={`/${disciplineSlug}` as any} className={projectBackButtonClass}>
+                  {photo.discipline || formatSlugLabel(disciplineSlug)}
+                </Link>
               </div>
               {projectDescription && (
                 <p className="text-xs text-neutral-300 leading-relaxed bg-white/[0.03] border border-white/5 p-3 rounded-xl mt-1.5">
@@ -1025,12 +1014,6 @@ export function DedicatedPhotoView({ loaderData }: { loaderData: DedicatedPhotoL
             </a>
           </div>
         </div>
-      </div>
-      <div className="flex w-full shrink-0 justify-center px-3 pb-4 lg:hidden">
-        <Link to={backUrl as any} className={projectBackButtonMobileClass}>
-          <ArrowLeft className="h-4 w-4" />
-          <span className="capitalize">{backLabel}</span>
-        </Link>
       </div>
     </div>
   );
