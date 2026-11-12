@@ -26,6 +26,7 @@ import { Route as AdminInvoicesRouteImport } from './routes/admin.invoices'
 import { Route as AdminProjectsRouteImport } from './routes/admin.projects'
 import { Route as ApiBrandDiscoveryRouteImport } from './routes/api.brand-discovery'
 import { Route as ApiContactRouteImport } from './routes/api.contact'
+import { Route as ApiStorageHealthRouteImport } from './routes/api.storage-health'
 import { Route as BlogIndexRouteImport } from './routes/blog.index'
 import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
 import { Route as VaultIndexRouteImport } from './routes/vault.index'
@@ -122,6 +123,11 @@ const ApiContactRoute = ApiContactRouteImport.update({
   path: '/api/contact',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiStorageHealthRoute = ApiStorageHealthRouteImport.update({
+  id: '/api/storage-health',
+  path: '/api/storage-health',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const BlogIndexRoute = BlogIndexRouteImport.update({
   id: '/blog/',
   path: '/blog/',
@@ -192,6 +198,7 @@ export interface FileRoutesByFullPath {
   '/admin/projects': typeof AdminProjectsRoute
   '/api/brand-discovery': typeof ApiBrandDiscoveryRoute
   '/api/contact': typeof ApiContactRoute
+  '/api/storage-health': typeof ApiStorageHealthRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/vault/blog': typeof VaultBlogRoute
   '/vault/invoices': typeof VaultInvoicesRoute
@@ -219,6 +226,7 @@ export interface FileRoutesByTo {
   '/admin/projects': typeof AdminProjectsRoute
   '/api/brand-discovery': typeof ApiBrandDiscoveryRoute
   '/api/contact': typeof ApiContactRoute
+  '/api/storage-health': typeof ApiStorageHealthRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/vault/blog': typeof VaultBlogRoute
   '/vault/invoices': typeof VaultInvoicesRoute
@@ -249,6 +257,7 @@ export interface FileRoutesById {
   '/admin/projects': typeof AdminProjectsRoute
   '/api/brand-discovery': typeof ApiBrandDiscoveryRoute
   '/api/contact': typeof ApiContactRoute
+  '/api/storage-health': typeof ApiStorageHealthRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/vault/blog': typeof VaultBlogRoute
   '/vault/invoices': typeof VaultInvoicesRoute
@@ -280,6 +289,7 @@ export interface FileRouteTypes {
     | '/admin/projects'
     | '/api/brand-discovery'
     | '/api/contact'
+    | '/api/storage-health'
     | '/blog/$slug'
     | '/vault/blog'
     | '/vault/invoices'
@@ -307,6 +317,7 @@ export interface FileRouteTypes {
     | '/admin/projects'
     | '/api/brand-discovery'
     | '/api/contact'
+    | '/api/storage-health'
     | '/blog/$slug'
     | '/vault/blog'
     | '/vault/invoices'
@@ -336,6 +347,7 @@ export interface FileRouteTypes {
     | '/admin/projects'
     | '/api/brand-discovery'
     | '/api/contact'
+    | '/api/storage-health'
     | '/blog/$slug'
     | '/vault/blog'
     | '/vault/invoices'
@@ -362,6 +374,7 @@ export interface RootRouteChildren {
   DisciplinePhotoIdRoute: typeof DisciplinePhotoIdRoute
   ApiBrandDiscoveryRoute: typeof ApiBrandDiscoveryRoute
   ApiContactRoute: typeof ApiContactRoute
+  ApiStorageHealthRoute: typeof ApiStorageHealthRoute
   BlogSlugRoute: typeof BlogSlugRoute
   DisciplineIndexRoute: typeof DisciplineIndexRoute
   BlogIndexRoute: typeof BlogIndexRoute
@@ -491,6 +504,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiContactRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/storage-health': {
+      id: '/api/storage-health'
+      path: '/api/storage-health'
+      fullPath: '/api/storage-health'
+      preLoaderRoute: typeof ApiStorageHealthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/blog/': {
       id: '/blog/'
       path: '/blog'
@@ -612,6 +632,7 @@ const rootRouteChildren: RootRouteChildren = {
   DisciplinePhotoIdRoute: DisciplinePhotoIdRoute,
   ApiBrandDiscoveryRoute: ApiBrandDiscoveryRoute,
   ApiContactRoute: ApiContactRoute,
+  ApiStorageHealthRoute: ApiStorageHealthRoute,
   BlogSlugRoute: BlogSlugRoute,
   DisciplineIndexRoute: DisciplineIndexRoute,
   BlogIndexRoute: BlogIndexRoute,
