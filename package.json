@@ -20,6 +20,7 @@
     "@tanstack/react-router": "^1.170.16",
     "@tanstack/react-start": "^1.169.4",
     "@tanstack/router-plugin": "^1.168.18",
+    "@vercel/blob": "^2.4.0",
     "clsx": "^2.1.1",
     "html-to-image": "^1.11.13",
     "jspdf": "^4.2.1",
