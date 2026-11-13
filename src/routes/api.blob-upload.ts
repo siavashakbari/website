@@ -8,9 +8,6 @@ export const Route = createFileRoute("/api/blob-upload")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        if (import.meta.env.VITE_VAULT_BACKEND === "supabase") {
-          return new Response("Vercel media storage is not active.", { status: 503 });
-        }
         try {
           const result = await handleUploadPresigned({
             request,

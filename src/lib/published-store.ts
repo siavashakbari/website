@@ -1,4 +1,4 @@
-import { supabase, requireVaultToken } from "./supabase-client";
+import { requireVaultToken } from "./supabase-client";
 import {
   commitSnapshot,
   PUBLIC_CONTENT_KEYS,
@@ -16,8 +16,7 @@ let saving = false;
 let loading: Promise<void> | null = null;
 let status = "Loading published content…";
 const publicKeys = new Set<string>(PUBLIC_CONTENT_KEYS);
-const useVercelBlob = import.meta.env.VITE_VAULT_BACKEND !== "supabase";
-export const isVercelContentBackend = useVercelBlob;
+export const isVercelContentBackend = true;
 
 type PublishedSnapshot = { revision: number; content: ContentSnapshot };
 declare global {
@@ -99,22 +98,10 @@ export async function refreshPublishedContent(): Promise<void> {
   const started = generation;
   loading = (async () => {
     try {
-      let data: PublishedSnapshot;
-      if (useVercelBlob) {
-        const response = await fetch("/api/content", { cache: "no-store" });
-        if (!response.ok) throw new Error(`Published content request failed (${response.status}).`);
-        data = await response.json();
-        validateSnapshot(data.content);
-      } else {
-        if (!supabase) throw new Error("Supabase is not configured.");
-        const result = await supabase
-          .from("vault_content")
-          .select("revision,content")
-          .eq("id", 1)
-          .single();
-        if (result.error) throw result.error;
-        data = result.data;
-      }
+      const response = await fetch("/api/content", { cache: "no-store" });
+      if (!response.ok) throw new Error(`Published content request failed (${response.status}).`);
+      const data = await response.json() as PublishedSnapshot;
+      validateSnapshot(data.content);
       if (dirty || generation !== started) return;
       if (data.revision > revision) {
         content = data.content;
@@ -171,25 +158,17 @@ export async function flushContentSave(): Promise<void> {
       const started = generation;
       const snapshot = { ...content };
       revision = await commitSnapshot(snapshot, revision, async (next, expected) => {
-        if (useVercelBlob) {
-          const response = await fetch("/api/content", {
-            method: "POST",
-            headers: {
-              "content-type": "application/json",
-              authorization: `Bearer ${await requireVaultToken()}`,
-            },
-            body: JSON.stringify({ expected_revision: expected, next_content: next }),
-          });
-          const result = await response.json();
-          if (!response.ok) throw new Error(result.error || `Save failed (${response.status}).`);
-          return result.revision as number;
-        }
-        const { data, error } = await supabase!.rpc("save_vault_content", {
-          expected_revision: expected,
-          next_content: next,
+        const response = await fetch("/api/content", {
+          method: "POST",
+          headers: {
+            "content-type": "application/json",
+            authorization: `Bearer ${await requireVaultToken()}`,
+          },
+          body: JSON.stringify({ expected_revision: expected, next_content: next }),
         });
-        if (error) throw new Error(error.message);
-        return data as number;
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || `Save failed (${response.status}).`);
+        return result.revision as number;
       });
       dirty = generation !== started;
       if (dirty) localStorage.setItem(OUTBOX, JSON.stringify({ revision, content }));

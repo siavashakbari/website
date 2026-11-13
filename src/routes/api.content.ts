@@ -10,7 +10,6 @@ export const Route = createFileRoute("/api/content")({
   server: {
     handlers: {
       GET: async () => {
-        if (import.meta.env.VITE_VAULT_BACKEND === "supabase") return json({ error: "Blob content is not active." }, 503);
         try {
           return json(await readVercelPublishedContent());
         } catch (error) {
@@ -19,7 +18,6 @@ export const Route = createFileRoute("/api/content")({
         }
       },
       POST: async ({ request }) => {
-        if (import.meta.env.VITE_VAULT_BACKEND === "supabase") return json({ error: "Blob content is not active." }, 503);
         try {
           await requireVaultAdmin(request);
         } catch {

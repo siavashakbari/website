@@ -9,7 +9,6 @@ export const Route = createFileRoute("/api/private-content")({
   server: {
     handlers: {
       GET: async ({ request }) => {
-        if (import.meta.env.VITE_VAULT_BACKEND === "supabase") return json({ error: "Private Blob content is not active." }, 503);
         try { await requireVaultAdmin(request); } catch { return json({ error: "Vault administrator access required." }, 401); }
         try { return json(await readVercelPrivateContent()); }
         catch (error) {
@@ -18,7 +17,6 @@ export const Route = createFileRoute("/api/private-content")({
         }
       },
       POST: async ({ request }) => {
-        if (import.meta.env.VITE_VAULT_BACKEND === "supabase") return json({ error: "Private Blob content is not active." }, 503);
         try { await requireVaultAdmin(request); } catch { return json({ error: "Vault administrator access required." }, 401); }
         try {
           const body = await request.json();

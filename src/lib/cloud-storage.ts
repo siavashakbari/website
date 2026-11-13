@@ -53,7 +53,7 @@ export async function uploadToCloudStorage(
   options: { contentType?: string; onProgress?: (percent: number) => void } = {},
 ): Promise<CloudUploadResult> {
   const contentType = options.contentType || blob.type || "application/octet-stream";
-  if (import.meta.env.VITE_VAULT_BACKEND !== "supabase" && contentType.startsWith("image/")) {
+  if (contentType.startsWith("image/")) {
     const clean = sanitizeFileName(fileName);
     const pathname = `images/${crypto.randomUUID()}-${clean}`;
     const uploaded = await uploadPresigned(pathname, blob, {
