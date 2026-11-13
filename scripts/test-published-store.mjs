@@ -14,15 +14,33 @@ test("an independent reader receives uploaded media metadata and page assignment
       {
         id: "vishnu",
         imgSrc: "https://storage.example/vishnu.mp4",
+        field: "video",
+        caption: "Moving image description",
         model: "Model",
         year: "2026",
         assignedRoute: "/video/vishnu",
+      },
+      {
+        id: "graphic-1",
+        imgSrc: "/assets/graphic.jpg",
+        field: "graphic-design",
+        caption: "Graphic design description",
+      },
+      {
+        id: "photo-1",
+        imgSrc: "/assets/photo.jpg",
+        field: "photography",
+        caption: "Photography description",
       },
     ]),
   };
   assert.equal(await commitSnapshot(data, 0, write), 1);
   const otherBrowser = structuredClone(server.data);
   assert.equal(JSON.parse(otherBrowser.siavash_vault_media_v2)[0].model, "Model");
+  assert.deepEqual(
+    JSON.parse(otherBrowser.siavash_vault_media_v2).map((item) => item.caption),
+    ["Moving image description", "Graphic design description", "Photography description"],
+  );
   await assert.rejects(commitSnapshot({}, 0, write));
   assert.deepEqual(server.data, data);
 });

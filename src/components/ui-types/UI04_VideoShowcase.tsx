@@ -101,7 +101,7 @@ export function UI04_VideoShowcase({
           <AnimatePresence>
             {activeVideo && (
               <div
-                className="fixed inset-0 z-[200] flex items-center justify-center p-3 sm:p-6"
+                className="fixed inset-0 z-[200] flex items-center justify-center p-[4px] md:p-6"
                 role="dialog"
                 aria-modal="true"
                 aria-label={activeVideo.title}
@@ -118,16 +118,16 @@ export function UI04_VideoShowcase({
                   animate={{ opacity: 1, scale: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.94, y: 15 }}
                   transition={{ type: "spring", stiffness: 350, damping: 28 }}
-                  className="relative z-10 flex max-h-[94dvh] max-w-[94vw] flex-col overflow-hidden rounded-[24px] border border-white/10 bg-black shadow-[0_25px_60px_-15px_rgba(0,0,0,0.95)] md:flex-row md:rounded-[30px]"
+                  className="relative z-10 flex max-h-[98dvh] max-w-[calc(100vw-8px)] flex-col overflow-hidden rounded-[24px] border border-white/10 bg-black shadow-[0_25px_60px_-15px_rgba(0,0,0,0.95)] md:max-h-[94dvh] md:max-w-[94vw] md:flex-row md:rounded-[30px]"
                   onClick={(e) => e.stopPropagation()}
                 >
                   <div
                     style={{
                       aspectRatio: `${currentRatio}`,
-                      "--video-mobile-width": `${58 * currentRatio}dvh`,
+                      "--video-mobile-width": `${76 * currentRatio}dvh`,
                       "--video-desktop-width": `${86 * currentRatio}dvh`,
                     } as CSSProperties}
-                    className="relative w-[min(94vw,var(--video-mobile-width))] shrink-0 overflow-hidden bg-black md:w-[min(calc(94vw-340px),var(--video-desktop-width))]"
+                    className="relative w-[min(calc(100vw-8px),var(--video-mobile-width))] shrink-0 overflow-hidden bg-black md:w-[min(calc(94vw-340px),var(--video-desktop-width))]"
                   >
                     {resolvedActiveSrc && (
                       <VideoPlayer
@@ -141,22 +141,22 @@ export function UI04_VideoShowcase({
                       />
                     )}
                   </div>
-                  <aside className="w-full max-h-[30dvh] overflow-y-auto border-t border-white/10 bg-[#0F0F0F] p-5 text-white md:max-h-[86dvh] md:w-[340px] md:border-l md:border-t-0 md:p-7">
-                    <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-[#2CE3C0]">
+                  <aside className="w-full max-h-[21dvh] overflow-y-auto border-t border-white/10 bg-[#0F0F0F] p-4 text-white md:max-h-[86dvh] md:w-[340px] md:border-l md:border-t-0 md:p-7">
+                    <p className="font-mono text-[7.5px] uppercase tracking-[0.18em] text-[#2CE3C0] md:text-[10px]">
                       {activeVideo.category || "Video"}
                     </p>
-                    <h2 className="mt-3 break-words font-display text-2xl leading-tight text-white">
+                    <h2 className="mt-3 break-words font-display text-lg leading-tight text-white md:text-2xl">
                       {activeVideo.title}
                     </h2>
                     {vaultMedia?.caption?.trim() && (
-                      <p className="mt-5 whitespace-pre-line break-words text-sm leading-relaxed text-neutral-300">
+                      <p className="mt-5 whitespace-pre-line break-words text-[10.5px] leading-relaxed text-neutral-300 md:text-sm">
                         {vaultMedia.caption.trim()}
                       </p>
                     )}
                     {detailPairs.length > 0 && (
                       <dl className="mt-6 divide-y divide-white/10 border-t border-white/10">
                         {detailPairs.map((pair, index) => (
-                          <div key={`${pair.key}-${index}`} className="grid grid-cols-[90px_1fr] gap-3 py-3 text-xs">
+                          <div key={`${pair.key}-${index}`} className="grid grid-cols-[90px_1fr] gap-3 py-3 text-[9px] md:text-xs">
                             <dt className="break-words font-mono uppercase tracking-wider text-neutral-500">
                               {pair.key}
                             </dt>

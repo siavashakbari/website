@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import {
   Image as ImageIcon,
   Plus,
@@ -39,7 +39,7 @@ import { processMediaUpload, type SizedMediaResult } from "@/lib/media-sizing";
 import { publishInlineMedia, uploadToCloudStorage } from "@/lib/cloud-storage";
 import { queueMediaCleanup, retryPendingMediaCleanup, runMediaCleanup } from "@/lib/media-cleanup";
 import { managedMediaFromUrl } from "@/lib/managed-media";
-import { waitForPublishedContentSave } from "@/lib/published-store";
+import { retryContentSave, waitForPublishedContentSave } from "@/lib/published-store";
 import { resolveVideoPoster, useResolvedMediaSrc } from "@/lib/local-media-db";
 
 export const Route = createFileRoute("/vault/media")({
@@ -752,7 +752,7 @@ function VaultMediaView() {
                   value={newCaption}
                   onChange={(e) => setNewCaption(e.target.value)}
                   rows={3}
-                  placeholder="Shown in the video details panel"
+                  placeholder="Description for this photo, graphic, or video"
                   className="w-full resize-y bg-black/60 border border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-[#2CE3C0]"
                 />
               </div>
@@ -919,6 +919,27 @@ function MediaCard({
   onCopyCode,
   isCopied,
 }: MediaCardProps) {
+  const [descriptionDraft, setDescriptionDraft] = useState(item.caption || "");
+  const [descriptionState, setDescriptionState] = useState<"idle" | "saving" | "saved" | "error">("idle");
+  const lastCaption = useRef(item.caption || "");
+  useEffect(() => {
+    const next = item.caption || "";
+    setDescriptionDraft((current) => current === lastCaption.current ? next : current);
+    lastCaption.current = next;
+  }, [item.caption]);
+  const descriptionChanged = descriptionDraft !== (item.caption || "");
+  const saveDescription = async () => {
+    if ((!descriptionChanged && descriptionState !== "error") || descriptionState === "saving") return;
+    setDescriptionState("saving");
+    try {
+      if (descriptionChanged) onUpdateMedia(item, { caption: descriptionDraft });
+      else await retryContentSave();
+      await waitForPublishedContentSave();
+      setDescriptionState("saved");
+    } catch {
+      setDescriptionState("error");
+    }
+  };
   const isFlatField = FLAT_FIELDS.has((item.field || "").toLowerCase());
 
   // Cascading options derived from Pages:
@@ -1085,16 +1106,36 @@ function MediaCard({
           </div>
 
           <div className="space-y-1">
-            <label className="block text-[10px] font-mono uppercase tracking-wider text-neutral-500">
+            <label htmlFor={`media-description-${item.id}`} className="block text-[10px] font-mono uppercase tracking-wider text-neutral-500">
               Description
             </label>
             <textarea
-              value={item.caption || ""}
-              onChange={(e) => onUpdateMedia(item, { caption: e.target.value })}
+              id={`media-description-${item.id}`}
+              value={descriptionDraft}
+              onChange={(e) => {
+                setDescriptionDraft(e.target.value);
+                setDescriptionState("idle");
+              }}
               rows={3}
-              placeholder="Shown next to the video when opened"
+              placeholder="Description for this photo, graphic, or video"
               className="w-full resize-y bg-black/60 border border-white/10 rounded-lg px-2.5 py-2 text-xs text-white focus:outline-none focus:border-[#2CE3C0]"
             />
+            <div className="flex items-center justify-between gap-2 pt-1">
+              <span className="text-[10px] text-neutral-500" role="status">
+                {descriptionState === "saving" ? "Saving to server..." :
+                 descriptionState === "error" ? "Not saved. Retry below." :
+                 descriptionChanged ? "Unsaved description" :
+                 descriptionState === "saved" ? "Saved to server" : ""}
+              </span>
+              <button
+                type="button"
+                onClick={() => void saveDescription()}
+                disabled={(!descriptionChanged && descriptionState !== "error") || descriptionState === "saving"}
+                className="rounded-lg border border-[#2CE3C0]/40 px-2.5 py-1.5 text-[10px] font-mono text-[#2CE3C0] hover:bg-[#2CE3C0]/10 disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                Save description
+              </button>
+            </div>
           </div>
 
           {/* 3 Cascading Project Assigning Dropdowns */}

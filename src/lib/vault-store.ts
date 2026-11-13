@@ -51,7 +51,7 @@ export interface VaultMediaItem {
   model?: string;
   makeupArtist?: string;
   assistant?: string;
-  caption?: string;
+  caption: string;
   isHidden: boolean;
   pairedBoxes: KeyValuePair[];
   isVideo: boolean;
@@ -998,7 +998,7 @@ export function getInitialScannedMedia(): VaultMediaItem[] {
       model: p.model,
       makeupArtist: p.makeupArtist,
       assistant: p.assistant,
-      caption: p.caption,
+      caption: p.caption || "",
       isHidden: false,
       pairedBoxes,
       isVideo: isVideoMediaSrc(p.imgSrc),
@@ -2004,6 +2004,9 @@ export function ensureMediaItemDynamicFields(item: VaultMediaItem): VaultMediaIt
 
   return {
     ...item,
+    // Every Vault media type has the same editable description field. Older
+    // records without one are normalized before they are saved again.
+    caption: item.caption ?? "",
     uniqueCode: uCode,
     dynamicCode,
     field,
