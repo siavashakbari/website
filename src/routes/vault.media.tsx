@@ -165,24 +165,7 @@ function VaultMediaView() {
       nextProject,
     );
 
-    const ext = extFromMediaSrc(item.imgSrc);
-    const dynamicFileName = `${dynamicCode}${ext}`;
-
-    let nextTitle: string;
-    if (updates.title !== undefined) {
-      nextTitle = updates.title;
-    } else if (
-      !item.title ||
-      new RegExp(`^${item.uniqueCode}-[A-Z0-9-]+(\\.(JPG|JPEG|PNG|WEBP|GIF|MP4|WEBM|MOV))?$`, "i").test(item.title) ||
-      item.title === item.project ||
-      item.title.includes("—") ||
-      item.title.toLowerCase().startsWith("media ") ||
-      item.title.toLowerCase().startsWith("frame ")
-    ) {
-      nextTitle = dynamicFileName;
-    } else {
-      nextTitle = item.title;
-    }
+    const nextTitle = updates.title !== undefined ? updates.title : item.title;
 
     const pairValue = (keys: string[]) => {
       if (!updates.pairedBoxes) return undefined;
@@ -199,6 +182,7 @@ function VaultMediaView() {
       assignedRoute,
       dynamicCode,
       title: nextTitle,
+      titleModifiedByUser: updates.title !== undefined ? true : item.titleModifiedByUser,
       ...(updates.pairedBoxes
         ? {
             client: pairValue(["client"]),
@@ -351,6 +335,7 @@ function VaultMediaView() {
         project,
         assignedRoute,
         title: dynamicTitle,
+        titleModifiedByUser: Boolean(newTitle.trim()),
         caption: newCaption.trim(),
         year: new Date().getFullYear().toString(),
         isHidden: false,
@@ -919,6 +904,26 @@ function MediaCard({
   onCopyCode,
   isCopied,
 }: MediaCardProps) {
+  const [titleDraft, setTitleDraft] = useState(item.title);
+  const [titleState, setTitleState] = useState<"idle" | "saving" | "saved" | "error">("idle");
+  const lastTitle = useRef(item.title);
+  useEffect(() => {
+    setTitleDraft((current) => current === lastTitle.current ? item.title : current);
+    lastTitle.current = item.title;
+  }, [item.title]);
+  const titleChanged = titleDraft !== item.title;
+  const saveTitle = async () => {
+    if ((!titleChanged && titleState !== "error") || titleState === "saving") return;
+    setTitleState("saving");
+    try {
+      if (titleChanged) onUpdateMedia(item, { title: titleDraft });
+      else await retryContentSave();
+      await waitForPublishedContentSave();
+      setTitleState("saved");
+    } catch {
+      setTitleState("error");
+    }
+  };
   const [descriptionDraft, setDescriptionDraft] = useState(item.caption || "");
   const [descriptionState, setDescriptionState] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const lastCaption = useRef(item.caption || "");
@@ -1099,10 +1104,29 @@ function MediaCard({
             </label>
             <input
               type="text"
-              value={item.title}
-              onChange={(e) => onUpdateMedia(item, { title: e.target.value })}
+              value={titleDraft}
+              onChange={(e) => {
+                setTitleDraft(e.target.value);
+                setTitleState("idle");
+              }}
               className="w-full bg-black/60 border border-white/10 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-[#2CE3C0]"
             />
+            <div className="flex items-center justify-between gap-2 pt-1">
+              <span className="text-[10px] text-neutral-500" role="status">
+                {titleState === "saving" ? "Saving to server..." :
+                 titleState === "error" ? "Not saved. Retry below." :
+                 titleChanged ? "Unsaved title" :
+                 titleState === "saved" ? "Saved to server" : ""}
+              </span>
+              <button
+                type="button"
+                onClick={() => void saveTitle()}
+                disabled={(!titleChanged && titleState !== "error") || titleState === "saving"}
+                className="rounded-lg border border-[#2CE3C0]/40 px-2.5 py-1.5 text-[10px] font-mono text-[#2CE3C0] hover:bg-[#2CE3C0]/10 disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                Save title
+              </button>
+            </div>
           </div>
 
           <div className="space-y-1">

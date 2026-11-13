@@ -18,6 +18,7 @@ import {
   normalizeProjectSlug,
 } from "@/lib/taxonomy";
 import { notifyStudioStoreUpdated } from "@/lib/studio-store";
+import { resolveMediaTitle } from "@/lib/media-title";
 
 export interface VaultPageItem {
   id: string;
@@ -46,6 +47,7 @@ export interface VaultMediaItem {
   project: string;      // e.g. "sepidar" ("" for Posters)
   assignedRoute: string; // e.g. "/photography/fashion-photography/sepidar"
   title: string;
+  titleModifiedByUser?: boolean;
   year: string;
   client?: string;
   model?: string;
@@ -1985,22 +1987,7 @@ export function ensureMediaItemDynamicFields(item: VaultMediaItem): VaultMediaIt
   const assignedRoute = buildAssignedRoute(field, category, project);
 
   const ext = extFromMediaSrc(item.imgSrc);
-  const dynamicFileName = `${dynamicCode}${ext}`;
-
-  // Keep title in sync with dynamicCode + extension if it's auto-generated or empty
-  let title = item.title || "";
-  const isAutoDynamicTitle =
-    !title ||
-    new RegExp(`^${uCode}-[A-Z0-9-]+(\\.(JPG|JPEG|PNG|WEBP|GIF|MP4|WEBM|MOV))?$`, "i").test(title) ||
-    title === item.project ||
-    title === item.uniqueCode ||
-    title.includes("—") ||
-    title.toLowerCase().startsWith("media ") ||
-    title.toLowerCase().startsWith("frame ");
-
-  if (isAutoDynamicTitle) {
-    title = dynamicFileName;
-  }
+  const title = resolveMediaTitle({ ...item, uniqueCode: uCode }, dynamicCode, ext);
 
   return {
     ...item,
