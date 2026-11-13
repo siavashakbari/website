@@ -50,6 +50,7 @@ function AdminInvoicesView() {
   const [privateReady, setPrivateReady] = useState(!isVercelContentBackend);
   const [privateBusy, setPrivateBusy] = useState(false);
   const [privateError, setPrivateError] = useState("");
+  const [privateMessage, setPrivateMessage] = useState("");
   const canvasRef = useRef<HTMLDivElement>(null);
 
   // Bank cards presets
@@ -126,11 +127,16 @@ function AdminInvoicesView() {
   const importLocalPrivateData = async () => {
     setPrivateBusy(true);
     setPrivateError("");
+    setPrivateMessage("");
     try {
       const existing = await loadPrivateVaultContent();
       const localInvoices = readLocalCollection<InvoiceData[]>(STORAGE_INVOICES_KEY, []);
       const localCards = readLocalCollection<BankInfo[]>(STORAGE_BANK_CARDS_KEY, []);
       const localPreset = readLocalCollection<InvoiceData | null>(STORAGE_DEFAULT_PRESET_KEY, null);
+      if (!localInvoices.length && !localCards.length && !localPreset) {
+        setPrivateMessage("No older invoices or card presets were found in this browser. Your Vercel Vault is already up to date.");
+        return;
+      }
       const invoicesById = new Map((existing?.data.invoices || []).map((invoice) => [invoice.id, invoice]));
       for (const invoice of localInvoices) invoicesById.set(invoice.id, invoice);
       const cardsById = new Map((existing?.data.savedCards || []).map((card) => [card.id || card.cardNumber, card]));
@@ -146,6 +152,7 @@ function AdminInvoicesView() {
       setSavedCards(data.savedCards);
       setDefaultPreset(data.defaultPreset);
       setCurrentInvoice(data.defaultPreset || data.invoices[0] || INITIAL_INVOICE_DATA);
+      setPrivateMessage(`Checked ${localInvoices.length} invoice${localInvoices.length === 1 ? "" : "s"} and ${localCards.length} card preset${localCards.length === 1 ? "" : "s"} from this browser. Your Vercel Vault is up to date.`);
     } catch (error) {
       setPrivateError(error instanceof Error ? error.message : "Could not import this browser's private data.");
     } finally {
@@ -306,15 +313,16 @@ function AdminInvoicesView() {
           {!privateReady ? "Loading private Vault data..." : privateRevision === null ? (
             <div className="space-y-3">
               <p>Private invoice data has not been moved to Vercel yet. Open this page in the browser where you created your invoices, then import it once.</p>
-              <button type="button" disabled={privateBusy} onClick={importLocalPrivateData} className="rounded-lg bg-[#2CE3C0] px-3 py-2 font-semibold text-black disabled:opacity-50">Import this browser's invoices and cards</button>
+              <button type="button" disabled={privateBusy} onClick={importLocalPrivateData} className="rounded-lg bg-[#2CE3C0] px-3 py-2 font-semibold text-black disabled:opacity-50">{privateBusy ? "Checking this browser..." : "Import this browser's invoices and cards"}</button>
             </div>
           ) : (
             <div className="flex flex-wrap items-center justify-between gap-3">
               <span>Invoices and saved cards are stored in your private Vercel Vault.</span>
-              <button type="button" disabled={privateBusy} onClick={importLocalPrivateData} className="text-[#2CE3C0] underline disabled:opacity-50">Import older records from this browser</button>
+              <button type="button" disabled={privateBusy} onClick={importLocalPrivateData} className="text-[#2CE3C0] underline disabled:opacity-50">{privateBusy ? "Checking this browser..." : "Import older records from this browser"}</button>
             </div>
           )}
           {privateError && <p role="alert" className="mt-2 text-red-300">{privateError}</p>}
+          {privateMessage && <p role="status" className="mt-2 text-[#2CE3C0]">{privateMessage}</p>}
         </div>
       )}
       {/* Studio Header */}
