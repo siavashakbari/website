@@ -1,4 +1,4 @@
-import { BlobNotFoundError, BlobPreconditionFailedError, get, put } from "@vercel/blob";
+import { BlobNotFoundError, BlobPreconditionFailedError, get, head, put } from "@vercel/blob";
 import type { BankInfo, InvoiceData } from "@/types/invoice";
 import { blobCredentials } from "./blob-credentials.server";
 
@@ -50,6 +50,10 @@ export async function saveVercelPrivateContent(data: PrivateVaultData, expectedR
   if (current ? current.snapshot.revision !== expectedRevision : expectedRevision !== -1) {
     throw new Error("Newer private Vault changes exist. Reload before saving.");
   }
+  const metadata = current ? await head(PATH, { ...blobCredentials() }) : null;
+  if (current && metadata?.etag !== current.etag.replace(/^W\//, "")) {
+    throw new Error("Newer private Vault changes exist. Reload before saving.");
+  }
   const revision = expectedRevision + 1;
   try {
     await put(PATH, JSON.stringify({ revision, data }), {
@@ -57,7 +61,7 @@ export async function saveVercelPrivateContent(data: PrivateVaultData, expectedR
       ...blobCredentials(),
       contentType: "application/json",
       allowOverwrite: Boolean(current),
-      ifMatch: current?.etag,
+      ifMatch: metadata?.etag,
     });
   } catch (error) {
     if (error instanceof BlobPreconditionFailedError) {

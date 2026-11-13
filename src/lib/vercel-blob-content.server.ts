@@ -1,4 +1,4 @@
-import { BlobNotFoundError, BlobPreconditionFailedError, get, put } from "@vercel/blob";
+import { BlobNotFoundError, BlobPreconditionFailedError, get, head, put } from "@vercel/blob";
 import { validateSnapshot, type ContentSnapshot } from "./published-store-core";
 import { blobCredentials } from "./blob-credentials.server";
 
@@ -46,6 +46,12 @@ export async function saveVercelPublishedContent(
   if (!current || current.snapshot.revision !== expectedRevision) {
     throw new Error("Newer changes exist on the server. Reload before saving.");
   }
+  // Private GET has a weak CDN ETag (W/"..."). If-Match requires the strong
+  // object ETag returned by HEAD. Check they identify the same version.
+  const metadata = await head(PUBLIC_CONTENT_PATH, { ...blobCredentials() });
+  if (metadata.etag !== current.etag.replace(/^W\//, "")) {
+    throw new Error("Newer changes exist on the server. Reload before saving.");
+  }
   const nextRevision = expectedRevision + 1;
   try {
     await put(PUBLIC_CONTENT_PATH, JSON.stringify({ revision: nextRevision, content: nextContent }), {
@@ -53,7 +59,7 @@ export async function saveVercelPublishedContent(
       ...blobCredentials(),
       contentType: "application/json",
       allowOverwrite: true,
-      ifMatch: current.etag,
+      ifMatch: metadata.etag,
     });
   } catch (error) {
     if (error instanceof BlobPreconditionFailedError) {
