@@ -21,6 +21,15 @@ uploads ending in `.mp4`, `.webm`, or `.mov`. The old Supabase `vault_content`
 table and publishing function have been removed after archiving their contents
 inside the private Vercel store.
 
+Deleting a Vault-managed upload publishes the media removal first, then
+`/api/media-cleanup` removes its file from Blob or Supabase Storage. The API
+checks every published content collection and retains files still used by
+another page, blog, or media item. Failed cleanup is queued in the deleting
+browser and retried on the next Vault Media visit. Files bundled from Git and
+external URLs cannot be erased by a Vault content edit; the delete dialog
+identifies those cases. Supabase video deletion requires the administrator
+select/delete policies in `20261113_vault_video_delete.sql`.
+
 ## Runtime configuration
 
 - Vercel connects the private Blob store to the project for Production. New

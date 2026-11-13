@@ -182,6 +182,30 @@ export async function flushContentSave(): Promise<void> {
   }
 }
 
+/** Wait for the server acknowledgement before deleting an uploaded file. */
+export async function waitForPublishedContentSave(): Promise<void> {
+  await flushContentSave();
+  if (saving) {
+    await new Promise<void>((resolve, reject) => {
+      const timeout = window.setTimeout(() => {
+        window.removeEventListener(CONTENT_STATUS_EVENT, onStatus);
+        reject(new Error("Timed out waiting for the server save."));
+      }, 60000);
+      const onStatus = () => {
+        if (dirty && !status.startsWith("Not saved")) return;
+        window.clearTimeout(timeout);
+        window.removeEventListener(CONTENT_STATUS_EVENT, onStatus);
+        resolve();
+      };
+      window.addEventListener(CONTENT_STATUS_EVENT, onStatus);
+      queueMicrotask(onStatus);
+    });
+  }
+  if (dirty || status !== "Saved to server") {
+    throw new Error(status);
+  }
+}
+
 /** Resume only the queued save, never historical localStorage collections. */
 export async function retryContentSave() {
   if (saving) return;

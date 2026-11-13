@@ -29,6 +29,7 @@ import { Route as ApiBlobUploadRouteImport } from './routes/api.blob-upload'
 import { Route as ApiBrandDiscoveryRouteImport } from './routes/api.brand-discovery'
 import { Route as ApiContactRouteImport } from './routes/api.contact'
 import { Route as ApiContentRouteImport } from './routes/api.content'
+import { Route as ApiMediaCleanupRouteImport } from './routes/api.media-cleanup'
 import { Route as ApiPrivateContentRouteImport } from './routes/api.private-content'
 import { Route as BlogIndexRouteImport } from './routes/blog.index'
 import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
@@ -141,6 +142,11 @@ const ApiContentRoute = ApiContentRouteImport.update({
   path: '/api/content',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiMediaCleanupRoute = ApiMediaCleanupRouteImport.update({
+  id: '/api/media-cleanup',
+  path: '/api/media-cleanup',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPrivateContentRoute = ApiPrivateContentRouteImport.update({
   id: '/api/private-content',
   path: '/api/private-content',
@@ -219,6 +225,7 @@ export interface FileRoutesByFullPath {
   '/api/brand-discovery': typeof ApiBrandDiscoveryRoute
   '/api/contact': typeof ApiContactRoute
   '/api/content': typeof ApiContentRoute
+  '/api/media-cleanup': typeof ApiMediaCleanupRoute
   '/api/private-content': typeof ApiPrivateContentRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/vault/blog': typeof VaultBlogRoute
@@ -250,6 +257,7 @@ export interface FileRoutesByTo {
   '/api/brand-discovery': typeof ApiBrandDiscoveryRoute
   '/api/contact': typeof ApiContactRoute
   '/api/content': typeof ApiContentRoute
+  '/api/media-cleanup': typeof ApiMediaCleanupRoute
   '/api/private-content': typeof ApiPrivateContentRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/vault/blog': typeof VaultBlogRoute
@@ -284,6 +292,7 @@ export interface FileRoutesById {
   '/api/brand-discovery': typeof ApiBrandDiscoveryRoute
   '/api/contact': typeof ApiContactRoute
   '/api/content': typeof ApiContentRoute
+  '/api/media-cleanup': typeof ApiMediaCleanupRoute
   '/api/private-content': typeof ApiPrivateContentRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/vault/blog': typeof VaultBlogRoute
@@ -319,6 +328,7 @@ export interface FileRouteTypes {
     | '/api/brand-discovery'
     | '/api/contact'
     | '/api/content'
+    | '/api/media-cleanup'
     | '/api/private-content'
     | '/blog/$slug'
     | '/vault/blog'
@@ -350,6 +360,7 @@ export interface FileRouteTypes {
     | '/api/brand-discovery'
     | '/api/contact'
     | '/api/content'
+    | '/api/media-cleanup'
     | '/api/private-content'
     | '/blog/$slug'
     | '/vault/blog'
@@ -383,6 +394,7 @@ export interface FileRouteTypes {
     | '/api/brand-discovery'
     | '/api/contact'
     | '/api/content'
+    | '/api/media-cleanup'
     | '/api/private-content'
     | '/blog/$slug'
     | '/vault/blog'
@@ -413,6 +425,7 @@ export interface RootRouteChildren {
   ApiBrandDiscoveryRoute: typeof ApiBrandDiscoveryRoute
   ApiContactRoute: typeof ApiContactRoute
   ApiContentRoute: typeof ApiContentRoute
+  ApiMediaCleanupRoute: typeof ApiMediaCleanupRoute
   ApiPrivateContentRoute: typeof ApiPrivateContentRoute
   BlogSlugRoute: typeof BlogSlugRoute
   DisciplineIndexRoute: typeof DisciplineIndexRoute
@@ -564,6 +577,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiContentRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/media-cleanup': {
+      id: '/api/media-cleanup'
+      path: '/api/media-cleanup'
+      fullPath: '/api/media-cleanup'
+      preLoaderRoute: typeof ApiMediaCleanupRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/private-content': {
       id: '/api/private-content'
       path: '/api/private-content'
@@ -695,6 +715,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiBrandDiscoveryRoute: ApiBrandDiscoveryRoute,
   ApiContactRoute: ApiContactRoute,
   ApiContentRoute: ApiContentRoute,
+  ApiMediaCleanupRoute: ApiMediaCleanupRoute,
   ApiPrivateContentRoute: ApiPrivateContentRoute,
   BlogSlugRoute: BlogSlugRoute,
   DisciplineIndexRoute: DisciplineIndexRoute,

@@ -37,6 +37,9 @@ import {
 import { PairedBoxesEditor, type KeyValuePair } from "@/components/vault/PairedBoxesEditor";
 import { processMediaUpload, type SizedMediaResult } from "@/lib/media-sizing";
 import { publishInlineMedia, uploadToCloudStorage } from "@/lib/cloud-storage";
+import { queueMediaCleanup, retryPendingMediaCleanup, runMediaCleanup } from "@/lib/media-cleanup";
+import { managedMediaFromUrl } from "@/lib/managed-media";
+import { waitForPublishedContentSave } from "@/lib/published-store";
 import { resolveVideoPoster, useResolvedMediaSrc } from "@/lib/local-media-db";
 
 export const Route = createFileRoute("/vault/media")({
@@ -70,6 +73,7 @@ function VaultMediaView() {
   const [uploadingFile, setUploadingFile] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<{ percent: number; message: string } | null>(null);
   const [savingMedia, setSavingMedia] = useState(false);
+  const [deletingMediaId, setDeletingMediaId] = useState<string | null>(null);
   const [deletedCounts, setDeletedCounts] = useState({ pages: 0, media: 0 });
   const [newSizedMedia, setNewSizedMedia] = useState<SizedMediaResult | null>(null);
   const [newExternalUrl, setNewExternalUrl] = useState("");
@@ -87,6 +91,9 @@ function VaultMediaView() {
 
   useEffect(() => {
     refreshData();
+    void retryPendingMediaCleanup().catch((error) => {
+      console.warn("Pending media cleanup will retry on the next Vault visit:", error);
+    });
     return subscribeToVaultStore(() => {
       refreshData();
     });
@@ -111,14 +118,25 @@ function VaultMediaView() {
     saveVaultMedia(updated);
   };
 
-  // Delete media: removes built-in or custom media from Vault + website & frees uniqueCode
-  const handleDeleteMedia = (item: VaultMediaItem) => {
-    if (
-      window.confirm(
-        `Delete media ${item.dynamicCode}? It will be removed from both the Vault and live website (its 4-digit code ${item.uniqueCode} will be freed).`,
-      )
-    ) {
+  // Publish the removal before freeing the underlying upload.
+  const handleDeleteMedia = async (item: VaultMediaItem) => {
+    if (deletingMediaId) return;
+    const sources = [item.imgSrc, item.thumbSrc];
+    const managed = sources.filter((source) => source && managedMediaFromUrl(source));
+    const note = managed.length
+      ? "Its uploaded file will also be permanently deleted from storage if nothing else uses it."
+      : "This file is built into a deployment or hosted elsewhere, so Vault cannot erase the original file.";
+    if (!window.confirm(`Delete media ${item.dynamicCode} from the website? ${note}`)) return;
+    setDeletingMediaId(item.id);
+    try {
+      const queued = queueMediaCleanup(sources);
       deleteVaultMedia(item.id);
+      await waitForPublishedContentSave();
+      for (const source of queued) await runMediaCleanup([source]);
+    } catch (error) {
+      alert(`Media removal is not fully finished: ${error instanceof Error ? error.message : String(error)}. The Vault will retry file cleanup on your next visit.`);
+    } finally {
+      setDeletingMediaId(null);
     }
   };
 
