@@ -1,10 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, type CSSProperties } from "react";
 import { createPortal } from "react-dom";
 import { Play } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { VideoPlayer } from "@/components/ui/video-player";
 import { metaFromSrc } from "@/lib/adaptive-image";
 import { useResolvedMediaSrc } from "@/lib/local-media-db";
+import { getVaultMedia } from "@/lib/vault-store";
 
 export interface VideoShowcaseItem {
   id: string;
@@ -29,9 +30,11 @@ export function UI04_VideoShowcase({
   items,
   emptyMessage = "No videos currently available.",
 }: UI04_VideoShowcaseProps) {
-  const [activeVideo, setActiveVideo] = useState<VideoShowcaseItem | null>(null);
+  const [activeVideoId, setActiveVideoId] = useState<string | null>(null);
   const [videoRatio, setVideoRatio] = useState<number | null>(null);
   const [mounted, setMounted] = useState(false);
+  const activeVideo = items.find((item) => item.id === activeVideoId) || null;
+  const vaultMedia = activeVideo ? getVaultMedia().find((item) => item.id === activeVideo.id) : undefined;
   const resolvedActiveSrc = useResolvedMediaSrc(activeVideo?.src);
 
   useEffect(() => {
@@ -41,7 +44,7 @@ export function UI04_VideoShowcase({
   const handleSelectVideo = (item: VideoShowcaseItem) => {
     const initialRatio = item.aspectRatio || metaFromSrc(item.src).ratio || 0.5625;
     setVideoRatio(initialRatio);
-    setActiveVideo(item);
+    setActiveVideoId(item.id);
   };
 
   useEffect(() => {
@@ -49,14 +52,14 @@ export function UI04_VideoShowcase({
     const prevOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setActiveVideo(null);
+      if (e.key === "Escape") setActiveVideoId(null);
     };
     window.addEventListener("keydown", onKeyDown);
     return () => {
       document.body.style.overflow = prevOverflow;
       window.removeEventListener("keydown", onKeyDown);
     };
-  }, [activeVideo]);
+  }, [activeVideo?.id]);
 
   if (!items || items.length === 0) {
     return (
@@ -68,6 +71,21 @@ export function UI04_VideoShowcase({
 
   const currentRatio =
     videoRatio || (activeVideo ? metaFromSrc(activeVideo.src).ratio : 0.5625) || 0.5625;
+  const year = vaultMedia?.year || activeVideo?.year;
+  const detailPairs = (vaultMedia?.pairedBoxes || []).filter(
+    (pair) => pair.key?.trim() && pair.value?.trim(),
+  );
+  const hasPair = (keys: string[]) => detailPairs.some((pair) =>
+    keys.includes(pair.key.trim().toLowerCase()),
+  );
+  const addFallback = (key: string, value: string | undefined, aliases: string[]) => {
+    if (value?.trim() && !hasPair(aliases)) detailPairs.push({ key, value: value.trim() });
+  };
+  addFallback("Year", year, ["year", "date", "year / date"]);
+  addFallback("Client", vaultMedia?.client, ["client"]);
+  addFallback("Model", vaultMedia?.model, ["model", "models"]);
+  addFallback("Makeup artist", vaultMedia?.makeupArtist, ["makeup artist", "mua"]);
+  addFallback("Assistant", vaultMedia?.assistant, ["assistant"]);
 
   return (
     <div className="w-full px-[13px] sm:px-[20px]">
@@ -83,8 +101,11 @@ export function UI04_VideoShowcase({
           <AnimatePresence>
             {activeVideo && (
               <div
-                className="fixed inset-0 z-[200] flex items-center justify-center p-4 sm:p-8"
-                onClick={() => setActiveVideo(null)}
+                className="fixed inset-0 z-[200] flex items-center justify-center p-3 sm:p-6"
+                role="dialog"
+                aria-modal="true"
+                aria-label={activeVideo.title}
+                onClick={() => setActiveVideoId(null)}
               >
                 <motion.div
                   initial={{ opacity: 0 }}
@@ -97,25 +118,56 @@ export function UI04_VideoShowcase({
                   animate={{ opacity: 1, scale: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.94, y: 15 }}
                   transition={{ type: "spring", stiffness: 350, damping: 28 }}
-                  style={{
-                    aspectRatio: `${currentRatio}`,
-                    maxWidth: `min(90vw, calc(86vh * ${currentRatio}))`,
-                    maxHeight: "86vh",
-                  }}
-                  className="relative z-10 w-full rounded-[30px] overflow-hidden bg-black shadow-[0_25px_60px_-15px_rgba(0,0,0,0.95)] border border-white/10 flex items-center justify-center"
+                  className="relative z-10 flex max-h-[94dvh] max-w-[94vw] flex-col overflow-hidden rounded-[24px] border border-white/10 bg-black shadow-[0_25px_60px_-15px_rgba(0,0,0,0.95)] md:flex-row md:rounded-[30px]"
                   onClick={(e) => e.stopPropagation()}
                 >
-                  {resolvedActiveSrc && (
-                    <VideoPlayer
-                      src={resolvedActiveSrc}
-                      title={activeVideo.title}
-                      autoPlay
-                      loop
-                      onClose={() => setActiveVideo(null)}
-                      onRatioChange={(r) => setVideoRatio(r)}
-                      className="w-full h-full"
-                    />
-                  )}
+                  <div
+                    style={{
+                      aspectRatio: `${currentRatio}`,
+                      "--video-mobile-width": `${58 * currentRatio}dvh`,
+                      "--video-desktop-width": `${86 * currentRatio}dvh`,
+                    } as CSSProperties}
+                    className="relative w-[min(94vw,var(--video-mobile-width))] shrink-0 overflow-hidden bg-black md:w-[min(calc(94vw-340px),var(--video-desktop-width))]"
+                  >
+                    {resolvedActiveSrc && (
+                      <VideoPlayer
+                        src={resolvedActiveSrc}
+                        title={activeVideo.title}
+                        autoPlay
+                        loop
+                        onClose={() => setActiveVideoId(null)}
+                        onRatioChange={(r) => setVideoRatio(r)}
+                        className="w-full h-full"
+                      />
+                    )}
+                  </div>
+                  <aside className="w-full max-h-[30dvh] overflow-y-auto border-t border-white/10 bg-[#0F0F0F] p-5 text-white md:max-h-[86dvh] md:w-[340px] md:border-l md:border-t-0 md:p-7">
+                    <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-[#2CE3C0]">
+                      {activeVideo.category || "Video"}
+                    </p>
+                    <h2 className="mt-3 break-words font-display text-2xl leading-tight text-white">
+                      {activeVideo.title}
+                    </h2>
+                    {vaultMedia?.caption?.trim() && (
+                      <p className="mt-5 whitespace-pre-line break-words text-sm leading-relaxed text-neutral-300">
+                        {vaultMedia.caption.trim()}
+                      </p>
+                    )}
+                    {detailPairs.length > 0 && (
+                      <dl className="mt-6 divide-y divide-white/10 border-t border-white/10">
+                        {detailPairs.map((pair, index) => (
+                          <div key={`${pair.key}-${index}`} className="grid grid-cols-[90px_1fr] gap-3 py-3 text-xs">
+                            <dt className="break-words font-mono uppercase tracking-wider text-neutral-500">
+                              {pair.key}
+                            </dt>
+                            <dd className="min-w-0 whitespace-pre-line break-words text-neutral-200">
+                              {pair.value}
+                            </dd>
+                          </div>
+                        ))}
+                      </dl>
+                    )}
+                  </aside>
                 </motion.div>
               </div>
             )}

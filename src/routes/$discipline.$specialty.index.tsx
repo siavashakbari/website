@@ -546,7 +546,7 @@ function SpecialtyPage() {
       ) : activeUiType === "UI04" ? (
         <UI04_VideoShowcase
           items={visibleItems.map((item) => ({
-            id: item.key,
+            id: item.id,
             src: item.src,
             title: item.title,
             category: item.category,

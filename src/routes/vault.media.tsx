@@ -78,6 +78,7 @@ function VaultMediaView() {
   const [newSizedMedia, setNewSizedMedia] = useState<SizedMediaResult | null>(null);
   const [newExternalUrl, setNewExternalUrl] = useState("");
   const [newTitle, setNewTitle] = useState("");
+  const [newCaption, setNewCaption] = useState("");
   const [newField, setNewField] = useState("");
   const [newCategory, setNewCategory] = useState("");
   const [newProject, setNewProject] = useState("");
@@ -350,6 +351,7 @@ function VaultMediaView() {
         project,
         assignedRoute,
         title: dynamicTitle,
+        caption: newCaption.trim(),
         year: new Date().getFullYear().toString(),
         isHidden: false,
         pairedBoxes: newPairs,
@@ -365,6 +367,7 @@ function VaultMediaView() {
       setNewSizedMedia(null);
       setNewExternalUrl("");
       setNewTitle("");
+      setNewCaption("");
       setNewField("");
       setNewCategory("");
       setNewProject("");
@@ -740,6 +743,20 @@ function VaultMediaView() {
                 />
               </div>
 
+              <div>
+                <label htmlFor="new-media-description" className="block text-xs font-mono uppercase text-neutral-400 mb-1">
+                  Description (Optional)
+                </label>
+                <textarea
+                  id="new-media-description"
+                  value={newCaption}
+                  onChange={(e) => setNewCaption(e.target.value)}
+                  rows={3}
+                  placeholder="Shown in the video details panel"
+                  className="w-full resize-y bg-black/60 border border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-[#2CE3C0]"
+                />
+              </div>
+
               {/* Cascading Dropdowns: Field -> Category -> Project */}
               {(() => {
                 const isNewFlatField = FLAT_FIELDS.has(newField.toLowerCase());
@@ -1064,6 +1081,19 @@ function MediaCard({
               value={item.title}
               onChange={(e) => onUpdateMedia(item, { title: e.target.value })}
               className="w-full bg-black/60 border border-white/10 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-[#2CE3C0]"
+            />
+          </div>
+
+          <div className="space-y-1">
+            <label className="block text-[10px] font-mono uppercase tracking-wider text-neutral-500">
+              Description
+            </label>
+            <textarea
+              value={item.caption || ""}
+              onChange={(e) => onUpdateMedia(item, { caption: e.target.value })}
+              rows={3}
+              placeholder="Shown next to the video when opened"
+              className="w-full resize-y bg-black/60 border border-white/10 rounded-lg px-2.5 py-2 text-xs text-white focus:outline-none focus:border-[#2CE3C0]"
             />
           </div>
 
