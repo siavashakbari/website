@@ -194,13 +194,13 @@ export function PairedBoxesEditor({
           ) : (
             <div className="space-y-2">
               {pairs.map((pair, idx) => (
-                <div key={idx} className="flex items-center gap-2">
+                <div key={idx} className="grid min-w-0 grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)_36px] items-center gap-1.5 sm:gap-2">
                   <input
                     type="text"
                     value={pair.key}
                     onChange={(e) => handleUpdatePair(idx, "key", e.target.value)}
                     placeholder="Key (e.g. Model)"
-                    className="flex-1 bg-black/60 border border-white/10 rounded-lg px-3 py-2 text-xs text-white placeholder:text-neutral-600 focus:outline-none focus:border-[#2CE3C0]"
+                    className="min-w-0 w-full bg-black/60 border border-white/10 rounded-lg px-2 sm:px-3 py-2 text-xs text-white placeholder:text-neutral-600 focus:outline-none focus:border-[#2CE3C0]"
                   />
                   <span className="text-neutral-500 font-mono text-xs">:</span>
                   <input
@@ -208,12 +208,12 @@ export function PairedBoxesEditor({
                     value={pair.value}
                     onChange={(e) => handleUpdatePair(idx, "value", e.target.value)}
                     placeholder="Value (e.g. Sara)"
-                    className="flex-1 bg-black/60 border border-white/10 rounded-lg px-3 py-2 text-xs text-white placeholder:text-neutral-600 focus:outline-none focus:border-[#2CE3C0]"
+                    className="min-w-0 w-full bg-black/60 border border-white/10 rounded-lg px-2 sm:px-3 py-2 text-xs text-white placeholder:text-neutral-600 focus:outline-none focus:border-[#2CE3C0]"
                   />
                   <button
                     type="button"
                     onClick={() => handleRemovePair(idx)}
-                    className="p-2 text-neutral-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors cursor-pointer"
+                    className="flex h-9 w-9 shrink-0 items-center justify-center text-neutral-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors cursor-pointer"
                     title="Remove field"
                   >
                     <Trash2 className="w-3.5 h-3.5" />

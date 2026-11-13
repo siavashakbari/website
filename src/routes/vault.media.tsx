@@ -65,7 +65,9 @@ function VaultMediaView() {
   const [searchQuery, setSearchQuery] = useState("");
   const [fieldFilter, setFieldFilter] = useState("all");
   const [visibilityFilter, setVisibilityFilter] = useState<"all" | "visible" | "hidden">("all");
+  const [projectFilter, setProjectFilter] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
+  const [pageInput, setPageInput] = useState("1");
   const [showAddModal, setShowAddModal] = useState(false);
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
 
@@ -105,6 +107,22 @@ function VaultMediaView() {
   const fieldPages = useMemo(() => {
     return pages.filter((p) => !p.parentRoute);
   }, [pages]);
+
+  const projectPageOptions = useMemo(() => {
+    const pageByRoute = new Map(pages.map((page) => [page.route.toLowerCase().replace(/\/+$/, ""), page]));
+    const routes = new Set(
+      mediaList
+        .filter((media) => fieldFilter === "all" || media.field.toLowerCase() === fieldFilter)
+        .map((media) => media.assignedRoute.toLowerCase().replace(/\/+$/, ""))
+        .filter(Boolean),
+    );
+    return [...routes].map((route) => {
+      const page = pageByRoute.get(route);
+      const parent = page?.parentRoute ? pageByRoute.get(page.parentRoute.toLowerCase().replace(/\/+$/, "")) : undefined;
+      const fallbackName = route.split("/").filter(Boolean).pop()?.replace(/-/g, " ") || route;
+      return { route, label: `${page?.name || fallbackName}${parent ? ` · ${parent.name}` : ""}` };
+    }).sort((a, b) => a.label.localeCompare(b.label));
+  }, [mediaList, pages, fieldFilter]);
 
   // Copy code helper
   const handleCopyCode = (code: string) => {
@@ -377,6 +395,10 @@ function VaultMediaView() {
         if (normField !== fieldFilter.toLowerCase()) return false;
       }
 
+      if (projectFilter !== "all" && m.assignedRoute.toLowerCase().replace(/\/+$/, "") !== projectFilter) {
+        return false;
+      }
+
       // Search query
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase().trim();
@@ -397,10 +419,25 @@ function VaultMediaView() {
 
       return true;
     });
-  }, [mediaList, visibilityFilter, fieldFilter, searchQuery]);
+  }, [mediaList, visibilityFilter, fieldFilter, projectFilter, searchQuery]);
 
   // Pagination
   const totalPages = Math.ceil(filteredMedia.length / ITEMS_PER_PAGE) || 1;
+  useEffect(() => {
+    if (currentPage > totalPages) setCurrentPage(totalPages);
+  }, [currentPage, totalPages]);
+  useEffect(() => setPageInput(String(currentPage)), [currentPage]);
+  const goToPage = (page: number) => {
+    const next = Math.min(totalPages, Math.max(1, page));
+    setCurrentPage(next);
+    setPageInput(String(next));
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+  const submitPageInput = () => {
+    const page = Number(pageInput);
+    if (Number.isInteger(page) && page > 0) goToPage(page);
+    else setPageInput(String(currentPage));
+  };
   const paginatedMedia = useMemo(() => {
     const start = (currentPage - 1) * ITEMS_PER_PAGE;
     return filteredMedia.slice(start, start + ITEMS_PER_PAGE);
@@ -472,7 +509,7 @@ function VaultMediaView() {
       </div>
 
       {/* Search and Filters Bar */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
         {/* Search */}
         <div className="md:col-span-2 flex items-center gap-3 bg-[#121212] border border-white/10 rounded-xl px-4 py-2.5">
           <Search className="w-4 h-4 text-neutral-500" />
@@ -489,7 +526,10 @@ function VaultMediaView() {
           {searchQuery && (
             <button
               type="button"
-              onClick={() => setSearchQuery("")}
+              onClick={() => {
+                setSearchQuery("");
+                setCurrentPage(1);
+              }}
               className="text-xs text-neutral-500 hover:text-white font-mono"
             >
               Clear
@@ -503,6 +543,7 @@ function VaultMediaView() {
             value={fieldFilter}
             onChange={(e) => {
               setFieldFilter(e.target.value);
+              setProjectFilter("all");
               setCurrentPage(1);
             }}
             className="w-full bg-[#121212] border border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-[#2CE3C0] font-mono"
@@ -512,6 +553,24 @@ function VaultMediaView() {
               <option key={f.id} value={f.route.replace(/^\//, "")}>
                 {f.name}
               </option>
+            ))}
+          </select>
+        </div>
+
+        {/* Project Page Filter */}
+        <div>
+          <select
+            aria-label="Filter media by project page"
+            value={projectFilter}
+            onChange={(e) => {
+              setProjectFilter(e.target.value);
+              setCurrentPage(1);
+            }}
+            className="w-full min-w-0 bg-[#121212] border border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-[#2CE3C0] font-mono"
+          >
+            <option value="all">All Project Pages</option>
+            {projectPageOptions.map((page) => (
+              <option key={page.route} value={page.route}>{page.label}</option>
             ))}
           </select>
         </div>
@@ -572,19 +631,36 @@ function VaultMediaView() {
           <div className="flex items-center gap-2">
             <button
               type="button"
+              aria-label="Previous page"
               disabled={currentPage <= 1}
-              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+              onClick={() => goToPage(currentPage - 1)}
               className="p-2 rounded-xl border border-white/10 text-neutral-400 hover:text-white disabled:opacity-30 disabled:pointer-events-none transition-colors cursor-pointer"
             >
               <ChevronLeft className="w-4 h-4" />
             </button>
-            <span className="text-xs font-mono text-white px-2">
-              Page {currentPage} of {totalPages}
-            </span>
+            <label className="flex items-center gap-2 text-xs font-mono text-white">
+              <span className="sr-only">Page number</span>
+              <input
+                type="text"
+                inputMode="numeric"
+                aria-label="Page number"
+                value={pageInput}
+                onChange={(e) => setPageInput(e.target.value.replace(/\D/g, ""))}
+                onBlur={submitPageInput}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.currentTarget.blur();
+                  }
+                }}
+                className="w-12 rounded-lg border border-white/10 bg-[#121212] px-2 py-2 text-center text-xs text-white focus:outline-none focus:border-[#2CE3C0]"
+              />
+              <span>of {totalPages}</span>
+            </label>
             <button
               type="button"
+              aria-label="Next page"
               disabled={currentPage >= totalPages}
-              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+              onClick={() => goToPage(currentPage + 1)}
               className="p-2 rounded-xl border border-white/10 text-neutral-400 hover:text-white disabled:opacity-30 disabled:pointer-events-none transition-colors cursor-pointer"
             >
               <ChevronRight className="w-4 h-4" />
