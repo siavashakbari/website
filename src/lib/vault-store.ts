@@ -1,4 +1,5 @@
 import { contentStorage, getPublishedArray, isContentReady, isVercelContentBackend, queueContentSave } from "./published-store";
+import { echoPrimeVideos } from "@/data/video-assets";
 /**
  * Studio Vault Master Store
  * Synchronous portfolio views backed by the shared published-content store.
@@ -380,7 +381,7 @@ export function getInitialScannedPages(): VaultPageItem[] {
       route: "/video",
       name: "Video & Motion",
       parentRoute: "",
-      coverPhoto: "src/assets/video/echo-prime/video-echo-prime-01.mp4",
+      coverPhoto: echoPrimeVideos[0],
       descriptionEn: "Brand films, motion direction, visual effects, and dynamic sequences.",
       descriptionFa: "فیلم‌های برند، کارگردانی موشن، جلوه‌های بصری و ویدیوهای خلاق.",
       uiType: "UI04",
@@ -909,7 +910,7 @@ export function getInitialScannedPages(): VaultPageItem[] {
       route: "/video/echo-prime",
       name: "Echo Prime",
       parentRoute: "/video",
-      coverPhoto: "src/assets/video/echo-prime/video-echo-prime-01.mp4",
+      coverPhoto: echoPrimeVideos[0],
       descriptionEn: "Motion visual effects sequences and editing rhythm.",
       descriptionFa: "جلوه‌های موشن و ریتم تدوین اکو پرایم.",
       uiType: "UI04",

@@ -1,6 +1,4 @@
-import echoPrimeVid1 from "../assets/video/echo-prime/video-echo-prime-01.mp4";
-import echoPrimeVid2 from "../assets/video/echo-prime/video-echo-prime-02.mp4";
-import echoPrimeVid3 from "../assets/video/echo-prime/video-echo-prime-03.mp4";
+import { echoPrimeVideos } from "./video-assets";
 import meatlab1 from "../assets/graphic-design/meatlab/graphic-design-meatlab-01.jpg";
 import meatlab2 from "../assets/graphic-design/meatlab/graphic-design-meatlab-02.jpg";
 import meatlab3 from "../assets/graphic-design/meatlab/graphic-design-meatlab-03.jpg";
@@ -346,9 +344,9 @@ export const projects: Project[] = [
     category: "Video",
     year: "2026",
     description: "Motion and visual effects sequences spanning dynamic transitions and rhythmic editing.",
-    image: echoPrimeVid1,
+    image: echoPrimeVideos[0],
     aspect: "portrait",
-    gallery: [echoPrimeVid1, echoPrimeVid2, echoPrimeVid3],
+    gallery: [...echoPrimeVideos],
   },
   {
     id: "meatlab",

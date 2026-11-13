@@ -21,29 +21,17 @@ async function browser(server, initialStorage = {}) {
       setItem: (key, value) => storage.set(key, value),
       removeItem: (key) => storage.delete(key),
     },
-    fake: {
-      from() {
-        return {
-          select() {
-            return {
-              eq() {
-                return {
-                  async single() {
-                    return { data: structuredClone(server), error: null };
-                  },
-                };
-              },
-            };
-          },
-        };
-      },
-      async rpc(_name, { expected_revision, next_content }) {
-        if (server.fail) return { error: { message: "offline" } };
+    async fetch(path, options = {}) {
+      assert.equal(path, "/api/content");
+      if (options.method === "POST") {
+        const { expected_revision, next_content } = JSON.parse(options.body);
+        if (server.fail) return Response.json({ error: "offline" }, { status: 503 });
         if (expected_revision !== server.revision)
-          return { error: { message: "Newer changes exist" } };
+          return Response.json({ error: "Newer changes exist" }, { status: 409 });
         server.content = structuredClone(next_content);
-        return { data: ++server.revision, error: null };
-      },
+        return Response.json({ revision: ++server.revision });
+      }
+      return Response.json(structuredClone(server));
     },
   });
   const modules = new Map();
@@ -51,7 +39,7 @@ async function browser(server, initialStorage = {}) {
     if (modules.has(name)) return modules.get(name);
     const source =
       name === "./supabase-client"
-        ? 'export const supabase = fake; export async function requireVaultToken() { return "test"; }'
+        ? 'export async function requireVaultToken() { return "test"; }'
         : ts.transpileModule(fs.readFileSync(`src/lib/${name.replace("./", "")}.ts`, "utf8"), {
             compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.ESNext },
           }).outputText;

@@ -7,7 +7,8 @@ import portraitAsset from "../assets/portrait/calligraphy/portrait-calligraphy-0
 import visualIdentityImg from "../assets/graphic-design/shekarchian/graphic-design-shekarchian-01.jpg";
 import bookCoverImg from "../assets/graphic-design/book-covers/graphic-design-book-covers-12.jpg";
 import postersImg from "../assets/graphic-design/posters/graphic-design-posters-06.jpg";
-import videoCover from "../assets/video/echo-prime/video-echo-prime-01.mp4";
+import { echoPrimeVideos } from "./video-assets";
+const videoCover = echoPrimeVideos[0];
 
 export interface DisciplineCard {
   slug: string;

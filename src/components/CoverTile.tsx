@@ -48,7 +48,8 @@ export function CoverTile({ to, params, href, label, image, ariaLabel, index }: 
   }, [image]);
 
   const hasValidImage = Boolean(resolvedImage && !imgFailed && !(image && image.startsWith("blob:")));
-  const videoPoster = resolveKnownAssetStem(image || "") === "video-echo-prime-01"
+  const videoPoster = (resolveKnownAssetStem(image || "") === "video-echo-prime-01"
+    || (image || "").includes("video-echo-prime-01.mp4"))
     ? "/video-echo-prime-poster.webp"
     : undefined;
 

@@ -1,42 +1,46 @@
-Vault pages, media metadata, assignments, visibility, deletion markers, and public
-Studio content now use Supabase's `vault_content` record. The browser store is a
-view of published content; a pending snapshot is retained locally if a save fails.
-The status above Vault's editor says **Saved to server** only after the database
-acknowledges the write. Revision checks reject stale browser writes.
+# Vault publishing
 
-## Save and refresh behavior
+The website has one live content source: a private Vercel Blob store connected to
+the production project. `vault/published-content.json` holds portfolio pages,
+media metadata and assignments, project styles, and blog posts. The server reads
+this document before rendering a public route, then embeds the same revision in
+the initial HTML. Vault edits save through `/api/content` with a revision and a
+strong Blob ETag; conflicting edits are rejected instead of replacing newer data.
 
-The one-time browser migration is complete and its export/recovery panel has been
-removed. Historical browser collections are never automatically republished.
+`vault/private-content.json` holds invoice history, bank-card presets, and the
+default invoice. `/api/private-content` requires a Supabase Auth user with
+`vault_admin: true` in `app_metadata`. Supabase Auth remains the Vault login.
+Older invoices saved in the owner's browser can be merged into the private
+document with **Import older records from this browser** on `/vault/invoices`.
+The local records are never automatically published.
 
-- Successful edits display **Saved to server**.
-- Failed saves remain queued locally and can be retried after a reload. Vault
-  attempts to resume its pending save when reopened; it never overwrites a newer
-  server revision. Conflicts stay visible until resolved or explicitly discarded.
-- Public pages and other Vault sessions refresh on focus, when the tab becomes
-  visible, and every 30 seconds while visible. Other tabs also refresh when a save
-  completes. Network reconnection retries an in-memory failed save.
-- Pages, media details, assignments, covers, visibility, deletions, and blog edits
-  share this persistence path. Deleted/unpublished articles no longer resolve via
-  fallback defaults; renaming a blog slug replaces its previous record.
-- The compact status indicator retains retry/discard controls only when needed.
+New photos upload to the same private Blob store using short-lived signed URLs
+and are delivered through `/api/blob-media`. Supabase Storage's `vault-media`
+bucket is reserved for videos. Its insert policy accepts only administrator
+uploads ending in `.mp4`, `.webm`, or `.mov`. The old Supabase `vault_content`
+table and publishing function have been removed after archiving their contents
+inside the private Vercel store.
 
-## Deployment and access
+## Runtime configuration
 
-- Configure `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` in the hosting build
-  environment. These identify the same project as local `.env`.
-- Apply `supabase/migrations/20261112_vault_content.sql` before deploying the app.
-  It is already installed in the configured project as part of this repair.
-- Authorized users must have `vault_admin: true` in **app_metadata**, set by an
-  administrator through Supabase Auth's admin API or SQL, never user_metadata.
-  The existing owner account was authorized during the repair.
-- Only authenticated Vault admins may write content or upload media. Visitors can
-  read portfolio content. Hidden flags are presentation controls, not private data
-  access controls.
-- Invoice archives and banking preferences retain their existing local behavior;
-  they are excluded from the public portfolio database.
-- Public pages refresh shared content after mounting, on focus, and every 30
-  seconds. Existing server-rendered metadata/sitemaps still use bundled defaults.
+- Vercel connects the private Blob store to the project for Production. New
+  connections use OIDC, which provides `BLOB_STORE_ID` and a short-lived server
+  identity without a `BLOB_READ_WRITE_TOKEN` environment variable.
+- `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` identify the Supabase project
+  used for Vault login and video storage. These are public browser credentials.
+- Local maintenance uses `VAULT_BLOB_READ_WRITE_TOKEN` in ignored `.env.local`.
+  Never commit it or give it a `VITE_` prefix. Production uses OIDC instead.
+- `SUPABASE_ACCESS_TOKEN` is a local Management API credential, never deployed.
+
+## Save and recovery behavior
+
+- Vault shows **Saved to server** only after a Vercel Blob write succeeds.
+- Failed public-content saves stay in a local pending outbox and can be retried.
+  A newer server revision is never silently overwritten.
+- Public pages do not use bundled defaults or old browser content while waiting
+  for the published document. HTML responses are marked `no-store`.
+- Private invoice edits save through their separate authenticated API. Use the
+  import control in the original browser once if it has older local invoices.
 
 ## Verification
 
@@ -44,19 +48,8 @@ removed. Historical browser collections are never automatically republished.
 node node_modules/typescript/bin/tsc --noEmit
 node --experimental-vm-modules --test scripts/test-published-store.mjs scripts/test-published-sync.mjs
 npm run build
+node scripts/test-vault-ssr-first-render.mjs
 ```
 
-`scripts/test-vault-database.sql` exercises actual database authorization, revision
-conflicts, and independent public reads inside a rolled-back transaction.
-
-The browser regression uses mocked network responses and isolated Edge contexts;
-it never writes test content to the live database. With `npm run dev` running:
-
-```sh
-npm install --prefix .output/browser-tools --no-save --package-lock=false --ignore-scripts --no-audit playwright
-node scripts/test-vault-browser.mjs
-```
-
-`SUPABASE_ACCESS_TOKEN` is an optional local maintenance credential for
-`scripts/supabase-admin.mjs`; never expose it with a `VITE_` prefix or deploy it as
-a client credential. Revoke temporary repair tokens when finished.
+The last command needs the ignored local Blob token. It checks that current
+photo, project, blog, and video content appears in the first HTML response.
