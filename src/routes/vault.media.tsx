@@ -41,6 +41,7 @@ import { queueMediaCleanup, retryPendingMediaCleanup, runMediaCleanup } from "@/
 import { managedMediaFromUrl } from "@/lib/managed-media";
 import { retryContentSave, waitForPublishedContentSave } from "@/lib/published-store";
 import { resolveVideoPoster, useResolvedMediaSrc } from "@/lib/local-media-db";
+import { findDuplicateImageInProject } from "@/lib/media-duplicate";
 
 export const Route = createFileRoute("/vault/media")({
   component: VaultMediaView,
@@ -306,6 +307,18 @@ function VaultMediaView() {
 
       const assignedRoute = buildAssignedRoute(field, category, project);
       const dynamicCode = buildDynamicMediaCode(uniqueCode, field, category, project);
+
+      if (newSizedMedia?.blob && !newSizedMedia.isVideo) {
+        const duplicate = await findDuplicateImageInProject(newSizedMedia.blob, assignedRoute, getVaultMedia());
+        if (duplicate) {
+          alert(`This image is already in this project as ${duplicate.title || duplicate.dynamicCode}. Edit that card instead of uploading it again.`);
+          return;
+        }
+      }
+      if (externalUrl && getVaultMedia().some((item) => item.assignedRoute === assignedRoute && item.imgSrc === externalUrl)) {
+        alert("This media URL is already in this project. Edit the existing card instead.");
+        return;
+      }
 
       let imgSrc = "";
       let thumbSrc = "";

@@ -2009,6 +2009,13 @@ export function saveVaultMedia(item: VaultMediaItem): void {
   if (typeof window === "undefined") return;
   const processed = ensureMediaItemDynamicFields(item);
   const list = getVaultMedia();
+  if (list.some((existing) =>
+    existing.id !== processed.id &&
+    existing.assignedRoute === processed.assignedRoute &&
+    existing.imgSrc === processed.imgSrc
+  )) {
+    throw new Error("This media file is already assigned to this project. Edit the existing card instead.");
+  }
   const idx = list.findIndex(
     (m) => m.id === processed.id || m.uniqueCode === processed.uniqueCode
   );
