@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import { CustomDatePicker } from "@/components/CustomDatePicker";
 import { useLocale } from "@/lib/use-locale";
-import { siteField } from "@/lib/site-content";
+import { readSiteContent, siteField, SITE_SEED } from "@/lib/site-content";
 
 export interface ContactFormValues {
   name: string;
@@ -72,6 +72,7 @@ export function ContactForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (status === "submitting") return;
 
     setTouched({
       name: true,
@@ -114,7 +115,7 @@ export function ContactForm() {
 
       setStatus("success");
     } catch (err: unknown) {
-      console.error("Submission failed:", err);
+      console.error("Consultation delivery failed:", err instanceof Error ? err.name : "unknown");
       setStatus("error");
       const message = isFa
         ? "ارسال درخواست ناموفق بود. لطفاً دوباره تلاش کنید."
@@ -141,6 +142,13 @@ export function ContactForm() {
     setTouched({});
     setErrorMessage("");
   };
+
+  const fallbackEmail =
+    readSiteContent()?.contact.links.find((link) => link.id === "email")?.href ||
+    SITE_SEED.contact.links.find((link) => link.id === "email")?.href;
+  const fallbackMailto = fallbackEmail?.startsWith("mailto:")
+    ? `${fallbackEmail.split("?")[0]}?subject=${encodeURIComponent(`Consultation request: ${formData.topic}`)}&body=${encodeURIComponent(`Name: ${formData.name}\nContact: ${formData.contact}\nTopic: ${formData.topic}\nPreferred date: ${formData.preferredDate || "Not specified"}\nTime: ${formData.timeSlot || "Not specified"}\n\n${formData.description}`)}`
+    : undefined;
 
   return (
     <div
@@ -418,6 +426,14 @@ export function ContactForm() {
                   <AlertCircle className="h-4 w-4 shrink-0 text-red-400" />
                   <span>{errorMessage}</span>
                 </div>
+              )}
+              {status === "error" && fallbackMailto && (
+                <a
+                  href={fallbackMailto}
+                  className="inline-flex text-sm font-semibold text-secondary underline underline-offset-4"
+                >
+                  {tr("Send the request by email instead", "ارسال درخواست از طریق ایمیل")}
+                </a>
               )}
 
               {/* Submit CTA — Pill Shaped with "Submit" label and Visual Identity Form glow */}

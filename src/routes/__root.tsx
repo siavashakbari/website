@@ -1,4 +1,11 @@
-import { CONTENT_STATUS_EVENT, getPublishedHydrationSnapshot, isContentReady, refreshPublishedContent, seedPublishedContent, startPublishedContentSync } from "@/lib/published-store";
+import {
+  CONTENT_STATUS_EVENT,
+  getPublishedHydrationSnapshot,
+  isContentReady,
+  refreshPublishedContent,
+  seedPublishedContent,
+  startPublishedContentSync,
+} from "@/lib/published-store";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
   Outlet,
@@ -11,7 +18,13 @@ import {
 import { lazy, Suspense, useEffect, useState, type ReactNode } from "react";
 import { ChevronDown } from "lucide-react";
 import { useLocale } from "@/lib/use-locale";
-import { currentLocale, localizedText, switchLocaleUrl, withLocale, type Locale } from "@/lib/locale";
+import {
+  currentLocale,
+  localizedText,
+  switchLocaleUrl,
+  withLocale,
+  type Locale,
+} from "@/lib/locale";
 
 import appCss from "../styles.css?url";
 import satoshiMedium from "../assets/fonts/Satoshi-Medium.woff2?url";
@@ -21,11 +34,7 @@ import { Logo } from "@/components/Logo";
 import { NotFoundPage } from "@/components/NotFoundPage";
 import { PublishedPageLoading } from "@/components/PublishedPageLoading";
 import { DISCIPLINES } from "@/data/disciplines";
-import {
-  getVaultPages,
-  isRouteOrAncestorHidden,
-  subscribeToVaultStore,
-} from "@/lib/vault-store";
+import { getVaultPages, isRouteOrAncestorHidden, subscribeToVaultStore } from "@/lib/vault-store";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -58,7 +67,9 @@ function ErrorComponent({ error, reset }: { error: any; reset: () => void }) {
           {locale === "fa" ? "صفحه بارگذاری نشد" : "This page didn't load"}
         </h1>
         <p className="mt-2 text-sm text-muted-foreground">
-          {locale === "fa" ? "خطایی رخ داد. صفحه را دوباره بارگذاری کنید یا به خانه برگردید." : "Something went wrong on our end. You can try refreshing or head back home."}
+          {locale === "fa"
+            ? "خطایی رخ داد. صفحه را دوباره بارگذاری کنید یا به خانه برگردید."
+            : "Something went wrong on our end. You can try refreshing or head back home."}
         </p>
         <div className="mt-6 flex flex-wrap justify-center gap-2">
           <button
@@ -82,7 +93,10 @@ function ErrorComponent({ error, reset }: { error: any; reset: () => void }) {
   );
 }
 
-export const Route = createRootRouteWithContext<{ queryClient: QueryClient; locale: import("@/lib/locale").LocaleState }>()({
+export const Route = createRootRouteWithContext<{
+  queryClient: QueryClient;
+  locale: import("@/lib/locale").LocaleState;
+}>()({
   beforeLoad: async () => {
     if (typeof window !== "undefined") await refreshPublishedContent();
   },
@@ -123,8 +137,20 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient; loca
       ],
       links: [
         { rel: "stylesheet", href: appCss },
-        { rel: "preload", href: satoshiRegular, as: "font", type: "font/woff2", crossOrigin: "anonymous" },
-        { rel: "preload", href: satoshiBold, as: "font", type: "font/woff2", crossOrigin: "anonymous" },
+        {
+          rel: "preload",
+          href: satoshiRegular,
+          as: "font",
+          type: "font/woff2",
+          crossOrigin: "anonymous",
+        },
+        {
+          rel: "preload",
+          href: satoshiBold,
+          as: "font",
+          type: "font/woff2",
+          crossOrigin: "anonymous",
+        },
         { rel: "icon", href: "/favicon.svg", type: "image/svg+xml" },
         { rel: "apple-touch-icon", href: "/favicon.svg" },
         { rel: "manifest", href: "/site.webmanifest" },
@@ -187,7 +213,9 @@ function computeVisibleNavItems(locale: Locale) {
     return {
       key: d.path || d.slug,
       path: d.path,
-      label: vp ? localizedText(vp.name, vp.nameFa, locale).text : localizedText(d.label, d.labelFa, locale).text,
+      label: vp
+        ? localizedText(vp.name, vp.nameFa, locale).text
+        : localizedText(d.label, d.labelFa, locale).text,
     };
   });
   const seen = new Set(items.map((i) => i.path.toLowerCase()));
@@ -201,7 +229,11 @@ function computeVisibleNavItems(locale: Locale) {
         p.route !== "/photography",
     )
     .forEach((p) => {
-      items.push({ key: p.route, path: p.route, label: localizedText(p.name, p.nameFa, locale).text });
+      items.push({
+        key: p.route,
+        path: p.route,
+        label: localizedText(p.name, p.nameFa, locale).text,
+      });
     });
   return items;
 }
@@ -271,7 +303,10 @@ function Header() {
 
   return (
     <>
-      <header className="fixed inset-x-0 top-0 z-[200] border-b border-foreground/10 bg-background">
+      <header
+        dir="ltr"
+        className="fixed inset-x-0 top-0 z-[200] border-b border-foreground/10 bg-background"
+      >
         <div className="mx-auto flex h-14 w-full items-center justify-between px-6 md:px-9">
           <div className="flex items-center gap-4">
             <Link
@@ -313,18 +348,28 @@ function Header() {
 function LanguageSwitch() {
   const locale = useLocale();
   const router = useRouter();
-  const target = locale === "fa" ? "en" : "fa";
-  const href = switchLocaleUrl(router.state.location.href, target);
   return (
-    <a
-      href={href}
-      hrefLang={target}
-      lang={target}
-      aria-label={locale === "fa" ? "Switch to English" : "تغییر زبان به فارسی"}
-      className="rounded-sm border border-foreground/30 px-2 py-1 text-xs text-foreground transition-colors hover:border-secondary hover:text-secondary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary"
+    <div
+      dir="ltr"
+      role="group"
+      aria-label="Website language"
+      className="inline-flex items-center rounded-full border border-foreground/20 bg-white/[0.06] p-0.5"
     >
-      {locale === "fa" ? "EN" : "فارسی"}
-    </a>
+      {(["en", "fa"] as const).map((lang) => (
+        <a
+          key={lang}
+          href={switchLocaleUrl(router.state.location.href, lang)}
+          hrefLang={lang}
+          lang={lang}
+          dir={lang === "fa" ? "rtl" : "ltr"}
+          aria-label={lang === "fa" ? "فارسی" : "English"}
+          aria-current={locale === lang ? "true" : undefined}
+          className={`min-w-9 rounded-full px-2 py-1 text-center text-xs font-semibold leading-none transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary ${locale === lang ? "bg-[#2CE3C0] text-black" : "text-foreground/70 hover:text-foreground"}`}
+        >
+          {lang === "fa" ? "فا" : "EN"}
+        </a>
+      ))}
+    </div>
   );
 }
 
@@ -511,8 +556,7 @@ function RootComponent() {
     (pathParts.length === 2 && isMediaCodeSegment);
   const isProjectPage =
     !isPhotoPage &&
-    (pathParts.length === 3 ||
-      (pathParts.length === 2 && pathParts[0] === "product-design"));
+    (pathParts.length === 3 || (pathParts.length === 2 && pathParts[0] === "product-design"));
   const isSideScrollDiscipline =
     !isPhotoPage &&
     (pathname === "/graphic-design/book-covers" ||
@@ -529,9 +573,14 @@ function RootComponent() {
   }, []);
 
   const isVaultPage = pathname.startsWith("/vault") || pathname.startsWith("/admin");
-  const lockProjectScroll = (isProjectPage || isPhotoPage || isSideScrollDiscipline) && isDesktop && !isVaultPage;
+  const lockProjectScroll =
+    (isProjectPage || isPhotoPage || isSideScrollDiscipline) && isDesktop && !isVaultPage;
   const hideFooter =
-    isVaultPage || (isProjectPage && isDesktop) || isPhotoPage || pathname === "/about" || (isSideScrollDiscipline && isDesktop);
+    isVaultPage ||
+    (isProjectPage && isDesktop) ||
+    isPhotoPage ||
+    pathname === "/about" ||
+    (isSideScrollDiscipline && isDesktop);
 
   useEffect(() => {
     const html = document.documentElement;

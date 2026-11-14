@@ -27,13 +27,18 @@ function hasRTL(text: string): boolean {
 export const Route = createFileRoute("/brand-discovery")({
   head: () =>
     pageHead({
-      title: currentLocale() === "fa" ? "فرم طراحی هویت دیداری — سیاوش اکبری" : "Visual Identity Brief — Siavash Akbari",
-      description: currentLocale() === "fa" ? "فرم جامع طراحی هویت دیداری و لوگو توسط استودیوی سیاوش اکبری." : "Visual identity and logo design brief by Siavash Akbari Studio.",
+      title:
+        currentLocale() === "fa"
+          ? "فرم طراحی هویت دیداری — سیاوش اکبری"
+          : "Visual Identity Brief — Siavash Akbari",
+      description:
+        currentLocale() === "fa"
+          ? "فرم جامع طراحی هویت دیداری و لوگو توسط استودیوی سیاوش اکبری."
+          : "Visual identity and logo design brief by Siavash Akbari Studio.",
       path: "/brand-discovery",
     }),
   component: BrandDiscoveryPage,
 });
-
 
 // Helper to convert images to low-quality downscaled base64 for PDF and Telegram
 async function getLowQualityBase64(imageSrc: string): Promise<string> {
@@ -188,6 +193,9 @@ export function BrandDiscoveryPage() {
   const langDropdownRef = useRef<HTMLDivElement>(null);
 
   const submittedRef = useRef(false);
+  const [deliveryStatus, setDeliveryStatus] = useState<"idle" | "sending" | "sent" | "error">(
+    "idle",
+  );
 
   // Close custom language dropdown when clicking outside
   useEffect(() => {
@@ -573,6 +581,7 @@ export function BrandDiscoveryPage() {
   useEffect(() => {
     if (step !== "summary" || submittedRef.current) return;
     submittedRef.current = true;
+    setDeliveryStatus("sending");
 
     async function submitAutomatically() {
       try {
@@ -610,7 +619,7 @@ export function BrandDiscoveryPage() {
         const { base64: userPdfBase64 } = await generatePdf(false);
 
         // 4. Dispatch to API route silently
-        await fetch("/api/brand-discovery", {
+        const response = await fetch("/api/brand-discovery", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -623,8 +632,13 @@ export function BrandDiscoveryPage() {
             userPdfBase64,
           }),
         });
+        const result = await response.json();
+        if (!response.ok || !result.success)
+          throw new Error("Telegram delivery was not confirmed.");
+        setDeliveryStatus("sent");
       } catch (err) {
         console.error("Auto submit to Telegram failed:", err);
+        setDeliveryStatus("error");
       }
     }
 
@@ -661,8 +675,6 @@ export function BrandDiscoveryPage() {
             {isFa ? "استودیو طراحی سیاوش اکبری" : "Siavash Akbari Design Studio"}
           </p>
         </div>
-
-
       </div>
 
       {/* SECTION 1: DETAILED QUESTIONNAIRE */}
@@ -1424,6 +1436,24 @@ export function BrandDiscoveryPage() {
 
             {/* Prompt for next steps via WhatsApp / Telegram */}
             <div className="mt-4 rounded-3xl border border-secondary/30 bg-secondary/5 p-6 max-w-xl mx-auto text-center">
+              <p
+                role="status"
+                className={`mb-3 text-sm font-semibold ${deliveryStatus === "error" ? "text-amber-300" : "text-secondary"}`}
+              >
+                {deliveryStatus === "sending"
+                  ? isFa
+                    ? "در حال ارسال فرم..."
+                    : "Sending your form..."
+                  : deliveryStatus === "sent"
+                    ? isFa
+                      ? "فرم به استودیو ارسال شد."
+                      : "Your form was sent to the studio."
+                    : deliveryStatus === "error"
+                      ? isFa
+                        ? "ارسال خودکار تأیید نشد. لطفاً فایل PDF را دانلود و مستقیم ارسال کنید."
+                        : "Automatic delivery could not be confirmed. Please download the PDF and send it directly."
+                      : ""}
+              </p>
               <p
                 className={`text-sm leading-relaxed text-foreground ${
                   isFa ? "font-farsi font-medium" : ""

@@ -1,27 +1,35 @@
 import { useNavigate } from "@tanstack/react-router";
-import { NotFoundIllustration } from "@/components/NotFoundIllustration";
 import { InteractiveHoverButton } from "@/components/ui/interactive-hover-button";
 import { useLocale } from "@/lib/use-locale";
+import { readSiteContent, SITE_SEED, siteField } from "@/lib/site-content";
 
 export function NotFoundPage() {
   const navigate = useNavigate();
   const locale = useLocale();
+  const message = siteField("notFound", "message", locale);
+  const imageUrl =
+    readSiteContent()?.notFound?.imageUrl || SITE_SEED.notFound?.imageUrl || "/404.gif";
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-background px-6 py-16">
-      <NotFoundIllustration className="w-full max-w-xl text-secondary" />
+    <main className="flex min-h-[calc(100dvh-3.5rem)] flex-col items-center justify-center bg-background px-6 py-12 text-center">
+      <img
+        src={imageUrl}
+        alt="404"
+        className="mx-auto max-h-[min(62vh,520px)] w-full max-w-[620px] object-contain"
+      />
       <h1
-        className="mt-4 text-center text-2xl font-medium uppercase tracking-[0.35em] text-foreground md:text-3xl"
-        style={{ fontFamily: "Satoshi, system-ui, sans-serif" }}
+        lang={message.lang}
+        dir={message.lang === "fa" ? "rtl" : "ltr"}
+        className="mt-7 max-w-2xl text-balance text-xl font-semibold leading-relaxed text-foreground md:text-2xl"
       >
-        {locale === "fa" ? "صفحه پیدا نشد" : "NOT FOUND !"}
+        {message.text}
       </h1>
-      <div className="mt-8">
+      <div className="mt-7">
         <InteractiveHoverButton
           text={locale === "fa" ? "بازگشت به خانه" : "Go Home"}
           onClick={() => navigate({ to: "/" })}
         />
       </div>
-    </div>
+    </main>
   );
 }

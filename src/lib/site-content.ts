@@ -3,7 +3,7 @@ import { localizedText, type Locale } from "./locale";
 import { SITE_DESCRIPTION, SITE_TITLE_DEFAULT } from "./seo";
 
 export const SITE_CONTENT_KEY = "siavash_site_content_v1";
-export type SitePageId = "landing" | "about" | "contact";
+export type SitePageId = "landing" | "about" | "contact" | "notFound";
 export type Localized = { en: string; fa: string };
 export type SiteField = { id: string; section: string; label: string; value: Localized };
 export type SiteLink = { id: string; label: Localized; href: string };
@@ -17,6 +17,8 @@ export interface SiteContent {
   landing: SitePageContent;
   about: SitePageContent;
   contact: SitePageContent;
+  /** Optional for snapshots published before the 404 editor was added. */
+  notFound?: SitePageContent;
 }
 
 export const SITE_SEED: SiteContent = {
@@ -257,6 +259,21 @@ export const SITE_SEED: SiteContent = {
       },
     ],
   },
+  notFound: {
+    fields: [
+      {
+        id: "message",
+        section: "404 page",
+        label: "Message below the image",
+        value: {
+          en: "Nothing is here, wanna check something else?",
+          fa: "اینجا چیزی نیست، دوست دارید چیز دیگری را ببینید؟",
+        },
+      },
+    ],
+    links: [],
+    imageUrl: "/404.gif",
+  },
 };
 
 function isLocalized(value: unknown): value is Localized {
@@ -271,8 +288,9 @@ function isLocalized(value: unknown): value is Localized {
 export function validateSiteContent(value: unknown): asserts value is SiteContent {
   if (!value || typeof value !== "object" || (value as SiteContent).version !== 1)
     throw new Error("Invalid site content version.");
-  for (const pageId of ["landing", "about", "contact"] as const) {
+  for (const pageId of ["landing", "about", "contact", "notFound"] as const) {
     const page = (value as SiteContent)[pageId];
+    if (pageId === "notFound" && !page) continue;
     if (!page || !Array.isArray(page.fields) || !Array.isArray(page.links))
       throw new Error(`Invalid ${pageId} content.`);
     const ids = new Set<string>();
@@ -324,8 +342,8 @@ export function siteField(
   locale: Locale,
 ): { text: string; lang: Locale; missing: boolean } {
   const value =
-    readSiteContent()?.[page].fields.find((field) => field.id === id)?.value ||
-    SITE_SEED[page].fields.find((field) => field.id === id)?.value;
+    readSiteContent()?.[page]?.fields.find((field) => field.id === id)?.value ||
+    SITE_SEED[page]?.fields.find((field) => field.id === id)?.value;
   return localizedText(value?.en, value?.fa, locale);
 }
 
@@ -336,6 +354,6 @@ export function siteLocalized(
   locale: Locale,
 ): { text: string; lang: Locale; missing: boolean } {
   const value =
-    readSiteContent()?.[page].fields.find((field) => field.id === id)?.value || original;
+    readSiteContent()?.[page]?.fields.find((field) => field.id === id)?.value || original;
   return localizedText(value.en, value.fa, locale);
 }

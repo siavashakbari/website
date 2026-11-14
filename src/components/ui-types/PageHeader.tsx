@@ -36,16 +36,28 @@ export function PageHeader({
     <div className={`w-full max-w-5xl mx-auto px-5 sm:px-8 pt-4 pb-6 space-y-5 ${className}`}>
       {/* Optional visible Page Title */}
       {shouldRenderTitle && (
-        <h1 lang={resolvedTitle.lang} dir={resolvedTitle.lang === "fa" ? "rtl" : "ltr"} className="text-3xl sm:text-4xl md:text-5xl font-display font-medium text-foreground tracking-tight">
+        <h1
+          lang={resolvedTitle.lang}
+          dir={resolvedTitle.lang === "fa" ? "rtl" : "ltr"}
+          className="text-3xl sm:text-4xl md:text-5xl font-display font-bold text-foreground tracking-tight"
+        >
           {resolvedTitle.text}
         </h1>
       )}
 
       {/* Show the requested translation, or the existing text with its own direction. */}
       {hasDesc && (
-        <div className="border-b border-white/10 pb-5 pt-1" lang={resolvedDescription.lang} dir={resolvedDescription.lang === "fa" ? "rtl" : "ltr"}>
-          <span className="text-[10px] text-[#2CE3C0]">{resolvedDescription.lang === "fa" ? "درباره پروژه" : "About"}</span>
-          <p className="mt-1.5 whitespace-pre-line text-sm leading-relaxed text-neutral-300">{resolvedDescription.text}</p>
+        <div
+          className="border-b border-white/10 pb-5 pt-1"
+          lang={resolvedDescription.lang}
+          dir={resolvedDescription.lang === "fa" ? "rtl" : "ltr"}
+        >
+          <span className="text-[10px] text-[#2CE3C0]">
+            {resolvedDescription.lang === "fa" ? "درباره پروژه" : "About"}
+          </span>
+          <p className="mt-1.5 whitespace-pre-line text-sm leading-relaxed text-neutral-300">
+            {resolvedDescription.text}
+          </p>
         </div>
       )}
 
@@ -61,8 +73,20 @@ export function PageHeader({
                 key={pair.id || idx}
                 className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/[0.04] border border-white/10 text-xs font-mono transition-colors hover:border-[#2CE3C0]/40"
               >
-                <span lang={label.lang} dir={label.lang === "fa" ? "rtl" : "ltr"} className="text-neutral-400 font-medium">{label.text}:</span>
-                <span lang={value.lang} dir={value.lang === "fa" ? "rtl" : "ltr"} className="text-[#2CE3C0] font-semibold">{value.text}</span>
+                <span
+                  lang={label.lang}
+                  dir={label.lang === "fa" ? "rtl" : "ltr"}
+                  className="text-neutral-400 font-medium"
+                >
+                  {label.text}:
+                </span>
+                <span
+                  lang={value.lang}
+                  dir={value.lang === "fa" ? "rtl" : "ltr"}
+                  className="text-[#2CE3C0] font-semibold"
+                >
+                  {value.text}
+                </span>
               </div>
             );
           })}

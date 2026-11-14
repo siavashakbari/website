@@ -148,7 +148,8 @@ function synthesizePhotoFromVault(vaultMedia: VaultMediaItem): PhotoInventoryIte
   const vmSrc = (vaultMedia.imgSrc || "").toLowerCase();
   const vmFilename = vmSrc.split("/").pop() || "";
   const matched = all.find((p) => {
-    if (p.uniqueCode && vaultMedia.uniqueCode && p.uniqueCode === vaultMedia.uniqueCode) return true;
+    if (p.uniqueCode && vaultMedia.uniqueCode && p.uniqueCode === vaultMedia.uniqueCode)
+      return true;
     const pSrc = (p.imgSrc || "").toLowerCase();
     return (
       pSrc === vmSrc ||
@@ -281,12 +282,11 @@ export function resolveDedicatedPhotoLoader(opts: {
         disciplineSlug,
         specialtySlug,
         projectSlug,
-        galleryRoute:
-          FLAT_FIELDS.has(disciplineSlug)
-            ? `/${disciplineSlug}/${projectSlug}`
-            : projectSlug
-              ? `/${disciplineSlug}/${specialtySlug}/${projectSlug}`
-              : `/${disciplineSlug}/${specialtySlug}`,
+        galleryRoute: FLAT_FIELDS.has(disciplineSlug)
+          ? `/${disciplineSlug}/${projectSlug}`
+          : projectSlug
+            ? `/${disciplineSlug}/${specialtySlug}/${projectSlug}`
+            : `/${disciplineSlug}/${specialtySlug}`,
         photo: null,
         projectDescription: "",
         resolvedImage: "",
@@ -344,17 +344,11 @@ export function resolveDedicatedPhotoLoader(opts: {
     (effectiveProjectSlug
       ? `/${effectiveField}/${effectiveCategory ? `${effectiveCategory}/` : ""}${effectiveProjectSlug}`
       : `/${effectiveField}/${effectiveCategory}`);
-  const canonicalPhotoCode =
-    vaultMedia?.dynamicCode || photo!.standardCode || photo!.code;
+  const canonicalPhotoCode = vaultMedia?.dynamicCode || photo!.standardCode || photo!.code;
 
   const expectedCanonicalUrl = vaultMedia
     ? buildMediaLiveDetailUrl(vaultMedia)
-    : buildPhotoUrl(
-        effectiveField,
-        effectiveCategory,
-        effectiveProjectSlug,
-        canonicalPhotoCode,
-      );
+    : buildPhotoUrl(effectiveField, effectiveCategory, effectiveProjectSlug, canonicalPhotoCode);
 
   const normalizedCurrent = opts.currentRawPath.replace(/\/+$/, "");
   if (normalizedCurrent !== expectedCanonicalUrl) {
@@ -413,17 +407,15 @@ function buildLivePhotoViewState(params: {
   const allProjects = getStudioProjects();
   const parentProject = projectSlug
     ? allProjects.find(
-        (p) =>
-          normalizeProjectSlug(p.title) === projectSlug || p.id === projectSlug,
+        (p) => normalizeProjectSlug(p.title) === projectSlug || p.id === projectSlug,
       ) ||
-      projects.find(
-        (p) =>
-          normalizeProjectSlug(p.title) === projectSlug || p.id === projectSlug,
-      )
+      projects.find((p) => normalizeProjectSlug(p.title) === projectSlug || p.id === projectSlug)
     : undefined;
 
   const discPage = getPageByRoute(`/${disciplineSlug}`);
-  const specPage = specialtySlug ? getPageByRoute(`/${disciplineSlug}/${specialtySlug}`) : undefined;
+  const specPage = specialtySlug
+    ? getPageByRoute(`/${disciplineSlug}/${specialtySlug}`)
+    : undefined;
   const vaultPage = getPageByRoute(galleryRoute);
   const sameStaticProject =
     parentProject &&
@@ -439,9 +431,12 @@ function buildLivePhotoViewState(params: {
         : (parentProject as any).models
       : "") ||
     "";
-  const makeupArtist = photo.makeupArtist || (sameStaticProject ? (parentProject as any)?.makeupArtist : "") || "";
-  const assistant = photo.assistant || (sameStaticProject ? (parentProject as any)?.assistant : "") || "";
-  const year = vaultMedia?.year || photo.date || (sameStaticProject ? parentProject?.year : "") || "2024";
+  const makeupArtist =
+    photo.makeupArtist || (sameStaticProject ? (parentProject as any)?.makeupArtist : "") || "";
+  const assistant =
+    photo.assistant || (sameStaticProject ? (parentProject as any)?.assistant : "") || "";
+  const year =
+    vaultMedia?.year || photo.date || (sameStaticProject ? parentProject?.year : "") || "2024";
   const projectDescription =
     vaultPage?.descriptionEn || (sameStaticProject ? parentProject?.description : "") || "";
   const disciplineDisplayTitle =
@@ -567,17 +562,28 @@ export function dedicatedPhotoHead(loaderData?: DedicatedPhotoLoaderData | null)
   if (!photo) {
     return pageHead({
       title: `${locale === "fa" ? "سیاوش اکبری" : "Siavash Akbari"} - ${loaderData?.rawPhotoId || (locale === "fa" ? "اثر" : "Artwork")}`,
-      description: locale === "fa" ? "نمایش آثار سیاوش اکبری، طراح و عکاس." : "Artwork showcase by multidisciplinary designer & photographer Siavash Akbari.",
+      description:
+        locale === "fa"
+          ? "نمایش آثار سیاوش اکبری، طراح و عکاس."
+          : "Artwork showcase by multidisciplinary designer & photographer Siavash Akbari.",
       path: loaderData?.currentRawPath || "/",
       type: "article",
     });
   }
   const photoCode = photo.code || "PHOTO";
   const projectTitle = photo.project || "Project";
-  const displayHeading = localizedText(loaderData?.vaultMedia?.title || photo.displayName || photo.title || photoCode, loaderData?.vaultMedia?.titleFa, locale).text;
+  const displayHeading = localizedText(
+    loaderData?.vaultMedia?.title || photo.displayName || photo.title || photoCode,
+    loaderData?.vaultMedia?.titleFa,
+    locale,
+  ).text;
   const title = `${locale === "fa" ? "سیاوش اکبری" : "Siavash Akbari"} - ${displayHeading}`;
   const description =
-    localizedText(loaderData?.vaultMedia?.caption || photo.caption, loaderData?.vaultMedia?.captionFa, locale).text ||
+    localizedText(
+      loaderData?.vaultMedia?.caption || photo.caption,
+      loaderData?.vaultMedia?.captionFa,
+      locale,
+    ).text ||
     loaderData?.projectDescription ||
     `Explore photo ${photoCode} from ${projectTitle} (${photo.date || "2024"}), creative showcase by multidisciplinary designer & photographer Siavash Akbari.`;
 
@@ -619,14 +625,12 @@ function computeClientPhotoState(loaderData: DedicatedPhotoLoaderData) {
 
   const deletedMediaKeys = getDeletedVaultMediaKeys();
   const extractedUnique =
-    loaderData.photo?.uniqueCode ||
-    loaderData.rawPhotoId.match(/^(\d{4})(?:-|$)/)?.[1] ||
-    "";
+    loaderData.photo?.uniqueCode || loaderData.rawPhotoId.match(/^(\d{4})(?:-|$)/)?.[1] || "";
   const isDeletedMedia = Boolean(
     !vMedia &&
-      extractedUnique &&
-      (deletedMediaKeys.has(`media-${extractedUnique}`.toLowerCase()) ||
-        deletedMediaKeys.has(extractedUnique.toLowerCase())),
+    extractedUnique &&
+    (deletedMediaKeys.has(`media-${extractedUnique}`.toLowerCase()) ||
+      deletedMediaKeys.has(extractedUnique.toLowerCase())),
   );
   if (isDeletedMedia || (loaderData.pendingClientLookup && !vMedia)) {
     let fallbackPhoto = isDeletedMedia
@@ -667,17 +671,19 @@ function computeClientPhotoState(loaderData: DedicatedPhotoLoaderData) {
   const effectiveProj = vMedia ? vMedia.project : loaderData.projectSlug;
   const galleryRoute = vMedia?.assignedRoute || loaderData.galleryRoute;
   const canonicalCode =
-    vMedia?.dynamicCode || loaderData.photo?.standardCode || loaderData.photo?.code || loaderData.rawPhotoId;
+    vMedia?.dynamicCode ||
+    loaderData.photo?.standardCode ||
+    loaderData.photo?.code ||
+    loaderData.rawPhotoId;
 
-  const basePhoto =
-    vMedia
-      ? synthesizePhotoFromVault(vMedia)
-      : getPhotoItemBySlugOrCode(
-          canonicalCode,
-          effectiveField,
-          effectiveCat || undefined,
-          effectiveProj || undefined,
-        ) || loaderData.photo;
+  const basePhoto = vMedia
+    ? synthesizePhotoFromVault(vMedia)
+    : getPhotoItemBySlugOrCode(
+        canonicalCode,
+        effectiveField,
+        effectiveCat || undefined,
+        effectiveProj || undefined,
+      ) || loaderData.photo;
 
   if (!basePhoto) {
     return {
@@ -733,7 +739,11 @@ export function DedicatedPhotoView({ loaderData }: { loaderData: DedicatedPhotoL
     if (typeof window !== "undefined" && !next.notFound && next.vaultMedia) {
       const liveUrl = buildMediaLiveDetailUrl(next.vaultMedia);
       const currentUrl = window.location.pathname.replace(/\/+$/, "");
-      if (currentUrl !== liveUrl && (loaderData.pendingClientLookup || loaderData.currentRawPath.replace(/\/+$/, "") !== liveUrl)) {
+      if (
+        currentUrl !== liveUrl &&
+        (loaderData.pendingClientLookup ||
+          loaderData.currentRawPath.replace(/\/+$/, "") !== liveUrl)
+      ) {
         navigate({ to: liveUrl as any, replace: true });
       }
     }
@@ -764,7 +774,10 @@ export function DedicatedPhotoView({ loaderData }: { loaderData: DedicatedPhotoL
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
       const target = e.target as HTMLElement | null;
-      if (target && (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable)) {
+      if (
+        target &&
+        (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable)
+      ) {
         return;
       }
       if (e.key === "ArrowLeft" && state.prevTarget) {
@@ -823,8 +836,16 @@ export function DedicatedPhotoView({ loaderData }: { loaderData: DedicatedPhotoL
     isHidden,
     vaultMedia,
   } = state;
-  const displayTitle = localizedText(vaultMedia?.title || photo.displayName || photo.title, vaultMedia?.titleFa, locale);
-  const displayCaption = localizedText(vaultMedia?.caption || photo.caption, vaultMedia?.captionFa, locale);
+  const displayTitle = localizedText(
+    vaultMedia?.title || photo.displayName || photo.title,
+    vaultMedia?.titleFa,
+    locale,
+  );
+  const displayCaption = localizedText(
+    vaultMedia?.caption || photo.caption,
+    vaultMedia?.captionFa,
+    locale,
+  );
 
   if (isHidden) {
     return (
@@ -837,18 +858,31 @@ export function DedicatedPhotoView({ loaderData }: { loaderData: DedicatedPhotoL
 
   // Resolve navigation labels from the live Vault pages after hydration.
   const backUrl = galleryRoute || `/${disciplineSlug}`;
-  const liveBackPage = clientChecked ? getPageByRoute(backUrl) : undefined;
-  let backLabel = `To ${liveBackPage?.name || photo.project || formatSlugLabel(projectSlug || disciplineSlug)}`;
+  const liveBackPage = getPageByRoute(backUrl);
+  let backName = localizedText(
+    liveBackPage?.name || photo.project || formatSlugLabel(projectSlug || disciplineSlug),
+    liveBackPage?.nameFa,
+    locale,
+  ).text;
   if (disciplineSlug === "graphic-design" && specialtySlug === "posters" && !projectSlug) {
-    backLabel = `To ${liveBackPage?.name || "Posters"}`;
-  } else if (disciplineSlug === "graphic-design" && specialtySlug === "book-covers" && !projectSlug) {
-    backLabel = `To ${liveBackPage?.name || "Book Covers"}`;
+    backName = localizedText(liveBackPage?.name || "Posters", liveBackPage?.nameFa, locale).text;
+  } else if (
+    disciplineSlug === "graphic-design" &&
+    specialtySlug === "book-covers" &&
+    !projectSlug
+  ) {
+    backName = localizedText(
+      liveBackPage?.name || "Book Covers",
+      liveBackPage?.nameFa,
+      locale,
+    ).text;
   }
-  const categoryUrl = projectSlug && specialtySlug
-    ? `/${disciplineSlug}/${specialtySlug}`
-    : `/${disciplineSlug}`;
-  const liveCategoryPage = clientChecked ? getPageByRoute(categoryUrl) : undefined;
-  const categoryLabel = liveCategoryPage?.name ||
+  const backLabel = locale === "fa" ? `بازگشت به ${backName}` : `To ${backName}`;
+  const categoryUrl =
+    projectSlug && specialtySlug ? `/${disciplineSlug}/${specialtySlug}` : `/${disciplineSlug}`;
+  const liveCategoryPage = getPageByRoute(categoryUrl);
+  const categoryLabel =
+    localizedText(liveCategoryPage?.name, liveCategoryPage?.nameFa, locale).text ||
     (projectSlug && specialtySlug
       ? photo.subdiscipline || formatSlugLabel(specialtySlug)
       : photo.discipline || formatSlugLabel(disciplineSlug));
@@ -894,7 +928,13 @@ export function DedicatedPhotoView({ loaderData }: { loaderData: DedicatedPhotoL
           ) : (
             <img
               src={liveResolvedMedia || undefined}
-              alt={localizedText(vaultMedia?.altEn || displayCaption.text || `${photo.project} — ${photo.code}`, vaultMedia?.altFa, locale).text}
+              alt={
+                localizedText(
+                  vaultMedia?.altEn || displayCaption.text || `${photo.project} — ${photo.code}`,
+                  vaultMedia?.altFa,
+                  locale,
+                ).text
+              }
               className="max-h-full max-w-full w-auto h-auto object-contain rounded-sm shadow-2xl select-none"
               loading="eager"
               draggable={false}
@@ -905,7 +945,7 @@ export function DedicatedPhotoView({ loaderData }: { loaderData: DedicatedPhotoL
             <Link
               to={prevTarget.url as any}
               className="absolute left-4 top-1/2 -translate-y-1/2 p-3 rounded-full bg-black/70 text-white/80 hover:text-white hover:bg-black/90 backdrop-blur-md opacity-0 group-hover:opacity-100 transition-all border border-white/10 cursor-pointer shadow-lg"
-              title="Previous photo"
+              title={locale === "fa" ? "عکس قبلی" : "Previous photo"}
             >
               <ChevronLeft className="w-5 h-5" />
             </Link>
@@ -915,7 +955,7 @@ export function DedicatedPhotoView({ loaderData }: { loaderData: DedicatedPhotoL
             <Link
               to={nextTarget.url as any}
               className="absolute right-4 top-1/2 -translate-y-1/2 p-3 rounded-full bg-black/70 text-white/80 hover:text-white hover:bg-black/90 backdrop-blur-md opacity-0 group-hover:opacity-100 transition-all border border-white/10 cursor-pointer shadow-lg"
-              title="Next photo"
+              title={locale === "fa" ? "عکس بعدی" : "Next photo"}
             >
               <ChevronRight className="w-5 h-5" />
             </Link>
@@ -928,16 +968,15 @@ export function DedicatedPhotoView({ loaderData }: { loaderData: DedicatedPhotoL
             {/* Top Project Context & Description */}
             <div className="space-y-2 pb-4 border-b border-white/10">
               <div className="flex flex-wrap items-center justify-start gap-2">
-                <Link
-                  to={backUrl as any}
-                  className={projectBackButtonClass}
-                >
-                  <ArrowLeft />
-                  <span className="capitalize">{backLabel}</span>
+                <Link to={backUrl as any} className={projectBackButtonClass}>
+                  <ArrowLeft className={locale === "fa" ? "rotate-180" : ""} />
+                  <span>{backLabel}</span>
                 </Link>
                 <Link to={categoryUrl as any} className={projectBackButtonClass}>
-                  <ArrowLeft />
-                  <span>To {categoryLabel}</span>
+                  <ArrowLeft className={locale === "fa" ? "rotate-180" : ""} />
+                  <span>
+                    {locale === "fa" ? `بازگشت به ${categoryLabel}` : `To ${categoryLabel}`}
+                  </span>
                 </Link>
               </div>
               {projectDescription && (
@@ -948,8 +987,10 @@ export function DedicatedPhotoView({ loaderData }: { loaderData: DedicatedPhotoL
             </div>
 
             <div>
-              <h1 className="font-display text-xl md:text-2xl font-normal leading-snug tracking-tight text-white font-mono break-all">
-                <span lang={displayTitle.lang} dir={displayTitle.lang === "fa" ? "rtl" : "ltr"}>{displayTitle.text || `${photo.code}.JPG`}</span>
+              <h1 className="font-display text-xl md:text-2xl font-bold leading-snug tracking-tight text-white break-words">
+                <span lang={displayTitle.lang} dir={displayTitle.lang === "fa" ? "rtl" : "ltr"}>
+                  {displayTitle.text || `${photo.code}.JPG`}
+                </span>
               </h1>
             </div>
 
@@ -960,7 +1001,10 @@ export function DedicatedPhotoView({ loaderData }: { loaderData: DedicatedPhotoL
                   {locale === "fa" ? "خدمات" : "Services"}
                 </div>
                 <div className="text-neutral-200 font-sans">
-                  <Link to={`/${disciplineSlug}` as any} className="hover:text-[#2CE3C0] transition-colors">
+                  <Link
+                    to={`/${disciplineSlug}` as any}
+                    className="hover:text-[#2CE3C0] transition-colors"
+                  >
                     {photo.discipline || disciplineSlug}
                   </Link>
                   {specialtySlug && (
@@ -999,16 +1043,29 @@ export function DedicatedPhotoView({ loaderData }: { loaderData: DedicatedPhotoL
                       const label = localizedText(pair.key, pair.keyFa, locale);
                       const value = localizedText(pair.value, pair.valueFa, locale);
                       return (
-                      <button
-                        type="button"
-                        key={pair.id || idx}
-                        onClick={() => trackCreditClick(pair.key, pair.value, photo.code)}
-                        className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/[0.04] border border-white/10 text-xs font-mono transition-colors hover:border-[#2CE3C0]/40"
-                      >
-                        <span lang={label.lang} dir={label.lang === "fa" ? "rtl" : "ltr"} className="text-neutral-400 font-medium">{label.text}:</span>
-                        <span lang={value.lang} dir={value.lang === "fa" ? "rtl" : "ltr"} className="text-[#2CE3C0] font-semibold">{value.text}</span>
-                      </button>
-                    )})}
+                        <button
+                          type="button"
+                          key={pair.id || idx}
+                          onClick={() => trackCreditClick(pair.key, pair.value, photo.code)}
+                          className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/[0.04] border border-white/10 text-xs font-mono transition-colors hover:border-[#2CE3C0]/40"
+                        >
+                          <span
+                            lang={label.lang}
+                            dir={label.lang === "fa" ? "rtl" : "ltr"}
+                            className="text-neutral-400 font-medium"
+                          >
+                            {label.text}:
+                          </span>
+                          <span
+                            lang={value.lang}
+                            dir={value.lang === "fa" ? "rtl" : "ltr"}
+                            className="text-[#2CE3C0] font-semibold"
+                          >
+                            {value.text}
+                          </span>
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
               )}

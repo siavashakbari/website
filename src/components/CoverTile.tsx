@@ -2,6 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useResolvedMediaSrc } from "@/lib/local-media-db";
 import { resolveKnownAssetStem } from "@/lib/inventory-assets";
+import { useLocale } from "@/lib/use-locale";
 
 type CoverTileProps = {
   label: string;
@@ -11,12 +12,23 @@ type CoverTileProps = {
   to?: any;
   params?: any;
   index?: number;
+  strongLabel?: boolean;
 };
 
 /**
  * Shared cover card used by homepage disciplines and Visual Identity project cards.
  */
-export function CoverTile({ to, params, href, label, image, ariaLabel, index }: CoverTileProps) {
+export function CoverTile({
+  to,
+  params,
+  href,
+  label,
+  image,
+  ariaLabel,
+  index,
+  strongLabel = false,
+}: CoverTileProps) {
+  const locale = useLocale();
   const linkProps = href ? { to: href as any } : { to: to as any, params };
   const [imgFailed, setImgFailed] = useState(false);
   const [videoInView, setVideoInView] = useState(false);
@@ -47,11 +59,14 @@ export function CoverTile({ to, params, href, label, image, ariaLabel, index }: 
     setImgFailed(false);
   }, [image]);
 
-  const hasValidImage = Boolean(resolvedImage && !imgFailed && !(image && image.startsWith("blob:")));
-  const videoPoster = (resolveKnownAssetStem(image || "") === "video-echo-prime-01"
-    || (image || "").includes("video-echo-prime-01.mp4"))
-    ? "/video-echo-prime-poster.webp"
-    : undefined;
+  const hasValidImage = Boolean(
+    resolvedImage && !imgFailed && !(image && image.startsWith("blob:")),
+  );
+  const videoPoster =
+    resolveKnownAssetStem(image || "") === "video-echo-prime-01" ||
+    (image || "").includes("video-echo-prime-01.mp4")
+      ? "/video-echo-prime-poster.webp"
+      : undefined;
 
   return (
     <Link
@@ -90,7 +105,7 @@ export function CoverTile({ to, params, href, label, image, ariaLabel, index }: 
       ) : (
         <div className="flex h-full w-full items-center justify-center rounded-[3px] bg-[#0F0F0F] transition-[filter] duration-500 ease-out group-hover:brightness-[0.45]">
           <span className="text-xs font-semibold uppercase tracking-widest text-[#EFEFEF]/40">
-            Coming soon
+            {locale === "fa" ? "به‌زودی" : "Coming soon"}
           </span>
         </div>
       )}
@@ -107,12 +122,14 @@ export function CoverTile({ to, params, href, label, image, ariaLabel, index }: 
 
       <div className="pointer-events-none absolute inset-0 flex items-end justify-center px-2 pb-[calc(0.75rem+35px)] transition-transform duration-[1000ms] ease-[cubic-bezier(0.22,1,0.36,1)] will-change-transform group-hover:translate-y-[calc(-50%+2.75rem)] md:pb-[calc(1rem+35px)]">
         <span className="relative inline-grid place-items-center">
-          <span className="font-display col-start-1 row-start-1 text-center text-[13.2px] font-normal uppercase tracking-[0.16em] text-[#EFEFEF] transition-opacity duration-[1000ms] ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:opacity-0 md:text-[14.52px]">
+          <span
+            className={`project-card-title font-display col-start-1 row-start-1 text-center text-[13.2px] uppercase tracking-[0.16em] text-[#EFEFEF] transition-opacity duration-[1000ms] ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:opacity-0 md:text-[14.52px] ${strongLabel ? "font-bold" : "font-normal"}`}
+          >
             {label}
           </span>
           <span
             aria-hidden
-            className="font-display col-start-1 row-start-1 text-center text-[13.2px] font-black uppercase tracking-[0.16em] text-[#EFEFEF] opacity-0 transition-opacity duration-[1000ms] ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:opacity-100 md:text-[14.52px]"
+            className="project-card-title font-display col-start-1 row-start-1 text-center text-[13.2px] font-black uppercase tracking-[0.16em] text-[#EFEFEF] opacity-0 transition-opacity duration-[1000ms] ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:opacity-100 md:text-[14.52px]"
           >
             {label}
           </span>

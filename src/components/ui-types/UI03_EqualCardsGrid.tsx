@@ -1,4 +1,5 @@
 import { CoverTile } from "@/components/CoverTile";
+import { useLocale } from "@/lib/use-locale";
 
 export interface EqualCardItem {
   id: string;
@@ -22,6 +23,7 @@ export function UI03_EqualCardsGrid({
   cards,
   emptyMessage = "No project cards available in this section.",
 }: UI03_EqualCardsGridProps) {
+  const locale = useLocale();
   if (!cards || cards.length === 0) {
     return (
       <p className="mx-auto max-w-3xl py-20 px-6 text-center text-sm text-neutral-500 font-mono">
@@ -39,8 +41,9 @@ export function UI03_EqualCardsGrid({
             index={idx}
             to={card.href}
             label={card.title}
+            strongLabel
             image={card.image}
-            ariaLabel={`View ${card.title}`}
+            ariaLabel={locale === "fa" ? `نمایش ${card.title}` : `View ${card.title}`}
           />
         ))}
       </div>

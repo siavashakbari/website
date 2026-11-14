@@ -1,7 +1,7 @@
 import { useEffect, useLayoutEffect, useState } from "react";
 
 const useIsomorphicLayoutEffect = typeof window !== "undefined" ? useLayoutEffect : useEffect;
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, notFound, rootRouteId } from "@tanstack/react-router";
 import { BackToTop } from "@/components/BackToTop";
 import { DISCIPLINES } from "@/data/disciplines";
 import { projects } from "@/data/projects";
@@ -32,10 +32,7 @@ import {
   HiddenPageNotice,
   type UITypeCode,
 } from "@/components/ui-types";
-import {
-  looksLikeMediaCode,
-  redirectToCanonicalPath,
-} from "@/components/DedicatedPhotoView";
+import { looksLikeMediaCode, redirectToCanonicalPath } from "@/components/DedicatedPhotoView";
 import { NotFoundPage } from "@/components/NotFoundPage";
 import { PublishedPageLoading } from "@/components/PublishedPageLoading";
 import { pageHead } from "@/lib/seo";
@@ -140,7 +137,8 @@ function computeSpecialtyProjectCards(normDisc: string, normSpec: string): Proje
         "";
       cardMap.set(vp.route.toLowerCase(), {
         id: vp.id,
-        title: localizedText(vp.name || meta?.title || slug, vp.nameFa || meta?.titleFa, locale).text,
+        title: localizedText(vp.name || meta?.title || slug, vp.nameFa || meta?.titleFa, locale)
+          .text,
         image:
           (vp.coverPhoto ? resolveInventoryImage(vp.coverPhoto) || vp.coverPhoto : "") ||
           (fallbackCover ? resolveInventoryImage(fallbackCover) || fallbackCover : ""),
@@ -154,7 +152,10 @@ function computeSpecialtyProjectCards(normDisc: string, normSpec: string): Proje
   return Array.from(cardMap.values());
 }
 
-function computeChildCardsForRoute(parentRoute: string, allVault?: VaultPageItem[]): ProjectCardItem[] {
+function computeChildCardsForRoute(
+  parentRoute: string,
+  allVault?: VaultPageItem[],
+): ProjectCardItem[] {
   const locale = currentLocale();
   const pages = allVault || getVaultPages();
   const parentNorm = parentRoute.toLowerCase().replace(/\/+$/, "");
@@ -192,14 +193,16 @@ function buildSpecialtyData(normDisc: string, normSpec: string): SpecialtyRouteD
       canonicalPath: buildMediaLiveDetailUrl(m),
       title: localizedText(m.title || m.dynamicCode, m.titleFa, locale).text,
       year: m.year || "2026",
-      category:
-        m.category ||
-        (normDisc === "video" ? "Video" : "Product Design"),
+      category: m.category || (normDisc === "video" ? "Video" : "Product Design"),
     }));
 
     const projectCards = computeChildCardsForRoute(canonicalRoute, allVault);
     const label =
-      localizedText(vaultPage?.name || parentProject?.title, vaultPage?.nameFa || parentProject?.titleFa, locale).text ||
+      localizedText(
+        vaultPage?.name || parentProject?.title,
+        vaultPage?.nameFa || parentProject?.titleFa,
+        locale,
+      ).text ||
       normSpec
         .split("-")
         .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
@@ -209,10 +212,19 @@ function buildSpecialtyData(normDisc: string, normSpec: string): SpecialtyRouteD
       disciplineSlug: normDisc,
       specialtySlug: normSpec,
       canonicalRoute,
-      serverFound: Boolean(vaultPage || parentProject || items.length > 0 || projectCards.length > 0),
+      serverFound: Boolean(
+        vaultPage || parentProject || items.length > 0 || projectCards.length > 0,
+      ),
       label,
       blurb:
-        localizedText(vaultPage?.descriptionEn || parentProject?.description, vaultPage?.descriptionFa || (parentProject && "descriptionFa" in parentProject ? String(parentProject.descriptionFa || "") : undefined), locale).text ||
+        localizedText(
+          vaultPage?.descriptionEn || parentProject?.description,
+          vaultPage?.descriptionFa ||
+            (parentProject && "descriptionFa" in parentProject
+              ? String(parentProject.descriptionFa || "")
+              : undefined),
+          locale,
+        ).text ||
         `${label} ${normDisc === "video" ? "video showcase" : "product design showcase"}.`,
       isVisualIdentity: false,
       isVideo: normDisc === "video",
@@ -225,15 +237,18 @@ function buildSpecialtyData(normDisc: string, normSpec: string): SpecialtyRouteD
   }
 
   // Standard 2-segment Discipline / Specialty (e.g. /photography/fashion-photography, /graphic-design/visual-identity, /graphic-design/posters)
-  const disciplineDef =
-    DISCIPLINES.find(
-      (d) =>
-        normalizeDisciplineSlug(d.disciplineSlug || d.slug) === normDisc &&
-        normalizeSpecialtySlug(d.specialtySlug || d.slug) === normSpec,
-    );
+  const disciplineDef = DISCIPLINES.find(
+    (d) =>
+      normalizeDisciplineSlug(d.disciplineSlug || d.slug) === normDisc &&
+      normalizeSpecialtySlug(d.specialtySlug || d.slug) === normSpec,
+  );
 
   const label =
-    localizedText(vaultPage?.name || disciplineDef?.label, vaultPage?.nameFa || disciplineDef?.labelFa, locale).text ||
+    localizedText(
+      vaultPage?.name || disciplineDef?.label,
+      vaultPage?.nameFa || disciplineDef?.labelFa,
+      locale,
+    ).text ||
     normSpec
       .split("-")
       .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
@@ -259,13 +274,14 @@ function buildSpecialtyData(normDisc: string, normSpec: string): SpecialtyRouteD
     disciplineSlug: normDisc,
     specialtySlug: normSpec,
     canonicalRoute,
-    serverFound: Boolean(
-      vaultPage || disciplineDef || projectCards.length > 0 || items.length > 0,
-    ),
+    serverFound: Boolean(vaultPage || disciplineDef || projectCards.length > 0 || items.length > 0),
     label,
     blurb:
-      localizedText(vaultPage?.descriptionEn || disciplineDef?.blurb, vaultPage?.descriptionFa || disciplineDef?.blurbFa, locale).text ||
-      `${label} portfolio by Siavash Akbari.`,
+      localizedText(
+        vaultPage?.descriptionEn || disciplineDef?.blurb,
+        vaultPage?.descriptionFa || disciplineDef?.blurbFa,
+        locale,
+      ).text || `${label} portfolio by Siavash Akbari.`,
     isVisualIdentity,
     isVideo,
     defaultLayout: disciplineDef?.layout ?? null,
@@ -325,14 +341,17 @@ export const Route = createFileRoute("/$discipline/$specialty/")({
       const normProj = normalizeProjectSlug(rawSecond);
       if (
         (normDisc === "video" && (normProj === "videos" || normProj === "video")) ||
-        (normDisc === "product-design" && (normProj === "products" || normProj === "product-design"))
+        (normDisc === "product-design" &&
+          (normProj === "products" || normProj === "product-design"))
       ) {
         redirectToCanonicalPath(`/${normDisc}`, true);
       }
       if (params.discipline !== normDisc || params.specialty !== normProj) {
         redirectToCanonicalPath(`/${normDisc}/${normProj}`, true);
       }
-      return buildSpecialtyData(normDisc, normProj);
+      const data = buildSpecialtyData(normDisc, normProj);
+      if (isContentReady() && !data.serverFound) throw notFound({ routeId: rootRouteId });
+      return data;
     }
 
     // 3. Standard 2-segment Discipline / Specialty
@@ -341,7 +360,9 @@ export const Route = createFileRoute("/$discipline/$specialty/")({
       redirectToCanonicalPath(`/${normDisc}/${normSpec}`, true);
     }
 
-    return buildSpecialtyData(normDisc, normSpec);
+    const data = buildSpecialtyData(normDisc, normSpec);
+    if (isContentReady() && !data.serverFound) throw notFound({ routeId: rootRouteId });
+    return data;
   },
   head: ({ loaderData }) => {
     const disc = loaderData?.disciplineSlug ?? "photography";
@@ -349,9 +370,15 @@ export const Route = createFileRoute("/$discipline/$specialty/")({
     const routePath = loaderData?.canonicalRoute || `/${disc}/${spec}`;
     const locale = currentLocale();
     const vaultPage = getPageByRoute(routePath);
-    const label = localizedText(vaultPage?.name || loaderData?.label || "Specialty", vaultPage?.nameFa, locale).text;
+    const label = localizedText(
+      vaultPage?.name || loaderData?.label || "Specialty",
+      vaultPage?.nameFa,
+      locale,
+    ).text;
     const blurb =
-      localizedText(vaultPage?.descriptionEn, vaultPage?.descriptionFa, locale).text || loaderData?.blurb || `${label} work by Siavash Akbari.`;
+      localizedText(vaultPage?.descriptionEn, vaultPage?.descriptionFa, locale).text ||
+      loaderData?.blurb ||
+      `${label} work by Siavash Akbari.`;
     return pageHead({
       title: `${locale === "fa" ? "سیاوش اکبری" : "Siavash Akbari"} - ${label}`,
       description: blurb,
@@ -396,8 +423,7 @@ function computeClientSpecialtyState(loaderData: SpecialtyRouteData) {
   const isDeleted = getDeletedVaultPageKeys().has(fresh.canonicalRoute.toLowerCase());
   const isHidden = isRouteOrAncestorHidden(fresh.canonicalRoute);
   const exists =
-    !isDeleted &&
-    Boolean(vaultPage || fresh.projectCards.length > 0 || fresh.items.length > 0);
+    !isDeleted && Boolean(vaultPage || fresh.projectCards.length > 0 || fresh.items.length > 0);
 
   return {
     notFound: !exists,
@@ -468,10 +494,7 @@ function SpecialtyPage() {
 
   if (isHidden) {
     return (
-      <HiddenPageNotice
-        title={vaultPage?.name || data.label}
-        routePath={data.canonicalRoute}
-      />
+      <HiddenPageNotice title={vaultPage?.name || data.label} routePath={data.canonicalRoute} />
     );
   }
 
@@ -504,14 +527,21 @@ function SpecialtyPage() {
       aria-labelledby="specialty-heading"
     >
       <h1 id="specialty-heading" className="sr-only">
-        {localizedText(vaultPage?.name || data.label, vaultPage?.nameFa, locale).text} — {locale === "fa" ? "سیاوش اکبری" : "Siavash Akbari"}
+        {localizedText(vaultPage?.name || data.label, vaultPage?.nameFa, locale).text} —{" "}
+        {locale === "fa" ? "سیاوش اکبری" : "Siavash Akbari"}
       </h1>
 
       <PageHeader
         title={vaultPage?.name || data.label}
         titleFa={vaultPage?.nameFa || (locale === "fa" ? data.label : undefined)}
-        descriptionEn={vaultPage?.descriptionEn || (locale === "en" && data.isVisualIdentity ? data.blurb : undefined)}
-        descriptionFa={vaultPage?.descriptionFa || (locale === "fa" && data.isVisualIdentity ? data.blurb : undefined)}
+        descriptionEn={
+          vaultPage?.descriptionEn ||
+          (locale === "en" && data.isVisualIdentity ? data.blurb : undefined)
+        }
+        descriptionFa={
+          vaultPage?.descriptionFa ||
+          (locale === "fa" && data.isVisualIdentity ? data.blurb : undefined)
+        }
         pairedBoxes={vaultPage?.pairedBoxes}
       />
 

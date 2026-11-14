@@ -8,6 +8,7 @@ import {
   type SitePageId,
 } from "@/lib/site-content";
 import { waitForPublishedContentSave } from "@/lib/published-store";
+import { uploadToCloudStorage } from "@/lib/cloud-storage";
 import { getAboutEditorialSeedFields } from "./about";
 
 export const Route = createFileRoute("/vault/site-content")({ component: SiteContentEditor });
@@ -16,14 +17,18 @@ const PAGE_NAMES: Record<SitePageId, string> = {
   landing: "Landing",
   about: "About",
   contact: "Contact",
+  notFound: "404 Page",
 };
 
-function editableDraft(): SiteContent {
+type EditableSiteContent = SiteContent & { notFound: NonNullable<SiteContent["notFound"]> };
+
+function editableDraft(): EditableSiteContent {
   const current = readSiteContent();
   const seed = current || SITE_SEED;
   const existing = new Set(seed.about.fields.map((field) => field.id));
   return structuredClone({
     ...seed,
+    notFound: seed.notFound || SITE_SEED.notFound!,
     about: {
       ...seed.about,
       fields: [
@@ -36,10 +41,11 @@ function editableDraft(): SiteContent {
 
 function SiteContentEditor() {
   const [original, setOriginal] = useState<SiteContent | null>(() => readSiteContent());
-  const [draft, setDraft] = useState<SiteContent>(editableDraft);
+  const [draft, setDraft] = useState<EditableSiteContent>(editableDraft);
   const [pageId, setPageId] = useState<SitePageId>("landing");
   const [message, setMessage] = useState("");
   const [saving, setSaving] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
   const page = draft[pageId];
   const dirty = JSON.stringify(draft) !== JSON.stringify(original || SITE_SEED);
 
@@ -72,6 +78,28 @@ function SiteContentEditor() {
     setMessage("");
   };
 
+  const upload404Image = async (file: File | undefined) => {
+    if (!file) return;
+    if (file.type !== "image/gif") {
+      setMessage("Please select a GIF file.");
+      return;
+    }
+    setUploadingImage(true);
+    setMessage("");
+    try {
+      const uploaded = await uploadToCloudStorage(file, file.name, { contentType: "image/gif" });
+      setDraft((current) => ({
+        ...current,
+        notFound: { ...current.notFound, imageUrl: uploaded.url },
+      }));
+      setMessage("GIF uploaded. Save changes to publish it on the 404 page.");
+    } catch (error) {
+      setMessage(`GIF upload failed: ${error instanceof Error ? error.message : String(error)}`);
+    } finally {
+      setUploadingImage(false);
+    }
+  };
+
   const save = async (event: FormEvent) => {
     event.preventDefault();
     setSaving(true);
@@ -94,8 +122,8 @@ function SiteContentEditor() {
       <div>
         <h1 className="text-2xl font-semibold">Site Content</h1>
         <p className="mt-2 text-sm text-neutral-400">
-          Edit the fixed Landing, About, and Contact pages. English and Persian values save together
-          through Vault publishing.
+          Edit the fixed Landing, About, Contact, and 404 pages. English and Persian values save
+          together through Vault publishing.
         </p>
         {!original && (
           <p className="mt-3 rounded-lg border border-amber-500/40 bg-amber-500/10 p-3 text-sm text-amber-200">
@@ -106,7 +134,7 @@ function SiteContentEditor() {
         )}
       </div>
       <div role="tablist" aria-label="Site pages" className="flex flex-wrap gap-2">
-        {(["landing", "about", "contact"] as const).map((id) => (
+        {(["landing", "about", "contact", "notFound"] as const).map((id) => (
           <button
             key={id}
             type="button"
@@ -169,6 +197,41 @@ function SiteContentEditor() {
             />
           </label>
         )}
+        {pageId === "notFound" && (
+          <div className="space-y-3 rounded-xl border border-white/10 p-4">
+            <label className="block text-sm text-neutral-300">
+              404 GIF URL (shared)
+              <input
+                type="text"
+                value={page.imageUrl || ""}
+                onChange={(event) =>
+                  setDraft((current) => ({
+                    ...current,
+                    notFound: { ...current.notFound, imageUrl: event.target.value },
+                  }))
+                }
+                className="mt-1 w-full rounded-lg border border-white/15 bg-black/50 p-3 text-sm text-white"
+              />
+            </label>
+            <label className="block text-sm text-neutral-300">
+              Upload replacement GIF to private Vault media storage
+              <input
+                type="file"
+                accept="image/gif"
+                disabled={uploadingImage}
+                onChange={(event) => void upload404Image(event.target.files?.[0])}
+                className="mt-2 block w-full text-sm text-neutral-300 file:mr-4 file:rounded-md file:border-0 file:bg-[#2CE3C0] file:px-3 file:py-2 file:text-black"
+              />
+            </label>
+            {page.imageUrl && (
+              <img
+                src={page.imageUrl}
+                alt="404 preview"
+                className="mx-auto max-h-64 max-w-full object-contain"
+              />
+            )}
+          </div>
+        )}
         {page.links.map((link) => (
           <fieldset key={link.id} className="rounded-xl border border-white/10 p-4">
             <legend className="px-1 text-sm font-medium text-[#2CE3C0]">{link.id} link</legend>
@@ -207,7 +270,7 @@ function SiteContentEditor() {
         <div className="sticky bottom-0 flex items-center gap-4 border-t border-white/15 bg-[#0A0A0A] py-4">
           <button
             type="submit"
-            disabled={saving || (!dirty && Boolean(original))}
+            disabled={saving || uploadingImage || (!dirty && Boolean(original))}
             className="rounded-lg bg-[#2CE3C0] px-5 py-2.5 text-sm font-semibold text-black disabled:opacity-50"
           >
             {saving ? "Saving…" : original ? "Save changes" : "Initialize Site Content"}

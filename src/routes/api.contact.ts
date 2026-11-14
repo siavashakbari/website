@@ -1,4 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
+import {
+  sendTelegram,
+  telegramMessageIds,
+  type TelegramMessageRef,
+} from "@/lib/telegram-api.server";
 
 export interface ContactPayload {
   name: string;
@@ -49,22 +54,9 @@ export const Route = createFileRoute("/api/contact")({
 
           if (!botToken || !chatId) {
             console.warn("TELEGRAM_BOT_TOKEN or TELEGRAM_CHAT_ID is missing.");
-            // If in local development, simulate successful delivery so developer can test UI
-            if (process.env.NODE_ENV === "development") {
-              console.info("[Dev Simulation] Contact message received:", body);
-              return new Response(
-                JSON.stringify({
-                  success: true,
-                  simulated: true,
-                  message: "Development mode: credentials not set, simulated delivery.",
-                }),
-                { headers: { "Content-Type": "application/json" } },
-              );
-            }
-
             return new Response(
-              JSON.stringify({ success: false, error: "Server credentials missing" }),
-              { status: 500, headers: { "Content-Type": "application/json" } },
+              JSON.stringify({ success: false, error: "Telegram delivery is not configured." }),
+              { status: 503, headers: { "Content-Type": "application/json" } },
             );
           }
 
@@ -100,48 +92,32 @@ ${description.trim()}
 ⏰ *Submitted At:* ${submittedAt}
 `.trim();
 
-          // Attempt delivery with Markdown
-          let response = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
+          // Plain text prevents customer punctuation from invalidating Telegram Markdown.
+          telegramMessageIds(
+            await sendTelegram<TelegramMessageRef>(botToken, "sendMessage", {
               chat_id: chatId,
-              text: telegramMessage,
-              parse_mode: "Markdown",
+              text: telegramMessage.replace(/[*`]/g, ""),
             }),
-          });
-
-          let resData = await response.json();
-
-          // Resilient fallback: If user text contained special Markdown characters that Telegram rejected, retry with plain text
-          if (!resData.ok) {
-            console.warn("Markdown delivery failed, retrying plain text:", resData.description);
-            const plainMessage = telegramMessage.replace(/[*`]/g, "");
-            response = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                chat_id: chatId,
-                text: plainMessage,
-              }),
-            });
-            resData = await response.json();
-          }
-
-          if (!resData.ok) {
-            throw new Error(resData.description || "Failed to deliver Telegram message");
-          }
+          );
 
           return new Response(JSON.stringify({ success: true }), {
             headers: { "Content-Type": "application/json" },
           });
         } catch (err: unknown) {
-          console.error("Contact Form API Error:", err);
-          const message = err instanceof Error ? err.message : String(err);
-          return new Response(JSON.stringify({ success: false, error: message }), {
-            status: 500,
-            headers: { "Content-Type": "application/json" },
-          });
+          console.error(
+            "Contact Telegram delivery failed:",
+            err instanceof Error ? err.name : "unknown",
+          );
+          return new Response(
+            JSON.stringify({
+              success: false,
+              error: "Could not confirm Telegram delivery. Please try again.",
+            }),
+            {
+              status: 502,
+              headers: { "Content-Type": "application/json" },
+            },
+          );
         }
       },
     },

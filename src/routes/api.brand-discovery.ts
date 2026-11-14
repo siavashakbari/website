@@ -1,4 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
+import {
+  sendTelegram,
+  telegramMessageIds,
+  type TelegramMessageRef,
+} from "@/lib/telegram-api.server";
 
 export const Route = createFileRoute("/api/brand-discovery")({
   server: {
@@ -6,13 +11,7 @@ export const Route = createFileRoute("/api/brand-discovery")({
       POST: async ({ request }) => {
         try {
           const body = await request.json();
-          const {
-            formData,
-            moodboardImages,
-            selections,
-            adminPdfBase64,
-            pdfBase64,
-          } = body;
+          const { formData, moodboardImages, selections, adminPdfBase64, pdfBase64 } = body;
 
           // Check for Telegram environment variables
           const botToken =
@@ -27,12 +26,13 @@ export const Route = createFileRoute("/api/brand-discovery")({
             console.warn("TELEGRAM_BOT_TOKEN or TELEGRAM_CHAT_ID is not configured.");
             return new Response(
               JSON.stringify({
-                success: true,
-                warning: "Telegram bot credentials not configured in environment.",
+                success: false,
+                error: "Telegram delivery is not configured.",
               }),
               {
+                status: 503,
                 headers: { "Content-Type": "application/json" },
-              }
+              },
             );
           }
 
@@ -94,26 +94,22 @@ export const Route = createFileRoute("/api/brand-discovery")({
           message1 += `[ نکته جامانده یا توضیحات تکمیلی ] = [ ${additionalNotes} ]`;
 
           // Send Message 1
-          const textUrl = `https://api.telegram.org/bot${botToken}/sendMessage`;
-          await fetch(textUrl, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
+          telegramMessageIds(
+            await sendTelegram<TelegramMessageRef>(botToken, "sendMessage", {
               chat_id: chatId,
               text: message1,
             }),
-          });
+          );
 
           // Helper to send photos in batches of max 10 via sendMediaGroup
           const sendPhotoBatch = async (
             items: { base64: string; caption?: string }[],
-            albumCaption: string
+            albumCaption: string,
           ) => {
             if (!items.length) return;
             for (let chunkIdx = 0; chunkIdx < items.length; chunkIdx += 10) {
               const chunk = items.slice(chunkIdx, chunkIdx + 10);
               try {
-                const mediaGroupUrl = `https://api.telegram.org/bot${botToken}/sendMediaGroup`;
                 const formMedia = new FormData();
                 formMedia.append("chat_id", chatId);
                 const mediaArray: any[] = [];
@@ -139,15 +135,29 @@ export const Route = createFileRoute("/api/brand-discovery")({
                   });
                 }
 
-                if (mediaArray.length > 0) {
+                if (mediaArray.length === 1) {
+                  const attachmentName = String(mediaArray[0].media).replace("attach://", "");
+                  const photo = formMedia.get(attachmentName);
+                  if (!(photo instanceof Blob)) throw new Error("Moodboard image is missing.");
+                  const singlePhoto = new FormData();
+                  singlePhoto.append("chat_id", chatId);
+                  singlePhoto.append("photo", photo, "moodboard.jpg");
+                  singlePhoto.append("caption", albumCaption);
+                  telegramMessageIds(
+                    await sendTelegram<TelegramMessageRef>(botToken, "sendPhoto", singlePhoto),
+                  );
+                } else if (mediaArray.length > 1) {
                   formMedia.append("media", JSON.stringify(mediaArray));
-                  await fetch(mediaGroupUrl, {
-                    method: "POST",
-                    body: formMedia,
-                  });
+                  telegramMessageIds(
+                    await sendTelegram<TelegramMessageRef[]>(botToken, "sendMediaGroup", formMedia),
+                  );
                 }
               } catch (mediaErr) {
-                console.error("Failed to send photo batch to Telegram:", mediaErr);
+                console.error(
+                  "Failed to send photo batch to Telegram:",
+                  mediaErr instanceof Error ? mediaErr.name : "unknown",
+                );
+                throw mediaErr;
               }
             }
           };
@@ -160,18 +170,16 @@ export const Route = createFileRoute("/api/brand-discovery")({
               moodboardImages.map((img: any) => ({
                 base64: img.base64,
               })),
-              "Moodboard Sellected Images"
+              "Moodboard Sellected Images",
             );
           } else {
             // If user did not select any moodboard images
-            await fetch(textUrl, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
+            telegramMessageIds(
+              await sendTelegram<TelegramMessageRef>(botToken, "sendMessage", {
                 chat_id: chatId,
-                text: "Moodboard Sellected Images\n(هیچ تصویری انتخاب نشده است)",
+                text: "Moodboard Selected Images\n(هیچ تصویری انتخاب نشده است)",
               }),
-            });
+            );
           }
 
           // ==========================================
@@ -208,19 +216,16 @@ export const Route = createFileRoute("/api/brand-discovery")({
           });
 
           // Send Message 3
-          await fetch(textUrl, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
+          telegramMessageIds(
+            await sendTelegram<TelegramMessageRef>(botToken, "sendMessage", {
               chat_id: chatId,
               text: message3.trim(),
             }),
-          });
+          );
 
           // 4. Send Admin PDF Document to Telegram (Includes strategic feelings)
           const targetPdf = adminPdfBase64 || pdfBase64;
           if (targetPdf) {
-            const docUrl = `https://api.telegram.org/bot${botToken}/sendDocument`;
             const binaryString = atob(targetPdf);
             const bytes = new Uint8Array(binaryString.length);
             for (let i = 0; i < binaryString.length; i++) {
@@ -231,33 +236,40 @@ export const Route = createFileRoute("/api/brand-discovery")({
             formDataDoc.append("chat_id", chatId);
             formDataDoc.append(
               "caption",
-              `📄 گزارش تحلیل جامع هویت دیداری (مخصوص استودیو با احساسات و جزئیات) — ${brandFa || brandEn || "Brand"}`
+              `📄 گزارش تحلیل جامع هویت دیداری (مخصوص استودیو با احساسات و جزئیات) — ${brandFa || brandEn || "Brand"}`,
             );
 
-            const brandClean = (brandEn || brandFa || "Brand").trim().replace(/[^a-zA-Z0-9_\u0600-\u06FF]+/g, "-");
+            const brandClean = (brandEn || brandFa || "Brand")
+              .trim()
+              .replace(/[^a-zA-Z0-9_\u0600-\u06FF]+/g, "-");
             const d = new Date();
             const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
             const pdfFileName = `${brandClean}-${dateStr}-Visual Identity Brief (Studio).pdf`;
 
             formDataDoc.append("document", blob, pdfFileName);
 
-            await fetch(docUrl, {
-              method: "POST",
-              body: formDataDoc,
-            });
+            telegramMessageIds(
+              await sendTelegram<TelegramMessageRef>(botToken, "sendDocument", formDataDoc),
+            );
           }
 
           return new Response(JSON.stringify({ success: true }), {
             headers: { "Content-Type": "application/json" },
           });
         } catch (error: any) {
-          console.error("Error sending to Telegram:", error);
+          console.error(
+            "Visual identity Telegram delivery failed:",
+            error instanceof Error ? error.name : "unknown",
+          );
           return new Response(
-            JSON.stringify({ success: false, error: error.message }),
+            JSON.stringify({
+              success: false,
+              error: "Could not confirm Telegram delivery. Download the PDF and send it directly.",
+            }),
             {
-              status: 500,
+              status: 502,
               headers: { "Content-Type": "application/json" },
-            }
+            },
           );
         }
       },

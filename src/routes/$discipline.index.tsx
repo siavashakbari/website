@@ -1,7 +1,8 @@
 import { useEffect, useLayoutEffect, useState } from "react";
 
 const useIsomorphicLayoutEffect = typeof window !== "undefined" ? useLayoutEffect : useEffect;
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, notFound, rootRouteId } from "@tanstack/react-router";
+import { isContentReady } from "@/lib/published-store";
 import { BackToTop } from "@/components/BackToTop";
 import {
   getDeletedProjectIds,
@@ -37,10 +38,7 @@ import { NotFoundPage } from "@/components/NotFoundPage";
 import { pageHead } from "@/lib/seo";
 import { currentLocale, localizedText, withLocale } from "@/lib/locale";
 import { useLocale } from "@/lib/use-locale";
-import {
-  normalizeDisciplineSlug,
-  normalizeProjectSlug,
-} from "@/lib/taxonomy";
+import { normalizeDisciplineSlug, normalizeProjectSlug } from "@/lib/taxonomy";
 import { resolveInventoryImage } from "@/lib/inventory-assets";
 
 interface DisciplineMediaItem {
@@ -158,7 +156,11 @@ function computeDisciplineChildCards(slug: string): ProjectCardItem[] {
         "";
       cardMap.set(vp.route.toLowerCase(), {
         id: vp.id,
-        title: localizedText(vp.name || meta?.title || childSlug, vp.nameFa || meta?.titleFa, locale).text,
+        title: localizedText(
+          vp.name || meta?.title || childSlug,
+          vp.nameFa || meta?.titleFa,
+          locale,
+        ).text,
         image:
           (vp.coverPhoto ? resolveInventoryImage(vp.coverPhoto) || vp.coverPhoto : "") ||
           (fallbackCover ? resolveInventoryImage(fallbackCover) || fallbackCover : ""),
@@ -179,16 +181,22 @@ function buildDisciplineData(normSlug: string): DisciplineRouteData {
   const rootMeta = ROOT_DISCIPLINE_META[normSlug];
 
   const label =
-    localizedText(vaultPage?.name || rootMeta?.label, vaultPage?.nameFa || rootMeta?.labelFa, locale).text ||
+    localizedText(
+      vaultPage?.name || rootMeta?.label,
+      vaultPage?.nameFa || rootMeta?.labelFa,
+      locale,
+    ).text ||
     normSlug
       .split("-")
       .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
       .join(" ");
   const blurb =
-    localizedText(vaultPage?.descriptionEn || rootMeta?.blurb, vaultPage?.descriptionFa || rootMeta?.blurbFa, locale).text ||
-    `${label} portfolio by Siavash Akbari.`;
-  const defaultUiType: UITypeCode =
-    vaultPage?.uiType || rootMeta?.defaultUiType || "UI03";
+    localizedText(
+      vaultPage?.descriptionEn || rootMeta?.blurb,
+      vaultPage?.descriptionFa || rootMeta?.blurbFa,
+      locale,
+    ).text || `${label} portfolio by Siavash Akbari.`;
+  const defaultUiType: UITypeCode = vaultPage?.uiType || rootMeta?.defaultUiType || "UI03";
 
   const projectCards = computeDisciplineChildCards(normSlug);
   const mediaItems = getGalleryMediaForRoute(canonicalRoute, {
@@ -211,9 +219,7 @@ function buildDisciplineData(normSlug: string): DisciplineRouteData {
     };
   });
 
-  const serverFound = Boolean(
-    vaultPage || rootMeta || projectCards.length > 0 || items.length > 0,
-  );
+  const serverFound = Boolean(vaultPage || rootMeta || projectCards.length > 0 || items.length > 0);
 
   return {
     slug: normSlug,
@@ -263,13 +269,19 @@ export const Route = createFileRoute("/$discipline/")({
       redirectToCanonicalPath(`/${normSlug}`, true);
     }
 
-    return buildDisciplineData(normSlug);
+    const data = buildDisciplineData(normSlug);
+    if (isContentReady() && !data.serverFound) throw notFound({ routeId: rootRouteId });
+    return data;
   },
   head: ({ loaderData }) => {
     const routePath = loaderData?.canonicalRoute || `/${loaderData?.slug || "photography"}`;
     const locale = currentLocale();
     const vaultPage = getPageByRoute(routePath);
-    const label = localizedText(vaultPage?.name || loaderData?.label || "Discipline", vaultPage?.nameFa, locale).text;
+    const label = localizedText(
+      vaultPage?.name || loaderData?.label || "Discipline",
+      vaultPage?.nameFa,
+      locale,
+    ).text;
     const blurb =
       localizedText(vaultPage?.descriptionEn, vaultPage?.descriptionFa, locale).text ||
       loaderData?.blurb ||
@@ -317,7 +329,8 @@ function computeClientDisciplineState(loaderData: DisciplineRouteData) {
   const vaultPage = getPageByRoute(fresh.canonicalRoute);
   const isDeleted = getDeletedVaultPageKeys().has(fresh.canonicalRoute.toLowerCase());
   const isHidden = isRouteOrAncestorHidden(fresh.canonicalRoute);
-  const exists = !isDeleted && Boolean(vaultPage || fresh.projectCards.length > 0 || fresh.items.length > 0);
+  const exists =
+    !isDeleted && Boolean(vaultPage || fresh.projectCards.length > 0 || fresh.items.length > 0);
 
   return {
     notFound: !exists,
@@ -373,10 +386,7 @@ function DisciplinePage() {
 
   if (isHidden) {
     return (
-      <HiddenPageNotice
-        title={vaultPage?.name || data.label}
-        routePath={data.canonicalRoute}
-      />
+      <HiddenPageNotice title={vaultPage?.name || data.label} routePath={data.canonicalRoute} />
     );
   }
 
@@ -403,7 +413,8 @@ function DisciplinePage() {
       aria-labelledby="discipline-heading"
     >
       <h1 id="discipline-heading" className="sr-only">
-        {localizedText(vaultPage?.name || data.label, vaultPage?.nameFa, locale).text} — {locale === "fa" ? "سیاوش اکبری" : "Siavash Akbari"}
+        {localizedText(vaultPage?.name || data.label, vaultPage?.nameFa, locale).text} —{" "}
+        {locale === "fa" ? "سیاوش اکبری" : "Siavash Akbari"}
       </h1>
 
       <PageHeader
@@ -419,10 +430,7 @@ function DisciplinePage() {
           {locale === "fa" ? "به‌زودی آثار بیشتری منتشر می‌شود." : "More coming soon."}
         </p>
       ) : activeUiType === "UI02" ? (
-        <UI02_HorizontalScroll
-          items={visibleItems}
-          label={vaultPage?.name || data.label}
-        />
+        <UI02_HorizontalScroll items={visibleItems} label={vaultPage?.name || data.label} />
       ) : activeUiType === "UI03" ? (
         <UI03_EqualCardsGrid
           cards={(visibleProjectCards.length > 0
