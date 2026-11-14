@@ -12,7 +12,7 @@ type Cell = {
 const POINTER_RADIUS = 128.7;
 const MIN_SCALE = 0.18;
 const SHAPE_SPEED = 0.001333333;
-const GRID_COLOR = "#ccc"; // 80% of white, for both digits and shapes.
+const GRID_COLOR = "#1a1a1a"; // 10% of white, for both digits and shapes.
 
 function smooth(a: number, b: number, t: number) {
   const x = Math.max(0, Math.min(1, (t - a) / (b - a)));

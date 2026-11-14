@@ -11,7 +11,7 @@ export function NotFoundPage() {
     readSiteContent()?.notFound?.imageUrl || SITE_SEED.notFound?.imageUrl || "/404.gif";
 
   return (
-    <main className="flex min-h-[calc(100dvh-5.25rem)] flex-col items-center justify-center bg-background px-6 py-12 text-center">
+    <main className="flex min-h-[calc(100dvh-84px)] flex-col items-center justify-center bg-background px-6 py-12 text-center">
       <img
         src={imageUrl}
         alt="404"

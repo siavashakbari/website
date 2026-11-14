@@ -911,7 +911,7 @@ export function DedicatedPhotoView({ loaderData }: { loaderData: DedicatedPhotoL
   }
 
   return (
-    <div className="flex h-full md:h-[calc(100dvh-5.25rem)] md:max-h-[calc(100dvh-5.25rem)] flex-col bg-[#0F0F0F] text-foreground overflow-hidden">
+    <div className="flex h-full md:h-[calc(100dvh-84px)] md:max-h-[calc(100dvh-84px)] flex-col bg-[#0F0F0F] text-foreground overflow-hidden">
       {/* Main Split: Media on Left, Info on Right */}
       <div className="flex-1 min-h-0 flex flex-col md:flex-row overflow-hidden">
         {/* Left Side: Media showcase with sibling navigation */}

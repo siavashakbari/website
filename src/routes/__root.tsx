@@ -182,7 +182,7 @@ function RootShell({ children }: { children: ReactNode }) {
 }
 
 const navLinkClass =
-  "flex h-full items-center text-[1.3125rem] font-normal uppercase leading-none tracking-widest text-foreground transition-colors hover:text-secondary data-[status=active]:font-bold data-[status=active]:text-secondary";
+  "flex h-full items-center text-[21px] font-normal uppercase leading-none tracking-widest text-foreground transition-colors hover:text-secondary data-[status=active]:font-bold data-[status=active]:text-secondary";
 
 const navFont = { fontFamily: "Satoshi, system-ui, sans-serif" } as const;
 
@@ -252,13 +252,13 @@ function WorksDropdown({ active }: { active: boolean }) {
     <DropdownMenu dir={locale === "fa" ? "rtl" : "ltr"}>
       <DropdownMenuTrigger
         style={navFont}
-        className={`${navLinkClass} gap-1.5 outline-none data-[state=open]:text-secondary ${
+        className={`${navLinkClass} gap-[6px] outline-none data-[state=open]:text-secondary ${
           active ? "font-bold text-secondary" : ""
         }`}
       >
         {locale === "fa" ? "آثار" : "Works"}
         <ChevronDown
-          className="h-[1.125rem] w-[1.125rem] shrink-0 transition-transform duration-200 [[data-state=open]_&]:rotate-180"
+          className="h-[18px] w-[18px] shrink-0 transition-transform duration-200 [[data-state=open]_&]:rotate-180"
           aria-hidden
         />
       </DropdownMenuTrigger>
@@ -302,18 +302,18 @@ function Header() {
         dir="ltr"
         className="fixed inset-x-0 top-0 z-[200] border-b border-foreground/10 bg-background"
       >
-        <div className="mx-auto flex h-[5.25rem] w-full items-center justify-between px-4 sm:px-6 md:px-9">
-          <div className="flex items-center gap-2 sm:gap-6">
+        <div className="mx-auto flex h-[84px] w-full items-center justify-between px-[16px] sm:px-[24px] md:px-[36px]">
+          <div className="flex items-center gap-[8px] sm:gap-[24px]">
             <Link
               to="/"
               className="flex items-center text-foreground"
               aria-label={locale === "fa" ? "سیاوش اکبری — خانه" : "Siavash Akbari — Home"}
             >
-              <Logo className="block h-auto w-[clamp(104px,35vw,248px)] sm:h-[1.575rem] sm:w-auto" />
+              <Logo className="block h-auto w-[clamp(104px,35vw,248px)] sm:h-[25.2px] sm:w-auto" />
             </Link>
             <LanguageSwitch />
           </div>
-          <nav className="hidden h-full items-center gap-6 xl:flex">
+          <nav className="hidden h-full flex-row-reverse items-center gap-[48px] xl:flex">
             <Link to="/" style={navFont} className={navLinkClass}>
               {locale === "fa" ? "خانه" : "Home"}
             </Link>
@@ -335,7 +335,7 @@ function Header() {
         </div>
       </header>
       {/* Spacer matches fixed header height so content isn't hidden underneath */}
-      <div className="h-[5.25rem] shrink-0" aria-hidden />
+      <div className="h-[84px] shrink-0" aria-hidden />
     </>
   );
 }
@@ -380,9 +380,9 @@ function MobileNav() {
         aria-label={locale === "fa" ? "باز کردن فهرست" : "Open menu"}
         aria-expanded={open}
         onClick={() => setOpen(true)}
-        className="inline-flex min-h-11 min-w-11 items-center justify-center text-foreground transition-colors hover:opacity-70"
+        className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center text-foreground transition-colors hover:opacity-70"
       >
-        <MenuIcon className="h-[1.35rem] w-[1.35rem]" />
+        <MenuIcon className="h-[21.6px] w-[21.6px]" />
       </button>
 
       <div
@@ -399,14 +399,14 @@ function MobileNav() {
         >
           <div className="flex items-center justify-between py-2">
             <span className="text-foreground">
-              <Logo className="h-auto w-[clamp(104px,35vw,248px)] sm:h-[1.575rem] sm:w-auto" />
+              <Logo className="h-auto w-[clamp(104px,35vw,248px)] sm:h-[25.2px] sm:w-auto" />
             </span>
             <button
               aria-label={locale === "fa" ? "بستن فهرست" : "Close menu"}
               onClick={() => setOpen(false)}
               className="inline-flex items-center justify-center p-2 text-foreground transition-colors hover:opacity-70"
             >
-              <CloseIcon className="h-[1.35rem] w-[1.35rem]" />
+              <CloseIcon className="h-[21.6px] w-[21.6px]" />
             </button>
           </div>
           <nav className="flex flex-col gap-6 pt-10">
