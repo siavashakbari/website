@@ -45,6 +45,24 @@ export const SITE_SEED: SiteContent = {
       },
       { id: "role2", section: "Hero", label: "Role 2", value: { en: "Photographer", fa: "" } },
       { id: "role3", section: "Hero", label: "Role 3", value: { en: "Creative Director", fa: "" } },
+      {
+        id: "statYears",
+        section: "Hero statistics",
+        label: "Years of work",
+        value: { en: "12+ years of work", fa: "12+ سال تجربه کاری" },
+      },
+      {
+        id: "statProjects",
+        section: "Hero statistics",
+        label: "Projects done",
+        value: { en: "50+ projects done", fa: "50+ پروژه انجام‌شده" },
+      },
+      {
+        id: "statAssets",
+        section: "Hero statistics",
+        label: "Assets delivered",
+        value: { en: "2000+ assets delivered", fa: "2000+ خروجی تحویل‌شده" },
+      },
       { id: "scrollHint", section: "Hero", label: "Scroll hint", value: { en: "scroll", fa: "" } },
       {
         id: "disciplineLabel",
@@ -66,6 +84,7 @@ export const SITE_SEED: SiteContent = {
       },
     ],
     links: [],
+    imageUrl: "/hero-portrait-transparent.webp",
   },
   about: {
     fields: [

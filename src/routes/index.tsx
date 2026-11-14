@@ -1,30 +1,14 @@
 import { createFileRoute } from "@tanstack/react-router";
-import heroPortrait from "../assets/brand/hero/brand-hero-01.jpg";
-import heroPortraitWebp from "../assets/brand/hero/brand-hero-01.webp";
-import heroPortraitWebpSm from "../assets/brand/hero/brand-hero-01-sm.webp";
-import { useLayoutEffect, useState } from "react";
-import { motion, useScroll, useSpring, useTransform } from "motion/react";
+import { BinaryBannerCanvas } from "@/components/BinaryBannerCanvas";
+import { DisciplineCircleMap } from "@/components/DisciplineCircleMap";
 import { DisciplinesMarquee } from "@/components/DisciplinesMarquee";
-import { MorphingText } from "@/components/ui/morphing-text";
-import { cn } from "@/lib/utils";
-import { SITE_DESCRIPTION, SITE_TITLE_DEFAULT, pageHead } from "@/lib/seo";
-import { useLocale } from "@/lib/use-locale";
-import { readSiteContent, siteField } from "@/lib/site-content";
+import { Logo } from "@/components/Logo";
 import { currentLocale } from "@/lib/locale";
+import { SITE_DESCRIPTION, SITE_TITLE_DEFAULT, pageHead } from "@/lib/seo";
+import { readSiteContent, siteField } from "@/lib/site-content";
+import { useLocale } from "@/lib/use-locale";
 
-/** Matches fixed header spacer in __root.tsx */
-const HEADER_H = "3.5rem";
-
-/** Matches discipline strip side padding + card corner radius / gap */
-const HERO_INSET_PX = 20;
-const HERO_RADIUS_PX = 3;
-/** Full shrink completes after this much scroll — further scroll does nothing */
-const HERO_SHRINK_SCROLL_PX = 40;
-/** Phone-only "scroll" hint is gone by this scroll offset */
-const HERO_HINT_FADE_PX = 80;
-
-const HERO_SRCSET = `${heroPortraitWebpSm} 960w, ${heroPortraitWebp} 1920w`;
-const HERO_SIZES = "100vw";
+const PORTRAIT_FALLBACK = "/hero-portrait-transparent.webp";
 
 export const Route = createFileRoute("/")({
   head: () => {
@@ -42,16 +26,8 @@ export const Route = createFileRoute("/")({
         {
           rel: "preload",
           as: "image",
-          href: heroPortraitWebp,
-          type: "image/webp",
-          imageSrcSet: HERO_SRCSET,
-          imageSizes: HERO_SIZES,
+          href: readSiteContent()?.landing.imageUrl || PORTRAIT_FALLBACK,
           fetchPriority: "high",
-        },
-      ],
-      scripts: [
-        {
-          children: `if("scrollRestoration"in history)history.scrollRestoration="manual";document.documentElement.style.scrollBehavior="auto";window.scrollTo(0,0);`,
         },
       ],
     };
@@ -59,108 +35,85 @@ export const Route = createFileRoute("/")({
   component: Index,
 });
 
+function splitStat(value: string) {
+  const match = value.match(/^(\S+)\s+(.+)$/);
+  return match ? { number: match[1], label: match[2] } : { number: value, label: "" };
+}
+
 function Index() {
   const locale = useLocale();
-  const heroImage = readSiteContent()?.landing.imageUrl || heroPortrait;
+  const portraitUrl = readSiteContent()?.landing.imageUrl || PORTRAIT_FALLBACK;
   const heroHeading = siteField("landing", "heading", locale);
   const heroAlt = siteField("landing", "heroAlt", locale);
-  const heroRoles = (["role1", "role2", "role3"] as const).map(
-    (id) => siteField("landing", id, locale).text,
+  const roles = (["role1", "role2", "role3"] as const).map((id) =>
+    siteField("landing", id, locale),
   );
-  const scrollHint = siteField("landing", "scrollHint", locale);
-  const [isWindows, setIsWindows] = useState(false);
-  const [preferInstantScrollFx, setPreferInstantScrollFx] = useState(false);
-
-  const { scrollY } = useScroll();
-  const insetRaw = useTransform(scrollY, [0, HERO_SHRINK_SCROLL_PX], [0, HERO_INSET_PX]);
-  const radiusRaw = useTransform(scrollY, [0, HERO_SHRINK_SCROLL_PX], [0, HERO_RADIUS_PX]);
-  const scrollHintOpacity = useTransform(scrollY, [0, HERO_HINT_FADE_PX], [1, 0]);
-  const spring = { stiffness: 220, damping: 28, mass: 0.25 };
-  const insetSpring = useSpring(insetRaw, spring);
-  const radiusSpring = useSpring(radiusRaw, spring);
-  // Springs fight momentum scroll on phones; use the raw transform there.
-  const inset = preferInstantScrollFx ? insetRaw : insetSpring;
-  const radius = preferInstantScrollFx ? radiusRaw : radiusSpring;
-
-  useLayoutEffect(() => {
-    setIsWindows(/Win/i.test(navigator.userAgent));
-    const coarse = window.matchMedia("(pointer: coarse)").matches;
-    const noHover = window.matchMedia("(hover: none)").matches;
-    setPreferInstantScrollFx(coarse || noHover);
-    if ("scrollRestoration" in history) {
-      history.scrollRestoration = "manual";
-    }
-    const html = document.documentElement;
-    const prevBehavior = html.style.scrollBehavior;
-    html.style.scrollBehavior = "auto";
-    window.scrollTo(0, 0);
-    html.style.scrollBehavior = prevBehavior;
-  }, []);
+  const statistics = (["statYears", "statProjects", "statAssets"] as const).map((id) =>
+    siteField("landing", id, locale),
+  );
+  const disciplineLabel = siteField("landing", "disciplineLabel", locale);
 
   return (
     <div className="flex flex-col overscroll-y-contain">
-      {/* Hero fills the first screen; svh stays stable when mobile chrome shows/hides */}
-      <section
-        className="relative w-full overflow-hidden bg-background"
-        style={{ height: `calc(100svh - ${HEADER_H})` }}
-        aria-labelledby="home-heading"
-      >
-        <h1 id="home-heading" className="sr-only">
-          {heroHeading.text}
-        </h1>
-        <motion.div
-          className="absolute inset-0 box-border"
-          style={{
-            paddingLeft: inset,
-            paddingRight: inset,
-          }}
-        >
-          <motion.div
-            className="relative h-full w-full overflow-hidden"
-            style={{ borderRadius: radius }}
-          >
-            <picture>
-              {!readSiteContent()?.landing.imageUrl && (
-                <source type="image/webp" srcSet={HERO_SRCSET} sizes={HERO_SIZES} />
-              )}
-              <img
-                src={heroImage}
-                alt={heroAlt.text}
-                width={1920}
-                height={1080}
-                className="absolute inset-0 h-full w-full object-cover object-center"
-                loading="eager"
-                fetchPriority="high"
-                decoding="async"
-              />
-            </picture>
-            <div className="absolute inset-x-0 bottom-0 px-6 pb-6 md:pb-8">
-              <motion.div
-                aria-hidden
-                className="pointer-events-none md:hidden"
-                style={{ opacity: scrollHintOpacity }}
+      <section className="home-hero-outer" aria-labelledby="home-heading">
+        <div className="home-hero" dir="ltr">
+          <BinaryBannerCanvas />
+          <img
+            src={portraitUrl}
+            alt={heroAlt.text}
+            width={1600}
+            height={1986}
+            className="home-hero-portrait"
+            loading="eager"
+            fetchPriority="high"
+            decoding="async"
+          />
+          <div className="home-hero-copy">
+            <div className="home-hero-intro">
+              <Logo className="home-hero-logo" />
+              <h1 id="home-heading" className="sr-only">
+                {heroHeading.text}
+              </h1>
+              <div
+                className="home-hero-roles"
+                aria-label={locale === "fa" ? "حوزه‌های فعالیت" : "Creative roles"}
               >
-                <span className="home-scroll-hint mx-auto block text-center font-display text-[9pt] font-medium tracking-[0.42em] text-foreground">
-                  {scrollHint.text}
-                </span>
-              </motion.div>
-              <MorphingText
-                texts={heroRoles}
-                morphTime={2.25}
-                cooldownTime={0.75}
-                className={cn(
-                  "hidden h-auto min-h-[1.6em] max-w-none font-display text-[12.24pt] font-medium text-foreground md:block lg:text-[1.836rem]",
-                  locale === "fa" ? "font-farsi tracking-normal" : "uppercase tracking-[0.2em]",
-                  isWindows && "translate-y-[10px]",
-                )}
-              />
+                {roles.map((role, index) => (
+                  <p key={index} lang={role.lang} dir={role.lang === "fa" ? "rtl" : "ltr"}>
+                    {role.text}
+                  </p>
+                ))}
+              </div>
             </div>
-          </motion.div>
-        </motion.div>
+
+            <div className="home-hero-stats">
+              {statistics.map((stat, index) => {
+                const { number, label } = splitStat(stat.text);
+                return (
+                  <div
+                    key={index}
+                    className="home-hero-stat"
+                    lang={stat.lang}
+                    dir={stat.lang === "fa" ? "rtl" : "ltr"}
+                  >
+                    <strong>{number}</strong>
+                    <span>{label}</span>
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className="home-hero-map">
+              <p lang={disciplineLabel.lang} dir={disciplineLabel.lang === "fa" ? "rtl" : "ltr"}>
+                {disciplineLabel.text}
+              </p>
+              <DisciplineCircleMap />
+            </div>
+          </div>
+        </div>
       </section>
 
-      {/* Disciplines — OMS-style category tile strip */}
-      <section className="w-full" aria-label={siteField("landing", "disciplineLabel", locale).text}>
+      <section className="w-full" aria-label={disciplineLabel.text}>
         <DisciplinesMarquee />
       </section>
     </div>

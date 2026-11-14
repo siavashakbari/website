@@ -114,23 +114,160 @@
   --font-farsi: "Peyda", "Satoshi", system-ui, sans-serif;
 }
 
-@keyframes home-scroll-blink {
-  0%,
-  100% {
-    opacity: 0.25;
-  }
-  50% {
-    opacity: 1;
-  }
+.home-hero-outer {
+  height: calc(100svh - 5.25rem);
+  width: 100%;
 }
 
-.home-scroll-hint {
-  animation: home-scroll-blink 3s ease-in-out infinite;
+.home-hero {
+  position: relative;
+  isolation: isolate;
+  height: 100%;
+  margin-inline: 20px;
+  overflow: hidden;
+  border-radius: 3px;
+  background: #fff;
+  color: #111;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .home-scroll-hint {
-    animation: none;
+.home-hero-portrait {
+  position: absolute;
+  z-index: 1;
+  right: -1%;
+  bottom: 0;
+  width: 58%;
+  height: 100%;
+  object-fit: contain;
+  object-position: bottom right;
+  pointer-events: none;
+}
+
+.home-hero-copy {
+  position: relative;
+  z-index: 2;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 16px;
+  width: 57%;
+  height: 100%;
+  padding: clamp(20px, 3vw, 56px);
+}
+
+.home-hero-logo {
+  display: block;
+  width: min(100%, 420px);
+  height: auto;
+}
+
+.home-hero-roles {
+  margin-top: clamp(16px, 3vh, 30px);
+  font-size: clamp(12px, 1.3vw, 20px);
+  font-weight: 500;
+  line-height: 1.45;
+}
+
+.home-hero-roles [lang="en"] {
+  text-transform: uppercase;
+  letter-spacing: 0.13em;
+}
+
+.home-hero-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(12px, 2vw, 28px);
+  padding-block: clamp(14px, 2.2vh, 24px);
+  border-top: 1px solid rgb(0 0 0 / 22%);
+  border-bottom: 1px solid rgb(0 0 0 / 22%);
+}
+
+.home-hero-stat strong {
+  display: block;
+  font-size: clamp(24px, 2.8vw, 42px);
+  font-weight: 700;
+  line-height: 1;
+}
+
+.home-hero-stat span {
+  display: block;
+  margin-top: 5px;
+  font-size: clamp(11px, 1vw, 15px);
+  line-height: 1.25;
+}
+
+.home-hero-map {
+  display: flex;
+  flex-direction: column;
+  width: min(100%, 310px);
+  height: clamp(165px, 33vh, 310px);
+}
+
+.home-hero-map > p {
+  margin: 0 0 5px;
+  font-size: clamp(10px, 0.9vw, 13px);
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.home-hero-map svg {
+  min-height: 0;
+  flex: 1;
+}
+
+.home-hero-map a:hover > circle:first-of-type,
+.home-hero-map a:focus-visible > circle:first-of-type {
+  stroke-width: 2.5;
+}
+
+@media (max-width: 700px) {
+  .home-hero-copy {
+    width: 64%;
+    padding: 18px;
+  }
+
+  .home-hero-roles {
+    margin-top: 14px;
+    font-size: 11px;
+    line-height: 1.5;
+  }
+
+  .home-hero-roles [lang="en"] {
+    letter-spacing: 0.07em;
+  }
+
+  .home-hero-stats {
+    grid-template-columns: 1fr;
+    gap: 9px;
+    padding-block: 12px;
+  }
+
+  .home-hero-stat {
+    display: flex;
+    align-items: baseline;
+    gap: 7px;
+  }
+
+  .home-hero-stat strong {
+    flex: none;
+    font-size: 22px;
+  }
+
+  .home-hero-stat span {
+    margin-top: 0;
+    font-size: 11px;
+  }
+
+  .home-hero-map {
+    width: min(210px, calc(100vw - 76px));
+    height: clamp(170px, 26vh, 230px);
+  }
+
+  .home-hero-portrait {
+    right: -9%;
+    width: 80%;
+    height: 72%;
   }
 }
 

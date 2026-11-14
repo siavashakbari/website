@@ -26,9 +26,18 @@ function editableDraft(): EditableSiteContent {
   const current = readSiteContent();
   const seed = current || SITE_SEED;
   const existing = new Set(seed.about.fields.map((field) => field.id));
+  const existingLanding = new Set(seed.landing.fields.map((field) => field.id));
   return structuredClone({
     ...seed,
     notFound: seed.notFound || SITE_SEED.notFound!,
+    landing: {
+      ...seed.landing,
+      imageUrl: seed.landing.imageUrl || SITE_SEED.landing.imageUrl,
+      fields: [
+        ...seed.landing.fields,
+        ...SITE_SEED.landing.fields.filter((field) => !existingLanding.has(field.id)),
+      ],
+    },
     about: {
       ...seed.about,
       fields: [
@@ -78,23 +87,25 @@ function SiteContentEditor() {
     setMessage("");
   };
 
-  const upload404Image = async (file: File | undefined) => {
+  const uploadSiteImage = async (target: "landing" | "notFound", file: File | undefined) => {
     if (!file) return;
-    if (file.type !== "image/gif") {
-      setMessage("Please select a GIF file.");
+    if (target === "notFound" ? file.type !== "image/gif" : !file.type.startsWith("image/")) {
+      setMessage(
+        target === "notFound" ? "Please select a GIF file." : "Please select an image file.",
+      );
       return;
     }
     setUploadingImage(true);
     setMessage("");
     try {
-      const uploaded = await uploadToCloudStorage(file, file.name, { contentType: "image/gif" });
+      const uploaded = await uploadToCloudStorage(file, file.name, { contentType: file.type });
       setDraft((current) => ({
         ...current,
-        notFound: { ...current.notFound, imageUrl: uploaded.url },
+        [target]: { ...current[target], imageUrl: uploaded.url },
       }));
-      setMessage("GIF uploaded. Save changes to publish it on the 404 page.");
+      setMessage("Image uploaded. Save changes to publish it on the page.");
     } catch (error) {
-      setMessage(`GIF upload failed: ${error instanceof Error ? error.message : String(error)}`);
+      setMessage(`Image upload failed: ${error instanceof Error ? error.message : String(error)}`);
     } finally {
       setUploadingImage(false);
     }
@@ -181,21 +192,40 @@ function SiteContentEditor() {
           </fieldset>
         ))}
         {pageId === "landing" && (
-          <label className="block text-sm text-neutral-300">
-            Hero image URL (shared)
-            <input
-              type="url"
-              value={page.imageUrl || ""}
-              onChange={(event) =>
-                setDraft((current) => ({
-                  ...current,
-                  landing: { ...current.landing, imageUrl: event.target.value },
-                }))
-              }
-              placeholder="Leave empty to retain the current bundled hero"
-              className="mt-1 w-full rounded-lg border border-white/15 bg-black/50 p-3 text-sm text-white"
-            />
-          </label>
+          <div className="space-y-3 rounded-xl border border-white/10 p-4">
+            <label className="block text-sm text-neutral-300">
+              Hero portrait URL (shared)
+              <input
+                type="text"
+                value={page.imageUrl || ""}
+                onChange={(event) =>
+                  setDraft((current) => ({
+                    ...current,
+                    landing: { ...current.landing, imageUrl: event.target.value },
+                  }))
+                }
+                placeholder="/hero-portrait-transparent.webp"
+                className="mt-1 w-full rounded-lg border border-white/15 bg-black/50 p-3 text-sm text-white"
+              />
+            </label>
+            <label className="block text-sm text-neutral-300">
+              Upload replacement portrait to private Vault media storage
+              <input
+                type="file"
+                accept="image/*"
+                disabled={uploadingImage}
+                onChange={(event) => void uploadSiteImage("landing", event.target.files?.[0])}
+                className="mt-2 block w-full text-sm text-neutral-300 file:mr-4 file:rounded-md file:border-0 file:bg-[#2CE3C0] file:px-3 file:py-2 file:text-black"
+              />
+            </label>
+            {page.imageUrl && (
+              <img
+                src={page.imageUrl}
+                alt="Hero portrait preview"
+                className="max-h-64 max-w-full object-contain"
+              />
+            )}
+          </div>
         )}
         {pageId === "notFound" && (
           <div className="space-y-3 rounded-xl border border-white/10 p-4">
@@ -219,7 +249,7 @@ function SiteContentEditor() {
                 type="file"
                 accept="image/gif"
                 disabled={uploadingImage}
-                onChange={(event) => void upload404Image(event.target.files?.[0])}
+                onChange={(event) => void uploadSiteImage("notFound", event.target.files?.[0])}
                 className="mt-2 block w-full text-sm text-neutral-300 file:mr-4 file:rounded-md file:border-0 file:bg-[#2CE3C0] file:px-3 file:py-2 file:text-black"
               />
             </label>
