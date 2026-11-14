@@ -12,6 +12,8 @@ import {
 } from "lucide-react";
 import { jsPDF } from "jspdf";
 import { pageHead } from "@/lib/seo";
+import { useLocale } from "@/lib/use-locale";
+import { currentLocale } from "@/lib/locale";
 
 // Visual identity curated assets: 9 coupled pairs & 35 moodboard items
 import { COUPLED_LOGO_PAIRS, MOODBOARD_GRID_IMAGES } from "@/data/visual-identity-assets";
@@ -25,14 +27,13 @@ function hasRTL(text: string): boolean {
 export const Route = createFileRoute("/brand-discovery")({
   head: () =>
     pageHead({
-      title: "فرم طراحی هویت دیداری — Siavash Akbari",
-      description: "فرم جامع طراحی هویت دیداری و لوگو دیزاین توسط سیاوش اکبری استودیو.",
+      title: currentLocale() === "fa" ? "فرم طراحی هویت دیداری — سیاوش اکبری" : "Visual Identity Brief — Siavash Akbari",
+      description: currentLocale() === "fa" ? "فرم جامع طراحی هویت دیداری و لوگو توسط استودیوی سیاوش اکبری." : "Visual identity and logo design brief by Siavash Akbari Studio.",
       path: "/brand-discovery",
     }),
   component: BrandDiscoveryPage,
 });
 
-type Lang = "en" | "fa";
 
 // Helper to convert images to low-quality downscaled base64 for PDF and Telegram
 async function getLowQualityBase64(imageSrc: string): Promise<string> {
@@ -131,57 +132,9 @@ const inputPillClass =
 const textareaPillClass =
   "w-full rounded-3xl border border-foreground/15 bg-background/60 p-4 text-sm font-normal text-foreground placeholder:text-foreground/35 placeholder:font-thin focus:border-secondary focus:outline-none transition-all";
 
-function LanguageSwitch({
-  lang,
-  onToggle,
-  reduceMotion,
-}: {
-  lang: Lang;
-  onToggle: () => void;
-  reduceMotion: boolean;
-}) {
-  const isFa = lang === "fa";
-
-  return (
-    <button
-      type="button"
-      role="switch"
-      aria-checked={isFa}
-      aria-label="Switch Language / تغییر زبان"
-      onClick={onToggle}
-      dir="ltr"
-      className="group relative inline-flex h-11 w-[7.25rem] shrink-0 items-center rounded-full border border-secondary bg-transparent p-1 shadow-none transition-[border-color,box-shadow] duration-300 ease-out hover:shadow-[0_0_8px_color-mix(in_oklab,var(--secondary)_55%,transparent),0_0_18px_color-mix(in_oklab,var(--secondary)_30%,transparent),0_0_28px_color-mix(in_oklab,var(--secondary)_16%,transparent)] cursor-pointer"
-    >
-      <motion.span
-        aria-hidden
-        className="absolute top-1 bottom-1 left-1 w-[calc(50%-4px)] rounded-full bg-[#EFEFEF] transition-[box-shadow] duration-300 ease-out group-hover:shadow-[0_0_8px_color-mix(in_oklab,#EFEFEF_70%,transparent),0_0_18px_color-mix(in_oklab,#EFEFEF_35%,transparent)]"
-        initial={false}
-        animate={{ x: isFa ? "100%" : "0%" }}
-        transition={
-          reduceMotion ? { duration: 0 } : { type: "spring", stiffness: 380, damping: 28 }
-        }
-      />
-      <span
-        className={`relative z-[1] flex w-1/2 items-center justify-center text-xs font-medium uppercase tracking-[0.14em] transition-colors duration-300 ${
-          !isFa ? "text-[#0F0F0F]" : "text-secondary/80"
-        }`}
-      >
-        EN
-      </span>
-      <span
-        className={`relative z-[1] flex w-1/2 items-center justify-center font-farsi text-sm font-medium transition-colors duration-300 ${
-          isFa ? "text-[#0F0F0F]" : "text-secondary/80"
-        }`}
-      >
-        فا
-      </span>
-    </button>
-  );
-}
-
 export function BrandDiscoveryPage() {
   const reduceMotion = useReducedMotion();
-  const [lang, setLang] = useState<Lang>("fa");
+  const lang = useLocale();
   const isFa = lang === "fa";
 
   // Section 1: Questionnaire Form Data
@@ -709,11 +662,7 @@ export function BrandDiscoveryPage() {
           </p>
         </div>
 
-        <LanguageSwitch
-          lang={lang}
-          onToggle={() => setLang(isFa ? "en" : "fa")}
-          reduceMotion={!!reduceMotion}
-        />
+
       </div>
 
       {/* SECTION 1: DETAILED QUESTIONNAIRE */}

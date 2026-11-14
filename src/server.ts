@@ -2,6 +2,7 @@ import "./lib/error-capture";
 
 import { consumeLastCapturedError } from "./lib/error-capture";
 import { renderErrorPage } from "./lib/error-page";
+import { DEFAULT_LOCALE, isNonPublicPath, localeFromPath, withLocale } from "./lib/locale";
 
 type ServerEntry = {
   fetch: (request: Request, env: unknown, ctx: unknown) => Promise<Response> | Response;
@@ -47,6 +48,14 @@ function isH3SwallowedErrorBody(body: string): boolean {
 export default {
   async fetch(request: Request, env: unknown, ctx: unknown) {
     try {
+      const requestedUrl = new URL(request.url);
+      if (!isNonPublicPath(requestedUrl.pathname) && !localeFromPath(requestedUrl.pathname)) {
+        if (/^\/(?:far|fr|ar|de|es|it|ru|zh|tr)(?:\/|$)/i.test(requestedUrl.pathname)) {
+          return new Response("Unknown language", { status: 404 });
+        }
+        requestedUrl.pathname = withLocale(requestedUrl.pathname, DEFAULT_LOCALE);
+        return Response.redirect(requestedUrl, 308);
+      }
       const handler = await getServerEntry();
       const response = await handler.fetch(request, env, ctx);
       const normalized = await normalizeCatastrophicSsrResponse(response);

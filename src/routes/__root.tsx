@@ -10,6 +10,8 @@ import {
 } from "@tanstack/react-router";
 import { lazy, Suspense, useEffect, useState, type ReactNode } from "react";
 import { ChevronDown } from "lucide-react";
+import { useLocale } from "@/lib/use-locale";
+import { currentLocale, localizedText, switchLocaleUrl, withLocale, type Locale } from "@/lib/locale";
 
 import appCss from "../styles.css?url";
 import satoshiMedium from "../assets/fonts/Satoshi-Medium.woff2?url";
@@ -36,7 +38,6 @@ import {
   SITE_TITLE_DEFAULT,
   TWITTER_HANDLE,
   absoluteUrl,
-  getSiteUrl,
   jsonLdScript,
   siteJsonLd,
 } from "@/lib/seo";
@@ -48,15 +49,16 @@ const HoverFooter = lazy(() =>
 function ErrorComponent({ error, reset }: { error: any; reset: () => void }) {
   console.error(error);
   const router = useRouter();
+  const locale = useLocale();
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
         <h1 className="text-xl font-semibold tracking-tight text-foreground">
-          This page didn't load
+          {locale === "fa" ? "صفحه بارگذاری نشد" : "This page didn't load"}
         </h1>
         <p className="mt-2 text-sm text-muted-foreground">
-          Something went wrong on our end. You can try refreshing or head back home.
+          {locale === "fa" ? "خطایی رخ داد. صفحه را دوباره بارگذاری کنید یا به خانه برگردید." : "Something went wrong on our end. You can try refreshing or head back home."}
         </p>
         <div className="mt-6 flex flex-wrap justify-center gap-2">
           <button
@@ -66,13 +68,13 @@ function ErrorComponent({ error, reset }: { error: any; reset: () => void }) {
             }}
             className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
           >
-            Try again
+            {locale === "fa" ? "تلاش دوباره" : "Try again"}
           </button>
           <a
-            href="/"
+            href={withLocale("/", locale)}
             className="inline-flex items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent"
           >
-            Go home
+            {locale === "fa" ? "بازگشت به خانه" : "Go home"}
           </a>
         </div>
       </div>
@@ -80,13 +82,13 @@ function ErrorComponent({ error, reset }: { error: any; reset: () => void }) {
   );
 }
 
-export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
+export const Route = createRootRouteWithContext<{ queryClient: QueryClient; locale: import("@/lib/locale").LocaleState }>()({
   beforeLoad: async () => {
     if (typeof window !== "undefined") await refreshPublishedContent();
   },
   loader: () => getPublishedHydrationSnapshot(),
   head: () => {
-    const siteUrl = getSiteUrl();
+    const locale = currentLocale();
     const ogImage = absoluteUrl("/og.jpg");
     return {
       meta: [
@@ -104,10 +106,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         { property: "og:title", content: SITE_TITLE_DEFAULT },
         { property: "og:description", content: SITE_DESCRIPTION },
         { property: "og:type", content: "website" },
-        { property: "og:url", content: siteUrl },
+        { property: "og:url", content: absoluteUrl(withLocale("/", locale)) },
         { property: "og:site_name", content: SITE_NAME },
-        { property: "og:locale", content: "en_US" },
-        { property: "og:locale:alternate", content: "fa_IR" },
+        { property: "og:locale", content: locale === "fa" ? "fa_IR" : "en_US" },
+        { property: "og:locale:alternate", content: locale === "fa" ? "en_US" : "fa_IR" },
         { property: "og:image", content: ogImage },
         { property: "og:image:width", content: "1200" },
         { property: "og:image:height", content: "630" },
@@ -144,8 +146,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 });
 
 function RootShell({ children }: { children: ReactNode }) {
+  const locale = useLocale();
   return (
-    <html lang="en" className="dark">
+    <html lang={locale} dir={locale === "fa" ? "rtl" : "ltr"} className="dark">
       <head>
         <HeadContent />
       </head>
@@ -176,7 +179,7 @@ function isDisciplinePath(pathname: string) {
   );
 }
 
-function computeVisibleNavItems() {
+function computeVisibleNavItems(locale: Locale) {
   const pages = getVaultPages();
   const byRoute = new Map(pages.map((p) => [p.route.toLowerCase(), p]));
   const items = DISCIPLINES.filter((d) => !isRouteOrAncestorHidden(d.path, pages)).map((d) => {
@@ -184,7 +187,7 @@ function computeVisibleNavItems() {
     return {
       key: d.path || d.slug,
       path: d.path,
-      label: vp?.name || d.label,
+      label: vp ? localizedText(vp.name, vp.nameFa, locale).text : localizedText(d.label, d.labelFa, locale).text,
     };
   });
   const seen = new Set(items.map((i) => i.path.toLowerCase()));
@@ -198,39 +201,35 @@ function computeVisibleNavItems() {
         p.route !== "/photography",
     )
     .forEach((p) => {
-      items.push({ key: p.route, path: p.route, label: p.name });
+      items.push({ key: p.route, path: p.route, label: localizedText(p.name, p.nameFa, locale).text });
     });
   return items;
 }
 
 function useVisibleNavDisciplines() {
-  const [items, setItems] = useState(() =>
-    DISCIPLINES.map((d) => ({
-      key: d.path || d.slug,
-      path: d.path,
-      label: d.label,
-    })),
-  );
+  const locale = useLocale();
+  const [items, setItems] = useState(() => computeVisibleNavItems(locale));
 
   useEffect(() => {
-    setItems(computeVisibleNavItems());
-    return subscribeToVaultStore(() => setItems(computeVisibleNavItems()));
-  }, []);
+    setItems(computeVisibleNavItems(locale));
+    return subscribeToVaultStore(() => setItems(computeVisibleNavItems(locale)));
+  }, [locale]);
 
   return items;
 }
 
 function WorksDropdown({ active }: { active: boolean }) {
+  const locale = useLocale();
   const navItems = useVisibleNavDisciplines();
   return (
-    <DropdownMenu>
+    <DropdownMenu dir={locale === "fa" ? "rtl" : "ltr"}>
       <DropdownMenuTrigger
         style={navFont}
         className={`${navLinkClass} gap-1.5 outline-none data-[state=open]:text-secondary ${
           active ? "font-bold text-secondary" : ""
         }`}
       >
-        Works
+        {locale === "fa" ? "آثار" : "Works"}
         <ChevronDown
           className="h-3 w-3 shrink-0 transition-transform duration-200 [[data-state=open]_&]:rotate-180"
           aria-hidden
@@ -242,7 +241,7 @@ function WorksDropdown({ active }: { active: boolean }) {
         className="z-[210] min-w-[16rem] rounded-none border-foreground/10 bg-background p-2 shadow-xl"
       >
         <div className="px-3 py-1.5 text-[10px] font-mono uppercase tracking-[0.2em] text-muted-foreground/60">
-          Specialties
+          {locale === "fa" ? "تخصص‌ها" : "Specialties"}
         </div>
         {navItems.map((discipline) => (
           <DropdownMenuItem
@@ -266,6 +265,7 @@ function WorksDropdown({ active }: { active: boolean }) {
 
 function Header() {
   const router = useRouter();
+  const locale = useLocale();
   const pathname = router.state.location.pathname;
   const worksActive = isDisciplinePath(pathname);
 
@@ -273,29 +273,32 @@ function Header() {
     <>
       <header className="fixed inset-x-0 top-0 z-[200] border-b border-foreground/10 bg-background">
         <div className="mx-auto flex h-14 w-full items-center justify-between px-6 md:px-9">
-          <Link
-            to="/"
-            className="flex items-center text-foreground"
-            aria-label="Siavash Akbari — Home"
-          >
-            <Logo className="block h-[1.05rem] w-auto" />
-          </Link>
+          <div className="flex items-center gap-4">
+            <Link
+              to="/"
+              className="flex items-center text-foreground"
+              aria-label={locale === "fa" ? "سیاوش اکبری — خانه" : "Siavash Akbari — Home"}
+            >
+              <Logo className="block h-[1.05rem] w-auto" />
+            </Link>
+            <LanguageSwitch />
+          </div>
           <nav className="hidden h-full items-center gap-12 md:flex">
             <Link to="/" style={navFont} className={navLinkClass}>
-              Home
+              {locale === "fa" ? "خانه" : "Home"}
             </Link>
             <WorksDropdown active={worksActive} />
             <Link to="/brand-discovery" style={navFont} className={navLinkClass}>
-              Visual Identity Form
+              {locale === "fa" ? "فرم هویت بصری" : "Visual Identity Form"}
             </Link>
             <Link to="/blog" style={navFont} className={navLinkClass}>
-              Blog
+              {locale === "fa" ? "وبلاگ" : "Blog"}
             </Link>
             <Link to="/about" style={navFont} className={navLinkClass}>
-              About
+              {locale === "fa" ? "درباره" : "About"}
             </Link>
             <Link to="/contact" style={navFont} className={navLinkClass}>
-              Contact
+              {locale === "fa" ? "تماس" : "Contact"}
             </Link>
           </nav>
           <MobileNav />
@@ -304,6 +307,24 @@ function Header() {
       {/* Spacer matches fixed header height so content isn't hidden underneath */}
       <div className="h-14 shrink-0" aria-hidden />
     </>
+  );
+}
+
+function LanguageSwitch() {
+  const locale = useLocale();
+  const router = useRouter();
+  const target = locale === "fa" ? "en" : "fa";
+  const href = switchLocaleUrl(router.state.location.href, target);
+  return (
+    <a
+      href={href}
+      hrefLang={target}
+      lang={target}
+      aria-label={locale === "fa" ? "Switch to English" : "تغییر زبان به فارسی"}
+      className="rounded-sm border border-foreground/30 px-2 py-1 text-xs text-foreground transition-colors hover:border-secondary hover:text-secondary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary"
+    >
+      {locale === "fa" ? "EN" : "فارسی"}
+    </a>
   );
 }
 
@@ -334,6 +355,7 @@ function CloseIcon({ className }: { className?: string }) {
 }
 
 function MobileNav() {
+  const locale = useLocale();
   const [open, setOpen] = useState(false);
   const [worksOpen, setWorksOpen] = useState(false);
   const navItems = useVisibleNavDisciplines();
@@ -343,7 +365,7 @@ function MobileNav() {
   return (
     <div className="md:hidden">
       <button
-        aria-label="Open menu"
+        aria-label={locale === "fa" ? "باز کردن فهرست" : "Open menu"}
         aria-expanded={open}
         onClick={() => setOpen(true)}
         className="inline-flex items-center justify-center text-foreground transition-colors hover:opacity-70"
@@ -358,8 +380,8 @@ function MobileNav() {
         onClick={() => setOpen(false)}
       >
         <div
-          className={`absolute right-0 top-0 h-full w-3/4 max-w-sm border-l border-background/20 bg-background/85 p-6 shadow-xl backdrop-blur-2xl transition-transform duration-300 ${
-            open ? "translate-x-0" : "translate-x-full"
+          className={`absolute top-0 h-full w-3/4 max-w-sm border-background/20 bg-background/85 p-6 shadow-xl backdrop-blur-2xl transition-transform duration-300 ${locale === "fa" ? "left-0 border-r" : "right-0 border-l"} ${
+            open ? "translate-x-0" : locale === "fa" ? "-translate-x-full" : "translate-x-full"
           }`}
           onClick={(e) => e.stopPropagation()}
         >
@@ -368,7 +390,7 @@ function MobileNav() {
               <Logo className="h-[1.05rem] w-auto" />
             </span>
             <button
-              aria-label="Close menu"
+              aria-label={locale === "fa" ? "بستن فهرست" : "Close menu"}
               onClick={() => setOpen(false)}
               className="inline-flex items-center justify-center p-2 text-foreground transition-colors hover:opacity-70"
             >
@@ -381,7 +403,7 @@ function MobileNav() {
               onClick={() => setOpen(false)}
               className="font-display text-2xl font-normal text-foreground transition-transform hover:scale-105 data-[status=active]:font-bold data-[status=active]:text-secondary"
             >
-              Home
+              {locale === "fa" ? "خانه" : "Home"}
             </Link>
 
             <div>
@@ -393,7 +415,7 @@ function MobileNav() {
                   worksActive ? "font-bold text-secondary" : ""
                 }`}
               >
-                Works
+                {locale === "fa" ? "آثار" : "Works"}
                 <ChevronDown
                   className={`h-5 w-5 shrink-0 transition-transform duration-200 ${
                     worksOpen ? "rotate-180" : ""
@@ -409,7 +431,7 @@ function MobileNav() {
                 <div className="overflow-hidden">
                   <div className="flex flex-col gap-3 pt-4 pl-1">
                     <span className="text-[10px] font-mono uppercase tracking-[0.2em] text-muted-foreground/60">
-                      Specialties
+                      {locale === "fa" ? "تخصص‌ها" : "Specialties"}
                     </span>
                     {navItems.map((discipline) => (
                       <Link
@@ -432,7 +454,7 @@ function MobileNav() {
               onClick={() => setOpen(false)}
               className="font-display text-2xl font-normal text-foreground transition-transform hover:scale-105 data-[status=active]:font-bold data-[status=active]:text-secondary"
             >
-              Visual Identity Form
+              {locale === "fa" ? "فرم هویت بصری" : "Visual Identity Form"}
             </Link>
 
             <Link
@@ -440,7 +462,7 @@ function MobileNav() {
               onClick={() => setOpen(false)}
               className="font-display text-2xl font-normal text-foreground transition-transform hover:scale-105 data-[status=active]:font-bold data-[status=active]:text-secondary"
             >
-              Blog
+              {locale === "fa" ? "وبلاگ" : "Blog"}
             </Link>
 
             <Link
@@ -448,14 +470,14 @@ function MobileNav() {
               onClick={() => setOpen(false)}
               className="font-display text-2xl font-normal text-foreground transition-transform hover:scale-105 data-[status=active]:font-bold data-[status=active]:text-secondary"
             >
-              About
+              {locale === "fa" ? "درباره" : "About"}
             </Link>
             <Link
               to="/contact"
               onClick={() => setOpen(false)}
               className="font-display text-2xl font-normal text-foreground transition-transform hover:scale-105 data-[status=active]:font-bold data-[status=active]:text-secondary"
             >
-              Contact
+              {locale === "fa" ? "تماس" : "Contact"}
             </Link>
           </nav>
         </div>

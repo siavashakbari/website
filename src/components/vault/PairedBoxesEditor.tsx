@@ -2,8 +2,49 @@ import { useState, useEffect } from "react";
 import { Code2, ListPlus, Plus, Trash2, Copy, Check, AlertCircle } from "lucide-react";
 
 export interface KeyValuePair {
+  id?: string;
   key: string;
   value: string;
+  keyFa?: string;
+  valueFa?: string;
+}
+
+function serializedPairs(pairs: KeyValuePair[]): string {
+  return JSON.stringify(pairs.map((pair, index) => ({
+    id: pair.id || `legacy-${index}`,
+    key: pair.key,
+    value: pair.value,
+    keyFa: pair.keyFa || "",
+    valueFa: pair.valueFa || "",
+  })), null, 2);
+}
+
+function parsePairs(raw: string, previous: KeyValuePair[]): KeyValuePair[] {
+  const parsed: unknown = JSON.parse(raw || "[]");
+  if (Array.isArray(parsed)) {
+    return parsed.map((entry, index) => {
+      if (!entry || typeof entry !== "object" || Array.isArray(entry)) throw new Error(`Row ${index + 1} must be an object.`);
+      const row = entry as Record<string, unknown>;
+      if (typeof row.key !== "string" || typeof row.value !== "string") throw new Error(`Row ${index + 1} needs string key and value fields.`);
+      return {
+        id: typeof row.id === "string" && row.id ? row.id : previous[index]?.id || crypto.randomUUID(),
+        key: row.key,
+        value: row.value,
+        keyFa: typeof row.keyFa === "string" ? row.keyFa : "",
+        valueFa: typeof row.valueFa === "string" ? row.valueFa : "",
+      };
+    });
+  }
+  if (parsed && typeof parsed === "object") {
+    return Object.entries(parsed).map(([key, value]) => ({
+      id: crypto.randomUUID(),
+      key,
+      value: typeof value === "string" ? value : JSON.stringify(value),
+      keyFa: "",
+      valueFa: "",
+    }));
+  }
+  throw new Error("JSON must be an array of rows or a legacy key-value object.");
 }
 
 interface PairedBoxesEditorProps {
@@ -28,39 +69,20 @@ export function PairedBoxesEditor({
   // Sync JSON text when pairs change from outside while not actively typing in JSON mode
   useEffect(() => {
     if (!isJsonMode) {
-      const obj: Record<string, string> = {};
-      pairs.forEach((p) => {
-        if (p.key.trim() || p.value.trim()) {
-          obj[p.key.trim()] = p.value.trim();
-        }
-      });
-      setJsonText(JSON.stringify(obj, null, 2));
+      setJsonText(serializedPairs(pairs));
     }
   }, [pairs, isJsonMode]);
 
   const handleToggleMode = () => {
     if (!isJsonMode) {
       // Switching to JSON mode: build JSON from current pairs
-      const obj: Record<string, string> = {};
-      pairs.forEach((p) => {
-        if (p.key.trim() || p.value.trim()) {
-          obj[p.key.trim()] = p.value.trim();
-        }
-      });
-      setJsonText(JSON.stringify(obj, null, 2));
+      setJsonText(serializedPairs(pairs));
       setJsonError(null);
       setIsJsonMode(true);
     } else {
       // Switching back to Boxes mode: parse JSON and update pairs
       try {
-        const parsed = JSON.parse(jsonText || "{}");
-        if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) {
-          throw new Error("JSON must be a key-value object (e.g. { \"Model\": \"Sara\" })");
-        }
-        const newPairs: KeyValuePair[] = Object.entries(parsed).map(([key, val]) => ({
-          key: String(key),
-          value: typeof val === "object" ? JSON.stringify(val) : String(val ?? ""),
-        }));
+        const newPairs = parsePairs(jsonText, pairs);
         onChange(newPairs);
         setJsonError(null);
         setIsJsonMode(false);
@@ -71,10 +93,10 @@ export function PairedBoxesEditor({
   };
 
   const handleAddPair = () => {
-    onChange([...pairs, { key: "", value: "" }]);
+    onChange([...pairs, { id: crypto.randomUUID(), key: "", value: "", keyFa: "", valueFa: "" }]);
   };
 
-  const handleUpdatePair = (index: number, field: "key" | "value", val: string) => {
+  const handleUpdatePair = (index: number, field: "key" | "value" | "keyFa" | "valueFa", val: string) => {
     const next = [...pairs];
     next[index] = { ...next[index], [field]: val };
     onChange(next);
@@ -93,12 +115,8 @@ export function PairedBoxesEditor({
   const handleJsonChange = (text: string) => {
     setJsonText(text);
     try {
-      const parsed = JSON.parse(text || "{}");
-      if (typeof parsed === "object" && parsed !== null && !Array.isArray(parsed)) {
-        const newPairs: KeyValuePair[] = Object.entries(parsed).map(([key, val]) => ({
-          key: String(key),
-          value: typeof val === "object" ? JSON.stringify(val) : String(val ?? ""),
-        }));
+      if (text.trim()) {
+        const newPairs = parsePairs(text, pairs);
         onChange(newPairs);
         setJsonError(null);
       }
@@ -177,11 +195,11 @@ export function PairedBoxesEditor({
             value={jsonText}
             onChange={(e) => handleJsonChange(e.target.value)}
             rows={5}
-            placeholder='{\n  "Model": "Sara",\n  "Year": "2020"\n}'
+            placeholder='[{"id":"row-1","key":"Model","value":"Sara","keyFa":"مدل","valueFa":"سارا"}]'
             className="w-full bg-black/70 border border-white/15 rounded-lg p-3 font-mono text-xs text-[#2CE3C0] focus:outline-none focus:border-[#2CE3C0] transition-colors resize-y selection:bg-[#2CE3C0] selection:text-black"
           />
           <p className="text-[11px] text-neutral-500 font-mono">
-            Copy and paste this JSON code to or from other cards.
+            JSON arrays preserve row order, duplicate labels, and both translations. Legacy objects can still be imported.
           </p>
         </div>
       ) : (
@@ -194,22 +212,21 @@ export function PairedBoxesEditor({
           ) : (
             <div className="space-y-2">
               {pairs.map((pair, idx) => (
-                <div key={idx} className="grid min-w-0 grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)_36px] items-center gap-1.5 sm:gap-2">
-                  <input
-                    type="text"
-                    value={pair.key}
-                    onChange={(e) => handleUpdatePair(idx, "key", e.target.value)}
-                    placeholder="Key (e.g. Model)"
-                    className="min-w-0 w-full bg-black/60 border border-white/10 rounded-lg px-2 sm:px-3 py-2 text-xs text-white placeholder:text-neutral-600 focus:outline-none focus:border-[#2CE3C0]"
-                  />
-                  <span className="text-neutral-500 font-mono text-xs">:</span>
-                  <input
-                    type="text"
-                    value={pair.value}
-                    onChange={(e) => handleUpdatePair(idx, "value", e.target.value)}
-                    placeholder="Value (e.g. Sara)"
-                    className="min-w-0 w-full bg-black/60 border border-white/10 rounded-lg px-2 sm:px-3 py-2 text-xs text-white placeholder:text-neutral-600 focus:outline-none focus:border-[#2CE3C0]"
-                  />
+                <div key={pair.id || `legacy-${idx}`} className="grid min-w-0 grid-cols-[minmax(0,1fr)_36px] gap-2 rounded-lg border border-white/10 p-2">
+                  <div className="grid min-w-0 gap-2 sm:grid-cols-2">
+                    <label className="min-w-0 text-[11px] text-neutral-400">English label
+                      <input type="text" dir="ltr" value={pair.key} onChange={(e) => handleUpdatePair(idx, "key", e.target.value)} className="mt-1 w-full min-w-0 rounded-lg border border-white/10 bg-black/60 px-3 py-2 text-xs text-white" />
+                    </label>
+                    <label className="min-w-0 text-[11px] text-neutral-400">English value
+                      <input type="text" dir="ltr" value={pair.value} onChange={(e) => handleUpdatePair(idx, "value", e.target.value)} className="mt-1 w-full min-w-0 rounded-lg border border-white/10 bg-black/60 px-3 py-2 text-xs text-white" />
+                    </label>
+                    <label className="min-w-0 text-[11px] text-neutral-400">Persian label
+                      <input type="text" dir="rtl" lang="fa" value={pair.keyFa || ""} onChange={(e) => handleUpdatePair(idx, "keyFa", e.target.value)} className="mt-1 w-full min-w-0 rounded-lg border border-white/10 bg-black/60 px-3 py-2 font-farsi text-xs text-white" />
+                    </label>
+                    <label className="min-w-0 text-[11px] text-neutral-400">Persian value
+                      <input type="text" dir="rtl" lang="fa" value={pair.valueFa || ""} onChange={(e) => handleUpdatePair(idx, "valueFa", e.target.value)} className="mt-1 w-full min-w-0 rounded-lg border border-white/10 bg-black/60 px-3 py-2 font-farsi text-xs text-white" />
+                    </label>
+                  </div>
                   <button
                     type="button"
                     onClick={() => handleRemovePair(idx)}

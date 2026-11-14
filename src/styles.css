@@ -423,3 +423,16 @@
 [dir="rtl"] textarea::placeholder {
   font-family: var(--font-farsi) !important;
 }
+
+/* Fallback English blocks and machine-readable controls keep LTR shaping. */
+html[lang="fa"] [lang="en"],
+html[lang="fa"] [lang="en"] *,
+html[lang="fa"] [dir="ltr"],
+html[lang="fa"] [dir="ltr"] * {
+  font-family: "Satoshi", system-ui, sans-serif !important;
+}
+
+html[lang="fa"] .uppercase {
+  text-transform: none;
+  letter-spacing: normal;
+}

@@ -3,43 +3,45 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState, useMemo, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { ArrowRight, Calendar, Clock, Sparkles, Search, BookOpen } from "lucide-react";
-import { BLOG_POSTS, BLOG_CATEGORIES, type BlogCategory } from "@/data/blog-posts";
+import { BLOG_CATEGORIES, type BlogCategory } from "@/data/blog-posts";
 import { getMergedBlogPosts } from "@/lib/studio-store";
 import { pageHead, jsonLdScript, getSiteUrl } from "@/lib/seo";
 import { BackToTop } from "@/components/BackToTop";
+import { useLocale } from "@/lib/use-locale";
+import { currentLocale, localizedText, withLocale } from "@/lib/locale";
 
 export const Route = createFileRoute("/blog/")({
   head: () => {
+    const locale = currentLocale();
     const siteUrl = getSiteUrl();
     const blogCollectionSchema = {
       "@context": "https://schema.org",
       "@type": "CollectionPage",
-      name: "Blog & Studio News — Siavash Akbari",
+      name: locale === "fa" ? "وبلاگ و اخبار استودیو — سیاوش اکبری" : "Blog & Studio News — Siavash Akbari",
       description:
         "Essays, architectural studies, design notes, and studio news by Siavash Akbari.",
-      url: `${siteUrl}/blog`,
+      url: `${siteUrl}${withLocale("/blog", locale)}`,
       author: {
         "@type": "Person",
         name: "Siavash Akbari",
         url: siteUrl,
       },
-      hasPart: BLOG_POSTS.map((post) => ({
+      hasPart: getMergedBlogPosts().filter((post) => post.published !== false).map((post) => ({
         "@type": "BlogPosting",
-        headline: post.title,
-        url: `${siteUrl}/blog/${post.slug}`,
+        headline: localizedText(post.title, post.titleFa, locale).text,
+        url: `${siteUrl}${withLocale(`/blog/${post.slug}`, locale)}`,
         datePublished: post.publishedAt,
         author: {
           "@type": "Person",
-          name: post.author.name,
+          name: localizedText(post.author?.name, post.author?.nameFa, locale).text || "Siavash Akbari",
         },
       })),
     };
 
     return {
       ...pageHead({
-        title: "Blog & Studio News — Siavash Akbari",
-        description:
-          "Essays, architectural studies, design notes, and studio announcements by Siavash Akbari.",
+        title: locale === "fa" ? "وبلاگ و اخبار استودیو — سیاوش اکبری" : "Blog & Studio News — Siavash Akbari",
+        description: locale === "fa" ? "یادداشت‌ها، پژوهش‌های طراحی و اخبار استودیوی سیاوش اکبری." : "Essays, architectural studies, design notes, and studio announcements by Siavash Akbari.",
         path: "/blog",
         image: "/og.jpg",
         type: "website",
@@ -51,26 +53,12 @@ export const Route = createFileRoute("/blog/")({
 });
 
 function BlogIndexPage() {
-  const [lang, setLang] = useState<"en" | "fa">(() => {
-    if (typeof window !== "undefined") {
-      const saved = localStorage.getItem("siavash_blog_lang");
-      if (saved === "fa" || saved === "en") return saved;
-    }
-    return "en";
-  });
+  const lang = useLocale();
 
   const [selectedCategory, setSelectedCategory] = useState<BlogCategory | "all">("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [posts, setPosts] = useState(() => getMergedBlogPosts());
   const isFa = lang === "fa";
-
-  const toggleLanguage = () => {
-    const nextLang = lang === "fa" ? "en" : "fa";
-    setLang(nextLang);
-    if (typeof window !== "undefined") {
-      localStorage.setItem("siavash_blog_lang", nextLang);
-    }
-  };
 
   useEffect(() => {
     setPosts(getMergedBlogPosts());
@@ -100,7 +88,7 @@ function BlogIndexPage() {
   }, [posts, selectedCategory, searchQuery]);
 
   const featuredPost = useMemo(() => {
-    return posts.find((p) => p.featured && p.published !== false) || posts.find((p) => p.published !== false) || posts[0];
+    return posts.find((p) => p.featured && p.published !== false) || posts.find((p) => p.published !== false);
   }, [posts]);
 
   return (
@@ -121,38 +109,6 @@ function BlogIndexPage() {
               <span>{isFa ? "یادداشت‌ها و اخبار استودیو" : "Studio Journal & News"}</span>
             </div>
 
-            {/* Language Switcher Pill */}
-            <button
-              type="button"
-              role="switch"
-              aria-checked={isFa}
-              aria-label={isFa ? "تغییر زبان به انگلیسی" : "Switch language to Farsi"}
-              onClick={toggleLanguage}
-              dir="ltr"
-              className="group relative inline-flex h-10 w-[6.8rem] shrink-0 items-center rounded-full border border-secondary/80 bg-background/60 p-1 shadow-none transition-[border-color,box-shadow] duration-300 ease-out hover:border-secondary hover:shadow-[0_0_12px_rgba(63,235,204,0.35)] cursor-pointer"
-            >
-              <motion.span
-                aria-hidden
-                className="absolute top-1 bottom-1 left-1 w-[calc(50%-4px)] rounded-full bg-secondary text-secondary-foreground shadow-[0_0_10px_rgba(63,235,204,0.4)]"
-                initial={false}
-                animate={{ x: isFa ? "100%" : "0%" }}
-                transition={{ type: "spring", stiffness: 400, damping: 30 }}
-              />
-              <span
-                className={`relative z-[1] flex w-1/2 items-center justify-center text-[11px] font-semibold tracking-wider transition-colors duration-200 ${
-                  !isFa ? "text-secondary-foreground font-bold" : "text-foreground/70"
-                }`}
-              >
-                ENG
-              </span>
-              <span
-                className={`relative z-[1] flex w-1/2 items-center justify-center font-farsi text-[12px] font-semibold transition-colors duration-200 ${
-                  isFa ? "text-secondary-foreground font-bold" : "text-foreground/70"
-                }`}
-              >
-                فا
-              </span>
-            </button>
           </div>
 
           <h1 className="mt-6 font-display text-4xl font-normal tracking-tight text-foreground md:text-6xl lg:text-7xl">
@@ -243,7 +199,7 @@ function BlogIndexPage() {
                 <div className="relative aspect-[16/10] w-full overflow-hidden rounded-lg bg-foreground/5 lg:col-span-7">
                   <img
                     src={featuredPost.coverImage}
-                    alt={isFa ? (featuredPost.titleFa || featuredPost.title) : featuredPost.title}
+                    alt={localizedText(featuredPost.coverAltEn || featuredPost.title, featuredPost.coverAltFa || featuredPost.titleFa, lang).text}
                     className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-transparent opacity-60" />
@@ -253,9 +209,7 @@ function BlogIndexPage() {
                     }`}
                   >
                     <span className="h-1.5 w-1.5 rounded-full bg-secondary shadow-[0_0_6px_#3febcc]" />
-                    {isFa
-                      ? (BLOG_CATEGORIES.find((c) => c.key === featuredPost.category)?.labelFa || featuredPost.categoryLabel)
-                      : featuredPost.categoryLabel}
+                    {localizedText(featuredPost.categoryLabel, featuredPost.categoryLabelFa || BLOG_CATEGORIES.find((c) => c.key === featuredPost.category)?.labelFa, lang).text}
                   </div>
                 </div>
 
@@ -264,7 +218,7 @@ function BlogIndexPage() {
                   <div className="flex items-center gap-4 text-xs text-foreground/50">
                     <span className="flex items-center gap-1.5">
                       <Calendar className="h-3.5 w-3.5" />
-                      {new Date(featuredPost.publishedAt).toLocaleDateString(isFa ? "fa-IR" : "en-US", {
+                      {new Date(featuredPost.publishedAt).toLocaleDateString(isFa ? "fa-IR-u-ca-gregory" : "en-US", {
                         month: "short",
                         day: "numeric",
                         year: "numeric",
@@ -273,7 +227,7 @@ function BlogIndexPage() {
                     <span>·</span>
                     <span className="flex items-center gap-1.5">
                       <Clock className="h-3.5 w-3.5" />
-                      {featuredPost.readTime}
+                      {isFa ? featuredPost.readTimeFa || featuredPost.readTime : featuredPost.readTime}
                     </span>
                   </div>
 
@@ -352,11 +306,9 @@ function BlogIndexPage() {
           <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
             <AnimatePresence mode="popLayout">
               {filteredPosts.map((post, idx) => {
-                const cardTitle = isFa ? (post.titleFa || post.title) : post.title;
-                const cardExcerpt = isFa ? (post.excerptFa || post.excerpt) : post.excerpt;
-                const cardCategoryLabel = isFa
-                  ? (BLOG_CATEGORIES.find((c) => c.key === post.category)?.labelFa || post.categoryLabel)
-                  : post.categoryLabel;
+                const cardTitle = localizedText(post.title, post.titleFa, lang).text;
+                const cardExcerpt = localizedText(post.excerpt, post.excerptFa, lang).text;
+                const cardCategoryLabel = localizedText(post.categoryLabel, post.categoryLabelFa || BLOG_CATEGORIES.find((c) => c.key === post.category)?.labelFa, lang).text;
                 const cardTags = isFa && post.tagsFa && post.tagsFa.length > 0 ? post.tagsFa : (post.tags || []);
 
                 return (
@@ -378,7 +330,7 @@ function BlogIndexPage() {
                       <div className="relative aspect-[16/10] w-full overflow-hidden bg-foreground/5">
                         <img
                           src={post.coverImage}
-                          alt={cardTitle}
+                          alt={localizedText(post.coverAltEn || post.title, post.coverAltFa || post.titleFa, lang).text}
                           className="h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-105"
                           loading="lazy"
                         />
@@ -400,14 +352,14 @@ function BlogIndexPage() {
                         {/* Meta: Date & Read Time */}
                         <div className="flex items-center gap-3 text-[11px] text-foreground/50">
                           <span>
-                            {new Date(post.publishedAt).toLocaleDateString(isFa ? "fa-IR" : "en-US", {
+                            {new Date(post.publishedAt).toLocaleDateString(isFa ? "fa-IR-u-ca-gregory" : "en-US", {
                               month: "short",
                               day: "numeric",
                               year: "numeric",
                             })}
                           </span>
                           <span>·</span>
-                          <span>{post.readTime}</span>
+                          <span>{isFa ? post.readTimeFa || post.readTime : post.readTime}</span>
                         </div>
 
                         {/* Editorial Title */}

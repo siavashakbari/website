@@ -5,9 +5,10 @@
  * previews, the sitemap, and canonical URLs all use absolute links.
  */
 
+import { currentLocale, withLocale, type Locale } from "./locale";
+
 export const SITE_NAME = "Siavash Akbari";
-export const SITE_TITLE_DEFAULT =
-  "Siavash Akbari — Photographer, Designer & Creative Director";
+export const SITE_TITLE_DEFAULT = "Siavash Akbari — Photographer, Designer & Creative Director";
 export const SITE_DESCRIPTION =
   "Portfolio of Siavash Akbari — multidisciplinary photographer, graphic designer, and product designer based in Esfahan, Iran. Fashion, food, portrait, and product work.";
 export const TWITTER_HANDLE = "@siavashakbari";
@@ -22,8 +23,7 @@ const FALLBACK_SITE_URL = "https://www.siavashakbari.ir";
 export function getSiteUrl(request?: Request): string {
   const fromEnv =
     (typeof import.meta !== "undefined" &&
-      (import.meta as ImportMeta & { env?: Record<string, string> }).env
-        ?.VITE_SITE_URL) ||
+      (import.meta as ImportMeta & { env?: Record<string, string> }).env?.VITE_SITE_URL) ||
     (typeof process !== "undefined"
       ? process.env.VITE_SITE_URL || process.env.SITE_URL
       : undefined);
@@ -34,13 +34,9 @@ export function getSiteUrl(request?: Request): string {
     try {
       const url = new URL(request.url);
       const host =
-        request.headers.get("x-forwarded-host") ||
-        request.headers.get("host") ||
-        url.host;
+        request.headers.get("x-forwarded-host") || request.headers.get("host") || url.host;
       const proto =
-        request.headers.get("x-forwarded-proto") ||
-        url.protocol.replace(":", "") ||
-        "https";
+        request.headers.get("x-forwarded-proto") || url.protocol.replace(":", "") || "https";
       if (host && !host.includes("localhost") && !host.startsWith("127.")) {
         return `${proto}://${host}`.replace(/\/$/, "");
       }
@@ -66,13 +62,17 @@ export type PageSeoInput = {
   image?: string;
   type?: "website" | "article" | "profile";
   noIndex?: boolean;
+  locale?: Locale;
+  hasPersian?: boolean;
 };
 
 /** Meta + link tags for a page (TanStack Router `head` shape). */
 export function pageHead(input: PageSeoInput) {
+  const locale = input.locale || currentLocale();
   const title = input.title;
   const description = input.description;
-  const url = absoluteUrl(input.path);
+  const neutralPath = input.path.replace(/^\/(?:en|fa)(?=\/|$)/, "") || "/";
+  const url = absoluteUrl(withLocale(neutralPath, locale));
   const image = absoluteUrl(input.image ?? OG_IMAGE_PATH);
   const type = input.type ?? "website";
 
@@ -88,7 +88,10 @@ export function pageHead(input: PageSeoInput) {
       { property: "og:type", content: type },
       { property: "og:url", content: url },
       { property: "og:site_name", content: SITE_NAME },
-      { property: "og:locale", content: "en_US" },
+      { property: "og:locale", content: locale === "fa" ? "fa_IR" : "en_US" },
+      ...(input.hasPersian === false && locale === "en"
+        ? []
+        : [{ property: "og:locale:alternate", content: locale === "fa" ? "en_US" : "fa_IR" }]),
       { property: "og:image", content: image },
       { property: "og:image:width", content: String(OG_IMAGE_WIDTH) },
       { property: "og:image:height", content: String(OG_IMAGE_HEIGHT) },
@@ -100,7 +103,14 @@ export function pageHead(input: PageSeoInput) {
       { name: "twitter:description", content: description },
       { name: "twitter:image", content: image },
     ],
-    links: [{ rel: "canonical", href: url }],
+    links: [
+      { rel: "canonical", href: url },
+      { rel: "alternate", hrefLang: "en", href: absoluteUrl(withLocale(neutralPath, "en")) },
+      ...(input.hasPersian === false
+        ? []
+        : [{ rel: "alternate", hrefLang: "fa", href: absoluteUrl(withLocale(neutralPath, "fa")) }]),
+      { rel: "alternate", hrefLang: "x-default", href: absoluteUrl(withLocale(neutralPath, "en")) },
+    ],
   };
 }
 

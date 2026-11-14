@@ -8,12 +8,9 @@ import { DisciplinesMarquee } from "@/components/DisciplinesMarquee";
 import { MorphingText } from "@/components/ui/morphing-text";
 import { cn } from "@/lib/utils";
 import { SITE_DESCRIPTION, SITE_TITLE_DEFAULT, pageHead } from "@/lib/seo";
-
-const HERO_ROLES = [
-  "Multi-disciplinary Designer",
-  "Photographer",
-  "Creative Director",
-];
+import { useLocale } from "@/lib/use-locale";
+import { readSiteContent, siteField } from "@/lib/site-content";
+import { currentLocale } from "@/lib/locale";
 
 /** Matches fixed header spacer in __root.tsx */
 const HEADER_H = "3.5rem";
@@ -31,10 +28,12 @@ const HERO_SIZES = "100vw";
 
 export const Route = createFileRoute("/")({
   head: () => {
+    const locale = currentLocale();
     const seo = pageHead({
-      title: SITE_TITLE_DEFAULT,
-      description: SITE_DESCRIPTION,
+      title: siteField("landing", "seoTitle", locale).text || SITE_TITLE_DEFAULT,
+      description: siteField("landing", "seoDescription", locale).text || SITE_DESCRIPTION,
       path: "/",
+      hasPersian: !siteField("landing", "heading", "fa").missing,
     });
     return {
       ...seo,
@@ -61,6 +60,14 @@ export const Route = createFileRoute("/")({
 });
 
 function Index() {
+  const locale = useLocale();
+  const heroImage = readSiteContent()?.landing.imageUrl || heroPortrait;
+  const heroHeading = siteField("landing", "heading", locale);
+  const heroAlt = siteField("landing", "heroAlt", locale);
+  const heroRoles = (["role1", "role2", "role3"] as const).map(
+    (id) => siteField("landing", id, locale).text,
+  );
+  const scrollHint = siteField("landing", "scrollHint", locale);
   const [isWindows, setIsWindows] = useState(false);
   const [preferInstantScrollFx, setPreferInstantScrollFx] = useState(false);
 
@@ -99,7 +106,7 @@ function Index() {
         aria-labelledby="home-heading"
       >
         <h1 id="home-heading" className="sr-only">
-          Siavash Akbari — Photographer, Designer &amp; Creative Director
+          {heroHeading.text}
         </h1>
         <motion.div
           className="absolute inset-0 box-border"
@@ -113,10 +120,12 @@ function Index() {
             style={{ borderRadius: radius }}
           >
             <picture>
-              <source type="image/webp" srcSet={HERO_SRCSET} sizes={HERO_SIZES} />
+              {!readSiteContent()?.landing.imageUrl && (
+                <source type="image/webp" srcSet={HERO_SRCSET} sizes={HERO_SIZES} />
+              )}
               <img
-                src={heroPortrait}
-                alt="Siavash Akbari, multidisciplinary designer and photographer"
+                src={heroImage}
+                alt={heroAlt.text}
                 width={1920}
                 height={1080}
                 className="absolute inset-0 h-full w-full object-cover object-center"
@@ -132,15 +141,16 @@ function Index() {
                 style={{ opacity: scrollHintOpacity }}
               >
                 <span className="home-scroll-hint mx-auto block text-center font-display text-[9pt] font-medium tracking-[0.42em] text-foreground">
-                  scroll
+                  {scrollHint.text}
                 </span>
               </motion.div>
               <MorphingText
-                texts={HERO_ROLES}
+                texts={heroRoles}
                 morphTime={2.25}
                 cooldownTime={0.75}
                 className={cn(
-                  "hidden h-auto min-h-[1.6em] max-w-none font-display text-[12.24pt] font-medium uppercase tracking-[0.2em] text-foreground md:block lg:text-[1.836rem]",
+                  "hidden h-auto min-h-[1.6em] max-w-none font-display text-[12.24pt] font-medium text-foreground md:block lg:text-[1.836rem]",
+                  locale === "fa" ? "font-farsi tracking-normal" : "uppercase tracking-[0.2em]",
                   isWindows && "translate-y-[10px]",
                 )}
               />
@@ -150,7 +160,7 @@ function Index() {
       </section>
 
       {/* Disciplines — OMS-style category tile strip */}
-      <section className="w-full" aria-label="Disciplines">
+      <section className="w-full" aria-label={siteField("landing", "disciplineLabel", locale).text}>
         <DisciplinesMarquee />
       </section>
     </div>

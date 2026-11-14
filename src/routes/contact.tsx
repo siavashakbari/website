@@ -1,27 +1,15 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Instagram, Mail, MapPin, Phone } from "lucide-react";
+import { ExternalLink, Instagram, Mail, MapPin, Phone } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { pageHead } from "@/lib/seo";
 import { ContactForm } from "@/components/ContactForm";
 import { BackToTop } from "@/components/BackToTop";
+import { useLocale } from "@/lib/use-locale";
+import { currentLocale, localizedText } from "@/lib/locale";
+import { readSiteContent, siteField, SITE_SEED } from "@/lib/site-content";
 
 const contactBtnClass =
   "inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-full border border-[#EFEFEF] bg-transparent px-5 text-sm font-medium text-[#EFEFEF] shadow-none transition-[background-color,border-color,color,box-shadow] duration-300 ease-out hover:border-transparent hover:bg-secondary hover:text-secondary-foreground hover:shadow-[0_0_8px_color-mix(in_oklab,var(--secondary)_42%,transparent),0_0_17px_color-mix(in_oklab,var(--secondary)_24%,transparent),0_0_25px_color-mix(in_oklab,var(--secondary)_12%,transparent)]";
-
-const HEADLINES = [
-  {
-    text: "بیایید چیزی ماندگار خلق کنیم.",
-    lang: "fa",
-    dir: "rtl",
-    className: "font-farsi text-[clamp(1.85rem,3.4vw,3.75rem)] font-medium leading-[1.25]",
-  },
-  {
-    text: "Let's build something lasting.",
-    lang: "en",
-    dir: "ltr",
-    className: "font-display text-[clamp(1.6rem,2.9vw,3.15rem)] font-medium leading-[1.15]",
-  },
-] as const;
 
 const TYPE_DURATION_MS = 1600;
 const DELETE_DURATION_MS = 1100;
@@ -33,6 +21,19 @@ function easeInOutCubic(t: number) {
 }
 
 function TypewriterHeadline() {
+  const locale = useLocale();
+  const headline = siteField("contact", "headline", locale);
+  const HEADLINES = [
+    {
+      text: headline.text,
+      lang: headline.lang,
+      dir: headline.lang === "fa" ? "rtl" : "ltr",
+      className:
+        headline.lang === "fa"
+          ? "font-farsi text-[clamp(1.85rem,3.4vw,3.75rem)] font-medium leading-[1.25]"
+          : "font-display text-[clamp(1.6rem,2.9vw,3.15rem)] font-medium leading-[1.15]",
+    },
+  ] as const;
   const [index, setIndex] = useState(0);
   const [charCount, setCharCount] = useState(0);
   const [phase, setPhase] = useState<"typing" | "holding" | "deleting">("typing");
@@ -113,19 +114,13 @@ function TypewriterHeadline() {
       cancelAnimationFrame(raf);
       window.clearTimeout(holdTimer);
     };
-  }, [phase, index, reduceMotion]);
+  }, [phase, index, reduceMotion, headline.text]);
 
   if (reduceMotion) {
     return (
       <h1 className="relative mx-auto flex min-h-[clamp(2.4rem,5vw,4.5rem)] w-full items-center justify-center text-center text-foreground">
         <span lang={HEADLINES[0].lang} dir={HEADLINES[0].dir} className={HEADLINES[0].className}>
           {HEADLINES[0].text}
-        </span>
-        <span className="mx-3 text-secondary" aria-hidden>
-          /
-        </span>
-        <span lang={HEADLINES[1].lang} dir={HEADLINES[1].dir} className={HEADLINES[1].className}>
-          {HEADLINES[1].text}
         </span>
       </h1>
     );
@@ -171,32 +166,33 @@ function BehanceIcon({ className }: { className?: string }) {
 export const Route = createFileRoute("/contact")({
   head: () =>
     pageHead({
-      title: "Contact — Siavash Akbari",
-      description:
-        "Commission photography, graphic design, or product design with Siavash Akbari in Esfahan, Iran. Email, phone, Instagram, and Behance.",
+      title: siteField("contact", "seoTitle", currentLocale()).text,
+      description: siteField("contact", "seoDescription", currentLocale()).text,
       path: "/contact",
+      hasPersian: !siteField("contact", "headline", "fa").missing,
     }),
   component: Contact,
 });
 
 function Contact() {
+  const locale = useLocale();
+  const intro = siteField("contact", "intro", locale);
+  const links = readSiteContent()?.contact.links || SITE_SEED.contact.links;
+  const linkIcon = {
+    email: Mail,
+    phone: Phone,
+    map: MapPin,
+    behance: BehanceIcon,
+    instagram: Instagram,
+  };
   return (
     <div className="flex min-h-[calc(100dvh-3.5rem)] w-full items-start justify-center px-6 py-12 md:px-10 lg:px-14">
       <div className="mx-auto flex w-full max-w-[96rem] flex-col">
         <h1 className="sr-only">Contact Siavash Akbari</h1>
-        {/* Eyebrow — centered */}
-        <p className="flex items-center justify-center gap-3 text-[0.8125rem] font-semibold uppercase tracking-[0.25em] text-secondary md:text-[0.975rem]">
-          <span>Contact</span>
-          <span aria-hidden className="text-[1.1rem] leading-none">
-            ·
-          </span>
-          <span
-            lang="fa"
-            dir="rtl"
-            className="font-farsi text-[1.015625rem] font-semibold normal-case tracking-normal md:text-[1.21875rem]"
-          >
-            ارتباط با من
-          </span>
+        <p
+          className={`flex items-center justify-center gap-3 text-[0.8125rem] font-semibold text-secondary md:text-[0.975rem] ${locale === "fa" ? "font-farsi" : "uppercase tracking-[0.25em]"}`}
+        >
+          {siteField("contact", "eyebrow", locale).text}
         </p>
 
         {/* Typewriter headline loop */}
@@ -204,23 +200,14 @@ function Contact() {
           <TypewriterHeadline />
         </div>
 
-        {/* Body copy — bilingual columns */}
-        <div className="mt-10 flex flex-col gap-12 md:mt-12 md:flex-row md:items-start md:justify-between md:gap-16 lg:gap-24">
-          <div className="w-full md:w-[min(100%,42%)]" lang="en" dir="ltr">
-            <p className="max-w-xl text-left text-base leading-relaxed text-secondary md:text-[1.15rem]">
-              Whether you&apos;re looking to create a brand, craft a digital experience, or
-              collaborate on something ambitious, I&apos;d love to hear about your project. Send me
-              the details, and I&apos;ll get back to you within two business days.
-            </p>
-          </div>
-
-          <div className="w-full md:w-[min(100%,42%)]" lang="fa" dir="rtl">
-            <p className="ml-auto max-w-xl text-right font-farsi text-base leading-relaxed text-secondary md:text-[1.15rem]">
-              اگر برای ساخت یک برند، طراحی یک تجربه‌ی دیجیتال یا همکاری روی یک ایده‌ی ارزشمند به
-              دنبال همراه هستید، خوشحال می‌شوم درباره‌ی پروژه‌تان بشنوم. جزئیات را برایم ارسال کنید؛
-              حداکثر تا دو روز کاری پاسخ خواهم داد.
-            </p>
-          </div>
+        <div className="mt-10 flex justify-center md:mt-12">
+          <p
+            lang={intro.lang}
+            dir={intro.lang === "fa" ? "rtl" : "ltr"}
+            className={`max-w-3xl text-base leading-relaxed text-secondary md:text-[1.15rem] ${intro.lang === "fa" ? "font-farsi" : ""}`}
+          >
+            {intro.text}
+          </p>
         </div>
 
         {/* Interactive Consultation Booking Form (30% wider: max-w-[73rem]) */}
@@ -231,47 +218,25 @@ function Contact() {
           <ContactForm />
         </section>
 
-        {/* Buttons — centered row */}
         <div className="mt-14 flex flex-wrap items-center justify-center gap-3 sm:mt-16 md:mt-20 md:gap-4">
-          <a href="mailto:Siavakbari@gmail.com" className={contactBtnClass}>
-            <Mail className="h-4 w-4" />
-            Siavakbari@gmail.com
-          </a>
-
-          <a href="tel:+989386087846" className={contactBtnClass}>
-            <Phone className="h-4 w-4" />
-            +989386087846
-          </a>
-
-          <a
-            href="https://www.google.com/maps/search/?api=1&query=Esfahan%2C%20Iran"
-            target="_blank"
-            rel="noreferrer"
-            className={contactBtnClass}
-          >
-            <MapPin className="h-4 w-4" />
-            Esfahan, Iran
-          </a>
-
-          <a
-            href="https://www.behance.net/siavashakbari"
-            target="_blank"
-            rel="noreferrer"
-            className={contactBtnClass}
-          >
-            <BehanceIcon className="h-4 w-4" />
-            Behance
-          </a>
-
-          <a
-            href="https://www.instagram.com/siavashakbari"
-            target="_blank"
-            rel="noreferrer"
-            className={contactBtnClass}
-          >
-            <Instagram className="h-4 w-4" />
-            Instagram
-          </a>
+          {links.map((link) => {
+            const Icon = linkIcon[link.id as keyof typeof linkIcon] || ExternalLink;
+            const label = localizedText(link.label.en, link.label.fa, locale);
+            return (
+              <a
+                key={link.id}
+                href={link.href}
+                target={link.href.startsWith("https:") ? "_blank" : undefined}
+                rel={link.href.startsWith("https:") ? "noreferrer" : undefined}
+                className={contactBtnClass}
+              >
+                <Icon className="h-4 w-4" />
+                <span lang={label.lang} dir={label.lang === "fa" ? "rtl" : "ltr"}>
+                  {label.text}
+                </span>
+              </a>
+            );
+          })}
         </div>
 
         <BackToTop />

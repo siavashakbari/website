@@ -3,6 +3,8 @@ import { useEffect, useLayoutEffect, useState } from "react";
 const useIsomorphicLayoutEffect = typeof window !== "undefined" ? useLayoutEffect : useEffect;
 import { Link, notFound, redirect, rootRouteId, useNavigate } from "@tanstack/react-router";
 import { ArrowLeft, ChevronLeft, ChevronRight, ExternalLink } from "lucide-react";
+import { currentLocale, localizedText, withLocale } from "@/lib/locale";
+import { useLocale } from "@/lib/use-locale";
 import { projectBackButtonClass } from "@/components/ui-types/project-navigation";
 import {
   getPhotoItemBySlugOrCode,
@@ -64,6 +66,7 @@ export interface DedicatedPhotoLoaderData {
   currentIndex: number;
   totalPhotos: number;
   isHidden: boolean;
+  vaultMedia?: VaultMediaItem;
 }
 
 export function looksLikeMediaCode(raw?: string): boolean {
@@ -384,6 +387,7 @@ export function resolveDedicatedPhotoLoader(opts: {
     currentIndex: computed.currentIndex,
     totalPhotos: computed.totalPhotos,
     isHidden: computed.isHidden,
+    vaultMedia,
   };
 }
 
@@ -558,21 +562,22 @@ function buildLivePhotoViewState(params: {
 }
 
 export function dedicatedPhotoHead(loaderData?: DedicatedPhotoLoaderData | null) {
+  const locale = currentLocale();
   const photo = loaderData?.photo;
   if (!photo) {
     return pageHead({
-      title: `Siavash Akbari - ${loaderData?.rawPhotoId || "Artwork"}`,
-      description: "Artwork showcase by multidisciplinary designer & photographer Siavash Akbari.",
+      title: `${locale === "fa" ? "سیاوش اکبری" : "Siavash Akbari"} - ${loaderData?.rawPhotoId || (locale === "fa" ? "اثر" : "Artwork")}`,
+      description: locale === "fa" ? "نمایش آثار سیاوش اکبری، طراح و عکاس." : "Artwork showcase by multidisciplinary designer & photographer Siavash Akbari.",
       path: loaderData?.currentRawPath || "/",
       type: "article",
     });
   }
   const photoCode = photo.code || "PHOTO";
   const projectTitle = photo.project || "Project";
-  const displayHeading = photo.displayName || photo.title || photoCode;
-  const title = `Siavash Akbari - ${displayHeading}`;
+  const displayHeading = localizedText(loaderData?.vaultMedia?.title || photo.displayName || photo.title || photoCode, loaderData?.vaultMedia?.titleFa, locale).text;
+  const title = `${locale === "fa" ? "سیاوش اکبری" : "Siavash Akbari"} - ${displayHeading}`;
   const description =
-    photo.caption ||
+    localizedText(loaderData?.vaultMedia?.caption || photo.caption, loaderData?.vaultMedia?.captionFa, locale).text ||
     loaderData?.projectDescription ||
     `Explore photo ${photoCode} from ${projectTitle} (${photo.date || "2024"}), creative showcase by multidisciplinary designer & photographer Siavash Akbari.`;
 
@@ -598,7 +603,7 @@ function computeInitialPhotoState(loaderData: DedicatedPhotoLoaderData) {
     specialtySlug: loaderData.specialtySlug,
     projectSlug: loaderData.projectSlug,
     isHidden: loaderData.isHidden,
-    vaultMedia: undefined as VaultMediaItem | undefined,
+    vaultMedia: loaderData.vaultMedia,
   };
 }
 
@@ -712,6 +717,7 @@ function computeClientPhotoState(loaderData: DedicatedPhotoLoaderData) {
 }
 
 export function DedicatedPhotoView({ loaderData }: { loaderData: DedicatedPhotoLoaderData }) {
+  const locale = useLocale();
   const navigate = useNavigate();
   const [state, setState] = useState(() => computeInitialPhotoState(loaderData));
   const [clientChecked, setClientChecked] = useState(false);
@@ -817,6 +823,8 @@ export function DedicatedPhotoView({ loaderData }: { loaderData: DedicatedPhotoL
     isHidden,
     vaultMedia,
   } = state;
+  const displayTitle = localizedText(vaultMedia?.title || photo.displayName || photo.title, vaultMedia?.titleFa, locale);
+  const displayCaption = localizedText(vaultMedia?.caption || photo.caption, vaultMedia?.captionFa, locale);
 
   if (isHidden) {
     return (
@@ -886,7 +894,7 @@ export function DedicatedPhotoView({ loaderData }: { loaderData: DedicatedPhotoL
           ) : (
             <img
               src={liveResolvedMedia || undefined}
-              alt={photo.caption || `${photo.project} — ${photo.code}`}
+              alt={localizedText(vaultMedia?.altEn || displayCaption.text || `${photo.project} — ${photo.code}`, vaultMedia?.altFa, locale).text}
               className="max-h-full max-w-full w-auto h-auto object-contain rounded-sm shadow-2xl select-none"
               loading="eager"
               draggable={false}
@@ -941,7 +949,7 @@ export function DedicatedPhotoView({ loaderData }: { loaderData: DedicatedPhotoL
 
             <div>
               <h1 className="font-display text-xl md:text-2xl font-normal leading-snug tracking-tight text-white font-mono break-all">
-                {photo.displayName || photo.title || `${photo.code}.JPG`}
+                <span lang={displayTitle.lang} dir={displayTitle.lang === "fa" ? "rtl" : "ltr"}>{displayTitle.text || `${photo.code}.JPG`}</span>
               </h1>
             </div>
 
@@ -949,7 +957,7 @@ export function DedicatedPhotoView({ loaderData }: { loaderData: DedicatedPhotoL
               {/* Services */}
               <div className="grid grid-cols-1 sm:grid-cols-[110px_1fr] py-3.5 gap-2 sm:gap-4 items-baseline">
                 <div className="text-neutral-500 font-mono uppercase tracking-wider text-xs">
-                  Services
+                  {locale === "fa" ? "خدمات" : "Services"}
                 </div>
                 <div className="text-neutral-200 font-sans">
                   <Link to={`/${disciplineSlug}` as any} className="hover:text-[#2CE3C0] transition-colors">
@@ -984,27 +992,30 @@ export function DedicatedPhotoView({ loaderData }: { loaderData: DedicatedPhotoL
               {list.length > 0 && (
                 <div className="grid grid-cols-1 sm:grid-cols-[110px_1fr] py-3.5 gap-2 sm:gap-4 items-baseline">
                   <div className="text-neutral-500 font-mono uppercase tracking-wider text-xs">
-                    Credits
+                    {locale === "fa" ? "عوامل" : "Credits"}
                   </div>
                   <div className="flex flex-wrap gap-2">
-                    {list.map((pair, idx) => (
+                    {list.map((pair, idx) => {
+                      const label = localizedText(pair.key, pair.keyFa, locale);
+                      const value = localizedText(pair.value, pair.valueFa, locale);
+                      return (
                       <button
                         type="button"
-                        key={idx}
+                        key={pair.id || idx}
                         onClick={() => trackCreditClick(pair.key, pair.value, photo.code)}
                         className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/[0.04] border border-white/10 text-xs font-mono transition-colors hover:border-[#2CE3C0]/40"
                       >
-                        <span className="text-neutral-400 font-medium">{pair.key}:</span>
-                        <span className="text-[#2CE3C0] font-semibold">{pair.value}</span>
+                        <span lang={label.lang} dir={label.lang === "fa" ? "rtl" : "ltr"} className="text-neutral-400 font-medium">{label.text}:</span>
+                        <span lang={value.lang} dir={value.lang === "fa" ? "rtl" : "ltr"} className="text-[#2CE3C0] font-semibold">{value.text}</span>
                       </button>
-                    ))}
+                    )})}
                   </div>
                 </div>
               )}
               {photo.keywords && (
                 <div className="grid grid-cols-1 sm:grid-cols-[110px_1fr] py-3.5 gap-2 sm:gap-4 items-baseline">
                   <div className="text-neutral-500 font-mono uppercase tracking-wider text-xs">
-                    Keywords
+                    {locale === "fa" ? "کلیدواژه‌ها" : "Keywords"}
                   </div>
                   <div className="text-xs text-neutral-400 font-sans">{photo.keywords}</div>
                 </div>
@@ -1015,11 +1026,11 @@ export function DedicatedPhotoView({ loaderData }: { loaderData: DedicatedPhotoL
           {/* Action Row */}
           <div className="pt-4 border-t border-white/10 flex items-center justify-start">
             <a
-              href="/contact"
+              href={withLocale("/contact", locale)}
               onClick={handleCommissionClick}
               className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full bg-white/5 hover:bg-[#2CE3C0] hover:text-black border border-white/10 hover:border-transparent text-xs font-semibold tracking-wider uppercase transition-all duration-300"
             >
-              <span>Commission Work</span>
+              <span>{locale === "fa" ? "سفارش پروژه" : "Commission Work"}</span>
               <ExternalLink className="w-3.5 h-3.5" />
             </a>
           </div>

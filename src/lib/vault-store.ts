@@ -24,6 +24,7 @@ export interface VaultPageItem {
   id: string;
   route: string; // e.g. "/photography/fashion-photography/sepidar"
   name: string;  // e.g. "Sepidar" -> tab title "Siavash Akbari - Sepidar"
+  nameFa?: string;
   parentRoute: string; // e.g. "/photography/fashion-photography" or ""
   coverPhoto: string;
   coverModifiedByUser?: boolean;
@@ -47,6 +48,7 @@ export interface VaultMediaItem {
   project: string;      // e.g. "sepidar" ("" for Posters)
   assignedRoute: string; // e.g. "/photography/fashion-photography/sepidar"
   title: string;
+  titleFa?: string;
   titleModifiedByUser?: boolean;
   year: string;
   client?: string;
@@ -54,6 +56,13 @@ export interface VaultMediaItem {
   makeupArtist?: string;
   assistant?: string;
   caption: string;
+  captionFa?: string;
+  clientFa?: string;
+  modelFa?: string;
+  makeupArtistFa?: string;
+  assistantFa?: string;
+  altEn?: string;
+  altFa?: string;
   isHidden: boolean;
   pairedBoxes: KeyValuePair[];
   isVideo: boolean;

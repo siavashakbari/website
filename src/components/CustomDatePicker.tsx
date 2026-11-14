@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useId } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, X } from "lucide-react";
+import type { Locale } from "@/lib/locale";
 
 interface CustomDatePickerProps {
   value: string; // ISO date string e.g. "2026-09-28"
@@ -8,6 +9,7 @@ interface CustomDatePickerProps {
   minDate?: string; // ISO date string e.g. "2026-09-28"
   placeholder?: string;
   className?: string;
+  locale?: Locale;
 }
 
 const MONTH_NAMES = [
@@ -41,7 +43,9 @@ export function CustomDatePicker({
   minDate,
   placeholder = "Select date... / انتخاب تاریخ",
   className = "",
+  locale = "en",
 }: CustomDatePickerProps) {
+  const isFa = locale === "fa";
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const uniqueId = useId();
@@ -119,7 +123,7 @@ export function CustomDatePicker({
     if (!iso) return "";
     const d = new Date(iso + "T00:00:00");
     if (isNaN(d.getTime())) return iso;
-    return d.toLocaleDateString("en-US", {
+    return d.toLocaleDateString(isFa ? "fa-IR-u-ca-gregory" : "en-US", {
       weekday: "short",
       month: "short",
       day: "numeric",
@@ -193,7 +197,8 @@ export function CustomDatePicker({
                   onChange("");
                 }
               }}
-              title="Clear date"
+              title={isFa ? "پاک کردن تاریخ" : "Clear date"}
+              aria-label={isFa ? "پاک کردن تاریخ" : "Clear date"}
               className="flex h-5 w-5 items-center justify-center rounded-full text-foreground/40 transition-colors hover:bg-white/10 hover:text-foreground"
             >
               <X className="h-3 w-3" />
@@ -217,14 +222,15 @@ export function CustomDatePicker({
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -6, scale: 0.98 }}
             transition={{ duration: 0.18, ease: "easeOut" }}
-            className="absolute left-0 top-full z-50 mt-2 w-full sm:w-[330px] rounded-2xl border border-white/15 bg-[#0F0F0F]/95 p-4 shadow-[0_20px_50px_rgba(0,0,0,0.85),0_0_30px_rgba(63,235,204,0.08)] backdrop-blur-2xl"
+            className="absolute start-0 top-full z-50 mt-2 w-full sm:w-[330px] rounded-2xl border border-white/15 bg-[#0F0F0F]/95 p-4 shadow-[0_20px_50px_rgba(0,0,0,0.85),0_0_30px_rgba(63,235,204,0.08)] backdrop-blur-2xl"
+            dir="ltr"
           >
             {/* Calendar Header with Navigation */}
             <div className="flex items-center justify-between border-b border-white/10 pb-3">
               <button
                 type="button"
                 onClick={handlePrevMonth}
-                aria-label="Previous month"
+                aria-label={isFa ? "ماه قبل" : "Previous month"}
                 className="flex h-8 w-8 items-center justify-center rounded-full border border-white/10 text-[#EFEFEF]/70 transition-all hover:border-secondary hover:bg-secondary/15 hover:text-secondary cursor-pointer"
               >
                 <ChevronLeft className="h-4 w-4" />
@@ -232,14 +238,19 @@ export function CustomDatePicker({
 
               <div className="text-center">
                 <span className="font-display text-sm font-semibold tracking-wider text-[#EFEFEF]">
-                  {MONTH_NAMES[month]} {year}
+                  {isFa
+                    ? new Intl.DateTimeFormat("fa-IR-u-ca-gregory", {
+                        month: "long",
+                        year: "numeric",
+                      }).format(viewDate)
+                    : `${MONTH_NAMES[month]} ${year}`}
                 </span>
               </div>
 
               <button
                 type="button"
                 onClick={handleNextMonth}
-                aria-label="Next month"
+                aria-label={isFa ? "ماه بعد" : "Next month"}
                 className="flex h-8 w-8 items-center justify-center rounded-full border border-white/10 text-[#EFEFEF]/70 transition-all hover:border-secondary hover:bg-secondary/15 hover:text-secondary cursor-pointer"
               >
                 <ChevronRight className="h-4 w-4" />
@@ -251,11 +262,13 @@ export function CustomDatePicker({
               {WEEK_DAYS.map((day) => (
                 <div key={day.en} className="flex flex-col items-center">
                   <span className="text-[10px] font-semibold uppercase tracking-wider text-secondary">
-                    {day.en}
+                    {isFa ? day.fa : day.en}
                   </span>
-                  <span className="font-farsi text-[9px] text-[#EFEFEF]/30 leading-none">
-                    {day.fa}
-                  </span>
+                  {!isFa && (
+                    <span className="font-farsi text-[9px] text-[#EFEFEF]/30 leading-none">
+                      {day.fa}
+                    </span>
+                  )}
                 </div>
               ))}
             </div>
@@ -313,7 +326,7 @@ export function CustomDatePicker({
                 onClick={handleSetToday}
                 className="font-medium text-secondary hover:underline cursor-pointer transition-colors"
               >
-                Today · امروز
+                {isFa ? "امروز" : "Today"}
               </button>
 
               {value && (
@@ -322,7 +335,7 @@ export function CustomDatePicker({
                   onClick={handleClear}
                   className="text-[#EFEFEF]/50 hover:text-red-400 cursor-pointer transition-colors"
                 >
-                  Clear · پاک‌کردن
+                  {isFa ? "پاک کردن" : "Clear"}
                 </button>
               )}
             </div>

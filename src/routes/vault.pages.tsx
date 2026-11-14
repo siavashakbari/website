@@ -60,6 +60,7 @@ function VaultPagesView() {
   const [selectedCategory, setSelectedCategory] = useState<string>("/photography/fashion-photography");
   const [customCategoryName, setCustomCategoryName] = useState<string>("");
   const [pageTitle, setPageTitle] = useState("");
+  const [pageTitleFa, setPageTitleFa] = useState("");
   const [customSlug, setCustomSlug] = useState("");
   const [newUiType, setNewUiType] = useState<UITypeCode>("UI01");
   const [newDescEn, setNewDescEn] = useState("");
@@ -239,6 +240,7 @@ function VaultPagesView() {
       id: `page-${finalRoute.replace(/[^a-zA-Z0-9]/g, "-").replace(/^-+|-+$/g, "")}`,
       route: finalRoute,
       name: finalName,
+      nameFa: pageTitleFa.trim(),
       parentRoute: computedParentRoute,
       coverPhoto: newCover || "src/assets/fashion/atlasi/fashion-atlasi-01.jpg",
       coverModifiedByUser: Boolean(newCover),
@@ -247,7 +249,7 @@ function VaultPagesView() {
       uiType: newUiType,
       uiTypeModifiedByUser: true,
       isHidden: false,
-      pairedBoxes: newPairs.filter((p) => p.key.trim() || p.value.trim()),
+      pairedBoxes: newPairs.filter((p) => p.key.trim() || p.value.trim() || p.keyFa?.trim() || p.valueFa?.trim()),
       order: pages.length + 1,
     };
 
@@ -256,6 +258,7 @@ function VaultPagesView() {
 
     // Reset form
     setPageTitle("");
+    setPageTitleFa("");
     setCustomSlug("");
     setCustomDisciplineName("");
     setCustomCategoryName("");
@@ -606,6 +609,9 @@ function VaultPagesView() {
               </div>
 
               {/* Live Locked Route Banner */}
+              <label className="block text-xs text-neutral-400">Persian display name (RTL)
+                <input type="text" dir="rtl" lang="fa" value={pageTitleFa} onChange={(e) => setPageTitleFa(e.target.value)} className="mt-1 w-full rounded-xl border border-white/10 bg-black/60 px-3.5 py-2.5 font-farsi text-xs text-white" />
+              </label>
               <div className="p-3 rounded-xl bg-black/80 border border-[#2CE3C0]/40 font-mono text-xs flex items-center gap-3 shadow-inner">
                 <div className="p-1.5 rounded-lg bg-[#2CE3C0]/10 border border-[#2CE3C0]/20 text-[#2CE3C0]">
                   <Lock className="w-3.5 h-3.5" />
@@ -756,6 +762,7 @@ function PageNodeCard({
     page.id,
     page.route,
     page.name,
+    page.nameFa,
     page.parentRoute,
     page.uiType,
     page.coverPhoto,
@@ -783,6 +790,7 @@ function PageNodeCard({
     return (
       draft.route.trim() !== page.route ||
       draft.name.trim() !== page.name ||
+      (draft.nameFa || "") !== (page.nameFa || "") ||
       draft.parentRoute !== page.parentRoute ||
       draft.uiType !== page.uiType ||
       draft.coverPhoto !== page.coverPhoto ||
@@ -807,6 +815,7 @@ function PageNodeCard({
       onUpdatePage(page.id, {
         route: cleanedRoute,
         name: cleanedName,
+        nameFa: draft.nameFa?.trim() || "",
         parentRoute: draft.parentRoute,
         uiType: draft.uiType,
         uiTypeModifiedByUser:
@@ -985,13 +994,14 @@ function PageNodeCard({
 
             <div>
               <label className="block text-[11px] font-mono uppercase tracking-wider text-neutral-400 mb-1 flex items-center justify-between">
-                <span>2. Name (Browser Tab Title)</span>
+                <span>2. English Name (Browser Tab Title)</span>
                 <span className="text-[10px] text-neutral-500 font-normal">
                   Tab: Siavash Akbari - {draft.name || page.name}
                 </span>
               </label>
               <input
                 type="text"
+                dir="ltr"
                 value={draft.name}
                 onChange={(e) => {
                   setDraft((prev) => ({ ...prev, name: e.target.value }));
@@ -999,6 +1009,12 @@ function PageNodeCard({
                 }}
                 className="w-full bg-black/60 border border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-[#2CE3C0]"
               />
+              <label className="mt-2 block text-[11px] font-mono text-neutral-400">Persian name (RTL)
+                <input type="text" dir="rtl" lang="fa" value={draft.nameFa || ""}
+                  onChange={(e) => { setDraft((prev) => ({ ...prev, nameFa: e.target.value })); setJustSaved(false); }}
+                  className="mt-1 w-full rounded-xl border border-white/10 bg-black/60 px-3.5 py-2.5 font-farsi text-xs text-white focus:outline-none focus:border-[#2CE3C0]" />
+              </label>
+              {!draft.nameFa?.trim() && <p className="mt-1 text-[10px] text-amber-300">Persian name missing; visitors will see the English name.</p>}
             </div>
           </div>
 

@@ -40,6 +40,8 @@ import {
 import { NotFoundPage } from "@/components/NotFoundPage";
 import { PublishedPageLoading } from "@/components/PublishedPageLoading";
 import { pageHead } from "@/lib/seo";
+import { currentLocale, localizedText } from "@/lib/locale";
+import { useLocale } from "@/lib/use-locale";
 import { isContentReady } from "@/lib/published-store";
 import {
   normalizeDisciplineSlug,
@@ -90,11 +92,12 @@ function buildGalleryItemsForProject(
   projectSlug: string,
   displayTitle: string,
 ): ResolvedGalleryItem[] {
+  const locale = currentLocale();
   const vaultItems: VaultMediaItem[] = getGalleryMediaForRoute(canonicalRoute);
   return vaultItems.map((m, i) => ({
     id: m.id || `${projectSlug}-${i}`,
     src: resolveInventoryImage(m.imgSrc) || m.imgSrc,
-    title: m.title || `${displayTitle} — ${i + 1}`,
+    title: localizedText(m.title || `${displayTitle} — ${i + 1}`, m.titleFa, locale).text,
     href: buildMediaLiveDetailUrl(m),
     isVideo:
       Boolean(m.isVideo) ||
@@ -221,9 +224,9 @@ export const Route = createFileRoute("/$discipline/$specialty/$project/")({
       project &&
       normalizeProjectSlug(project.title || project.id || "") === normProj;
 
+    const locale = currentLocale();
     const title =
-      vaultPage?.name ||
-      (sameStaticProject ? project?.title : "") ||
+      localizedText(vaultPage?.name || (sameStaticProject ? project?.title : ""), vaultPage?.nameFa || (sameStaticProject ? project?.titleFa : undefined), locale).text ||
       normProj
         .split("-")
         .filter(Boolean)
@@ -239,7 +242,7 @@ export const Route = createFileRoute("/$discipline/$specialty/$project/")({
     const parentRoute = vaultPage?.parentRoute || `/${normDisc}/${normSpec}`;
     const parentPage = getPageByRoute(parentRoute);
     const parentName =
-      parentPage?.name ||
+      localizedText(parentPage?.name, parentPage?.nameFa, locale).text ||
       normSpec
         .split("-")
         .filter(Boolean)
@@ -260,8 +263,7 @@ export const Route = createFileRoute("/$discipline/$specialty/$project/")({
         normSpec,
       parentName,
       description:
-        vaultPage?.descriptionEn ||
-        (sameStaticProject ? project?.description : "") ||
+        localizedText(vaultPage?.descriptionEn || (sameStaticProject ? project?.description : ""), vaultPage?.descriptionFa || (sameStaticProject && project && "descriptionFa" in project ? String(project.descriptionFa || "") : undefined), locale).text ||
         `${title} creative showcase.`,
       client: sameStaticProject ? project?.client : undefined,
       models:
@@ -288,15 +290,15 @@ export const Route = createFileRoute("/$discipline/$specialty/$project/")({
     if (loaderData.kind === "photo") {
       return dedicatedPhotoHead(loaderData.photoLoaderData);
     }
-    const vaultPage =
-      typeof window !== "undefined" ? getPageByRoute(loaderData.canonicalRoute) : null;
-    const pageName = vaultPage?.name || loaderData.title || "Project";
+    const locale = currentLocale();
+    const vaultPage = getPageByRoute(loaderData.canonicalRoute);
+    const pageName = localizedText(vaultPage?.name || loaderData.title || "Project", vaultPage?.nameFa, locale).text;
     const desc =
-      vaultPage?.descriptionEn ||
+      localizedText(vaultPage?.descriptionEn, vaultPage?.descriptionFa, locale).text ||
       loaderData.description ||
       "Case study by Siavash Akbari";
     return pageHead({
-      title: `Siavash Akbari - ${pageName}`,
+      title: `${locale === "fa" ? "سیاوش اکبری" : "Siavash Akbari"} - ${pageName}`,
       description: desc,
       path: loaderData.canonicalRoute,
       image: loaderData.coverImage,
@@ -322,6 +324,7 @@ function computeInitialProjectState(loaderData: ProjectRouteLoaderData) {
 }
 
 function computeClientProjectState(loaderData: ProjectRouteLoaderData) {
+  const locale = currentLocale();
   if (typeof window === "undefined" || !isContentReady()) {
     return computeInitialProjectState(loaderData);
   }
@@ -335,8 +338,7 @@ function computeClientProjectState(loaderData: ProjectRouteLoaderData) {
     normalizeProjectSlug(project.title || project.id || "") === loaderData.projectSlug;
 
   const title =
-    currentVaultPage?.name ||
-    (sameStaticProject ? project?.title : "") ||
+    localizedText(currentVaultPage?.name || (sameStaticProject ? project?.title : ""), currentVaultPage?.nameFa || (sameStaticProject ? project?.titleFa : undefined), locale).text ||
     loaderData.projectSlug
       .split("-")
       .filter(Boolean)
@@ -353,7 +355,7 @@ function computeClientProjectState(loaderData: ProjectRouteLoaderData) {
     currentVaultPage?.parentRoute || `/${loaderData.disciplineSlug}/${loaderData.specialtySlug}`;
   const parentPage = getPageByRoute(parentRoute);
   const parentName =
-    parentPage?.name ||
+    localizedText(parentPage?.name, parentPage?.nameFa, locale).text ||
     loaderData.parentName ||
     loaderData.specialtySlug.replace(/-/g, " ");
 
@@ -370,8 +372,7 @@ function computeClientProjectState(loaderData: ProjectRouteLoaderData) {
         loaderData.category,
       parentName,
       description:
-        currentVaultPage?.descriptionEn ||
-        (sameStaticProject ? project?.description : "") ||
+        localizedText(currentVaultPage?.descriptionEn || (sameStaticProject ? project?.description : ""), currentVaultPage?.descriptionFa || (sameStaticProject && project && "descriptionFa" in project ? String(project.descriptionFa || "") : undefined), locale).text ||
         loaderData.description,
       client:
         sameStaticProject && project?.client !== undefined ? project.client : loaderData.client,
@@ -416,6 +417,7 @@ function ProjectOrPhotoRouteComponent() {
 }
 
 function ProjectCaseStudyPage({ loaderData }: { loaderData: ProjectRouteLoaderData }) {
+  const locale = useLocale();
   const [state, setState] = useState(() => computeInitialProjectState(loaderData));
   const [contentReady, setContentReady] = useState(isContentReady);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -517,7 +519,7 @@ function ProjectCaseStudyPage({ loaderData }: { loaderData: ProjectRouteLoaderDa
           {data.parentName || data.category} · {data.year}
         </p>
         <h1 className="col-start-1 mt-2 font-display text-lg font-medium text-foreground md:text-3xl">
-          {vaultPage?.name || data.title}
+          {localizedText(vaultPage?.name || data.title, vaultPage?.nameFa, locale).text}
         </h1>
 
         <Link
@@ -525,14 +527,15 @@ function ProjectCaseStudyPage({ loaderData }: { loaderData: ProjectRouteLoaderDa
           className={`${projectBackButtonClass} hidden lg:inline-flex col-start-2 row-start-2 self-center justify-self-end translate-y-[5px]`}
         >
           <ArrowLeft className="h-4 w-4" />
-          <span className="capitalize">Back to {backLabelName}</span>
+          <span className="capitalize">{locale === "fa" ? `بازگشت به ${backLabelName}` : `Back to ${backLabelName}`}</span>
         </Link>
 
         <div className="col-start-1 col-span-full">
           <PageHeader
             title={vaultPage?.name || data.title}
-            descriptionEn={vaultPage?.descriptionEn || (vaultPage?.descriptionFa ? undefined : data.description)}
-            descriptionFa={vaultPage?.descriptionFa}
+            titleFa={vaultPage?.nameFa || (locale === "fa" ? data.title : undefined)}
+            descriptionEn={vaultPage?.descriptionEn || (locale === "en" && !vaultPage?.descriptionFa ? data.description : undefined)}
+            descriptionFa={vaultPage?.descriptionFa || (locale === "fa" ? data.description : undefined)}
             pairedBoxes={mergedPairedBoxes}
             className="px-0 py-2"
           />
@@ -542,7 +545,7 @@ function ProjectCaseStudyPage({ loaderData }: { loaderData: ProjectRouteLoaderDa
       {visibleItems.length === 0 ? (
         <div className="flex flex-1 items-center justify-center py-24 px-4 text-center">
           <p className="text-sm font-light text-muted-foreground">
-            Photos for <span className="font-medium text-foreground">{vaultPage?.name || data.title}</span> will appear here once linked in Media.
+            {locale === "fa" ? "پس از اتصال رسانه، تصاویر" : "Photos for"} <span className="font-medium text-foreground">{localizedText(vaultPage?.name || data.title, vaultPage?.nameFa, locale).text}</span> {locale === "fa" ? "اینجا نمایش داده می‌شوند." : "will appear here once linked in Media."}
           </p>
         </div>
       ) : activeUiType === "UI01" ? (

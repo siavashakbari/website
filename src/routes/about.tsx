@@ -1,4 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useLocale } from "@/lib/use-locale";
+import { currentLocale } from "@/lib/locale";
+import { siteField, siteLocalized, type SiteField } from "@/lib/site-content";
 import { useLayoutEffect, useRef, useState, type RefObject } from "react";
 import {
   motion,
@@ -9,20 +12,10 @@ import {
   useTransform,
   type MotionValue,
 } from "motion/react";
-import {
-  Briefcase,
-  GraduationCap,
-  Images,
-  Layers,
-  PenTool,
-  type LucideIcon,
-} from "lucide-react";
+import { Briefcase, GraduationCap, Images, Layers, PenTool, type LucideIcon } from "lucide-react";
 import { pageHead } from "@/lib/seo";
 import { BackToTop } from "@/components/BackToTop";
-import {
-  ExpandableGallery,
-  type GalleryPhoto,
-} from "@/components/ui/expandable-gallery";
+import { ExpandableGallery, type GalleryPhoto } from "@/components/ui/expandable-gallery";
 import { projects, type Project } from "@/data/projects";
 import nozadLogo from "@/assets/graphic-design/nozad-publication/graphic-design-nozad-publication-01.jpg";
 import nozadBookCover1 from "@/assets/graphic-design/book-covers/graphic-design-book-covers-01.jpg";
@@ -37,10 +30,10 @@ import carpet3 from "@/assets/product/objects/product-objects-27.jpg";
 export const Route = createFileRoute("/about")({
   head: () =>
     pageHead({
-      title: "About — Siavash Akbari",
-      description:
-        "Meet Siavash Akbari — designer, photographer, and art director from Esfahan. A decade of multidisciplinary work across photography, branding, and creative direction.",
+      title: siteField("about", "seoTitle", currentLocale()).text,
+      description: siteField("about", "seoDescription", currentLocale()).text,
       path: "/about",
+      hasPersian: !siteField("about", "heroTitle", "fa").missing,
       type: "profile",
     }),
   component: AboutPage,
@@ -76,12 +69,7 @@ const CATEGORY: Record<CategoryKey, Localized> = {
 
 type FilterKey = CategoryKey | "All";
 
-const CATEGORY_FILTERS: CategoryKey[] = [
-  "Job",
-  "Freelance",
-  "Education",
-  "Project",
-];
+const CATEGORY_FILTERS: CategoryKey[] = ["Job", "Freelance", "Education", "Project"];
 
 /** Default on first visit / refresh: every category + All checked */
 function createDefaultFilters() {
@@ -168,10 +156,9 @@ function projectGalleryPhotos(project: Project): GalleryPhoto[] {
   return srcs.map((src, i) => ({
     id: `${project.id}-${i + 1}`,
     src,
-    alt:
-      TIMELINE_LOGO_ONLY.has(project.id)
-        ? `${project.title} — logo`
-        : `${project.title} — ${i + 1}`,
+    alt: TIMELINE_LOGO_ONLY.has(project.id)
+      ? `${project.title} — logo`
+      : `${project.title} — ${i + 1}`,
   }));
 }
 
@@ -204,11 +191,7 @@ function isTimelinePortfolioProject(project: Project) {
     return false;
   }
   if (project.category.toLowerCase().includes("visual identity")) return true;
-  return (
-    project.id === "atlasi" ||
-    project.id === "zeeen" ||
-    project.id === "sepidar"
-  );
+  return project.id === "atlasi" || project.id === "zeeen" || project.id === "sepidar";
 }
 
 const PROJECT_TITLE_FA: Record<string, string> = {
@@ -262,8 +245,7 @@ const PROJECT_DESC_FA: Record<string, string> = {
     "پروژه هویت بصری برای اهورا — برند سیستم‌های نظارتی با تایپوگرافی زاویه‌دار فارسی و تصویرسازی سینمایی.",
   femiq:
     "پروژه هویت بصری و کاتالوگ محصول برای فمیک — ماشین‌آلات دقیق برش و کار سنگ اسلب، با فرم مهندسی و سیستم بصری صنعتی دوزبانه.",
-  polarity:
-    "پروژه هویت بصری برای پلاریتی — وردمارک هندسی تیز که هم نشان است و هم نگرش.",
+  polarity: "پروژه هویت بصری برای پلاریتی — وردمارک هندسی تیز که هم نشان است و هم نگرش.",
   "echo-supplements":
     "پروژه هویت بصری برای Echo Supplements — برند مکمل حول سیلوئت شیشه، موتیف موج و بسته‌بندی که برند را به فرم محصول می‌برد.",
   "goats-coffee":
@@ -278,8 +260,7 @@ const PROJECT_DESC_FA: Record<string, string> = {
     "پروژه هویت بصری برای آن سوایپ — نرم‌افزار شغل‌یابی با هوش مصنوعی؛ حروف باز و آیکون سوراخ کلید.",
   "zen-studio":
     "پروژه هویت بصری برای محصولات استودیو زن — وردمارک معماری با هندسه شابلونی و صدای صنعتی آرام.",
-  artemis:
-    "پروژه هویت بصری برای آرتمیس — سیستم برند حول نشان، بسته‌بندی شیشه و زبان الگویی متحرک.",
+  artemis: "پروژه هویت بصری برای آرتمیس — سیستم برند حول نشان، بسته‌بندی شیشه و زبان الگویی متحرک.",
   cichon:
     "پروژه هویت بصری برای سیچون — سیستم برند ظریف با حضور تایپوگرافیک قوی در چاپ و بسته‌بندی.",
   "farshid-rahimi":
@@ -292,14 +273,10 @@ const PROJECT_DESC_FA: Record<string, string> = {
     "پروژه هویت بصری برای اسنو اسنک — برند بستنی با بسته‌بندی در طعم‌ها، بطری‌ها و زبان الگویی بازیگوش.",
   "zeee-products":
     "پروژه هویت بصری برای محصولات زی — سیستم نشان و تایپ با کاربردهای روشن و نارنجی برای برند محصول.",
-  awli:
-    "پروژه هویت بصری برای AWLI — سیستم نشان گیم‌تگ با مجموعه متمرکز کاربردها و موشن.",
-  atlasi:
-    "داستان مد استودیویی حول پارچه‌های دست‌بافت، سیلوئت‌های مجسمه‌گونه و ژست‌های آرام.",
-  zeeen:
-    "داستان مد ریشه در مکان — پارچه‌های دست‌بافت میراثی و معماری نور پارسی.",
-  sepidar:
-    "سری مد از حضور و پارچه در فضای باز — نور، منظره و ایستایی آرام.",
+  awli: "پروژه هویت بصری برای AWLI — سیستم نشان گیم‌تگ با مجموعه متمرکز کاربردها و موشن.",
+  atlasi: "داستان مد استودیویی حول پارچه‌های دست‌بافت، سیلوئت‌های مجسمه‌گونه و ژست‌های آرام.",
+  zeeen: "داستان مد ریشه در مکان — پارچه‌های دست‌بافت میراثی و معماری نور پارسی.",
+  sepidar: "سری مد از حضور و پارچه در فضای باز — نور، منظره و ایستایی آرام.",
 };
 
 function portfolioProjectToMilestone(project: Project): Milestone {
@@ -529,10 +506,7 @@ const PORTFOLIO_MILESTONES: Milestone[] = projects
   .filter(isTimelinePortfolioProject)
   .map(portfolioProjectToMilestone);
 
-const MILESTONES: Milestone[] = mergeMilestones(
-  CAREER_MILESTONES,
-  PORTFOLIO_MILESTONES,
-);
+const MILESTONES: Milestone[] = mergeMilestones(CAREER_MILESTONES, PORTFOLIO_MILESTONES);
 
 const CREATIVE_SKILLS: Skill[] = [
   { name: { en: "Photography", fa: "عکاسی" }, levelOutOf10: 10 },
@@ -551,10 +525,51 @@ const SOFTWARE_SKILLS: Skill[] = [
   { name: { en: "Cinema 4D + Octane", fa: "سینما ۴دی + اکتن" }, levelOutOf10: 7 },
 ];
 
+const editableAboutIds = new WeakMap<Localized, string>();
+const ABOUT_EDITORIAL_FIELDS: SiteField[] = [];
+function registerAboutField(id: string, section: string, label: string, value: Localized) {
+  editableAboutIds.set(value, id);
+  ABOUT_EDITORIAL_FIELDS.push({ id, section, label, value });
+}
+for (const [category, value] of Object.entries(CATEGORY))
+  registerAboutField(`category.${category}`, "Timeline categories", category, value);
+for (const option of FILTER_OPTIONS)
+  registerAboutField(`filter.${option.key}`, "Timeline filters", option.key, option.label);
+const seenMilestoneIds = new Map<string, number>();
+for (const milestone of MILESTONES) {
+  const stem = `${milestone.year}-${milestone.category}-${milestone.title.en}`
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+  const count = seenMilestoneIds.get(stem) || 0;
+  seenMilestoneIds.set(stem, count + 1);
+  const id = `milestone.${stem}${count ? `-${count + 1}` : ""}`;
+  registerAboutField(`${id}.title`, "Timeline", `${milestone.year} — Title`, milestone.title);
+  if (milestone.role)
+    registerAboutField(`${id}.role`, "Timeline", `${milestone.year} — Role`, milestone.role);
+  if (milestone.period)
+    registerAboutField(`${id}.period`, "Timeline", `${milestone.year} — Period`, milestone.period);
+  registerAboutField(
+    `${id}.description`,
+    "Timeline",
+    `${milestone.year} — Description`,
+    milestone.description,
+  );
+}
+for (const [index, skill] of CREATIVE_SKILLS.entries())
+  registerAboutField(`skill.creative.${index}`, "Creative skills", skill.name.en, skill.name);
+for (const [index, skill] of SOFTWARE_SKILLS.entries())
+  registerAboutField(`skill.software.${index}`, "Software skills", skill.name.en, skill.name);
+
+export function getAboutEditorialSeedFields(): SiteField[] {
+  return ABOUT_EDITORIAL_FIELDS;
+}
+
 const easeOut = [0.22, 1, 0.36, 1] as const;
 
 function t(copy: Localized, lang: Lang) {
-  return copy[lang];
+  const id = editableAboutIds.get(copy);
+  return id ? siteLocalized("about", id, copy, lang).text : copy[lang];
 }
 
 /** Convert 0–10 score to 0–5 for the circle meter. */
@@ -564,7 +579,7 @@ function toFiveScale(levelOutOf10: number) {
 
 function AboutPage() {
   const reduceMotion = useReducedMotion();
-  const [lang, setLang] = useState<Lang>("en");
+  const lang = useLocale();
   const [filters, setFilters] = useState<Set<CategoryKey>>(createDefaultFilters);
   const isFa = lang === "fa";
 
@@ -577,7 +592,6 @@ function AboutPage() {
       <Hero
         reduceMotion={!!reduceMotion}
         lang={lang}
-        onToggleLang={() => setLang(isFa ? "en" : "fa")}
         filters={filters}
         onFiltersChange={setFilters}
       />
@@ -591,13 +605,11 @@ function AboutPage() {
 function Hero({
   reduceMotion,
   lang,
-  onToggleLang,
   filters,
   onFiltersChange,
 }: {
   reduceMotion: boolean;
   lang: Lang;
-  onToggleLang: () => void;
   filters: Set<CategoryKey>;
   onFiltersChange: (filters: Set<CategoryKey>) => void;
 }) {
@@ -611,12 +623,10 @@ function Hero({
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, ease: easeOut }}
         className={`text-xs font-medium text-foreground/50 ${
-          isFa
-            ? "font-farsi tracking-normal"
-            : "uppercase tracking-[0.32em]"
+          isFa ? "font-farsi tracking-normal" : "uppercase tracking-[0.32em]"
         }`}
       >
-        {t(COPY.journey, lang)}
+        {siteField("about", "journey", lang).text}
       </motion.p>
 
       <div className="mt-8 flex items-center justify-between gap-6 md:gap-10">
@@ -631,23 +641,10 @@ function Hero({
               : "font-display text-[clamp(2.75rem,9vw,7.5rem)]"
           }`}
         >
-          {t(COPY.heroTitle, lang)}
+          {siteField("about", "heroTitle", lang).text}
           <br />
-          <span className="text-secondary">{t(COPY.heroAccent, lang)}</span>
+          <span className="text-secondary">{siteField("about", "heroAccent", lang).text}</span>
         </motion.h1>
-
-        <motion.div
-          initial={reduceMotion ? false : { opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.15, ease: easeOut }}
-          className="shrink-0"
-        >
-          <LanguageSwitch
-            lang={lang}
-            onToggle={onToggleLang}
-            reduceMotion={reduceMotion}
-          />
-        </motion.div>
       </div>
 
       <motion.p
@@ -659,7 +656,7 @@ function Hero({
           isFa ? "font-farsi" : ""
         }`}
       >
-        {t(COPY.heroBody, lang)}
+        {siteField("about", "heroBody", lang).text}
       </motion.p>
 
       <motion.div
@@ -668,13 +665,11 @@ function Hero({
         animate={{ opacity: 1 }}
         transition={{ duration: 0.9, delay: 0.55 }}
         className={`mt-20 flex items-center gap-4 text-[0.65rem] text-foreground/35 ${
-          isFa
-            ? "font-farsi tracking-normal"
-            : "uppercase tracking-[0.28em]"
+          isFa ? "font-farsi tracking-normal" : "uppercase tracking-[0.28em]"
         }`}
       >
         <span className="h-px w-12 bg-foreground/30" />
-        {t(COPY.period, lang)}
+        {siteField("about", "period", lang).text}
       </motion.div>
 
       <TimelineFilters
@@ -724,8 +719,7 @@ function TimelineFilters({
       dir={isFa ? "rtl" : "ltr"}
     >
       {FILTER_OPTIONS.map((option) => {
-        const active =
-          option.key === "All" ? allSelected : filters.has(option.key);
+        const active = option.key === "All" ? allSelected : filters.has(option.key);
         const Icon = CATEGORY_ICON[option.key];
         return (
           <button
@@ -735,9 +729,7 @@ function TimelineFilters({
             aria-checked={active}
             onClick={() => toggle(option.key)}
             className={`group relative inline-flex h-11 shrink-0 items-center gap-2 rounded-full border border-secondary px-4 shadow-none transition-[border-color,box-shadow,background-color,color] duration-300 ease-out hover:shadow-[0_0_8px_color-mix(in_oklab,var(--secondary)_55%,transparent),0_0_18px_color-mix(in_oklab,var(--secondary)_30%,transparent),0_0_28px_color-mix(in_oklab,var(--secondary)_16%,transparent)] ${
-              active
-                ? "bg-secondary text-secondary-foreground"
-                : "bg-transparent text-secondary/80"
+              active ? "bg-secondary text-secondary-foreground" : "bg-transparent text-secondary/80"
             }`}
           >
             <span
@@ -760,16 +752,10 @@ function TimelineFilters({
                 <path d="M2.5 6.2 4.8 8.5 9.5 3.5" />
               </svg>
             </span>
-            <Icon
-              aria-hidden
-              className="h-3.5 w-3.5 shrink-0 opacity-90"
-              strokeWidth={1.75}
-            />
+            <Icon aria-hidden className="h-3.5 w-3.5 shrink-0 opacity-90" strokeWidth={1.75} />
             <span
               className={`text-xs font-medium transition-colors duration-300 ${
-                isFa
-                  ? "font-farsi tracking-normal"
-                  : "uppercase tracking-[0.14em]"
+                isFa ? "font-farsi tracking-normal" : "uppercase tracking-[0.14em]"
               }`}
             >
               {t(option.label, lang)}
@@ -781,70 +767,13 @@ function TimelineFilters({
   );
 }
 
-function LanguageSwitch({
-  lang,
-  onToggle,
-  reduceMotion,
-}: {
-  lang: Lang;
-  onToggle: () => void;
-  reduceMotion: boolean;
-}) {
-  const isFa = lang === "fa";
-
-  return (
-    <button
-      type="button"
-      role="switch"
-      aria-checked={isFa}
-      aria-label={t(COPY.langAria, lang)}
-      onClick={onToggle}
-      dir="ltr"
-      className="group relative inline-flex h-11 w-[7.25rem] shrink-0 items-center rounded-full border border-secondary bg-transparent p-1 shadow-none transition-[border-color,box-shadow] duration-300 ease-out hover:shadow-[0_0_8px_color-mix(in_oklab,var(--secondary)_55%,transparent),0_0_18px_color-mix(in_oklab,var(--secondary)_30%,transparent),0_0_28px_color-mix(in_oklab,var(--secondary)_16%,transparent)]"
-    >
-      <motion.span
-        aria-hidden
-        className="absolute top-1 bottom-1 left-1 w-[calc(50%-4px)] rounded-full bg-[#EFEFEF] transition-[box-shadow] duration-300 ease-out group-hover:shadow-[0_0_8px_color-mix(in_oklab,#EFEFEF_70%,transparent),0_0_18px_color-mix(in_oklab,#EFEFEF_35%,transparent)]"
-        initial={false}
-        animate={{ x: isFa ? "100%" : "0%" }}
-        transition={
-          reduceMotion
-            ? { duration: 0 }
-            : { type: "spring", stiffness: 380, damping: 28 }
-        }
-      />
-      <span
-        className={`relative z-[1] flex w-1/2 items-center justify-center text-xs font-medium uppercase tracking-[0.14em] transition-colors duration-300 ${
-          !isFa ? "text-[#0F0F0F]" : "text-secondary/80"
-        }`}
-      >
-        EN
-      </span>
-      <span
-        className={`relative z-[1] flex w-1/2 items-center justify-center font-farsi text-sm font-medium transition-colors duration-300 ${
-          isFa ? "text-[#0F0F0F]" : "text-secondary/80"
-        }`}
-      >
-        فا
-      </span>
-    </button>
-  );
-}
-
 /** Tip Y in the same space as CSS `top: progress%` on the spine. */
-function tipYFromProgress(
-  container: HTMLElement,
-  progress: number,
-): number {
+function tipYFromProgress(container: HTMLElement, progress: number): number {
   const box = container.getBoundingClientRect();
   return box.top + progress * box.height;
 }
 
-function fillFromTip(
-  tipY: number,
-  marker: HTMLElement,
-  elongated: boolean,
-): number {
+function fillFromTip(tipY: number, marker: HTMLElement, elongated: boolean): number {
   const rect = marker.getBoundingClientRect();
   if (!elongated) {
     return tipY >= (rect.top + rect.bottom) / 2 ? 1 : 0;
@@ -865,10 +794,7 @@ function Timeline({
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const filterKey = CATEGORY_FILTERS.filter((k) => filters.has(k)).join(",");
-  const milestones =
-    filters.size === 0
-      ? []
-      : MILESTONES.filter((m) => filters.has(m.category));
+  const milestones = filters.size === 0 ? [] : MILESTONES.filter((m) => filters.has(m.category));
   const isFa = lang === "fa";
 
   const { scrollYProgress } = useScroll({
@@ -882,11 +808,7 @@ function Timeline({
     mass: 0.25,
   });
   const tipTop = useTransform(lineProgress, (p) => `${p * 100}%`);
-  const tipOpacity = useTransform(
-    lineProgress,
-    [0, 0.06, 0.94, 1],
-    [0, 1, 1, 0],
-  );
+  const tipOpacity = useTransform(lineProgress, [0, 0.06, 0.94, 1], [0, 1, 1, 0]);
   const spineRef = useRef<HTMLDivElement>(null);
 
   useLayoutEffect(() => {
@@ -902,8 +824,7 @@ function Timeline({
       const viewBottom = window.innerHeight - box.top;
       const visible = Math.max(0, viewBottom - viewTop);
       const fadePx = Math.min(140, window.innerHeight * 0.14, visible * 0.35);
-      const pct = (y: number) =>
-        `${Math.min(100, Math.max(0, (y / height) * 100)).toFixed(2)}%`;
+      const pct = (y: number) => `${Math.min(100, Math.max(0, (y / height) * 100)).toFixed(2)}%`;
       const mask = `linear-gradient(to bottom, transparent ${pct(viewTop)}, black ${pct(viewTop + fadePx)}, black ${pct(viewBottom - fadePx)}, transparent ${pct(viewBottom)})`;
       spine.style.maskImage = mask;
       spine.style.webkitMaskImage = mask;
@@ -1016,19 +937,14 @@ function TimelineEntry({
       const container = containerRef.current;
       const marker = markerRef.current;
       if (!container || !marker) return;
-      fill.set(
-        fillFromTip(tipYFromProgress(container, p), marker, useCapsule),
-      );
+      fill.set(fillFromTip(tipYFromProgress(container, p), marker, useCapsule));
     };
 
     sync(lineProgress.get());
     return lineProgress.on("change", sync);
   }, [lineProgress, containerRef, fill, reduceMotion, useCapsule]);
 
-  const fillClip = useTransform(
-    fill,
-    (v) => `inset(0 0 ${(1 - v) * 100}% 0)`,
-  );
+  const fillClip = useTransform(fill, (v) => `inset(0 0 ${(1 - v) * 100}% 0)`);
   const glowOpacity = useTransform(fill, (v) => Math.min(1, v * 4));
   const circleFill = useTransform(
     fill,
@@ -1038,18 +954,13 @@ function TimelineEntry({
   const circleBorder = useTransform(
     fill,
     [0, 1],
-    [
-      "color-mix(in oklab, var(--secondary) 45%, transparent)",
-      "var(--secondary)",
-    ],
+    ["color-mix(in oklab, var(--secondary) 45%, transparent)", "var(--secondary)"],
   );
 
   const yearAlign = flip
     ? "md:order-2 md:pl-16 md:justify-start"
     : "md:order-1 md:pr-16 md:justify-end";
-  const cardAlign = flip
-    ? "md:order-1 md:pr-16 md:text-right"
-    : "md:order-2 md:pl-16 md:text-left";
+  const cardAlign = flip ? "md:order-1 md:pr-16 md:text-right" : "md:order-2 md:pl-16 md:text-left";
 
   const showGallery =
     (milestone.category === "Job" || milestone.category === "Project") &&
@@ -1057,10 +968,7 @@ function TimelineEntry({
   const CategoryIcon = CATEGORY_ICON[milestone.category];
 
   return (
-    <li
-      className="relative"
-      style={{ paddingBottom: capsuleH > 48 ? capsuleH - 28 : undefined }}
-    >
+    <li className="relative" style={{ paddingBottom: capsuleH > 48 ? capsuleH - 28 : undefined }}>
       {useCapsule ? (
         <span
           ref={markerRef}
@@ -1080,8 +988,7 @@ function TimelineEntry({
             className="pointer-events-none absolute inset-0 rounded-full"
             style={{
               opacity: glowOpacity,
-              boxShadow:
-                "0 0 10px color-mix(in oklab, var(--secondary) 40%, transparent)",
+              boxShadow: "0 0 10px color-mix(in oklab, var(--secondary) 40%, transparent)",
             }}
           />
         </span>
@@ -1115,21 +1022,13 @@ function TimelineEntry({
         >
           {/* Gallery sits between year and spine */}
           {!flip && showGallery && (
-            <ExpandableGallery
-              photos={milestone.photos!}
-              compact
-              expandable={false}
-            />
+            <ExpandableGallery photos={milestone.photos!} compact expandable={false} />
           )}
           <p className="font-display text-[clamp(3.6rem,8.4vw,7.2rem)] font-bold leading-none tracking-tight text-foreground/[0.14]">
             {milestone.year}
           </p>
           {flip && showGallery && (
-            <ExpandableGallery
-              photos={milestone.photos!}
-              compact
-              expandable={false}
-            />
+            <ExpandableGallery photos={milestone.photos!} compact expandable={false} />
           )}
         </motion.div>
 
@@ -1146,19 +1045,13 @@ function TimelineEntry({
               {milestone.year}
             </p>
             {showGallery && (
-              <ExpandableGallery
-                photos={milestone.photos!}
-                compact
-                expandable={false}
-              />
+              <ExpandableGallery photos={milestone.photos!} compact expandable={false} />
             )}
           </div>
 
           <p
             className={`inline-flex items-center gap-2 text-[0.99rem] font-medium text-secondary ${
-              isFa
-                ? "font-farsi tracking-normal"
-                : "uppercase tracking-[0.3em]"
+              isFa ? "font-farsi tracking-normal" : "uppercase tracking-[0.3em]"
             }`}
           >
             <CategoryIcon
@@ -1179,15 +1072,9 @@ function TimelineEntry({
           </h2>
 
           {(milestone.role || milestone.period) && (
-            <div
-              className={`mt-2 space-y-1 text-[1.05rem] ${
-                isFa ? "font-farsi" : ""
-              }`}
-            >
+            <div className={`mt-2 space-y-1 text-[1.05rem] ${isFa ? "font-farsi" : ""}`}>
               {milestone.role && (
-                <p className="font-medium text-foreground/75">
-                  {t(milestone.role, lang)}
-                </p>
+                <p className="font-medium text-foreground/75">{t(milestone.role, lang)}</p>
               )}
               {milestone.period && (
                 <p className="text-foreground/45">{t(milestone.period, lang)}</p>
@@ -1208,13 +1095,7 @@ function TimelineEntry({
   );
 }
 
-function SkillsSection({
-  reduceMotion,
-  lang,
-}: {
-  reduceMotion: boolean;
-  lang: Lang;
-}) {
+function SkillsSection({ reduceMotion, lang }: { reduceMotion: boolean; lang: Lang }) {
   const isFa = lang === "fa";
 
   return (
@@ -1229,12 +1110,10 @@ function SkillsSection({
           viewport={{ once: true, margin: "-10%" }}
           transition={{ duration: 0.55, ease: easeOut }}
           className={`text-xs font-medium text-foreground/50 ${
-            isFa
-              ? "font-farsi tracking-normal"
-              : "uppercase tracking-[0.32em]"
+            isFa ? "font-farsi tracking-normal" : "uppercase tracking-[0.32em]"
           }`}
         >
-          {t(COPY.capabilities, lang)}
+          {siteField("about", "capabilities", lang).text}
         </motion.p>
         <motion.h2
           initial={reduceMotion ? false : { opacity: 0, y: 24 }}
@@ -1242,23 +1121,21 @@ function SkillsSection({
           viewport={{ once: true, margin: "-10%" }}
           transition={{ duration: 0.65, delay: 0.08, ease: easeOut }}
           className={`mt-6 font-bold tracking-tight ${
-            isFa
-              ? "font-farsi text-4xl md:text-5xl"
-              : "font-display text-4xl md:text-6xl"
+            isFa ? "font-farsi text-4xl md:text-5xl" : "font-display text-4xl md:text-6xl"
           }`}
         >
-          {t(COPY.skills, lang)}
+          {siteField("about", "skills", lang).text}
         </motion.h2>
 
         <div className="mt-16 grid gap-16 md:mt-24 md:grid-cols-2 md:gap-24">
           <SkillColumn
-            heading={t(COPY.creative, lang)}
+            heading={siteField("about", "creative", lang).text}
             skills={CREATIVE_SKILLS}
             reduceMotion={reduceMotion}
             lang={lang}
           />
           <SkillColumn
-            heading={t(COPY.software, lang)}
+            heading={siteField("about", "software", lang).text}
             skills={SOFTWARE_SKILLS}
             reduceMotion={reduceMotion}
             lang={lang}
@@ -1286,9 +1163,7 @@ function SkillColumn({
     <div>
       <p
         className={`text-[0.65rem] font-medium text-foreground/40 ${
-          isFa
-            ? "font-farsi tracking-normal"
-            : "uppercase tracking-[0.3em]"
+          isFa ? "font-farsi tracking-normal" : "uppercase tracking-[0.3em]"
         }`}
       >
         {heading}
@@ -1301,9 +1176,7 @@ function SkillColumn({
             <li key={skill.name.en}>
               <p
                 className={`font-medium tracking-tight text-foreground md:text-xl ${
-                  isFa
-                    ? "font-farsi text-base md:text-lg"
-                    : "font-display text-lg"
+                  isFa ? "font-farsi text-base md:text-lg" : "font-display text-lg"
                 }`}
               >
                 {t(skill.name, lang)}
@@ -1313,9 +1186,7 @@ function SkillColumn({
                 aria-label={`${score} out of 5`}
               >
                 <motion.span
-                  initial={
-                    reduceMotion ? { width: `${fillPct}%` } : { width: 0 }
-                  }
+                  initial={reduceMotion ? { width: `${fillPct}%` } : { width: 0 }}
                   whileInView={{ width: `${fillPct}%` }}
                   viewport={{ once: true, amount: 0.4, margin: "0px 0px -5% 0px" }}
                   transition={{

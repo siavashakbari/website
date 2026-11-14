@@ -7,6 +7,7 @@ import {
   FolderTree,
   Image as ImageIcon,
   FileText,
+  PanelsTopLeft,
   Receipt,
   LogOut,
   ExternalLink,
@@ -184,6 +185,7 @@ function VaultLayout() {
     { label: "Invoice", path: "/vault/invoices", icon: Receipt },
     { label: "Blog", path: "/vault/blog", icon: FileText },
     { label: "Pages", path: "/vault/pages", icon: FolderTree },
+    { label: "Site Content", path: "/vault/site-content", icon: PanelsTopLeft },
     { label: "Media", path: "/vault/media", icon: ImageIcon },
   ];
 

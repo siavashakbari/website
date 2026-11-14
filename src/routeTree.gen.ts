@@ -38,6 +38,7 @@ import { Route as VaultBlogRouteImport } from './routes/vault.blog'
 import { Route as VaultInvoicesRouteImport } from './routes/vault.invoices'
 import { Route as VaultMediaRouteImport } from './routes/vault.media'
 import { Route as VaultPagesRouteImport } from './routes/vault.pages'
+import { Route as VaultSiteContentRouteImport } from './routes/vault.site-content'
 import { Route as DisciplineSpecialtyIndexRouteImport } from './routes/$discipline.$specialty.index'
 import { Route as DisciplineSpecialtyProjectIndexRouteImport } from './routes/$discipline.$specialty.$project.index'
 import { Route as DisciplineSpecialtyProjectPhotoIdRouteImport } from './routes/$discipline.$specialty.$project.$photoId'
@@ -187,6 +188,11 @@ const VaultPagesRoute = VaultPagesRouteImport.update({
   path: '/pages',
   getParentRoute: () => VaultRoute,
 } as any)
+const VaultSiteContentRoute = VaultSiteContentRouteImport.update({
+  id: '/site-content',
+  path: '/site-content',
+  getParentRoute: () => VaultRoute,
+} as any)
 const DisciplineSpecialtyIndexRoute =
   DisciplineSpecialtyIndexRouteImport.update({
     id: '/$discipline/$specialty/',
@@ -232,6 +238,7 @@ export interface FileRoutesByFullPath {
   '/vault/invoices': typeof VaultInvoicesRoute
   '/vault/media': typeof VaultMediaRoute
   '/vault/pages': typeof VaultPagesRoute
+  '/vault/site-content': typeof VaultSiteContentRoute
   '/$discipline/': typeof DisciplineIndexRoute
   '/admin/': typeof AdminIndexRoute
   '/blog/': typeof BlogIndexRoute
@@ -264,6 +271,7 @@ export interface FileRoutesByTo {
   '/vault/invoices': typeof VaultInvoicesRoute
   '/vault/media': typeof VaultMediaRoute
   '/vault/pages': typeof VaultPagesRoute
+  '/vault/site-content': typeof VaultSiteContentRoute
   '/$discipline': typeof DisciplineIndexRoute
   '/admin': typeof AdminIndexRoute
   '/blog': typeof BlogIndexRoute
@@ -299,6 +307,7 @@ export interface FileRoutesById {
   '/vault/invoices': typeof VaultInvoicesRoute
   '/vault/media': typeof VaultMediaRoute
   '/vault/pages': typeof VaultPagesRoute
+  '/vault/site-content': typeof VaultSiteContentRoute
   '/$discipline/': typeof DisciplineIndexRoute
   '/admin/': typeof AdminIndexRoute
   '/blog/': typeof BlogIndexRoute
@@ -335,6 +344,7 @@ export interface FileRouteTypes {
     | '/vault/invoices'
     | '/vault/media'
     | '/vault/pages'
+    | '/vault/site-content'
     | '/$discipline/'
     | '/admin/'
     | '/blog/'
@@ -367,6 +377,7 @@ export interface FileRouteTypes {
     | '/vault/invoices'
     | '/vault/media'
     | '/vault/pages'
+    | '/vault/site-content'
     | '/$discipline'
     | '/admin'
     | '/blog'
@@ -401,6 +412,7 @@ export interface FileRouteTypes {
     | '/vault/invoices'
     | '/vault/media'
     | '/vault/pages'
+    | '/vault/site-content'
     | '/$discipline/'
     | '/admin/'
     | '/blog/'
@@ -640,6 +652,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof VaultPagesRouteImport
       parentRoute: typeof VaultRoute
     }
+    '/vault/site-content': {
+      id: '/vault/site-content'
+      path: '/site-content'
+      fullPath: '/vault/site-content'
+      preLoaderRoute: typeof VaultSiteContentRouteImport
+      parentRoute: typeof VaultRoute
+    }
     '/$discipline/$specialty/': {
       id: '/$discipline/$specialty/'
       path: '/$discipline/$specialty'
@@ -687,6 +706,7 @@ interface VaultRouteChildren {
   VaultInvoicesRoute: typeof VaultInvoicesRoute
   VaultMediaRoute: typeof VaultMediaRoute
   VaultPagesRoute: typeof VaultPagesRoute
+  VaultSiteContentRoute: typeof VaultSiteContentRoute
   VaultIndexRoute: typeof VaultIndexRoute
 }
 
@@ -695,6 +715,7 @@ const VaultRouteChildren: VaultRouteChildren = {
   VaultInvoicesRoute: VaultInvoicesRoute,
   VaultMediaRoute: VaultMediaRoute,
   VaultPagesRoute: VaultPagesRoute,
+  VaultSiteContentRoute: VaultSiteContentRoute,
   VaultIndexRoute: VaultIndexRoute,
 }
 

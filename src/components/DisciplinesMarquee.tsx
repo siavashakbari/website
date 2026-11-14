@@ -3,6 +3,8 @@ import { CoverTile } from "@/components/CoverTile";
 import { DISCIPLINES } from "@/data/disciplines";
 import { getVaultPages, isRouteOrAncestorHidden, subscribeToVaultStore } from "@/lib/vault-store";
 import { resolveInventoryImage, resolveKnownAssetStem } from "@/lib/inventory-assets";
+import { localizedText } from "@/lib/locale";
+import { useLocale } from "@/lib/use-locale";
 
 function coverTileImage(image: string) {
   return resolveKnownAssetStem(image) === "graphic-design-posters-06"
@@ -16,6 +18,7 @@ const useIsomorphicLayoutEffect = typeof window !== "undefined" ? useLayoutEffec
  * Category strip: equal tiles across the section, live-synced with Vault Pages.
  */
 export function DisciplinesMarquee() {
+  const locale = useLocale();
   const computeTiles = () => {
     const pages = getVaultPages();
     const byRoute = new Map(pages.map((p) => [p.route.toLowerCase(), p]));
@@ -25,7 +28,7 @@ export function DisciplinesMarquee() {
       return {
         key: d.path || d.slug,
         href: d.path,
-        label: vp?.name || d.label,
+        label: localizedText(vp?.name || d.label, vp?.nameFa || d.labelFa, locale).text,
         image: coverTileImage((vp?.coverPhoto ? resolveInventoryImage(vp.coverPhoto) || vp.coverPhoto : "") || d.image || ""),
       };
     });
@@ -39,7 +42,7 @@ export function DisciplinesMarquee() {
         tiles.push({
           key: p.route,
           href: p.route,
-          label: p.name,
+          label: localizedText(p.name, p.nameFa, locale).text,
           image: coverTileImage(p.coverPhoto ? resolveInventoryImage(p.coverPhoto) || p.coverPhoto : ""),
         });
       });
@@ -47,19 +50,12 @@ export function DisciplinesMarquee() {
     return tiles;
   };
 
-  const [tiles, setTiles] = useState(() =>
-    DISCIPLINES.map((d) => ({
-      key: d.path || d.slug,
-      href: d.path,
-      label: d.label,
-      image: coverTileImage(d.image || ""),
-    })),
-  );
+  const [tiles, setTiles] = useState(computeTiles);
 
   useIsomorphicLayoutEffect(() => {
     setTiles(computeTiles());
     return subscribeToVaultStore(() => setTiles(computeTiles()));
-  }, []);
+  }, [locale]);
 
   return (
     <div className="w-full bg-[#0F0F0F] px-[20px] pt-3 pb-12 md:pb-16">

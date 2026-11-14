@@ -1,5 +1,9 @@
 import fs from "node:fs";
 import path from "node:path";
+import os from "node:os";
+
+// Local preview only. Production /sitemap.xml is generated from the published
+// snapshot by the TanStack server route; writing public/sitemap.xml shadows it.
 
 const vaultStoreFile = fs.readFileSync(path.join(process.cwd(), "src/lib/vault-store.ts"), "utf8");
 const blogPostsFile = fs.readFileSync(path.join(process.cwd(), "src/data/blog-posts.ts"), "utf8");
@@ -201,11 +205,15 @@ inventoryItems.forEach((item, idx) => {
 
 const allEntries = [...staticPages, ...vaultPageEntries, ...blogPages, ...assetPages];
 
-const urls = allEntries.map((e) => {
-  const loc = `${baseUrl}${e.path === "/" ? "/" : e.path}`;
+const urls = allEntries.flatMap((e) => ["en", "fa"].map((locale) => {
+  const localizedPath = (lang) => `/${lang}${e.path === "/" ? "" : e.path}`;
+  const loc = `${baseUrl}${localizedPath(locale)}`;
   const parts = [
     `  <url>`,
     `    <loc>${escapeXml(loc)}</loc>`,
+    `    <xhtml:link rel="alternate" hreflang="en" href="${escapeXml(`${baseUrl}${localizedPath("en")}`)}"/>`,
+    `    <xhtml:link rel="alternate" hreflang="fa" href="${escapeXml(`${baseUrl}${localizedPath("fa")}`)}"/>`,
+    `    <xhtml:link rel="alternate" hreflang="x-default" href="${escapeXml(`${baseUrl}${localizedPath("en")}`)}"/>`,
     e.lastmod ? `    <lastmod>${escapeXml(e.lastmod)}</lastmod>` : null,
     e.changefreq ? `    <changefreq>${e.changefreq}</changefreq>` : null,
     e.priority ? `    <priority>${e.priority}</priority>` : null,
@@ -215,19 +223,19 @@ const urls = allEntries.map((e) => {
     `  </url>`,
   ].filter(Boolean);
   return parts.join("\n");
-});
+}));
 
 const xml = [
   `<?xml version="1.0" encoding="UTF-8"?>`,
-  `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">`,
+  `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1" xmlns:xhtml="http://www.w3.org/1999/xhtml">`,
   ...urls,
   `</urlset>`,
   "",
 ].join("\n");
 
-const outPath = path.join(process.cwd(), "public/sitemap.xml");
+const outPath = path.join(os.tmpdir(), "creative-showcase-sitemap-preview.xml");
 fs.writeFileSync(outPath, xml, "utf8");
 
 console.log(
-  `Generated ${outPath} with ${allEntries.length} URLs (${vaultPageEntries.length} Vault sub-routes, ${blogPages.length} blog posts, ${assetPages.length} dedicated photo assets).`,
+  `Generated ${outPath} with ${urls.length} localized URLs (${vaultPageEntries.length} Vault sub-routes, ${blogPages.length} blog posts, ${assetPages.length} dedicated photo assets).`,
 );

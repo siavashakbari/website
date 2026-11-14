@@ -81,7 +81,9 @@ function VaultMediaView() {
   const [newSizedMedia, setNewSizedMedia] = useState<SizedMediaResult | null>(null);
   const [newExternalUrl, setNewExternalUrl] = useState("");
   const [newTitle, setNewTitle] = useState("");
+  const [newTitleFa, setNewTitleFa] = useState("");
   const [newCaption, setNewCaption] = useState("");
+  const [newCaptionFa, setNewCaptionFa] = useState("");
   const [newField, setNewField] = useState("");
   const [newCategory, setNewCategory] = useState("");
   const [newProject, setNewProject] = useState("");
@@ -366,8 +368,10 @@ function VaultMediaView() {
         project,
         assignedRoute,
         title: dynamicTitle,
+        titleFa: newTitleFa.trim(),
         titleModifiedByUser: Boolean(newTitle.trim()),
         caption: newCaption.trim(),
+        captionFa: newCaptionFa.trim(),
         year: new Date().getFullYear().toString(),
         isHidden: false,
         pairedBoxes: newPairs,
@@ -383,7 +387,9 @@ function VaultMediaView() {
       setNewSizedMedia(null);
       setNewExternalUrl("");
       setNewTitle("");
+      setNewTitleFa("");
       setNewCaption("");
+      setNewCaptionFa("");
       setNewField("");
       setNewCategory("");
       setNewProject("");
@@ -832,6 +838,14 @@ function VaultMediaView() {
               </div>
 
               {/* Cascading Dropdowns: Field -> Category -> Project */}
+              <div className="grid gap-3 sm:grid-cols-2">
+                <label className="text-xs text-neutral-400">Persian title (RTL)
+                  <input type="text" dir="rtl" lang="fa" value={newTitleFa} onChange={(e) => setNewTitleFa(e.target.value)} className="mt-1 w-full rounded-xl border border-white/10 bg-black/60 px-3.5 py-2.5 font-farsi text-xs text-white" />
+                </label>
+                <label className="text-xs text-neutral-400">Persian description (RTL)
+                  <textarea dir="rtl" lang="fa" rows={3} value={newCaptionFa} onChange={(e) => setNewCaptionFa(e.target.value)} className="mt-1 w-full rounded-xl border border-white/10 bg-black/60 px-3.5 py-2.5 font-farsi text-xs text-white" />
+                </label>
+              </div>
               {(() => {
                 const isNewFlatField = FLAT_FIELDS.has(newField.toLowerCase());
                 const newCategoryOptions = isNewFlatField
@@ -994,18 +1008,20 @@ function MediaCard({
   isCopied,
 }: MediaCardProps) {
   const [titleDraft, setTitleDraft] = useState(item.title);
+  const [titleFaDraft, setTitleFaDraft] = useState(item.titleFa || "");
   const [titleState, setTitleState] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const lastTitle = useRef(item.title);
   useEffect(() => {
     setTitleDraft((current) => current === lastTitle.current ? item.title : current);
     lastTitle.current = item.title;
   }, [item.title]);
-  const titleChanged = titleDraft !== item.title;
+  useEffect(() => setTitleFaDraft(item.titleFa || ""), [item.titleFa]);
+  const titleChanged = titleDraft !== item.title || titleFaDraft !== (item.titleFa || "");
   const saveTitle = async () => {
     if ((!titleChanged && titleState !== "error") || titleState === "saving") return;
     setTitleState("saving");
     try {
-      if (titleChanged) onUpdateMedia(item, { title: titleDraft });
+      if (titleChanged) onUpdateMedia(item, { title: titleDraft, titleFa: titleFaDraft });
       else await retryContentSave();
       await waitForPublishedContentSave();
       setTitleState("saved");
@@ -1014,6 +1030,7 @@ function MediaCard({
     }
   };
   const [descriptionDraft, setDescriptionDraft] = useState(item.caption || "");
+  const [descriptionFaDraft, setDescriptionFaDraft] = useState(item.captionFa || "");
   const [descriptionState, setDescriptionState] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const lastCaption = useRef(item.caption || "");
   useEffect(() => {
@@ -1021,18 +1038,34 @@ function MediaCard({
     setDescriptionDraft((current) => current === lastCaption.current ? next : current);
     lastCaption.current = next;
   }, [item.caption]);
-  const descriptionChanged = descriptionDraft !== (item.caption || "");
+  useEffect(() => setDescriptionFaDraft(item.captionFa || ""), [item.captionFa]);
+  const descriptionChanged = descriptionDraft !== (item.caption || "") || descriptionFaDraft !== (item.captionFa || "");
   const saveDescription = async () => {
     if ((!descriptionChanged && descriptionState !== "error") || descriptionState === "saving") return;
     setDescriptionState("saving");
     try {
-      if (descriptionChanged) onUpdateMedia(item, { caption: descriptionDraft });
+      if (descriptionChanged) onUpdateMedia(item, { caption: descriptionDraft, captionFa: descriptionFaDraft });
       else await retryContentSave();
       await waitForPublishedContentSave();
       setDescriptionState("saved");
     } catch {
       setDescriptionState("error");
     }
+  };
+  const [altDraft, setAltDraft] = useState(item.altEn || "");
+  const [altFaDraft, setAltFaDraft] = useState(item.altFa || "");
+  const [altState, setAltState] = useState<"idle" | "saving" | "saved" | "error">("idle");
+  useEffect(() => { setAltDraft(item.altEn || ""); setAltFaDraft(item.altFa || ""); }, [item.altEn, item.altFa]);
+  const altChanged = altDraft !== (item.altEn || "") || altFaDraft !== (item.altFa || "");
+  const saveAlt = async () => {
+    if ((!altChanged && altState !== "error") || altState === "saving") return;
+    setAltState("saving");
+    try {
+      if (altChanged) onUpdateMedia(item, { altEn: altDraft, altFa: altFaDraft });
+      else await retryContentSave();
+      await waitForPublishedContentSave();
+      setAltState("saved");
+    } catch { setAltState("error"); }
   };
   const isFlatField = FLAT_FIELDS.has((item.field || "").toLowerCase());
 
@@ -1189,10 +1222,11 @@ function MediaCard({
         <div className="p-4 space-y-4">
           <div className="space-y-1">
             <label className="block text-[10px] font-mono uppercase tracking-wider text-neutral-500">
-              Title / Name
+              English title / name
             </label>
             <input
               type="text"
+              dir="ltr"
               value={titleDraft}
               onChange={(e) => {
                 setTitleDraft(e.target.value);
@@ -1200,6 +1234,12 @@ function MediaCard({
               }}
               className="w-full bg-black/60 border border-white/10 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-[#2CE3C0]"
             />
+            <label className="block text-[10px] text-neutral-500">Persian title / name
+              <input type="text" dir="rtl" lang="fa" value={titleFaDraft}
+                onChange={(e) => { setTitleFaDraft(e.target.value); setTitleState("idle"); }}
+                className="mt-1 w-full rounded-lg border border-white/10 bg-black/60 px-2.5 py-1.5 font-farsi text-xs text-white" />
+            </label>
+            {!titleFaDraft.trim() && <p className="text-[10px] text-amber-300">Persian title missing; English will be shown.</p>}
             <div className="flex items-center justify-between gap-2 pt-1">
               <span className="text-[10px] text-neutral-500" role="status">
                 {titleState === "saving" ? "Saving to server..." :
@@ -1213,17 +1253,18 @@ function MediaCard({
                 disabled={(!titleChanged && titleState !== "error") || titleState === "saving"}
                 className="rounded-lg border border-[#2CE3C0]/40 px-2.5 py-1.5 text-[10px] font-mono text-[#2CE3C0] hover:bg-[#2CE3C0]/10 disabled:cursor-not-allowed disabled:opacity-40"
               >
-                Save title
+                Save titles
               </button>
             </div>
           </div>
 
           <div className="space-y-1">
             <label htmlFor={`media-description-${item.id}`} className="block text-[10px] font-mono uppercase tracking-wider text-neutral-500">
-              Description
+              English description
             </label>
             <textarea
               id={`media-description-${item.id}`}
+              dir="ltr"
               value={descriptionDraft}
               onChange={(e) => {
                 setDescriptionDraft(e.target.value);
@@ -1233,6 +1274,12 @@ function MediaCard({
               placeholder="Description for this photo, graphic, or video"
               className="w-full resize-y bg-black/60 border border-white/10 rounded-lg px-2.5 py-2 text-xs text-white focus:outline-none focus:border-[#2CE3C0]"
             />
+            <label className="block text-[10px] text-neutral-500">Persian description
+              <textarea dir="rtl" lang="fa" rows={3} value={descriptionFaDraft}
+                onChange={(e) => { setDescriptionFaDraft(e.target.value); setDescriptionState("idle"); }}
+                className="mt-1 w-full resize-y rounded-lg border border-white/10 bg-black/60 px-2.5 py-2 font-farsi text-xs text-white" />
+            </label>
+            {!descriptionFaDraft.trim() && <p className="text-[10px] text-amber-300">Persian description missing; English will be shown.</p>}
             <div className="flex items-center justify-between gap-2 pt-1">
               <span className="text-[10px] text-neutral-500" role="status">
                 {descriptionState === "saving" ? "Saving to server..." :
@@ -1246,12 +1293,21 @@ function MediaCard({
                 disabled={(!descriptionChanged && descriptionState !== "error") || descriptionState === "saving"}
                 className="rounded-lg border border-[#2CE3C0]/40 px-2.5 py-1.5 text-[10px] font-mono text-[#2CE3C0] hover:bg-[#2CE3C0]/10 disabled:cursor-not-allowed disabled:opacity-40"
               >
-                Save description
+                Save descriptions
               </button>
             </div>
           </div>
 
           {/* 3 Cascading Project Assigning Dropdowns */}
+          <div className="space-y-2 rounded-lg border border-white/10 p-3">
+            <span className="text-[10px] font-mono uppercase text-neutral-400">Image alternative text</span>
+            <div className="grid gap-2 sm:grid-cols-2">
+              <label className="text-[10px] text-neutral-400">English<input dir="ltr" value={altDraft} onChange={(e) => { setAltDraft(e.target.value); setAltState("idle"); }} className="mt-1 w-full rounded-lg border border-white/10 bg-black/60 p-2 text-xs text-white" /></label>
+              <label className="text-[10px] text-neutral-400">Persian<input dir="rtl" lang="fa" value={altFaDraft} onChange={(e) => { setAltFaDraft(e.target.value); setAltState("idle"); }} className="mt-1 w-full rounded-lg border border-white/10 bg-black/60 p-2 font-farsi text-xs text-white" /></label>
+            </div>
+            <div className="flex items-center justify-between gap-2"><span role="status" className="text-[10px] text-neutral-500">{altState === "saving" ? "Saving…" : altState === "error" ? "Not saved. Retry." : altChanged ? "Unsaved alternative text" : altState === "saved" ? "Saved to server" : ""}</span><button type="button" onClick={() => void saveAlt()} disabled={(!altChanged && altState !== "error") || altState === "saving"} className="rounded-lg border border-[#2CE3C0]/40 px-2.5 py-1 text-[10px] text-[#2CE3C0] disabled:opacity-40">Save alt text</button></div>
+          </div>
+
           <div className="space-y-2 p-3 rounded-xl bg-black/50 border border-white/10">
             <span className="block text-[10px] font-mono uppercase tracking-wider text-neutral-400">
               Project Assignment Dropdowns

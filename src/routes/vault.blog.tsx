@@ -37,6 +37,17 @@ function AdminBlogView() {
   const [aiSummaryFa, setAiSummaryFa] = useState("");
   const [tagsInput, setTagsInput] = useState("");
   const [tagsInputFa, setTagsInputFa] = useState("");
+  const [seoDescription, setSeoDescription] = useState("");
+  const [seoDescriptionFa, setSeoDescriptionFa] = useState("");
+  const [coverAltEn, setCoverAltEn] = useState("");
+  const [coverAltFa, setCoverAltFa] = useState("");
+  const [authorNameFa, setAuthorNameFa] = useState("");
+  const [authorBioFa, setAuthorBioFa] = useState("");
+  const [authorNameEn, setAuthorNameEn] = useState("Siavash Akbari");
+  const [authorBioEn, setAuthorBioEn] = useState("");
+  const [categoryLabelEn, setCategoryLabelEn] = useState("");
+  const [categoryLabelFa, setCategoryLabelFa] = useState("");
+  const [readTimeFa, setReadTimeFa] = useState("");
   const [saveSuccess, setSaveSuccess] = useState(false);
 
   useEffect(() => {
@@ -61,6 +72,8 @@ function AdminBlogView() {
     setAiSummaryFa("");
     setTagsInput("Visual Identity, Art Direction, Editorial");
     setTagsInputFa("هویت بصری, مدیریت هنری, مقاله");
+    setSeoDescription(""); setSeoDescriptionFa(""); setCoverAltEn(""); setCoverAltFa(""); setAuthorNameFa(""); setAuthorBioFa("");
+    setAuthorNameEn("Siavash Akbari"); setAuthorBioEn(""); setCategoryLabelEn(""); setCategoryLabelFa(""); setReadTimeFa("");
     setIsEditorOpen(true);
   };
 
@@ -81,6 +94,11 @@ function AdminBlogView() {
     setAiSummaryFa(post.aiSummaryFa || "");
     setTagsInput((post.tags || []).join(", "));
     setTagsInputFa((post.tagsFa || []).join(", "));
+    setSeoDescription(post.seoDescription || ""); setSeoDescriptionFa(post.seoDescriptionFa || "");
+    setCoverAltEn(post.coverAltEn || ""); setCoverAltFa(post.coverAltFa || "");
+    setAuthorNameFa(post.author?.nameFa || ""); setAuthorBioFa(post.author?.bioFa || "");
+    setAuthorNameEn(post.author?.name || "Siavash Akbari"); setAuthorBioEn(post.author?.bio || "");
+    setCategoryLabelEn(post.categoryLabel || ""); setCategoryLabelFa(post.categoryLabelFa || ""); setReadTimeFa(post.readTimeFa || "");
     setIsEditorOpen(true);
   };
 
@@ -126,24 +144,30 @@ function AdminBlogView() {
       excerpt: excerpt.trim(),
       excerptFa: excerptFa.trim() || undefined,
       category,
-      categoryLabel: matchedCat?.label || (category === "my-blogs" ? "My Blogs" : "News"),
+      categoryLabel: categoryLabelEn.trim() || matchedCat?.label || (category === "my-blogs" ? "My Blogs" : "News"),
+      categoryLabelFa: categoryLabelFa.trim() || matchedCat?.labelFa,
       coverImage: coverImage.trim(),
+      coverAltEn: coverAltEn.trim(),
+      coverAltFa: coverAltFa.trim(),
       publishedAt: editingPost ? editingPost.publishedAt : new Date().toISOString().split("T")[0],
       readTime,
+      readTimeFa: readTimeFa.trim() || undefined,
       contentMarkdown: contentMarkdown.trim(),
       contentMarkdownFa: contentMarkdownFa.trim() || undefined,
       published: isPublished,
       aiSummary: aiSummary.trim() || undefined,
       aiSummaryFa: aiSummaryFa.trim() || undefined,
+      seoDescription: seoDescription.trim() || undefined,
+      seoDescriptionFa: seoDescriptionFa.trim() || undefined,
       tags: parsedTags.length > 0 ? parsedTags : ["Editorial", "Design", "Studio"],
       tagsFa: parsedTagsFa.length > 0 ? parsedTagsFa : undefined,
-      author: editingPost?.author || {
+      author: { ...(editingPost?.author || {
         name: "Siavash Akbari",
         role: "Photographer, Designer & Creative Director",
         roleFa: "عکاس، طراح و مدیر هنری",
         avatar: "/og.jpg",
         bio: "Multidisciplinary designer and photographer based in Esfahan, focusing on minimal aesthetics, visual identity systems, and contemporary art direction.",
-      },
+      }), name: authorNameEn.trim() || "Siavash Akbari", bio: authorBioEn.trim() || undefined, nameFa: authorNameFa.trim() || undefined, bioFa: authorBioFa.trim() || undefined },
     };
 
     saveStudioBlogPost(postToSave, editingPost?.slug);
@@ -433,6 +457,45 @@ function AdminBlogView() {
               </div>
 
               {/* Excerpts */}
+              <div className="grid grid-cols-1 gap-4 rounded-xl border border-white/10 p-4 sm:grid-cols-2">
+                <label className="text-xs text-neutral-400">Cover alternative text (English)
+                  <input dir="ltr" value={coverAltEn} onChange={(e) => setCoverAltEn(e.target.value)} className="mt-1 w-full rounded-lg border border-white/10 bg-black/50 p-2 text-white" />
+                </label>
+                <label className="text-xs text-neutral-400">Cover alternative text (Persian)
+                  <input dir="rtl" lang="fa" value={coverAltFa} onChange={(e) => setCoverAltFa(e.target.value)} className="mt-1 w-full rounded-lg border border-white/10 bg-black/50 p-2 font-farsi text-white" />
+                </label>
+                <label className="text-xs text-neutral-400">Category display label (English)
+                  <input dir="ltr" value={categoryLabelEn} onChange={(e) => setCategoryLabelEn(e.target.value)} className="mt-1 w-full rounded-lg border border-white/10 bg-black/50 p-2 text-white" />
+                </label>
+                <label className="text-xs text-neutral-400">Category display label (Persian)
+                  <input dir="rtl" lang="fa" value={categoryLabelFa} onChange={(e) => setCategoryLabelFa(e.target.value)} className="mt-1 w-full rounded-lg border border-white/10 bg-black/50 p-2 font-farsi text-white" />
+                </label>
+                <label className="text-xs text-neutral-400">Read time (Persian)
+                  <input dir="rtl" lang="fa" value={readTimeFa} onChange={(e) => setReadTimeFa(e.target.value)} placeholder="مثلاً ۴ دقیقه مطالعه" className="mt-1 w-full rounded-lg border border-white/10 bg-black/50 p-2 font-farsi text-white" />
+                </label>
+              </div>
+
+              <div className="grid grid-cols-1 gap-4 rounded-xl border border-white/10 p-4 sm:grid-cols-2">
+                <label className="text-xs text-neutral-400">SEO description (English)
+                  <textarea dir="ltr" rows={3} value={seoDescription} onChange={(e) => setSeoDescription(e.target.value)} className="mt-1 w-full rounded-lg border border-white/10 bg-black/50 p-2 text-white" />
+                </label>
+                <label className="text-xs text-neutral-400">SEO description (Persian)
+                  <textarea dir="rtl" lang="fa" rows={3} value={seoDescriptionFa} onChange={(e) => setSeoDescriptionFa(e.target.value)} className="mt-1 w-full rounded-lg border border-white/10 bg-black/50 p-2 font-farsi text-white" />
+                </label>
+                <label className="text-xs text-neutral-400">Author display name (English)
+                  <input dir="ltr" value={authorNameEn} onChange={(e) => setAuthorNameEn(e.target.value)} className="mt-1 w-full rounded-lg border border-white/10 bg-black/50 p-2 text-white" />
+                </label>
+                <label className="text-xs text-neutral-400">Author display name (Persian)
+                  <input dir="rtl" lang="fa" value={authorNameFa} onChange={(e) => setAuthorNameFa(e.target.value)} className="mt-1 w-full rounded-lg border border-white/10 bg-black/50 p-2 font-farsi text-white" />
+                </label>
+                <label className="text-xs text-neutral-400">Author bio (English)
+                  <textarea dir="ltr" rows={3} value={authorBioEn} onChange={(e) => setAuthorBioEn(e.target.value)} className="mt-1 w-full rounded-lg border border-white/10 bg-black/50 p-2 text-white" />
+                </label>
+                <label className="text-xs text-neutral-400">Author bio (Persian)
+                  <textarea dir="rtl" lang="fa" rows={3} value={authorBioFa} onChange={(e) => setAuthorBioFa(e.target.value)} className="mt-1 w-full rounded-lg border border-white/10 bg-black/50 p-2 font-farsi text-white" />
+                </label>
+              </div>
+
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block font-mono uppercase tracking-wider text-neutral-400 mb-1.5">

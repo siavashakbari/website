@@ -10,6 +10,7 @@ export const PUBLIC_CONTENT_KEYS = [
   "siavash_portfolio_inventory_v3",
   "siavash_custom_taxonomy_v2",
   "siavash_studio_custom_blogs",
+  "siavash_site_content_v1",
 ] as const;
 export type ContentSnapshot = Record<string, string>;
 
@@ -20,7 +21,13 @@ export function validateSnapshot(value: unknown): asserts value is ContentSnapsh
     if (!(PUBLIC_CONTENT_KEYS as readonly string[]).includes(key) || typeof raw !== "string") {
       throw new Error("Unexpected content key.");
     }
-    JSON.parse(raw);
+    const parsed = JSON.parse(raw);
+    if (key === "siavash_site_content_v1") {
+      if (!parsed || typeof parsed !== "object" || parsed.version !== 1 ||
+          ["landing", "about", "contact"].some((page) => !Array.isArray(parsed[page]?.fields) || !Array.isArray(parsed[page]?.links))) {
+        throw new Error("Invalid site content collection.");
+      }
+    }
     if (/"(?:idb|blob):/i.test(raw))
       throw new Error("Upload browser-only media before publishing.");
   }

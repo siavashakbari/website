@@ -12,6 +12,8 @@ import {
   FileText,
 } from "lucide-react";
 import { CustomDatePicker } from "@/components/CustomDatePicker";
+import { useLocale } from "@/lib/use-locale";
+import { siteField } from "@/lib/site-content";
 
 export interface ContactFormValues {
   name: string;
@@ -40,6 +42,9 @@ const TOPICS = [
 ] as const;
 
 export function ContactForm() {
+  const locale = useLocale();
+  const isFa = locale === "fa";
+  const tr = (en: string, fa: string) => (isFa ? fa : en);
   const [formData, setFormData] = useState<ContactFormValues>({
     name: "",
     contact: "",
@@ -76,7 +81,12 @@ export function ContactForm() {
     });
 
     if (!isNameValid || !isContactValid || !isTopicValid || !isDescriptionValid) {
-      setErrorMessage("Please complete all required fields (description min 10 characters).");
+      setErrorMessage(
+        tr(
+          "Please complete all required fields (description min 10 characters).",
+          "لطفاً همه فیلدهای ضروری را تکمیل کنید (توضیحات حداقل ۱۰ نویسه).",
+        ),
+      );
       return;
     }
 
@@ -93,15 +103,27 @@ export function ContactForm() {
       const data = await response.json();
 
       if (!response.ok || !data.success) {
-        throw new Error(data.error || "Failed to send consultation request. Please try again.");
+        throw new Error(
+          data.error ||
+            tr(
+              "Failed to send consultation request. Please try again.",
+              "ارسال درخواست ناموفق بود. لطفاً دوباره تلاش کنید.",
+            ),
+        );
       }
 
       setStatus("success");
     } catch (err: unknown) {
       console.error("Submission failed:", err);
       setStatus("error");
-      const message =
-        err instanceof Error ? err.message : "An unexpected error occurred. Please try again.";
+      const message = isFa
+        ? "ارسال درخواست ناموفق بود. لطفاً دوباره تلاش کنید."
+        : err instanceof Error
+          ? err.message
+          : tr(
+              "An unexpected error occurred. Please try again.",
+              "خطایی رخ داد. لطفاً دوباره تلاش کنید.",
+            );
       setErrorMessage(message);
     }
   };
@@ -121,7 +143,11 @@ export function ContactForm() {
   };
 
   return (
-    <div className="relative w-full overflow-hidden rounded-2xl border border-white/10 bg-[#0F0F0F]/90 p-7 shadow-2xl backdrop-blur-2xl sm:p-10 md:p-12 lg:p-14">
+    <div
+      lang={locale}
+      dir={isFa ? "rtl" : "ltr"}
+      className={`relative w-full overflow-hidden rounded-2xl border border-white/10 bg-[#0F0F0F]/90 p-7 shadow-2xl backdrop-blur-2xl sm:p-10 md:p-12 lg:p-14 ${isFa ? "font-farsi" : ""}`}
+    >
       {/* Decorative ambient gradient backdrop */}
       <div
         aria-hidden
@@ -135,16 +161,11 @@ export function ContactForm() {
       <div className="relative z-10">
         {/* Form Header */}
         <div className="mb-8 flex flex-row items-center justify-between gap-4 border-b border-white/10 pb-6">
-          <h2 className="font-display text-2xl font-bold tracking-tight text-[#EFEFEF] sm:text-3xl">
-            Consultation Booking
-          </h2>
-          <span
-            lang="fa"
-            dir="rtl"
-            className="font-farsi text-xl font-bold text-secondary sm:text-2xl"
+          <h2
+            className={`text-2xl font-bold text-[#EFEFEF] sm:text-3xl ${isFa ? "font-farsi" : "font-display tracking-tight"}`}
           >
-            رزرو مشاوره
-          </span>
+            {siteField("contact", "formHeading", locale).text}
+          </h2>
         </div>
 
         <AnimatePresence mode="wait">
@@ -160,16 +181,17 @@ export function ContactForm() {
                 <Check className="h-8 w-8 stroke-[2.5]" />
               </div>
               <h3 className="mt-6 font-display text-2xl font-bold text-[#EFEFEF]">
-                Consultation Request Received
+                {tr("Consultation Request Received", "درخواست مشاوره دریافت شد")}
               </h3>
-              <p lang="fa" dir="rtl" className="mt-2 font-farsi text-lg font-medium text-secondary">
-                درخواست شما با موفقیت در استودیو ثبت شد
-              </p>
               <p className="mt-3 max-w-md text-sm text-[#EFEFEF]/70">
-                Thank you, <span className="font-semibold text-secondary">{formData.name}</span>.
-                Your project details have been delivered to Siavash Akbari&apos;s desk. We will
-                review your vision and reach out via{" "}
-                <span className="font-semibold text-[#EFEFEF]">{formData.contact}</span> shortly.
+                {tr("Thank you,", "سپاسگزاریم،")}{" "}
+                <span className="font-semibold text-secondary">{formData.name}</span>.
+                {tr(
+                  "Your project details have been delivered. We will contact you via",
+                  "جزئیات پروژه شما دریافت شد. از طریق",
+                )}{" "}
+                <span className="font-semibold text-[#EFEFEF]">{formData.contact}</span>
+                {tr(" shortly.", " با شما تماس می‌گیریم.")}
               </p>
 
               <button
@@ -177,7 +199,7 @@ export function ContactForm() {
                 onClick={resetForm}
                 className="mt-8 inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-full border border-[#EFEFEF] bg-transparent px-6 text-sm font-medium text-[#EFEFEF] shadow-none transition-[background-color,border-color,color,box-shadow] duration-300 ease-out hover:border-transparent hover:bg-secondary hover:text-secondary-foreground hover:shadow-[0_0_8px_color-mix(in_oklab,var(--secondary)_42%,transparent),0_0_17px_color-mix(in_oklab,var(--secondary)_24%,transparent),0_0_25px_color-mix(in_oklab,var(--secondary)_12%,transparent)] cursor-pointer"
               >
-                Send Another Request · ارسال پیام دیگر
+                {tr("Send Another Request", "ارسال درخواست دیگر")}
               </button>
             </motion.div>
           ) : (
@@ -192,10 +214,7 @@ export function ContactForm() {
                   >
                     <span className="flex items-center gap-1.5">
                       <User className="h-3.5 w-3.5 text-secondary" />
-                      Full Name *
-                    </span>
-                    <span className="font-farsi text-[0.8rem] font-normal normal-case text-[#EFEFEF]/60">
-                      نام و نام خانوادگی
+                      {tr("Full Name *", "نام و نام خانوادگی *")}
                     </span>
                   </label>
                   <input
@@ -205,7 +224,7 @@ export function ContactForm() {
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                     onBlur={() => handleBlur("name")}
-                    placeholder="e.g. Elena Rostami"
+                    placeholder={tr("e.g. Elena Rostami", "مثلاً النا رستمی")}
                     className={`h-14 w-full rounded-full border bg-background/60 px-6 text-sm font-normal text-foreground placeholder:text-foreground/35 placeholder:font-thin focus:border-secondary focus:outline-none transition-all ${
                       touched.name && !isNameValid
                         ? "border-red-500/60 focus:border-red-500"
@@ -213,7 +232,12 @@ export function ContactForm() {
                     }`}
                   />
                   {touched.name && !isNameValid && (
-                    <p className="px-2 text-xs text-red-400">Please provide your full name.</p>
+                    <p className="px-2 text-xs text-red-400">
+                      {tr(
+                        "Please provide your full name.",
+                        "لطفاً نام و نام خانوادگی خود را وارد کنید.",
+                      )}
+                    </p>
                   )}
                 </div>
 
@@ -225,10 +249,7 @@ export function ContactForm() {
                   >
                     <span className="flex items-center gap-1.5">
                       <AtSign className="h-3.5 w-3.5 text-secondary" />
-                      Contact Coordinates *
-                    </span>
-                    <span className="font-farsi text-[0.8rem] font-normal normal-case text-[#EFEFEF]/60">
-                      ایمیل، تلفن یا آیدی تلگرام
+                      {tr("Contact Coordinates *", "راه ارتباطی *")}
                     </span>
                   </label>
                   <input
@@ -238,7 +259,10 @@ export function ContactForm() {
                     value={formData.contact}
                     onChange={(e) => setFormData({ ...formData, contact: e.target.value })}
                     onBlur={() => handleBlur("contact")}
-                    placeholder="user@domain.com or @telegram or +98 9..."
+                    placeholder={tr(
+                      "user@domain.com or @telegram or +98 9...",
+                      "ایمیل، آیدی تلگرام یا شماره تلفن",
+                    )}
                     className={`h-14 w-full rounded-full border bg-background/60 px-6 text-sm font-normal text-foreground placeholder:text-foreground/35 placeholder:font-thin focus:border-secondary focus:outline-none transition-all ${
                       touched.contact && !isContactValid
                         ? "border-red-500/60 focus:border-red-500"
@@ -247,7 +271,10 @@ export function ContactForm() {
                   />
                   {touched.contact && !isContactValid && (
                     <p className="px-2 text-xs text-red-400">
-                      Please provide an email, phone number, or Telegram handle.
+                      {tr(
+                        "Please provide an email, phone number, or Telegram handle.",
+                        "لطفاً ایمیل، شماره تلفن یا آیدی تلگرام را وارد کنید.",
+                      )}
                     </p>
                   )}
                 </div>
@@ -256,10 +283,7 @@ export function ContactForm() {
               {/* Row 2: Topic Selection Chips (2 rows of 3 buttons) */}
               <div className="space-y-3">
                 <div className="flex items-center justify-between text-xs font-semibold uppercase tracking-wider text-[#EFEFEF]/80">
-                  <span>Topic / Service of Discussion *</span>
-                  <span className="font-farsi text-[0.85rem] font-normal normal-case text-[#EFEFEF]/60">
-                    زمینه پروژه یا مشاوره
-                  </span>
+                  <span>{tr("Topic / Service of Discussion *", "موضوع پروژه یا مشاوره *")}</span>
                 </div>
 
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 sm:gap-3.5">
@@ -276,16 +300,8 @@ export function ContactForm() {
                             : "border border-[#EFEFEF]/20 bg-transparent text-[#EFEFEF]/80 hover:border-transparent hover:bg-secondary hover:text-secondary-foreground hover:shadow-[0_0_8px_color-mix(in_oklab,var(--secondary)_42%,transparent),0_0_17px_color-mix(in_oklab,var(--secondary)_24%,transparent)]"
                         }`}
                       >
-                        <span className="leading-none">{topic.labelEn}</span>
-                        <span
-                          dir="rtl"
-                          className={`font-farsi text-sm font-bold leading-none translate-y-[1.5px] transition-colors ${
-                            isSelected
-                              ? "text-secondary-foreground"
-                              : "text-[#EFEFEF]/60 group-hover:text-secondary-foreground"
-                          }`}
-                        >
-                          {topic.labelFa}
+                        <span className={isFa ? "font-farsi leading-none" : "leading-none"}>
+                          {siteField("contact", `topic.${topic.id}`, locale).text}
                         </span>
                       </button>
                     );
@@ -303,17 +319,15 @@ export function ContactForm() {
                   >
                     <span className="flex items-center gap-1.5">
                       <CalendarIcon className="h-3.5 w-3.5 text-secondary" />
-                      Preferred Date (Optional)
-                    </span>
-                    <span className="font-farsi text-[0.8rem] font-normal normal-case text-[#EFEFEF]/60">
-                      تاریخ پیشنهادی جلسه
+                      {tr("Preferred Date (Optional)", "تاریخ پیشنهادی (اختیاری)")}
                     </span>
                   </label>
                   <CustomDatePicker
                     value={formData.preferredDate}
+                    locale={locale}
                     onChange={(val) => setFormData({ ...formData, preferredDate: val })}
                     minDate={todayISO}
-                    placeholder="Select preferred date... / انتخاب تاریخ"
+                    placeholder={tr("Select preferred date...", "تاریخ را انتخاب کنید...")}
                   />
                 </div>
 
@@ -322,10 +336,7 @@ export function ContactForm() {
                   <div className="flex items-center justify-between text-xs font-semibold uppercase tracking-wider text-[#EFEFEF]/80">
                     <span className="flex items-center gap-1.5">
                       <Clock className="h-3.5 w-3.5 text-secondary" />
-                      Time Window (Optional)
-                    </span>
-                    <span className="font-farsi text-[0.8rem] font-normal normal-case text-[#EFEFEF]/60">
-                      بازه زمانی مطلوب
+                      {tr("Time Window (Optional)", "بازه زمانی (اختیاری)")}
                     </span>
                   </div>
 
@@ -340,17 +351,7 @@ export function ContactForm() {
                       }`}
                     >
                       <span className="text-xs sm:text-[0.8125rem] font-medium leading-tight whitespace-nowrap">
-                        Morning (9:00 – 12:00)
-                      </span>
-                      <span
-                        dir="rtl"
-                        className={`font-farsi text-xs sm:text-[0.85rem] font-bold leading-tight translate-y-[1px] whitespace-nowrap transition-colors ${
-                          formData.timeSlot === "morning"
-                            ? "text-secondary-foreground"
-                            : "text-[#EFEFEF]/60 group-hover:text-secondary-foreground"
-                        }`}
-                      >
-                        صبح: ۹ تا ۱۲
+                        {tr("Morning (9:00 – 12:00)", "صبح (۹ تا ۱۲)")}
                       </span>
                     </button>
 
@@ -364,17 +365,7 @@ export function ContactForm() {
                       }`}
                     >
                       <span className="text-xs sm:text-[0.8125rem] font-medium leading-tight whitespace-nowrap">
-                        Afternoon (17:00 – 19:00)
-                      </span>
-                      <span
-                        dir="rtl"
-                        className={`font-farsi text-xs sm:text-[0.85rem] font-bold leading-tight translate-y-[1px] whitespace-nowrap transition-colors ${
-                          formData.timeSlot === "afternoon"
-                            ? "text-secondary-foreground"
-                            : "text-[#EFEFEF]/60 group-hover:text-secondary-foreground"
-                        }`}
-                      >
-                        عصر: ۱۷ تا ۱۹
+                        {tr("Afternoon (17:00 – 19:00)", "عصر (۱۷ تا ۱۹)")}
                       </span>
                     </button>
                   </div>
@@ -386,10 +377,7 @@ export function ContactForm() {
                 <div className="flex items-center justify-between text-xs font-semibold uppercase tracking-wider text-[#EFEFEF]/80">
                   <span className="flex items-center gap-1.5">
                     <FileText className="h-3.5 w-3.5 text-secondary" />
-                    Project Description / Inquiries *
-                  </span>
-                  <span className="font-farsi text-[0.85rem] font-normal normal-case text-[#EFEFEF]/60">
-                    شرح پروژه و نیازمندی‌ها
+                    {tr("Project Description / Inquiries *", "شرح پروژه و نیازمندی‌ها *")}
                   </span>
                 </div>
                 <textarea
@@ -398,7 +386,10 @@ export function ContactForm() {
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   onBlur={() => handleBlur("description")}
-                  placeholder="Tell us about your brand, scope of work, timeline, and goals... / اهداف، دامنه کار و چشم‌انداز مدنظر خود را توضیح دهید..."
+                  placeholder={tr(
+                    "Tell us about your brand, scope of work, timeline, and goals...",
+                    "اهداف، دامنه کار و چشم‌انداز خود را توضیح دهید...",
+                  )}
                   className={`min-h-[160px] w-full resize-none rounded-3xl border bg-background/60 p-5 sm:p-6 text-sm font-normal leading-relaxed text-foreground placeholder:text-foreground/35 placeholder:font-thin focus:border-secondary focus:outline-none transition-all ${
                     touched.description && !isDescriptionValid
                       ? "border-red-500/60 focus:border-red-500"
@@ -406,12 +397,17 @@ export function ContactForm() {
                   }`}
                 />
                 <div className="flex items-center justify-between px-2 text-[0.75rem] text-[#EFEFEF]/40">
-                  <span>Minimum 10 characters</span>
-                  <span>{formData.description.trim().length} chars</span>
+                  <span>{tr("Minimum 10 characters", "حداقل ۱۰ نویسه")}</span>
+                  <span>
+                    {formData.description.trim().length} {tr("chars", "نویسه")}
+                  </span>
                 </div>
                 {touched.description && !isDescriptionValid && (
                   <p className="px-2 text-xs text-red-400">
-                    Please provide at least 10 characters explaining your project.
+                    {tr(
+                      "Please provide at least 10 characters explaining your project.",
+                      "لطفاً دست‌کم ۱۰ نویسه درباره پروژه خود بنویسید.",
+                    )}
                   </p>
                 )}
               </div>
@@ -434,11 +430,11 @@ export function ContactForm() {
                   {status === "submitting" ? (
                     <>
                       <Loader2 className="h-4 w-4 animate-spin" />
-                      <span>Submitting...</span>
+                      <span>{tr("Submitting...", "در حال ارسال...")}</span>
                     </>
                   ) : (
                     <>
-                      <span>Submit</span>
+                      <span>{tr("Submit", "ارسال")}</span>
                       <Send className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
                     </>
                   )}

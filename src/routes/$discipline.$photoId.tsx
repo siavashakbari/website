@@ -8,6 +8,8 @@ import {
   redirectToCanonicalPath,
 } from "@/components/DedicatedPhotoView";
 import { NotFoundPage } from "@/components/NotFoundPage";
+import { useLocale } from "@/lib/use-locale";
+import { withLocale } from "@/lib/locale";
 
 export const Route = createFileRoute("/$discipline/$photoId")({
   loader: ({ params }) => {
@@ -46,17 +48,18 @@ export const Route = createFileRoute("/$discipline/$photoId")({
 });
 
 function PendingShortCodeRedirect() {
+  const locale = useLocale();
   const { rawPhotoCode } = Route.useLoaderData();
   const [missing, setMissing] = useState(false);
 
   useEffect(() => {
     const vm = getMediaByCode(rawPhotoCode);
     if (vm && typeof window !== "undefined") {
-      window.location.replace(buildMediaLiveDetailUrl(vm));
+      window.location.replace(withLocale(buildMediaLiveDetailUrl(vm), locale));
     } else {
       setMissing(true);
     }
-  }, [rawPhotoCode]);
+  }, [rawPhotoCode, locale]);
 
   if (!missing) {
     return <div className="min-h-screen bg-background" />;

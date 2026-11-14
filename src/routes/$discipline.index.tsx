@@ -35,6 +35,8 @@ import {
 } from "@/components/DedicatedPhotoView";
 import { NotFoundPage } from "@/components/NotFoundPage";
 import { pageHead } from "@/lib/seo";
+import { currentLocale, localizedText, withLocale } from "@/lib/locale";
+import { useLocale } from "@/lib/use-locale";
 import {
   normalizeDisciplineSlug,
   normalizeProjectSlug,
@@ -78,26 +80,34 @@ interface DisciplineRouteData {
 
 const ROOT_DISCIPLINE_META: Record<
   string,
-  { label: string; blurb: string; defaultUiType: UITypeCode }
+  { label: string; labelFa: string; blurb: string; blurbFa: string; defaultUiType: UITypeCode }
 > = {
   photography: {
     label: "Photography",
+    labelFa: "عکاسی",
     blurb: "Studio photography, fashion editorials, culinary stories, and portraiture.",
+    blurbFa: "عکاسی استودیویی، مد، خوراک و پرتره.",
     defaultUiType: "UI01",
   },
   "graphic-design": {
     label: "Graphic Design",
+    labelFa: "طراحی گرافیک",
     blurb: "Visual identity systems, typography, editorial book design, and posters.",
+    blurbFa: "هویت بصری، تایپوگرافی، طراحی کتاب و پوستر.",
     defaultUiType: "UI03",
   },
   "product-design": {
     label: "Product Design",
+    labelFa: "طراحی محصول",
     blurb: "Objects shaped by purpose, material, and quiet detail.",
+    blurbFa: "اشیایی شکل‌گرفته از کارکرد، ماده و جزئیات دقیق.",
     defaultUiType: "UI03",
   },
   video: {
     label: "Video & Motion",
+    labelFa: "ویدیو و حرکت",
     blurb: "Moving image work — rhythm, atmosphere, and story in time.",
+    blurbFa: "تصاویر متحرک با ریتم، فضا و روایت.",
     defaultUiType: "UI04",
   },
 };
@@ -118,6 +128,7 @@ const LEGACY_SINGLE_SEGMENT_REDIRECTS: Record<string, string> = {
 };
 
 function computeDisciplineChildCards(slug: string): ProjectCardItem[] {
+  const locale = currentLocale();
   const parentRoute = `/${slug}`.toLowerCase();
   const cardMap = new Map<string, ProjectCardItem>();
   const allVault = getVaultPages();
@@ -147,7 +158,7 @@ function computeDisciplineChildCards(slug: string): ProjectCardItem[] {
         "";
       cardMap.set(vp.route.toLowerCase(), {
         id: vp.id,
-        title: vp.name || meta?.title || childSlug,
+        title: localizedText(vp.name || meta?.title || childSlug, vp.nameFa || meta?.titleFa, locale).text,
         image:
           (vp.coverPhoto ? resolveInventoryImage(vp.coverPhoto) || vp.coverPhoto : "") ||
           (fallbackCover ? resolveInventoryImage(fallbackCover) || fallbackCover : ""),
@@ -162,20 +173,19 @@ function computeDisciplineChildCards(slug: string): ProjectCardItem[] {
 }
 
 function buildDisciplineData(normSlug: string): DisciplineRouteData {
+  const locale = currentLocale();
   const canonicalRoute = `/${normSlug}`;
   const vaultPage = getPageByRoute(canonicalRoute);
   const rootMeta = ROOT_DISCIPLINE_META[normSlug];
 
   const label =
-    vaultPage?.name ||
-    rootMeta?.label ||
+    localizedText(vaultPage?.name || rootMeta?.label, vaultPage?.nameFa || rootMeta?.labelFa, locale).text ||
     normSlug
       .split("-")
       .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
       .join(" ");
   const blurb =
-    vaultPage?.descriptionEn ||
-    rootMeta?.blurb ||
+    localizedText(vaultPage?.descriptionEn || rootMeta?.blurb, vaultPage?.descriptionFa || rootMeta?.blurbFa, locale).text ||
     `${label} portfolio by Siavash Akbari.`;
   const defaultUiType: UITypeCode =
     vaultPage?.uiType || rootMeta?.defaultUiType || "UI03";
@@ -194,8 +204,8 @@ function buildDisciplineData(normSlug: string): DisciplineRouteData {
       code: m.dynamicCode,
       canonicalPath: liveUrl,
       href: liveUrl,
-      alt: m.title || m.dynamicCode,
-      title: m.title || m.project || m.dynamicCode,
+      alt: localizedText(m.altEn || m.title || m.dynamicCode, m.altFa || m.titleFa, locale).text,
+      title: localizedText(m.title || m.project || m.dynamicCode, m.titleFa, locale).text,
       year: m.year || "2026",
       category: m.category || label,
     };
@@ -257,15 +267,16 @@ export const Route = createFileRoute("/$discipline/")({
   },
   head: ({ loaderData }) => {
     const routePath = loaderData?.canonicalRoute || `/${loaderData?.slug || "photography"}`;
-    const vaultPage = typeof window !== "undefined" ? getPageByRoute(routePath) : null;
-    const label = vaultPage?.name || loaderData?.label || "Discipline";
+    const locale = currentLocale();
+    const vaultPage = getPageByRoute(routePath);
+    const label = localizedText(vaultPage?.name || loaderData?.label || "Discipline", vaultPage?.nameFa, locale).text;
     const blurb =
-      vaultPage?.descriptionEn ||
+      localizedText(vaultPage?.descriptionEn, vaultPage?.descriptionFa, locale).text ||
       loaderData?.blurb ||
       `${label} work by Siavash Akbari.`;
     return pageHead({
-      title: `Siavash Akbari - ${label}`,
-      description: `${blurb} Browse the ${label.toLowerCase()} portfolio of Siavash Akbari.`,
+      title: `${locale === "fa" ? "سیاوش اکبری" : "Siavash Akbari"} - ${label}`,
+      description: blurb,
       path: routePath,
     });
   },
@@ -317,6 +328,7 @@ function computeClientDisciplineState(loaderData: DisciplineRouteData) {
 }
 
 function DisciplinePage() {
+  const locale = useLocale();
   const loaderData = Route.useLoaderData();
   const [state, setState] = useState(() => computeInitialDisciplineState(loaderData));
 
@@ -325,9 +337,9 @@ function DisciplinePage() {
     const matched = getMediaByCode(loaderData.pendingMediaLookup);
     if (matched) {
       const target = buildMediaLiveDetailUrl(matched);
-      window.location.replace(target);
+      window.location.replace(withLocale(target, locale));
     }
-  }, [loaderData.pendingMediaLookup]);
+  }, [loaderData.pendingMediaLookup, locale]);
 
   const refreshData = () => {
     setState(computeClientDisciplineState(loaderData));
@@ -391,19 +403,20 @@ function DisciplinePage() {
       aria-labelledby="discipline-heading"
     >
       <h1 id="discipline-heading" className="sr-only">
-        {vaultPage?.name || data.label} — Siavash Akbari
+        {localizedText(vaultPage?.name || data.label, vaultPage?.nameFa, locale).text} — {locale === "fa" ? "سیاوش اکبری" : "Siavash Akbari"}
       </h1>
 
       <PageHeader
         title={vaultPage?.name || data.label}
-        descriptionEn={vaultPage?.descriptionEn || data.blurb}
-        descriptionFa={vaultPage?.descriptionFa}
+        titleFa={vaultPage?.nameFa || (locale === "fa" ? data.label : undefined)}
+        descriptionEn={vaultPage?.descriptionEn || (locale === "en" ? data.blurb : undefined)}
+        descriptionFa={vaultPage?.descriptionFa || (locale === "fa" ? data.blurb : undefined)}
         pairedBoxes={vaultPage?.pairedBoxes}
       />
 
       {isEmpty ? (
         <p className="mx-auto max-w-3xl px-6 text-center text-muted-foreground py-16">
-          More coming soon.
+          {locale === "fa" ? "به‌زودی آثار بیشتری منتشر می‌شود." : "More coming soon."}
         </p>
       ) : activeUiType === "UI02" ? (
         <UI02_HorizontalScroll

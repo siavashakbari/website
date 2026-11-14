@@ -19,10 +19,12 @@ export const BLOG_CATEGORIES: BlogCategoryMeta[] = [
 
 export interface BlogAuthor {
   name: string;
+  nameFa?: string;
   role: string;
   roleFa?: string;
   avatar: string;
   bio?: string;
+  bioFa?: string;
 }
 
 export interface BlogSection {
