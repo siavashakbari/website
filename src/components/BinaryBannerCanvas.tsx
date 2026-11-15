@@ -57,6 +57,9 @@ export function BinaryBannerCanvas() {
     if (!canvas || !stage || !frameElement || !ctx) return;
 
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const hoverEnabled = window.matchMedia(
+      "(min-width: 701px) and (hover: hover) and (pointer: fine)",
+    );
     const pointer = { x: -1000, y: -1000, active: false };
     let width = 0;
     let height = 0;
@@ -158,10 +161,11 @@ export function BinaryBannerCanvas() {
       frame = requestAnimationFrame(tick);
     };
     const start = () => {
-      if (reducedMotion || !pointer.active || frame) return;
+      if (reducedMotion || !hoverEnabled.matches || !pointer.active || frame) return;
       frame = requestAnimationFrame(tick);
     };
     const move = (event: PointerEvent) => {
+      if (!hoverEnabled.matches) return;
       const rect = stage.getBoundingClientRect();
       pointer.x = event.clientX - rect.left;
       pointer.y = event.clientY - rect.top;
@@ -170,6 +174,7 @@ export function BinaryBannerCanvas() {
       else start();
     };
     const moveEdge = (event: PointerEvent) => {
+      if (!hoverEnabled.matches) return;
       const nearest = nearestEdge(stage.getBoundingClientRect(), event.clientX, event.clientY);
       frameElement.style.setProperty("--edge-x", `${nearest.x + 1.5}px`);
       frameElement.style.setProperty("--edge-y", `${nearest.y + 1.5}px`);
@@ -185,6 +190,12 @@ export function BinaryBannerCanvas() {
       draw(0);
     };
     const clearEdge = () => frameElement.style.setProperty("--edge-strength", "0");
+    const onHoverChange = () => {
+      if (!hoverEnabled.matches) {
+        leave();
+        clearEdge();
+      }
+    };
     const resizeObserver = new ResizeObserver(resize);
     const visibilityObserver = new IntersectionObserver(([entry]) => {
       visible = entry.isIntersecting;
@@ -204,6 +215,7 @@ export function BinaryBannerCanvas() {
     window.addEventListener("blur", clearEdge);
     document.documentElement.addEventListener("pointerleave", clearEdge);
     window.addEventListener("blur", leave);
+    hoverEnabled.addEventListener("change", onHoverChange);
     resize();
     start();
 
@@ -219,6 +231,7 @@ export function BinaryBannerCanvas() {
       window.removeEventListener("blur", clearEdge);
       document.documentElement.removeEventListener("pointerleave", clearEdge);
       window.removeEventListener("blur", leave);
+      hoverEnabled.removeEventListener("change", onHoverChange);
     };
   }, []);
 

@@ -16,7 +16,11 @@ export function LanguageSwitch() {
   useEffect(() => {
     const element = switchRef.current;
     if (!element) return;
+    const hoverEnabled = window.matchMedia(
+      "(min-width: 701px) and (hover: hover) and (pointer: fine)",
+    );
     const move = (event: PointerEvent) => {
+      if (!hoverEnabled.matches) return;
       const nearest = nearestEdge(element.getBoundingClientRect(), event.clientX, event.clientY);
       element.style.setProperty("--switch-edge-x", `${nearest.x}px`);
       element.style.setProperty("--switch-edge-y", `${nearest.y}px`);
@@ -29,10 +33,12 @@ export function LanguageSwitch() {
     window.addEventListener("pointermove", move, { passive: true });
     window.addEventListener("blur", clear);
     document.documentElement.addEventListener("pointerleave", clear);
+    hoverEnabled.addEventListener("change", clear);
     return () => {
       window.removeEventListener("pointermove", move);
       window.removeEventListener("blur", clear);
       document.documentElement.removeEventListener("pointerleave", clear);
+      hoverEnabled.removeEventListener("change", clear);
     };
   }, []);
 

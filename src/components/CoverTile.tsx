@@ -75,7 +75,7 @@ export function CoverTile({
     <Link
       {...linkProps}
       aria-label={ariaLabel ?? `View ${label}`}
-      className={`group relative isolate block aspect-[3/4] cursor-pointer overflow-hidden no-underline ${roundedClass}`}
+      className={`cover-tile group relative isolate block aspect-[3/4] cursor-pointer overflow-hidden no-underline ${roundedClass}`}
     >
       {hasValidImage ? (
         isVideo ? (
@@ -107,7 +107,7 @@ export function CoverTile({
         )
       ) : (
         <div
-          className={`flex h-full w-full items-center justify-center ${roundedClass} bg-[#0F0F0F] transition-[filter] duration-500 ease-out group-hover:brightness-[0.45]`}
+          className={`cover-tile-placeholder flex h-full w-full items-center justify-center ${roundedClass} bg-[#0F0F0F] transition-[filter] duration-500 ease-out group-hover:brightness-[0.45]`}
         >
           <span className="text-xs font-semibold uppercase tracking-widest text-[#EFEFEF]/40">
             {locale === "fa" ? "به‌زودی" : "Coming soon"}
@@ -117,24 +117,24 @@ export function CoverTile({
 
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-0 bg-[#0F0F0F]/0 transition-colors duration-500 ease-out group-hover:bg-[#0F0F0F]/70"
+        className="cover-tile-dim pointer-events-none absolute inset-0 bg-[#0F0F0F]/0 transition-colors duration-500 ease-out group-hover:bg-[#0F0F0F]/70"
       />
 
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-x-0 bottom-0 h-[55%] bg-gradient-to-t from-[#0F0F0F]/85 via-[#0F0F0F]/45 to-transparent transition-opacity duration-500 ease-out group-hover:opacity-0"
+        className="cover-tile-gradient pointer-events-none absolute inset-x-0 bottom-0 h-[55%] bg-gradient-to-t from-[#0F0F0F]/85 via-[#0F0F0F]/45 to-transparent transition-opacity duration-500 ease-out group-hover:opacity-0"
       />
 
-      <div className="pointer-events-none absolute inset-0 flex items-end justify-center px-2 pb-[calc(0.75rem+35px)] transition-transform duration-[1000ms] ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:translate-y-[calc(-50%+2.75rem)] md:pb-[calc(1rem+35px)]">
+      <div className="cover-tile-title pointer-events-none absolute inset-0 flex items-end justify-center px-2 pb-[calc(0.75rem+35px)] transition-transform duration-[1000ms] ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:translate-y-[calc(-50%+2.75rem)] md:pb-[calc(1rem+35px)]">
         <span className="relative inline-grid place-items-center">
           <span
-            className={`project-card-title font-display col-start-1 row-start-1 text-center text-[13.2px] uppercase tracking-[0.16em] text-[#EFEFEF] transition-opacity duration-[1000ms] ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:opacity-0 md:text-[14.52px] ${strongLabel ? "font-bold" : "font-normal"}`}
+            className={`cover-tile-title-normal project-card-title font-display col-start-1 row-start-1 text-center text-[13.2px] uppercase tracking-[0.16em] text-[#EFEFEF] transition-opacity duration-[1000ms] ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:opacity-0 md:text-[14.52px] ${strongLabel ? "font-bold" : "font-normal"}`}
           >
             {label}
           </span>
           <span
             aria-hidden
-            className="project-card-title font-display col-start-1 row-start-1 text-center text-[13.2px] font-black uppercase tracking-[0.16em] text-[#EFEFEF] opacity-0 transition-opacity duration-[1000ms] ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:opacity-100 md:text-[14.52px]"
+            className="cover-tile-title-bold project-card-title font-display col-start-1 row-start-1 text-center text-[13.2px] font-black uppercase tracking-[0.16em] text-[#EFEFEF] opacity-0 transition-opacity duration-[1000ms] ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:opacity-100 md:text-[14.52px]"
           >
             {label}
           </span>

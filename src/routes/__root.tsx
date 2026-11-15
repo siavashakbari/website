@@ -337,7 +337,11 @@ function Header() {
   useEffect(() => {
     const header = headerRef.current;
     if (!header) return;
+    const hoverEnabled = window.matchMedia(
+      "(min-width: 1280px) and (hover: hover) and (pointer: fine)",
+    );
     const move = (event: PointerEvent) => {
+      if (!hoverEnabled.matches) return;
       for (const pill of header.querySelectorAll<HTMLElement>(".top-nav-link")) {
         const edge = nearestEdge(pill.getBoundingClientRect(), event.clientX, event.clientY);
         pill.style.setProperty("--nav-glow-x", `${edge.x}px`);
@@ -353,10 +357,12 @@ function Header() {
     window.addEventListener("pointermove", move, { passive: true });
     window.addEventListener("blur", clear);
     document.documentElement.addEventListener("pointerleave", clear);
+    hoverEnabled.addEventListener("change", clear);
     return () => {
       window.removeEventListener("pointermove", move);
       window.removeEventListener("blur", clear);
       document.documentElement.removeEventListener("pointerleave", clear);
+      hoverEnabled.removeEventListener("change", clear);
     };
   }, []);
 
@@ -443,7 +449,7 @@ function MobileNav() {
         aria-label={locale === "fa" ? "باز کردن فهرست" : "Open menu"}
         aria-expanded={open}
         onClick={() => setOpen(true)}
-        className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center text-foreground transition-colors hover:opacity-70"
+        className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center text-foreground"
       >
         <MenuIcon className="h-[21.6px] w-[21.6px]" />
       </button>
@@ -467,7 +473,7 @@ function MobileNav() {
             <button
               aria-label={locale === "fa" ? "بستن فهرست" : "Close menu"}
               onClick={() => setOpen(false)}
-              className="inline-flex items-center justify-center p-2 text-foreground transition-colors hover:opacity-70"
+              className="inline-flex items-center justify-center p-2 text-foreground"
             >
               <CloseIcon className="h-[21.6px] w-[21.6px]" />
             </button>
@@ -476,7 +482,7 @@ function MobileNav() {
             <Link
               to="/"
               onClick={() => setOpen(false)}
-              className="font-display text-2xl font-normal text-foreground transition-transform hover:scale-105 data-[status=active]:font-bold data-[status=active]:text-secondary"
+              className="font-display text-2xl font-normal text-foreground data-[status=active]:font-bold data-[status=active]:text-secondary"
             >
               {locale === "fa" ? "خانه" : "Home"}
             </Link>
@@ -486,7 +492,7 @@ function MobileNav() {
                 type="button"
                 aria-expanded={worksOpen}
                 onClick={() => setWorksOpen((v) => !v)}
-                className={`flex w-full items-center justify-between font-display text-2xl font-normal text-foreground transition-transform hover:scale-105 ${
+                className={`flex w-full items-center justify-between font-display text-2xl font-normal text-foreground ${
                   worksActive ? "font-bold text-secondary" : ""
                 }`}
               >
@@ -513,7 +519,7 @@ function MobileNav() {
                         key={discipline.key}
                         to={discipline.path as any}
                         onClick={() => setOpen(false)}
-                        className="text-base font-normal uppercase tracking-widest text-foreground/80 transition-colors hover:text-secondary data-[status=active]:font-bold data-[status=active]:text-secondary"
+                        className="text-base font-normal uppercase tracking-widest text-foreground/80 data-[status=active]:font-bold data-[status=active]:text-secondary"
                         style={navFont}
                       >
                         {discipline.label}
@@ -527,7 +533,7 @@ function MobileNav() {
             <Link
               to="/brand-discovery"
               onClick={() => setOpen(false)}
-              className="font-display text-2xl font-normal text-foreground transition-transform hover:scale-105 data-[status=active]:font-bold data-[status=active]:text-secondary"
+              className="font-display text-2xl font-normal text-foreground data-[status=active]:font-bold data-[status=active]:text-secondary"
             >
               {locale === "fa" ? "فرم هویت بصری" : "Visual Identity Form"}
             </Link>
@@ -535,7 +541,7 @@ function MobileNav() {
             <Link
               to="/blog"
               onClick={() => setOpen(false)}
-              className="font-display text-2xl font-normal text-foreground transition-transform hover:scale-105 data-[status=active]:font-bold data-[status=active]:text-secondary"
+              className="font-display text-2xl font-normal text-foreground data-[status=active]:font-bold data-[status=active]:text-secondary"
             >
               {locale === "fa" ? "وبلاگ" : "Blog"}
             </Link>
@@ -543,14 +549,14 @@ function MobileNav() {
             <Link
               to="/about"
               onClick={() => setOpen(false)}
-              className="font-display text-2xl font-normal text-foreground transition-transform hover:scale-105 data-[status=active]:font-bold data-[status=active]:text-secondary"
+              className="font-display text-2xl font-normal text-foreground data-[status=active]:font-bold data-[status=active]:text-secondary"
             >
               {locale === "fa" ? "درباره" : "About"}
             </Link>
             <Link
               to="/contact"
               onClick={() => setOpen(false)}
-              className="font-display text-2xl font-normal text-foreground transition-transform hover:scale-105 data-[status=active]:font-bold data-[status=active]:text-secondary"
+              className="font-display text-2xl font-normal text-foreground data-[status=active]:font-bold data-[status=active]:text-secondary"
             >
               {locale === "fa" ? "تماس" : "Contact"}
             </Link>

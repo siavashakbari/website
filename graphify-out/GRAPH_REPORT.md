@@ -1,7 +1,7 @@
 # Graph Report - Creative Showcase Studio  (2026-11-15)
 
 ## Corpus Check
-- 150 files · ~216,735 words
+- 150 files · ~216,802 words
 - Verdict: corpus is large enough that graph structure adds value.
 - Unclassified: 34 file(s) not represented in the graph (top: .otf 10, .ttf 9, .woff2 7)
 
@@ -11,7 +11,7 @@
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `1b146bdf`
+- Built from commit: `2b5dc2d5`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -86,7 +86,7 @@
 7. `isContentReady()` - 34 edges
 8. `getVaultPages()` - 34 edges
 9. `currentLocale()` - 33 edges
-10. `getVaultMedia()` - 31 edges
+10. `withLocale()` - 31 edges
 
 ## Surprising Connections (you probably didn't know these)
 - `ProjectRouteLoaderData` --references--> `VaultPageItem`  [EXTRACTED]
@@ -97,8 +97,8 @@
   src/components/ui-types/PageHeader.tsx → src/components/vault/PairedBoxesEditor.tsx
 - `SpecialtyRouteData` --references--> `VaultPageItem`  [EXTRACTED]
   src/routes/$discipline.$specialty.index.tsx → src/lib/vault-store.ts
-- `DedicatedPhotoRouteComponent()` --calls--> `DedicatedPhotoView()`  [EXTRACTED]
-  src/routes/$discipline.$specialty.$project.$photoId.tsx → src/components/DedicatedPhotoView.tsx
+- `getCustomTaxonomy()` --calls--> `isContentReady()`  [EXTRACTED]
+  src/lib/studio-store.ts → src/lib/published-store.ts
 
 ## Import Cycles
 - None detected.
@@ -340,15 +340,15 @@ Nodes (7): assetEntries, AssetEntry, assetModules, byFileLower, byStem, matchAss
 _Questions this graph is uniquely positioned to answer:_
 
 - **Why does `react` connect `react` to `published-store.ts`, `vault.media.tsx`, `react`, `seo.ts`, `about.tsx`, `dependencies`, `seo.ts`, `brand-discovery.tsx`, `vault.blog.tsx`, `__root.tsx`, `useLocale`, `vault.pages.tsx`, `$discipline.$specialty.index.tsx`, `$discipline.index.tsx`, `resolveInventoryImage`, `$discipline.$specialty.$project.index.tsx`, `DedicatedPhotoView.tsx`, `package.json`, `expandable-gallery.tsx`?**
-  _High betweenness centrality (0.078) - this node is a cross-community bridge._
+  _High betweenness centrality (0.073) - this node is a cross-community bridge._
 - **Should `projects.ts` be split into smaller, more focused modules?**
   _Cohesion score 0.006711409395973154 - nodes in this community are weakly interconnected._
-- **Why does `@tanstack/react-start` connect `vite.config.ts` to `published-store.ts`, `locale.ts`, `getVaultPages`, `package.json`, `seo.ts`?**
-  _High betweenness centrality (0.074) - this node is a cross-community bridge._
+- **Why does `@tanstack/react-router` connect `published-store.ts` to `vault.media.tsx`, `locale.ts`, `seo.ts`, `routeTree.gen.ts`, `about.tsx`, `react`, `dependencies`, `FileRoutesByPath`, `seo.ts`, `api.contact.ts`, `brand-discovery.tsx`, `vault.blog.tsx`, `__root.tsx`, `useLocale`, `vault.pages.tsx`, `$discipline.$specialty.index.tsx`, `$discipline.index.tsx`, `$discipline.$specialty.$project.index.tsx`, `getVaultPages`, `DedicatedPhotoView.tsx`, `package.json`?**
+  _High betweenness centrality (0.070) - this node is a cross-community bridge._
 - **Should `published-store.ts` be split into smaller, more focused modules?**
   _Cohesion score 0.07372229760289462 - nodes in this community are weakly interconnected._
-- **Why does `@tanstack/react-router` connect `published-store.ts` to `vault.media.tsx`, `locale.ts`, `seo.ts`, `routeTree.gen.ts`, `about.tsx`, `react`, `dependencies`, `FileRoutesByPath`, `seo.ts`, `api.contact.ts`, `brand-discovery.tsx`, `vault.blog.tsx`, `__root.tsx`, `useLocale`, `vault.pages.tsx`, `$discipline.$specialty.index.tsx`, `$discipline.index.tsx`, `$discipline.$specialty.$project.index.tsx`, `getVaultPages`, `DedicatedPhotoView.tsx`, `package.json`?**
-  _High betweenness centrality (0.056) - this node is a cross-community bridge._
+- **Why does `@tanstack/react-start` connect `vite.config.ts` to `published-store.ts`, `locale.ts`, `getVaultPages`, `package.json`, `seo.ts`?**
+  _High betweenness centrality (0.052) - this node is a cross-community bridge._
 - **Should `locale.ts` be split into smaller, more focused modules?**
   _Cohesion score 0.13368983957219252 - nodes in this community are weakly interconnected._
 - **Should `react` be split into smaller, more focused modules?**
