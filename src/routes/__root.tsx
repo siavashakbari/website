@@ -15,10 +15,11 @@ import {
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
-import { lazy, Suspense, useEffect, useState, type ReactNode } from "react";
+import { lazy, Suspense, useEffect, useRef, useState, type ReactNode } from "react";
 import { ChevronDown } from "lucide-react";
 import { useLocale } from "@/lib/use-locale";
 import { currentLocale, localizedText, withLocale, type Locale } from "@/lib/locale";
+import { nearestEdge } from "@/lib/pointer-edge";
 
 import appCss from "../styles.css?url";
 import satoshiMedium from "../assets/fonts/Satoshi-Medium.woff2?url";
@@ -218,7 +219,7 @@ function RootShell({ children }: { children: ReactNode }) {
 }
 
 const navLinkClass =
-  "flex h-full items-center text-[17.85px] font-normal uppercase leading-none tracking-widest text-foreground transition-colors hover:text-secondary data-[status=active]:font-bold data-[status=active]:text-secondary";
+  "top-nav-link relative flex h-[42px] items-center rounded-full px-3 text-[17.85px] font-normal uppercase leading-none tracking-widest text-foreground transition-colors hover:text-secondary data-[status=active]:font-bold data-[status=active]:text-secondary";
 
 const navFont = { fontFamily: "Peyda, Satoshi, system-ui, sans-serif" } as const;
 
@@ -287,7 +288,7 @@ function WorksDropdown({ active }: { active: boolean }) {
   return (
     <DropdownMenu dir={locale === "fa" ? "rtl" : "ltr"}>
       <DropdownMenuTrigger
-        style={navFont}
+        style={{ ...navFont, fontWeight: active ? 700 : 400 }}
         className={`${navLinkClass} gap-[6px] outline-none data-[state=open]:text-secondary ${
           active ? "font-bold text-secondary" : ""
         }`}
@@ -328,15 +329,43 @@ function WorksDropdown({ active }: { active: boolean }) {
 
 function Header() {
   const router = useRouter();
+  const headerRef = useRef<HTMLElement>(null);
   const locale = useLocale();
   const pathname = router.state.location.pathname;
   const worksActive = isDisciplinePath(pathname);
 
+  useEffect(() => {
+    const header = headerRef.current;
+    if (!header) return;
+    const move = (event: PointerEvent) => {
+      for (const pill of header.querySelectorAll<HTMLElement>(".top-nav-link")) {
+        const edge = nearestEdge(pill.getBoundingClientRect(), event.clientX, event.clientY);
+        pill.style.setProperty("--nav-glow-x", `${edge.x}px`);
+        pill.style.setProperty("--nav-glow-y", `${edge.y}px`);
+        pill.style.setProperty("--nav-glow-opacity", String(Math.max(0, 1 - edge.distance / 70)));
+      }
+    };
+    const clear = () => {
+      for (const pill of header.querySelectorAll<HTMLElement>(".top-nav-link")) {
+        pill.style.setProperty("--nav-glow-opacity", "0");
+      }
+    };
+    window.addEventListener("pointermove", move, { passive: true });
+    window.addEventListener("blur", clear);
+    document.documentElement.addEventListener("pointerleave", clear);
+    return () => {
+      window.removeEventListener("pointermove", move);
+      window.removeEventListener("blur", clear);
+      document.documentElement.removeEventListener("pointerleave", clear);
+    };
+  }, []);
+
   return (
     <>
       <header
+        ref={headerRef}
         dir="ltr"
-        className="fixed inset-x-0 top-0 z-[200] border-b border-foreground/10 bg-background"
+        className="site-header fixed inset-x-0 top-0 z-[200] bg-background"
       >
         <div className="mx-auto flex h-[67.2px] w-full items-center justify-between px-[16px] sm:px-[24px] md:px-[36px]">
           <div className="flex items-center gap-[8px] sm:gap-[24px]">
@@ -349,7 +378,7 @@ function Header() {
             </Link>
             <LanguageSwitch />
           </div>
-          <nav className="hidden h-full flex-row-reverse items-center gap-[48px] xl:flex">
+          <nav className="hidden h-full flex-row-reverse items-center gap-[24px] xl:flex">
             <Link to="/" style={navFont} className={navLinkClass}>
               {locale === "fa" ? "خانه" : "Home"}
             </Link>

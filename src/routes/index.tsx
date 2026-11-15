@@ -112,7 +112,7 @@ function Index() {
   return (
     <div className="flex flex-col overscroll-y-contain">
       <section className="home-hero-outer" aria-labelledby="home-heading">
-        <div className="home-hero" dir="ltr">
+        <div className="home-hero" dir={locale === "fa" ? "rtl" : "ltr"}>
           <BinaryBannerCanvas />
           <img
             src={portraitUrl}

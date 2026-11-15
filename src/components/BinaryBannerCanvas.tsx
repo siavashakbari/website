@@ -1,4 +1,5 @@
 import { useLayoutEffect, useRef } from "react";
+import { nearestEdge } from "@/lib/pointer-edge";
 
 type Cell = {
   x: number;
@@ -165,29 +166,25 @@ export function BinaryBannerCanvas() {
       pointer.x = event.clientX - rect.left;
       pointer.y = event.clientY - rect.top;
       pointer.active = true;
-      const edges = [
-        { distance: pointer.y, x: pointer.x, y: 0 },
-        { distance: rect.width - pointer.x, x: rect.width, y: pointer.y },
-        { distance: rect.height - pointer.y, x: pointer.x, y: rect.height },
-        { distance: pointer.x, x: 0, y: pointer.y },
-      ];
-      const nearest = edges.reduce((a, b) => (a.distance <= b.distance ? a : b));
-      frameElement.style.setProperty("--edge-x", `${nearest.x + 2}px`);
-      frameElement.style.setProperty("--edge-y", `${nearest.y + 2}px`);
+      if (reducedMotion) draw(0);
+      else start();
+    };
+    const moveEdge = (event: PointerEvent) => {
+      const nearest = nearestEdge(stage.getBoundingClientRect(), event.clientX, event.clientY);
+      frameElement.style.setProperty("--edge-x", `${nearest.x + 1.5}px`);
+      frameElement.style.setProperty("--edge-y", `${nearest.y + 1.5}px`);
       frameElement.style.setProperty(
         "--edge-strength",
         String(1 - smooth(0, 250, nearest.distance)),
       );
-      if (reducedMotion) draw(0);
-      else start();
     };
     const leave = () => {
       pointer.active = false;
-      frameElement.style.setProperty("--edge-strength", "0");
       cancelAnimationFrame(frame);
       frame = 0;
       draw(0);
     };
+    const clearEdge = () => frameElement.style.setProperty("--edge-strength", "0");
     const resizeObserver = new ResizeObserver(resize);
     const visibilityObserver = new IntersectionObserver(([entry]) => {
       visible = entry.isIntersecting;
@@ -203,6 +200,9 @@ export function BinaryBannerCanvas() {
     stage.addEventListener("pointerdown", move);
     stage.addEventListener("pointerleave", leave);
     stage.addEventListener("pointercancel", leave);
+    window.addEventListener("pointermove", moveEdge, { passive: true });
+    window.addEventListener("blur", clearEdge);
+    document.documentElement.addEventListener("pointerleave", clearEdge);
     window.addEventListener("blur", leave);
     resize();
     start();
@@ -215,6 +215,9 @@ export function BinaryBannerCanvas() {
       stage.removeEventListener("pointerdown", move);
       stage.removeEventListener("pointerleave", leave);
       stage.removeEventListener("pointercancel", leave);
+      window.removeEventListener("pointermove", moveEdge);
+      window.removeEventListener("blur", clearEdge);
+      document.documentElement.removeEventListener("pointerleave", clearEdge);
       window.removeEventListener("blur", leave);
     };
   }, []);
