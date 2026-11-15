@@ -99,7 +99,7 @@ function HorizontalMediaTile({
       loop
       playsInline
       draggable={false}
-      className="w-full h-auto rounded-[4px] bg-[#121212] object-contain transition-transform duration-300 group-hover:scale-[1.01] lg:h-full lg:w-auto lg:max-w-none"
+      className="block w-full h-auto rounded-[4px] bg-[#121212] object-contain lg:h-full lg:w-auto lg:max-w-none"
     />
   ) : (
     <img
@@ -108,7 +108,7 @@ function HorizontalMediaTile({
       loading={index < 4 ? "eager" : "lazy"}
       decoding="async"
       draggable={false}
-      className="w-full h-auto rounded-[4px] bg-[#121212] object-contain transition-transform duration-300 group-hover:scale-[1.01] lg:h-full lg:w-auto lg:max-w-none"
+      className="block w-full h-auto rounded-[4px] bg-[#121212] object-contain lg:h-full lg:w-auto lg:max-w-none"
     />
   );
 
@@ -116,7 +116,7 @@ function HorizontalMediaTile({
     return (
       <Link
         to={item.href as any}
-        className="w-full cursor-pointer overflow-hidden bg-card transition-opacity hover:opacity-95 group select-none lg:w-auto lg:shrink-0 lg:h-full lg:max-h-full lg:overflow-visible lg:bg-transparent lg:py-2 lg:hover:opacity-100"
+        className="w-full cursor-pointer overflow-hidden bg-card transition-opacity hover:opacity-95 group select-none lg:w-auto lg:shrink-0 lg:h-full lg:max-h-full lg:bg-transparent lg:py-2"
         title={item.alt || item.title || `${label} — item ${index + 1}`}
       >
         {mediaEl}
@@ -126,7 +126,7 @@ function HorizontalMediaTile({
 
   return (
     <figure
-      className="w-full cursor-zoom-in overflow-hidden group select-none lg:w-auto lg:shrink-0 lg:h-full lg:max-h-full lg:overflow-visible lg:py-2"
+      className="w-full cursor-zoom-in overflow-hidden group select-none transition-opacity hover:opacity-95 lg:w-auto lg:shrink-0 lg:h-full lg:max-h-full lg:py-2"
       onClick={onZoom}
     >
       {mediaEl}

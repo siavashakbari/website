@@ -656,7 +656,7 @@ function ProjectStripItem({
   return (
     <Link
       to={(item.href || fallbackRoute) as any}
-      className="group w-full cursor-pointer overflow-hidden bg-card transition-opacity hover:opacity-95 lg:flex lg:h-full lg:max-h-full lg:w-auto lg:shrink-0 lg:items-center lg:justify-center lg:overflow-visible lg:bg-transparent lg:py-1 lg:transition-transform lg:duration-300 lg:hover:scale-[1.01] lg:hover:opacity-100"
+      className="group w-full cursor-pointer overflow-hidden bg-card transition-opacity hover:opacity-95 lg:flex lg:h-full lg:max-h-full lg:w-auto lg:shrink-0 lg:items-center lg:justify-center lg:bg-transparent lg:py-1"
       title={item.title}
     >
       {item.isVideo ? (
@@ -667,7 +667,7 @@ function ProjectStripItem({
           loop
           playsInline
           draggable={false}
-          className="w-full h-auto select-none bg-card object-contain transition-all lg:h-full lg:w-auto lg:max-h-full lg:max-w-none lg:group-hover:brightness-105"
+          className="block w-full h-auto select-none bg-card object-contain lg:h-full lg:w-auto lg:max-h-full lg:max-w-none"
         />
       ) : (
         <img
@@ -675,7 +675,7 @@ function ProjectStripItem({
           alt={item.title}
           loading={index < 2 ? "eager" : "lazy"}
           draggable={false}
-          className="w-full h-auto select-none bg-card object-contain transition-all lg:h-full lg:w-auto lg:max-h-full lg:max-w-none lg:group-hover:brightness-105"
+          className="block w-full h-auto select-none bg-card object-contain lg:h-full lg:w-auto lg:max-h-full lg:max-w-none"
         />
       )}
     </Link>

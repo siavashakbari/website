@@ -365,7 +365,7 @@ function Header() {
       <header
         ref={headerRef}
         dir="ltr"
-        className="site-header fixed inset-x-0 top-0 z-[200] bg-background"
+        className="site-header sticky inset-x-0 top-0 z-[200] shrink-0 bg-background"
       >
         <div className="mx-auto flex h-[67.2px] w-full items-center justify-between px-[16px] sm:px-[24px] md:px-[36px]">
           <div className="flex items-center gap-[8px] sm:gap-[24px]">
@@ -399,8 +399,6 @@ function Header() {
           <MobileNav />
         </div>
       </header>
-      {/* Spacer matches fixed header height so content isn't hidden underneath */}
-      <div className="h-[67.2px] shrink-0" aria-hidden />
     </>
   );
 }

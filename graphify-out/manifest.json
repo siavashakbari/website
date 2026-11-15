@@ -284,10 +284,10 @@
     "semantic_hash": "03a341585f07c7a3d05634a16a290330"
   },
   "src/components/ui-types/UI02_HorizontalScroll.tsx": {
-    "mtime": 1794324002.9677734,
-    "seen": 1794753565.8085463,
-    "ast_hash": "0668915b56a82cbab3ec40942c676375",
-    "semantic_hash": "0668915b56a82cbab3ec40942c676375"
+    "mtime": 1794754982.92606,
+    "seen": 1794755007.2564807,
+    "ast_hash": "fdc885c7acd5aec73825609d2722dfb1",
+    "semantic_hash": ""
   },
   "src/components/ui-types/UI03_EqualCardsGrid.tsx": {
     "mtime": 1794684761.9480631,
@@ -645,10 +645,10 @@
     "semantic_hash": "b20fe946e0ad626ca903b4efb8fd4bc6"
   },
   "src/routes/$discipline.$specialty.$project.index.tsx": {
-    "mtime": 1794685025.5879824,
-    "seen": 1794753565.8120956,
-    "ast_hash": "63dab7b19e6e0404a79daa28226a9c6e",
-    "semantic_hash": "63dab7b19e6e0404a79daa28226a9c6e"
+    "mtime": 1794754983.378514,
+    "seen": 1794755007.2602894,
+    "ast_hash": "7ca8fea75331899761ecb7ee5203d44b",
+    "semantic_hash": ""
   },
   "src/routes/$discipline.$specialty.index.tsx": {
     "mtime": 1794685025.615363,
@@ -663,10 +663,10 @@
     "semantic_hash": "1dcf3086f54ad8f419e55c638b21efba"
   },
   "src/routes/__root.tsx": {
-    "mtime": 1794720602.440789,
-    "seen": 1794753565.8122509,
-    "ast_hash": "a04588f46513af5ac24d66871852bb36",
-    "semantic_hash": "a04588f46513af5ac24d66871852bb36"
+    "mtime": 1794754727.2025483,
+    "seen": 1794754946.6926885,
+    "ast_hash": "2fd87cfcaa66dfe3e489a255cecf2e08",
+    "semantic_hash": ""
   },
   "src/routes/about.tsx": {
     "mtime": 1794668943.419853,
@@ -948,6 +948,12 @@
     "mtime": 1790589367.1963332,
     "seen": 1794753847.1620827,
     "ast_hash": "7c596cbb4d31d216707c1fb18d7d4d3b",
+    "semantic_hash": ""
+  },
+  "WEBSITE_OPTIMIZATION_REPORT.md": {
+    "mtime": 1794753957.621983,
+    "seen": 1794754946.6952264,
+    "ast_hash": "ec2ecc66cf646929229061782a242adf",
     "semantic_hash": ""
   },
   "package-lock.json": {
