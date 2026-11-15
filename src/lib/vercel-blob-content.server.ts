@@ -14,12 +14,12 @@ let cachedUntil = 0;
 let pendingRead: Promise<BlobContentSnapshot> | undefined;
 let cacheGeneration = 0;
 
-async function readSnapshotWithEtag(): Promise<{ snapshot: BlobContentSnapshot; etag: string } | null> {
+async function readSnapshotWithEtag(useCache = true): Promise<{ snapshot: BlobContentSnapshot; etag: string } | null> {
   let result;
   try {
     result = await get(PUBLIC_CONTENT_PATH, {
       access: "private",
-      useCache: false,
+      useCache,
       ...blobCredentials(),
     });
   } catch (error) {
@@ -41,7 +41,7 @@ export async function readVercelPublishedContent(fresh = false): Promise<BlobCon
   if (!fresh && pendingRead) return pendingRead;
   const generation = cacheGeneration;
   const read = (async () => {
-    const result = await readSnapshotWithEtag();
+    const result = await readSnapshotWithEtag(!fresh);
     if (!result) throw new Error("Published Vault content has not been migrated to Vercel Blob.");
     if (generation === cacheGeneration) {
       cachedSnapshot = result.snapshot;
@@ -62,7 +62,7 @@ export async function saveVercelPublishedContent(
   expectedRevision: number,
 ): Promise<number> {
   validateSnapshot(nextContent);
-  const current = await readSnapshotWithEtag();
+  const current = await readSnapshotWithEtag(false);
   if (!current || current.snapshot.revision !== expectedRevision) {
     throw new Error("Newer changes exist on the server. Reload before saving.");
   }
@@ -97,7 +97,7 @@ export async function saveVercelPublishedContent(
 /** Used only during a verified one-time migration into an empty private store. */
 export async function initializeVercelPublishedContent(snapshot: BlobContentSnapshot): Promise<void> {
   validateSnapshot(snapshot.content);
-  const current = await readSnapshotWithEtag();
+  const current = await readSnapshotWithEtag(false);
   if (current) throw new Error("The Vercel content store already contains published data.");
   await put(PUBLIC_CONTENT_PATH, JSON.stringify(snapshot), {
     access: "private",

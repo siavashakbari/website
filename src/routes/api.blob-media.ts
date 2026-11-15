@@ -18,7 +18,9 @@ export const Route = createFileRoute("/api/blob-media")({
           return new Response(result.stream, {
             headers: {
               "content-type": result.blob.contentType,
-              "cache-control": "public, max-age=31536000, immutable",
+              // Uploaded image pathnames contain UUIDs. Cache this public portfolio
+              // response at the edge so each visitor does not trigger a Blob GET.
+              "cache-control": "public, max-age=31536000, s-maxage=86400, immutable",
               "x-content-type-options": "nosniff",
               etag: result.blob.etag,
             },

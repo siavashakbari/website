@@ -157,6 +157,9 @@ export function AdaptiveThumb({
   const src = useResolvedMediaSrc(rawSrc);
   const resolvedThumbProp = useResolvedMediaSrc(thumbSrcProp);
   const gallery = useGalleryLoad();
+  const boxRef = useRef<HTMLDivElement>(null);
+  const [nearViewportSrc, setNearViewportSrc] = useState("");
+  const isNearViewport = nearViewportSrc === src;
   const meta = useMemo(() => metaFromSrc(rawSrc), [rawSrc]);
   const [naturalRatio, setNaturalRatio] = useState<number | null>(null);
   const [thumbFailed, setThumbFailed] = useState(false);
@@ -180,12 +183,31 @@ export function AdaptiveThumb({
   }, [src]);
 
   useEffect(() => {
+    const box = boxRef.current;
+    if (!box || typeof IntersectionObserver === "undefined") {
+      setNearViewportSrc(src);
+      return;
+    }
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setNearViewportSrc(src);
+          observer.disconnect();
+        }
+      },
+      { rootMargin: "300px" },
+    );
+    observer.observe(box);
+    return () => observer.disconnect();
+  }, [src]);
+
+  useEffect(() => {
     onRatio?.(effectiveRatio);
   }, [effectiveRatio, onRatio]);
 
   // When unlocked for full size, preload full original image in background
   useEffect(() => {
-    if (isVideo || !shouldUpgrade || fullLoaded || resolvedThumb === src) return;
+    if (isVideo || !isNearViewport || !shouldUpgrade || fullLoaded || resolvedThumb === src) return;
 
     let active = true;
     const img = new Image();
@@ -198,7 +220,7 @@ export function AdaptiveThumb({
     return () => {
       active = false;
     };
-  }, [isVideo, shouldUpgrade, fullLoaded, src, resolvedThumb]);
+  }, [isVideo, isNearViewport, shouldUpgrade, fullLoaded, src, resolvedThumb]);
 
   const boxStyle: CSSProperties = {
     ...style,
@@ -220,7 +242,7 @@ export function AdaptiveThumb({
   }, [src, onRatio]);
 
   return (
-    <div className="relative w-full overflow-hidden bg-[#0A0A0A]" style={boxStyle}>
+    <div ref={boxRef} className="relative w-full overflow-hidden bg-[#0A0A0A]" style={boxStyle}>
       {isVideo ? (
         <video
           ref={videoRef}
