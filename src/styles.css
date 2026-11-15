@@ -549,7 +549,7 @@
   }
 
   .home-hero {
-    min-height: max(960px, calc(100svh - 67.2px));
+    min-height: 620px;
   }
 
   .home-hero-copy {
@@ -600,39 +600,7 @@
   }
 
   .home-hero-map {
-    align-self: center;
-    width: calc(100% + 20px);
-    max-width: 360px;
-    height: 220px;
-  }
-
-  .home-hero[dir="rtl"] .home-hero-map {
-    align-self: center;
-  }
-
-  .skill-tree,
-  .skill-tree[lang="fa"] {
-    transform: none;
-    transform-origin: center top;
-  }
-
-  .skill-tree-branches {
-    gap: 8px;
-  }
-
-  .skill-tree-children {
-    gap: 5px;
-    padding-top: 12px;
-  }
-
-  .skill-tree-children,
-  .skill-tree-children span {
-    min-width: 0;
-    max-width: 100%;
-  }
-
-  .skill-tree-children span {
-    overflow-wrap: anywhere;
+    display: none;
   }
 
   .discipline-circle > strong {
@@ -646,7 +614,7 @@
   .home-hero-portrait {
     right: 50%;
     width: min(118%, 600px);
-    height: 50%;
+    height: 383px;
     object-position: bottom center;
     transform: translateX(50%);
   }
