@@ -19,16 +19,52 @@ export const Route = createFileRoute("/api/contact")({
     handlers: {
       POST: async ({ request }) => {
         try {
-          const body = (await request.json()) as ContactPayload;
+          const reader = request.body?.getReader();
+          const decoder = new TextDecoder();
+          let rawBody = "";
+          let size = 0;
+          while (reader) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            size += value.byteLength;
+            if (size > 16_384) {
+              await reader.cancel();
+              return Response.json(
+                { success: false, error: "Request is too large." },
+                { status: 413 },
+              );
+            }
+            rawBody += decoder.decode(value, { stream: true });
+          }
+          rawBody += decoder.decode();
+          let body: ContactPayload;
+          try {
+            body = JSON.parse(rawBody) as ContactPayload;
+          } catch {
+            return Response.json({ success: false, error: "Invalid JSON." }, { status: 400 });
+          }
+          if (!body || typeof body !== "object") {
+            return Response.json({ success: false, error: "Invalid request." }, { status: 400 });
+          }
           const { name, contact, topic, description, preferredDate, timeSlot } = body;
 
           // Validation
           if (
-            !name?.trim() ||
-            !contact?.trim() ||
-            !topic?.trim() ||
-            !description?.trim() ||
-            description.trim().length < 10
+            typeof name !== "string" ||
+            !name.trim() ||
+            name.length > 200 ||
+            typeof contact !== "string" ||
+            !contact.trim() ||
+            contact.length > 200 ||
+            typeof topic !== "string" ||
+            !topic.trim() ||
+            topic.length > 200 ||
+            typeof description !== "string" ||
+            description.trim().length < 10 ||
+            description.length > 10_000 ||
+            (preferredDate !== undefined &&
+              (typeof preferredDate !== "string" || preferredDate.length > 100)) ||
+            (timeSlot !== undefined && (typeof timeSlot !== "string" || timeSlot.length > 100))
           ) {
             return new Response(
               JSON.stringify({

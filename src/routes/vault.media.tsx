@@ -667,7 +667,8 @@ function VaultMediaView() {
                 onChange={(e) => setPageInput(e.target.value.replace(/\D/g, ""))}
                 onBlur={submitPageInput}
                 onKeyDown={(e) => {
-                  if (e.key === "Enter") {
+                  if (e.key === "Enter" && !e.nativeEvent.isComposing && e.nativeEvent.keyCode !== 229) {
+                    e.preventDefault();
                     e.currentTarget.blur();
                   }
                 }}

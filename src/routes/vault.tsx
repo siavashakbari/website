@@ -127,11 +127,14 @@ function VaultLayout() {
 
             <form onSubmit={handleLogin} className="space-y-4">
               <div>
-                <label className="block text-xs font-mono uppercase tracking-wider text-neutral-400 mb-1.5">
+                <label htmlFor="vault-email" className="block text-xs font-mono uppercase tracking-wider text-neutral-400 mb-1.5">
                   Email
                 </label>
                 <input
                   type="email"
+                  id="vault-email"
+                  name="email"
+                  autoComplete="username"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   placeholder="you@example.com"
@@ -141,12 +144,15 @@ function VaultLayout() {
               </div>
 
               <div>
-                <label className="block text-xs font-mono uppercase tracking-wider text-neutral-400 mb-1.5 flex items-center justify-between">
+                <label htmlFor="vault-password" className="block text-xs font-mono uppercase tracking-wider text-neutral-400 mb-1.5 flex items-center justify-between">
                   <span>Password</span>
                   <Key className="w-3.5 h-3.5 text-[#2CE3C0]" />
                 </label>
                 <input
                   type="password"
+                  id="vault-password"
+                  name="password"
+                  autoComplete="current-password"
                   value={passphrase}
                   onChange={(e) => setPassphrase(e.target.value)}
                   placeholder="Enter your Vault account password"

@@ -44,3 +44,8 @@ originals-hq/
 .agents/
 .codebase-context/
 
+# Graphify local cache and rebuild metadata (published graph files are tracked)
+graphify-out/cache/
+graphify-out/20??-??-??/
+graphify-out/.graphify_*
+
