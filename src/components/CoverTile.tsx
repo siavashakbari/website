@@ -13,6 +13,7 @@ type CoverTileProps = {
   params?: any;
   index?: number;
   strongLabel?: boolean;
+  doubleRadius?: boolean;
 };
 
 /**
@@ -27,6 +28,7 @@ export function CoverTile({
   ariaLabel,
   index,
   strongLabel = false,
+  doubleRadius = false,
 }: CoverTileProps) {
   const locale = useLocale();
   const linkProps = href ? { to: href as any } : { to: to as any, params };
@@ -67,12 +69,16 @@ export function CoverTile({
     (image || "").includes("video-echo-prime-01.mp4")
       ? "/video-echo-prime-poster.webp"
       : undefined;
+  const roundedClass = doubleRadius ? "rounded-[6px]" : "rounded-[3px]";
+  const clipClass = doubleRadius
+    ? "[clip-path:inset(0_round_6px)]"
+    : "[clip-path:inset(0_round_3px)]";
 
   return (
     <Link
       {...linkProps}
       aria-label={ariaLabel ?? `View ${label}`}
-      className="group relative isolate block aspect-[3/4] cursor-pointer overflow-hidden rounded-[3px] no-underline [clip-path:inset(0_round_3px)]"
+      className={`group relative isolate block aspect-[3/4] cursor-pointer overflow-hidden no-underline ${roundedClass} ${clipClass}`}
     >
       {hasValidImage ? (
         isVideo ? (
@@ -86,7 +92,7 @@ export function CoverTile({
             playsInline
             autoPlay
             onError={() => setImgFailed(true)}
-            className="h-full w-full rounded-[3px] object-cover object-center transition-[filter] duration-500 ease-out group-hover:brightness-[0.45]"
+            className={`h-full w-full ${roundedClass} object-cover object-center transition-[filter] duration-500 ease-out group-hover:brightness-[0.45]`}
           />
         ) : (
           <img
@@ -99,11 +105,13 @@ export function CoverTile({
             decoding="async"
             draggable={false}
             onError={() => setImgFailed(true)}
-            className="h-full w-full rounded-[3px] object-cover object-center transition-[filter] duration-500 ease-out group-hover:brightness-[0.45]"
+            className={`h-full w-full ${roundedClass} object-cover object-center transition-[filter] duration-500 ease-out group-hover:brightness-[0.45]`}
           />
         )
       ) : (
-        <div className="flex h-full w-full items-center justify-center rounded-[3px] bg-[#0F0F0F] transition-[filter] duration-500 ease-out group-hover:brightness-[0.45]">
+        <div
+          className={`flex h-full w-full items-center justify-center ${roundedClass} bg-[#0F0F0F] transition-[filter] duration-500 ease-out group-hover:brightness-[0.45]`}
+        >
           <span className="text-xs font-semibold uppercase tracking-widest text-[#EFEFEF]/40">
             {locale === "fa" ? "به‌زودی" : "Coming soon"}
           </span>

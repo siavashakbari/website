@@ -9,12 +9,16 @@ type Cell = {
   size: number;
 };
 
-const POINTER_RADIUS = 128.7;
-const DIGIT_RADIUS = POINTER_RADIUS * 4;
+const BASE_RADIUS = 128.7;
+const SHAPE_RADIUS = BASE_RADIUS * 1.3;
+const DIGIT_RADIUS = BASE_RADIUS * 4;
 const MIN_SCALE = 0.18;
-const MAX_SHAPE_SCALE = 0.8;
+const MAX_SHAPE_SCALE = 0.8 * 0.85;
 const SHAPE_SPEED = 0.001333333;
-const GRID_COLOR = "#f0f0f0"; // 94% of white, for both digits and shapes.
+const GRID_SHADES = Array.from({ length: 103 }, (_, index) => {
+  const channel = 26 + index; // 10% to 50% white.
+  return `rgb(${channel} ${channel} ${channel})`;
+});
 
 function smooth(a: number, b: number, t: number) {
   const x = Math.max(0, Math.min(1, (t - a) / (b - a)));
@@ -47,8 +51,9 @@ export function BinaryBannerCanvas() {
   useLayoutEffect(() => {
     const canvas = canvasRef.current;
     const stage = canvas?.parentElement;
+    const frameElement = stage?.parentElement;
     const ctx = canvas?.getContext("2d");
-    if (!canvas || !stage || !ctx) return;
+    if (!canvas || !stage || !frameElement || !ctx) return;
 
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const pointer = { x: -1000, y: -1000, active: false };
@@ -95,7 +100,7 @@ export function BinaryBannerCanvas() {
 
     const draw = (now: number) => {
       ctx.clearRect(0, 0, width, height);
-      ctx.fillStyle = GRID_COLOR;
+      if (!pointer.active) return;
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
       ctx.font = `500 ${width < 600 ? 6 : 7}px ${fontFamily}`;
@@ -106,18 +111,17 @@ export function BinaryBannerCanvas() {
         const digit = flip ? 1 - cell.base : cell.base;
         const dx = pointer.x - cell.x;
         const dy = pointer.y - cell.y;
-        const distanceSquared = pointer.active ? dx * dx + dy * dy : Infinity;
-        const digitScale = pointer.active
-          ? distanceSquared < DIGIT_RADIUS * DIGIT_RADIUS
+        const distanceSquared = dx * dx + dy * dy;
+        const digitScale =
+          distanceSquared < DIGIT_RADIUS * DIGIT_RADIUS
             ? 1 - smooth(0, DIGIT_RADIUS, Math.sqrt(distanceSquared))
-            : 0
-          : 1;
+            : 0;
         const distance =
-          distanceSquared < POINTER_RADIUS * POINTER_RADIUS ? Math.sqrt(distanceSquared) : Infinity;
-        const influence =
-          pointer.active && !reducedMotion ? 1 - smooth(18, POINTER_RADIUS, distance) : 0;
+          distanceSquared < SHAPE_RADIUS * SHAPE_RADIUS ? Math.sqrt(distanceSquared) : Infinity;
+        const influence = !reducedMotion ? 1 - smooth(18, SHAPE_RADIUS, distance) : 0;
 
         if (digitScale > 0.01 && influence < 0.995) {
+          ctx.fillStyle = GRID_SHADES[Math.round(digitScale * 102)];
           if (digitScale === 1) {
             ctx.fillText(String(digit), cell.x, cell.y);
           } else {
@@ -129,15 +133,15 @@ export function BinaryBannerCanvas() {
             ctx.restore();
           }
         }
-        if (influence <= 0.005) continue;
+        if (distance >= SHAPE_RADIUS) continue;
 
         const shapeIndex = Math.floor((((time * SHAPE_SPEED + cell.phase * 2.5) % 3) + 3) % 3);
         const type = (cell.initialType + shapeIndex) % 3;
-        const falloff = Math.pow(1 - Math.min(1, distance / POINTER_RADIUS), 1.7);
+        const falloff = Math.pow(1 - Math.min(1, distance / SHAPE_RADIUS), 1.7);
         const scale = cell.size * (MIN_SCALE + (MAX_SHAPE_SCALE - MIN_SCALE) * falloff);
         ctx.save();
         ctx.translate(cell.x, cell.y);
-        ctx.globalAlpha = influence;
+        ctx.fillStyle = GRID_SHADES[Math.round(falloff * 102)];
         drawShape(ctx, type, scale);
         ctx.restore();
       }
@@ -153,7 +157,7 @@ export function BinaryBannerCanvas() {
       frame = requestAnimationFrame(tick);
     };
     const start = () => {
-      if (reducedMotion || frame) return;
+      if (reducedMotion || !pointer.active || frame) return;
       frame = requestAnimationFrame(tick);
     };
     const move = (event: PointerEvent) => {
@@ -161,9 +165,28 @@ export function BinaryBannerCanvas() {
       pointer.x = event.clientX - rect.left;
       pointer.y = event.clientY - rect.top;
       pointer.active = true;
+      const edges = [
+        { distance: pointer.y, x: pointer.x, y: 0 },
+        { distance: rect.width - pointer.x, x: rect.width, y: pointer.y },
+        { distance: rect.height - pointer.y, x: pointer.x, y: rect.height },
+        { distance: pointer.x, x: 0, y: pointer.y },
+      ];
+      const nearest = edges.reduce((a, b) => (a.distance <= b.distance ? a : b));
+      frameElement.style.setProperty("--edge-x", `${nearest.x + 2}px`);
+      frameElement.style.setProperty("--edge-y", `${nearest.y + 2}px`);
+      frameElement.style.setProperty(
+        "--edge-strength",
+        String(1 - smooth(0, 250, nearest.distance)),
+      );
+      if (reducedMotion) draw(0);
+      else start();
     };
     const leave = () => {
       pointer.active = false;
+      frameElement.style.setProperty("--edge-strength", "0");
+      cancelAnimationFrame(frame);
+      frame = 0;
+      draw(0);
     };
     const resizeObserver = new ResizeObserver(resize);
     const visibilityObserver = new IntersectionObserver(([entry]) => {
@@ -179,6 +202,8 @@ export function BinaryBannerCanvas() {
     stage.addEventListener("pointermove", move);
     stage.addEventListener("pointerdown", move);
     stage.addEventListener("pointerleave", leave);
+    stage.addEventListener("pointercancel", leave);
+    window.addEventListener("blur", leave);
     resize();
     start();
 
@@ -189,6 +214,8 @@ export function BinaryBannerCanvas() {
       stage.removeEventListener("pointermove", move);
       stage.removeEventListener("pointerdown", move);
       stage.removeEventListener("pointerleave", leave);
+      stage.removeEventListener("pointercancel", leave);
+      window.removeEventListener("blur", leave);
     };
   }, []);
 

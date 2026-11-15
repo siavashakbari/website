@@ -34,6 +34,10 @@
   font-weight: 100;
   font-style: normal;
   font-display: swap;
+  ascent-override: 101%;
+  descent-override: 24%;
+  line-gap-override: 10%;
+  unicode-range: U+0600-06FF, U+0750-077F, U+08A0-08FF, U+200C-200D, U+FB50-FDFF, U+FE70-FEFF;
 }
 @font-face {
   font-family: "Peyda";
@@ -41,6 +45,10 @@
   font-weight: 400;
   font-style: normal;
   font-display: swap;
+  ascent-override: 101%;
+  descent-override: 24%;
+  line-gap-override: 10%;
+  unicode-range: U+0600-06FF, U+0750-077F, U+08A0-08FF, U+200C-200D, U+FB50-FDFF, U+FE70-FEFF;
 }
 @font-face {
   font-family: "Peyda";
@@ -49,7 +57,11 @@
     url("./assets/fonts/peyda/peyda-medium.ttf") format("truetype");
   font-weight: 500;
   font-style: normal;
-  font-display: optional;
+  font-display: swap;
+  ascent-override: 101%;
+  descent-override: 24%;
+  line-gap-override: 10%;
+  unicode-range: U+0600-06FF, U+0750-077F, U+08A0-08FF, U+200C-200D, U+FB50-FDFF, U+FE70-FEFF;
 }
 @font-face {
   font-family: "Peyda";
@@ -58,7 +70,11 @@
     url("./assets/fonts/peyda/peyda-semibold.ttf") format("truetype");
   font-weight: 600;
   font-style: normal;
-  font-display: optional;
+  font-display: swap;
+  ascent-override: 101%;
+  descent-override: 24%;
+  line-gap-override: 10%;
+  unicode-range: U+0600-06FF, U+0750-077F, U+08A0-08FF, U+200C-200D, U+FB50-FDFF, U+FE70-FEFF;
 }
 @font-face {
   font-family: "Peyda";
@@ -66,6 +82,10 @@
   font-weight: 700;
   font-style: normal;
   font-display: swap;
+  ascent-override: 101%;
+  descent-override: 24%;
+  line-gap-override: 10%;
+  unicode-range: U+0600-06FF, U+0750-077F, U+08A0-08FF, U+200C-200D, U+FB50-FDFF, U+FE70-FEFF;
 }
 
 /*
@@ -115,19 +135,41 @@
 }
 
 .home-hero-outer {
-  height: calc(100svh - 84px);
+  position: relative;
+  box-sizing: border-box;
+  height: calc(100svh - 67.2px);
   width: 100%;
+  padding-top: 12px;
 }
 
 .home-hero {
   position: relative;
   isolation: isolate;
   height: 100%;
-  margin-inline: 20px;
+  margin-inline: 12px;
   overflow: hidden;
-  border-radius: 3px;
-  background: #fff;
-  color: #111;
+  border-radius: 6px;
+  background: #000;
+  color: #fff;
+}
+
+.home-hero-outer::after {
+  content: "";
+  position: absolute;
+  inset: 10px 10px -2px;
+  z-index: 3;
+  border: 2px solid transparent;
+  border-radius: 8px;
+  background: radial-gradient(
+      circle 225px at var(--edge-x, 50%) var(--edge-y, 0%),
+      rgb(63 235 204 / var(--edge-strength, 0)),
+      transparent
+    )
+    border-box;
+  mask:
+    linear-gradient(#000 0 0) padding-box exclude,
+    linear-gradient(#000 0 0) border-box;
+  pointer-events: none;
 }
 
 .home-hero-portrait {
@@ -152,7 +194,9 @@
   gap: 16px;
   width: 57%;
   height: 100%;
+  margin-left: clamp(20px, 3vw, 56px);
   padding: clamp(20px, 3vw, 56px);
+  padding-block: clamp(40px, 6vw, 112px);
 }
 
 .home-hero-logo {
@@ -185,6 +229,18 @@
   font-size: clamp(36px, 4.2vw, 63px);
   font-weight: 700;
   line-height: 1;
+}
+
+.home-hero-stat .home-hero-stat-number,
+.home-hero-stat .home-hero-stat-number span {
+  font-family: var(--font-mono) !important;
+}
+
+.home-hero-stat .home-hero-stat-number span {
+  display: inline;
+  margin: 0;
+  font-size: inherit;
+  line-height: inherit;
 }
 
 .home-hero-stat span {
@@ -226,10 +282,10 @@
   min-width: 0;
   min-height: 0;
   padding: 8px;
-  border: 1px solid #111;
+  border: 1px solid #fff;
   border-radius: 50%;
-  background: rgb(248 248 248 / 92%);
-  color: #111;
+  background: rgb(20 20 20 / 92%);
+  color: #fff;
   text-align: center;
   text-decoration: none;
   transition:
@@ -238,13 +294,13 @@
 }
 
 .discipline-circle:first-child {
-  background: rgb(241 241 241 / 92%);
+  background: rgb(32 32 32 / 92%);
 }
 
 .discipline-circle:hover,
 .discipline-circle:focus-visible {
   border-width: 2px;
-  background: #e7fff9;
+  background: #12352e;
 }
 
 .discipline-circle > strong {
@@ -267,8 +323,7 @@
   }
 
   .home-hero {
-    min-height: max(840px, calc(100svh - 84px));
-    margin-inline: 10px;
+    min-height: max(840px, calc(100svh - 67.2px));
   }
 
   .home-hero-copy {
@@ -276,7 +331,9 @@
     height: auto;
     justify-content: flex-start;
     gap: 16px;
+    margin-left: 18px;
     padding: 18px;
+    padding-block: 36px;
   }
 
   .home-hero-logo {
@@ -361,8 +418,8 @@
 :root {
   --radius: 0.25rem;
 
-  --font-display: "Satoshi", system-ui, sans-serif;
-  --font-body: "Satoshi", system-ui, sans-serif;
+  --font-display: "Peyda", "Satoshi", system-ui, sans-serif;
+  --font-body: "Peyda", "Satoshi", system-ui, sans-serif;
   --font-farsi: "Peyda", "Satoshi", system-ui, sans-serif;
 
   /* Light: #EFEFEF ground, #0F0F0F type, #3febcc secondary */
@@ -393,8 +450,8 @@
 }
 
 .dark {
-  /* Dark: #0F0F0F ground, #EFEFEF type, #3febcc secondary */
-  --background: #0f0f0f;
+  /* Dark: black ground, #EFEFEF type, #3febcc secondary */
+  --background: #000000;
   --foreground: #efefef;
   --card: #0f0f0f;
   --card-foreground: #efefef;
@@ -664,7 +721,7 @@ html[lang="fa"] .text-\[11px\] {
 /* Fallback English blocks and machine-readable controls keep LTR shaping. */
 html[lang="fa"] [lang="en"],
 html[lang="fa"] [lang="en"] * {
-  font-family: "Satoshi", system-ui, sans-serif !important;
+  font-family: var(--font-body) !important;
 }
 
 html[lang="fa"] .uppercase {

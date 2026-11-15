@@ -8,6 +8,11 @@ export interface BlobContentSnapshot {
 }
 
 const PUBLIC_CONTENT_PATH = "vault/published-content.json";
+const PUBLIC_CACHE_MS = 60_000;
+let cachedSnapshot: BlobContentSnapshot | undefined;
+let cachedUntil = 0;
+let pendingRead: Promise<BlobContentSnapshot> | undefined;
+let cacheGeneration = 0;
 
 async function readSnapshotWithEtag(): Promise<{ snapshot: BlobContentSnapshot; etag: string } | null> {
   let result;
@@ -31,10 +36,25 @@ async function readSnapshotWithEtag(): Promise<{ snapshot: BlobContentSnapshot; 
   return { snapshot, etag: result.blob.etag };
 }
 
-export async function readVercelPublishedContent(): Promise<BlobContentSnapshot> {
-  const result = await readSnapshotWithEtag();
-  if (!result) throw new Error("Published Vault content has not been migrated to Vercel Blob.");
-  return result.snapshot;
+export async function readVercelPublishedContent(fresh = false): Promise<BlobContentSnapshot> {
+  if (!fresh && cachedSnapshot && Date.now() < cachedUntil) return cachedSnapshot;
+  if (!fresh && pendingRead) return pendingRead;
+  const generation = cacheGeneration;
+  const read = (async () => {
+    const result = await readSnapshotWithEtag();
+    if (!result) throw new Error("Published Vault content has not been migrated to Vercel Blob.");
+    if (generation === cacheGeneration) {
+      cachedSnapshot = result.snapshot;
+      cachedUntil = Date.now() + PUBLIC_CACHE_MS;
+    }
+    return result.snapshot;
+  })();
+  if (!fresh) pendingRead = read;
+  try {
+    return await read;
+  } finally {
+    if (pendingRead === read) pendingRead = undefined;
+  }
 }
 
 export async function saveVercelPublishedContent(
@@ -67,6 +87,10 @@ export async function saveVercelPublishedContent(
     }
     throw error;
   }
+  cacheGeneration++;
+  cachedSnapshot = { revision: nextRevision, content: nextContent };
+  cachedUntil = Date.now() + PUBLIC_CACHE_MS;
+  pendingRead = undefined;
   return nextRevision;
 }
 

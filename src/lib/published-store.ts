@@ -98,7 +98,12 @@ export async function refreshPublishedContent(): Promise<void> {
   const started = generation;
   loading = (async () => {
     try {
-      const response = await fetch("/api/content", { cache: "no-store" });
+      const isVault = /^\/(?:en\/|fa\/)?vault(?:\/|$)/.test(window.location.pathname);
+      const token = isVault ? await requireVaultToken().catch(() => null) : null;
+      const response = await fetch(token ? "/api/content?fresh=1" : "/api/content", {
+        cache: "no-store",
+        ...(token ? { headers: { authorization: `Bearer ${token}` } } : {}),
+      });
       if (!response.ok) throw new Error(`Published content request failed (${response.status}).`);
       const data = await response.json() as PublishedSnapshot;
       validateSnapshot(data.content);
@@ -249,18 +254,24 @@ export async function discardPendingContentSave() {
 }
 
 export function startPublishedContentSync() {
-  void refreshPublishedContent();
+  let lastRefresh = Date.now();
   const refresh = () => {
-    if (document.visibilityState === "visible") void refreshPublishedContent();
+    if (document.visibilityState === "visible" && Date.now() - lastRefresh >= 600_000) {
+      lastRefresh = Date.now();
+      void refreshPublishedContent();
+    }
   };
-  const timer = window.setInterval(refresh, 30000);
+  const timer = window.setInterval(refresh, 600_000);
   window.addEventListener("focus", refresh);
   const reconnect = () => {
     if (dirty) void flushContentSave();
-    else refresh();
+    else {
+      lastRefresh = Date.now();
+      void refreshPublishedContent();
+    }
   };
   const storageChanged = (event: StorageEvent) => {
-    if (event.key === OUTBOX && event.newValue === null) refresh();
+    if (event.key === OUTBOX && event.newValue === null) void refreshPublishedContent();
   };
   window.addEventListener("online", reconnect);
   window.addEventListener("storage", storageChanged);

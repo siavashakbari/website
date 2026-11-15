@@ -9,9 +9,11 @@ const json = (body: unknown, status = 200) => new Response(JSON.stringify(body),
 export const Route = createFileRoute("/api/content")({
   server: {
     handlers: {
-      GET: async () => {
+      GET: async ({ request }) => {
         try {
-          return json(await readVercelPublishedContent());
+          const fresh = new URL(request.url).searchParams.has("fresh");
+          if (fresh) await requireVaultAdmin(request);
+          return json(await readVercelPublishedContent(fresh));
         } catch (error) {
           console.error("Published content read failed:", error);
           return json({ error: "Published content is unavailable." }, 503);

@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
 import { BinaryBannerCanvas } from "@/components/BinaryBannerCanvas";
 import { DisciplineCircleMap } from "@/components/DisciplineCircleMap";
 import { DisciplinesMarquee } from "@/components/DisciplinesMarquee";
@@ -9,6 +10,11 @@ import { readSiteContent, siteField } from "@/lib/site-content";
 import { useLocale } from "@/lib/use-locale";
 
 const PORTRAIT_FALLBACK = "/hero-portrait-transparent-v2.webp";
+
+function portraitSrc(url?: string) {
+  const src = url || PORTRAIT_FALLBACK;
+  return src === PORTRAIT_FALLBACK ? `${src}?v=2` : src;
+}
 
 export const Route = createFileRoute("/")({
   head: () => {
@@ -26,7 +32,7 @@ export const Route = createFileRoute("/")({
         {
           rel: "preload",
           as: "image",
-          href: readSiteContent()?.landing.imageUrl || PORTRAIT_FALLBACK,
+          href: portraitSrc(readSiteContent()?.landing.imageUrl),
           fetchPriority: "high",
         },
       ],
@@ -40,9 +46,59 @@ function splitStat(value: string) {
   return match ? { number: match[1], label: match[2] } : { number: value, label: "" };
 }
 
+function AnimatedStat({ value }: { value: string }) {
+  const [progress, setProgress] = useState(1);
+  const match = value.match(/[0-9۰-۹٠-٩][0-9۰-۹٠-٩,٬]*/);
+  const raw = match?.[0] || "";
+  const normalize = (char: string) => {
+    const code = char.charCodeAt(0);
+    if (code >= 0x06f0 && code <= 0x06f9) return String(code - 0x06f0);
+    if (code >= 0x0660 && code <= 0x0669) return String(code - 0x0660);
+    return char;
+  };
+  const target = Number([...raw].map(normalize).join("").replace(/[,٬]/g, ""));
+
+  useEffect(() => {
+    if (
+      !raw ||
+      !Number.isFinite(target) ||
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    ) {
+      setProgress(1);
+      return;
+    }
+    setProgress(0);
+    let frame = 0;
+    let start: number | undefined;
+    const tick = (now: number) => {
+      start ??= now;
+      const t = Math.min((now - start) / 1200, 1);
+      setProgress(1 - Math.pow(1 - t, 3));
+      if (t < 1) frame = requestAnimationFrame(tick);
+    };
+    frame = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(frame);
+  }, [raw, target]);
+
+  const format = (fraction: number) => {
+    if (!match || !Number.isFinite(target) || fraction >= 1) return value;
+    const digits = String(Math.floor(target * fraction));
+    const base = /[۰-۹]/.test(raw) ? 0x06f0 : /[٠-٩]/.test(raw) ? 0x0660 : 0x30;
+    return value.replace(
+      raw,
+      [...digits].map((digit) => String.fromCharCode(base + Number(digit))).join(""),
+    );
+  };
+  return (
+    <strong className="home-hero-stat-number" dir="ltr" aria-label={value}>
+      <span aria-hidden="true">{format(progress)}</span>
+    </strong>
+  );
+}
+
 function Index() {
   const locale = useLocale();
-  const portraitUrl = readSiteContent()?.landing.imageUrl || PORTRAIT_FALLBACK;
+  const portraitUrl = portraitSrc(readSiteContent()?.landing.imageUrl);
   const heroHeading = siteField("landing", "heading", locale);
   const heroAlt = siteField("landing", "heroAlt", locale);
   const roles = (["role1", "role2", "role3"] as const).map((id) =>
@@ -96,7 +152,7 @@ function Index() {
                     lang={stat.lang}
                     dir={stat.lang === "fa" ? "rtl" : "ltr"}
                   >
-                    <strong>{number}</strong>
+                    <AnimatedStat value={number} />
                     <span>{label}</span>
                   </div>
                 );

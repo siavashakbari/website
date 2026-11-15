@@ -24,6 +24,10 @@ import appCss from "../styles.css?url";
 import satoshiMedium from "../assets/fonts/Satoshi-Medium.woff2?url";
 import satoshiRegular from "../assets/fonts/Satoshi-Regular.woff2?url";
 import satoshiBold from "../assets/fonts/Satoshi-Bold.woff2?url";
+import peydaRegular from "../assets/fonts/peyda/peyda-regular.ttf?url";
+import peydaMedium from "../assets/fonts/peyda/peyda-medium.woff2?url";
+import peydaSemibold from "../assets/fonts/peyda/peyda-semibold.woff2?url";
+import peydaBold from "../assets/fonts/peyda/peyda-bold.ttf?url";
 import { Logo } from "@/components/Logo";
 import { LanguageSwitch } from "@/components/LanguageSwitch";
 import { NotFoundPage } from "@/components/NotFoundPage";
@@ -110,7 +114,7 @@ export const Route = createRootRouteWithContext<{
           name: "robots",
           content: "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1",
         },
-        { name: "theme-color", content: "#0F0F0F" },
+        { name: "theme-color", content: "#000000" },
         { name: "googlebot", content: "index, follow" },
         { property: "og:title", content: SITE_TITLE_DEFAULT },
         { property: "og:description", content: SITE_DESCRIPTION },
@@ -131,7 +135,7 @@ export const Route = createRootRouteWithContext<{
         { name: "twitter:image", content: ogImage },
       ],
       links: [
-        { rel: "stylesheet", href: appCss },
+        { rel: "stylesheet", href: import.meta.env.DEV ? `${appCss}?direct` : appCss },
         {
           rel: "preload",
           href: satoshiRegular,
@@ -146,6 +150,38 @@ export const Route = createRootRouteWithContext<{
           type: "font/woff2",
           crossOrigin: "anonymous",
         },
+        {
+          rel: "preload",
+          href: peydaRegular,
+          as: "font",
+          type: "font/ttf",
+          crossOrigin: "anonymous",
+        },
+        {
+          rel: "preload",
+          href: peydaSemibold,
+          as: "font",
+          type: "font/woff2",
+          crossOrigin: "anonymous",
+        },
+        ...(locale === "fa"
+          ? ([
+              {
+                rel: "preload",
+                href: peydaMedium,
+                as: "font",
+                type: "font/woff2",
+                crossOrigin: "anonymous",
+              },
+              {
+                rel: "preload",
+                href: peydaBold,
+                as: "font",
+                type: "font/ttf",
+                crossOrigin: "anonymous",
+              },
+            ] as const)
+          : []),
         { rel: "icon", href: "/favicon.svg", type: "image/svg+xml" },
         { rel: "apple-touch-icon", href: "/favicon.svg" },
         { rel: "manifest", href: "/site.webmanifest" },
@@ -182,9 +218,9 @@ function RootShell({ children }: { children: ReactNode }) {
 }
 
 const navLinkClass =
-  "flex h-full items-center text-[21px] font-normal uppercase leading-none tracking-widest text-foreground transition-colors hover:text-secondary data-[status=active]:font-bold data-[status=active]:text-secondary";
+  "flex h-full items-center text-[17.85px] font-normal uppercase leading-none tracking-widest text-foreground transition-colors hover:text-secondary data-[status=active]:font-bold data-[status=active]:text-secondary";
 
-const navFont = { fontFamily: "Satoshi, system-ui, sans-serif" } as const;
+const navFont = { fontFamily: "Peyda, Satoshi, system-ui, sans-serif" } as const;
 
 function isDisciplinePath(pathname: string) {
   return (
@@ -302,14 +338,14 @@ function Header() {
         dir="ltr"
         className="fixed inset-x-0 top-0 z-[200] border-b border-foreground/10 bg-background"
       >
-        <div className="mx-auto flex h-[84px] w-full items-center justify-between px-[16px] sm:px-[24px] md:px-[36px]">
+        <div className="mx-auto flex h-[67.2px] w-full items-center justify-between px-[16px] sm:px-[24px] md:px-[36px]">
           <div className="flex items-center gap-[8px] sm:gap-[24px]">
             <Link
               to="/"
               className="flex items-center text-foreground"
               aria-label={locale === "fa" ? "سیاوش اکبری — خانه" : "Siavash Akbari — Home"}
             >
-              <Logo className="block h-auto w-[clamp(104px,35vw,248px)] sm:h-[25.2px] sm:w-auto" />
+              <Logo className="block h-auto w-[clamp(88.4px,29.75vw,210.8px)] sm:h-[21.42px] sm:w-auto" />
             </Link>
             <LanguageSwitch />
           </div>
@@ -335,7 +371,7 @@ function Header() {
         </div>
       </header>
       {/* Spacer matches fixed header height so content isn't hidden underneath */}
-      <div className="h-[84px] shrink-0" aria-hidden />
+      <div className="h-[67.2px] shrink-0" aria-hidden />
     </>
   );
 }

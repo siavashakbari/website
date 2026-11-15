@@ -58,7 +58,7 @@ export function DisciplinesMarquee() {
   }, [locale]);
 
   return (
-    <div className="w-full bg-[#0F0F0F] px-[20px] pt-3 pb-12 md:pb-16">
+    <div className="w-full bg-background px-3 pt-3 pb-12 md:pb-16">
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
         {tiles.map((tile, idx) => (
           <CoverTile
@@ -67,6 +67,7 @@ export function DisciplinesMarquee() {
             href={tile.href}
             label={tile.label}
             image={tile.image}
+            doubleRadius
           />
         ))}
       </div>
