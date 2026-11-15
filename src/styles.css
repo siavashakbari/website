@@ -525,7 +525,25 @@
   line-height: 1.1;
 }
 
+.site-header-home-icon {
+  display: none;
+}
+
 @media (max-width: 700px) {
+  .site-header-home-link {
+    min-width: 44px;
+    min-height: 44px;
+    justify-content: center;
+  }
+
+  .site-header-wordmark {
+    display: none;
+  }
+
+  .site-header-home-icon {
+    display: block;
+  }
+
   .home-hero-outer {
     height: auto;
   }
@@ -541,7 +559,7 @@
     gap: clamp(38px, 5svh, 54px);
     margin-inline: 0;
     padding-inline: clamp(18px, 5vw, 24px);
-    padding-block: clamp(44px, 7svh, 64px) 0;
+    padding-block: clamp(30px, 5svh, 50px) 0;
   }
 
   .home-hero[dir="rtl"] .home-hero-copy {
@@ -627,8 +645,8 @@
 
   .home-hero-portrait {
     right: 50%;
-    width: min(100%, 600px);
-    height: 42%;
+    width: min(118%, 600px);
+    height: 50%;
     object-position: bottom center;
     transform: translateX(50%);
   }

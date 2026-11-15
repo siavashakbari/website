@@ -16,7 +16,7 @@ import {
   Scripts,
 } from "@tanstack/react-router";
 import { lazy, Suspense, useEffect, useRef, useState, type ReactNode } from "react";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, House } from "lucide-react";
 import { useLocale } from "@/lib/use-locale";
 import { currentLocale, localizedText, withLocale, type Locale } from "@/lib/locale";
 import { nearestEdge } from "@/lib/pointer-edge";
@@ -377,10 +377,11 @@ function Header() {
           <div className="flex items-center gap-[8px] sm:gap-[24px]">
             <Link
               to="/"
-              className="flex items-center text-foreground"
+              className="site-header-home-link flex items-center text-foreground"
               aria-label={locale === "fa" ? "سیاوش اکبری — خانه" : "Siavash Akbari — Home"}
             >
-              <Logo className="block h-auto w-[clamp(88.4px,29.75vw,210.8px)] sm:h-[21.42px] sm:w-auto" />
+              <Logo className="site-header-wordmark block h-auto w-[clamp(88.4px,29.75vw,210.8px)] sm:h-[21.42px] sm:w-auto" />
+              <House className="site-header-home-icon" size={24} strokeWidth={1.8} aria-hidden="true" />
             </Link>
             <LanguageSwitch />
           </div>
