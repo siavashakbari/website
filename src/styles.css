@@ -531,17 +531,17 @@
   }
 
   .home-hero {
-    min-height: max(840px, calc(100svh - 67.2px));
+    min-height: max(960px, calc(100svh - 67.2px));
   }
 
   .home-hero-copy {
     width: 100%;
     height: auto;
     justify-content: flex-start;
-    gap: 16px;
+    gap: clamp(38px, 5svh, 54px);
     margin-inline: 0;
     padding-inline: clamp(18px, 5vw, 24px);
-    padding-block: 36px;
+    padding-block: clamp(44px, 7svh, 64px) 0;
   }
 
   .home-hero[dir="rtl"] .home-hero-copy {
@@ -564,8 +564,8 @@
 
   .home-hero-stats {
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 6px;
-    padding-block: 12px;
+    gap: 10px;
+    padding-block: 0;
   }
 
   .home-hero-stat {
@@ -583,9 +583,9 @@
 
   .home-hero-map {
     align-self: center;
-    width: 100%;
-    max-width: 330px;
-    height: 190px;
+    width: calc(100% + 20px);
+    max-width: 360px;
+    height: 220px;
   }
 
   .home-hero[dir="rtl"] .home-hero-map {
@@ -599,7 +599,12 @@
   }
 
   .skill-tree-branches {
+    gap: 8px;
+  }
+
+  .skill-tree-children {
     gap: 5px;
+    padding-top: 12px;
   }
 
   .skill-tree-children,
