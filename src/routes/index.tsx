@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { BinaryBannerCanvas } from "@/components/BinaryBannerCanvas";
-import { DisciplineCircleMap } from "@/components/DisciplineCircleMap";
+import { HorizontalSkillTree } from "@/components/HorizontalSkillTree";
 import { DisciplinesMarquee } from "@/components/DisciplinesMarquee";
 import { Logo } from "@/components/Logo";
 import { currentLocale } from "@/lib/locale";
@@ -158,12 +158,8 @@ function Index() {
                 );
               })}
             </div>
-
             <div className="home-hero-map">
-              <p lang={disciplineLabel.lang} dir={disciplineLabel.lang === "fa" ? "rtl" : "ltr"}>
-                {disciplineLabel.text}
-              </p>
-              <DisciplineCircleMap />
+              <HorizontalSkillTree locale={locale} />
             </div>
           </div>
         </div>
