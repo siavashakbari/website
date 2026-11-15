@@ -84,7 +84,7 @@ export const SITE_SEED: SiteContent = {
       },
     ],
     links: [],
-    imageUrl: "/hero-portrait-transparent.webp",
+    imageUrl: "/hero-portrait-transparent-v2.webp",
   },
   about: {
     fields: [

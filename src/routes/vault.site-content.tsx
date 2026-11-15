@@ -204,7 +204,7 @@ function SiteContentEditor() {
                     landing: { ...current.landing, imageUrl: event.target.value },
                   }))
                 }
-                placeholder="/hero-portrait-transparent.webp"
+                placeholder="/hero-portrait-transparent-v2.webp"
                 className="mt-1 w-full rounded-lg border border-white/15 bg-black/50 p-3 text-sm text-white"
               />
             </label>

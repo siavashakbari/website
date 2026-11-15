@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useLayoutEffect, useRef } from "react";
 
 type Cell = {
   x: number;
@@ -10,9 +10,11 @@ type Cell = {
 };
 
 const POINTER_RADIUS = 128.7;
+const DIGIT_RADIUS = POINTER_RADIUS * 4;
 const MIN_SCALE = 0.18;
+const MAX_SHAPE_SCALE = 0.8;
 const SHAPE_SPEED = 0.001333333;
-const GRID_COLOR = "#e6e6e6"; // 90% of white, for both digits and shapes.
+const GRID_COLOR = "#f0f0f0"; // 94% of white, for both digits and shapes.
 
 function smooth(a: number, b: number, t: number) {
   const x = Math.max(0, Math.min(1, (t - a) / (b - a)));
@@ -42,7 +44,7 @@ function drawShape(ctx: CanvasRenderingContext2D, type: number, size: number) {
 export function BinaryBannerCanvas() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const canvas = canvasRef.current;
     const stage = canvas?.parentElement;
     const ctx = canvas?.getContext("2d");
@@ -56,12 +58,13 @@ export function BinaryBannerCanvas() {
     let frame = 0;
     let lastFrame = 0;
     let visible = true;
+    const fontFamily = getComputedStyle(canvas).fontFamily;
 
     const resize = () => {
       const rect = stage.getBoundingClientRect();
       width = rect.width;
       height = rect.height;
-      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
       canvas.width = Math.round(width * dpr);
       canvas.height = Math.round(height * dpr);
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -95,26 +98,43 @@ export function BinaryBannerCanvas() {
       ctx.fillStyle = GRID_COLOR;
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
-      ctx.font = `500 ${width < 600 ? 6 : 7}px ${getComputedStyle(canvas).fontFamily}`;
+      ctx.font = `500 ${width < 600 ? 6 : 7}px ${fontFamily}`;
 
       const time = reducedMotion ? 0 : now;
       for (const cell of cells) {
         const flip = Math.sin(time * 0.0032 + cell.phase * 1.7) > 0.88;
         const digit = flip ? 1 - cell.base : cell.base;
-        const distance = pointer.active
-          ? Math.hypot(pointer.x - cell.x, pointer.y - cell.y)
-          : Number.POSITIVE_INFINITY;
+        const dx = pointer.x - cell.x;
+        const dy = pointer.y - cell.y;
+        const distanceSquared = pointer.active ? dx * dx + dy * dy : Infinity;
+        const digitScale = pointer.active
+          ? distanceSquared < DIGIT_RADIUS * DIGIT_RADIUS
+            ? 1 - smooth(0, DIGIT_RADIUS, Math.sqrt(distanceSquared))
+            : 0
+          : 1;
+        const distance =
+          distanceSquared < POINTER_RADIUS * POINTER_RADIUS ? Math.sqrt(distanceSquared) : Infinity;
         const influence =
           pointer.active && !reducedMotion ? 1 - smooth(18, POINTER_RADIUS, distance) : 0;
 
-        ctx.globalAlpha = 1 - influence;
-        ctx.fillText(String(digit), cell.x, cell.y);
+        if (digitScale > 0.01 && influence < 0.995) {
+          if (digitScale === 1) {
+            ctx.fillText(String(digit), cell.x, cell.y);
+          } else {
+            ctx.save();
+            ctx.translate(cell.x, cell.y);
+            ctx.scale(digitScale, digitScale);
+            ctx.globalAlpha = 1 - influence;
+            ctx.fillText(String(digit), 0, 0);
+            ctx.restore();
+          }
+        }
         if (influence <= 0.005) continue;
 
         const shapeIndex = Math.floor((((time * SHAPE_SPEED + cell.phase * 2.5) % 3) + 3) % 3);
         const type = (cell.initialType + shapeIndex) % 3;
         const falloff = Math.pow(1 - Math.min(1, distance / POINTER_RADIUS), 1.7);
-        const scale = cell.size * (MIN_SCALE + (1 - MIN_SCALE) * falloff);
+        const scale = cell.size * (MIN_SCALE + (MAX_SHAPE_SCALE - MIN_SCALE) * falloff);
         ctx.save();
         ctx.translate(cell.x, cell.y);
         ctx.globalAlpha = influence;

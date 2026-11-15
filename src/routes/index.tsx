@@ -8,7 +8,7 @@ import { SITE_DESCRIPTION, SITE_TITLE_DEFAULT, pageHead } from "@/lib/seo";
 import { readSiteContent, siteField } from "@/lib/site-content";
 import { useLocale } from "@/lib/use-locale";
 
-const PORTRAIT_FALLBACK = "/hero-portrait-transparent.webp";
+const PORTRAIT_FALLBACK = "/hero-portrait-transparent-v2.webp";
 
 export const Route = createFileRoute("/")({
   head: () => {
@@ -61,8 +61,8 @@ function Index() {
           <img
             src={portraitUrl}
             alt={heroAlt.text}
-            width={1600}
-            height={1986}
+            width={1000}
+            height={1000}
             className="home-hero-portrait"
             loading="eager"
             fetchPriority="high"
