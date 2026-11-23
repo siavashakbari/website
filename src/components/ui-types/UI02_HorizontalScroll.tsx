@@ -49,11 +49,11 @@ export function UI02_HorizontalScroll({
   }
 
   return (
-    <div className="relative w-full lg:overflow-hidden">
+    <div className="relative w-full lg:min-h-0 lg:flex-1 lg:overflow-hidden">
       <div
         ref={scrollRef}
         onWheel={handleWheel}
-        className="flex flex-col gap-4 px-3 pt-4 pb-16 lg:scrollbar-hide lg:flex-row lg:h-[calc(100svh-4.5rem)] lg:min-h-0 lg:items-center lg:gap-6 lg:overflow-x-auto lg:overflow-y-hidden lg:px-[20px] lg:py-4"
+        className="flex flex-col gap-4 px-3 pt-4 pb-16 lg:scrollbar-hide lg:flex-row lg:h-full lg:min-h-0 lg:items-center lg:gap-6 lg:overflow-x-auto lg:overflow-y-hidden lg:px-[20px] lg:py-4"
       >
         {items.map((item, i) => (
           <HorizontalMediaTile
