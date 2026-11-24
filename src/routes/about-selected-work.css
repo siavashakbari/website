@@ -27,7 +27,7 @@
   background: var(--background);
 }
 
-.about-work-image img {
+.about-work-image :is(img, video) {
   display: block;
   width: 100%;
   height: 100%;
@@ -92,10 +92,6 @@
         animation-timeline: --about-work-item;
         animation-range: contain 0% contain 100%;
       }
-
-      .about-work-caption:focus-within {
-        animation: none;
-      }
     }
   }
 }
@@ -121,8 +117,21 @@
 
 /* Each row occupies half the viewport, so counter its travel during the contain range. */
 @keyframes about-work-center {
-  from { transform: translateY(-25svh); }
-  to { transform: translateY(25svh); }
-  0%, 100% { opacity: 0; }
-  8%, 92% { opacity: 1; }
+  from {
+    transform: translateY(-25svh);
+  }
+
+  to {
+    transform: translateY(25svh);
+  }
+
+  0%, 100% {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  8%, 92% {
+    opacity: 1;
+    pointer-events: auto;
+  }
 }

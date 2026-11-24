@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useLocale } from "@/lib/use-locale";
 import { currentLocale } from "@/lib/locale";
 import { siteField, siteLocalized, type SiteField } from "@/lib/site-content";
-import { useLayoutEffect, useRef, useState, type RefObject } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, type RefObject } from "react";
 import {
   motion,
   useMotionValue,
@@ -12,11 +12,21 @@ import {
   useTransform,
   type MotionValue,
 } from "motion/react";
-import { Briefcase, GraduationCap, Images, Layers, PenTool, type LucideIcon } from "lucide-react";
+import { Briefcase, GraduationCap, Layers, PenTool, type LucideIcon } from "lucide-react";
 import { pageHead } from "@/lib/seo";
 import { BackToTop } from "@/components/BackToTop";
 import { ExpandableGallery, type GalleryPhoto } from "@/components/ui/expandable-gallery";
-import { projects, type Project } from "@/data/projects";
+import { resolveKnownAssetStem } from "@/lib/inventory-assets";
+import { useResolvedMediaSrc } from "@/lib/local-media-db";
+import { getCanonicalProjectSlug, getStudioProjects } from "@/lib/studio-store";
+import {
+  filenameKeyFromSrc,
+  FLAT_FIELDS,
+  getVaultMedia,
+  getVaultPages,
+  isRouteOrAncestorHidden,
+  subscribeToVaultStore,
+} from "@/lib/vault-store";
 import nozadLogo from "@/assets/graphic-design/nozad-publication/graphic-design-nozad-publication-01.jpg";
 import nozadBookCover1 from "@/assets/graphic-design/book-covers/graphic-design-book-covers-01.jpg";
 import nozadBookCover2 from "@/assets/graphic-design/book-covers/graphic-design-book-covers-03.jpg";
@@ -42,7 +52,7 @@ export const Route = createFileRoute("/about")({
 
 type Lang = "en" | "fa";
 type Localized = { en: string; fa: string };
-type CategoryKey = "Education" | "Job" | "Freelance" | "Project";
+type CategoryKey = "Education" | "Job" | "Freelance";
 
 type Milestone = {
   year: string;
@@ -55,7 +65,7 @@ type Milestone = {
   /** Duration in years — drives capsule length (ignored if Present) */
   lengthYears: number;
   description: Localized;
-  /** Image stack for Job / Project entries (portfolio assets when available) */
+  /** Image stack for jobs with portfolio assets */
   photos?: GalleryPhoto[];
 };
 
@@ -65,12 +75,11 @@ const CATEGORY: Record<CategoryKey, Localized> = {
   Education: { en: "Education", fa: "تحصیلات" },
   Job: { en: "Job", fa: "شغل" },
   Freelance: { en: "Freelance", fa: "فریلنس" },
-  Project: { en: "Project", fa: "پروژه" },
 };
 
 type FilterKey = CategoryKey | "All";
 
-const CATEGORY_FILTERS: CategoryKey[] = ["Job", "Freelance", "Education", "Project"];
+const CATEGORY_FILTERS: CategoryKey[] = ["Job", "Freelance", "Education"];
 
 /** Default on first visit / refresh: every category + All checked */
 function createDefaultFilters() {
@@ -82,7 +91,6 @@ const FILTER_OPTIONS: { key: FilterKey; label: Localized }[] = [
   { key: "Job", label: { en: "Jobs", fa: "شغل‌ها" } },
   { key: "Freelance", label: { en: "Freelance", fa: "فریلنس" } },
   { key: "Education", label: { en: "Education", fa: "تحصیلات" } },
-  { key: "Project", label: { en: "Projects", fa: "پروژه‌ها" } },
 ];
 
 /** Universally recognized metaphors for career-timeline categories */
@@ -91,7 +99,6 @@ const CATEGORY_ICON: Record<FilterKey, LucideIcon> = {
   Job: Briefcase,
   Freelance: PenTool,
   Education: GraduationCap,
-  Project: Images,
 };
 
 const COPY = {
@@ -132,37 +139,6 @@ function hasDurationCapsule(milestone: Milestone) {
   return !isOngoing(milestone) && milestone.lengthYears > 0;
 }
 
-/** Visual-identity brands that should show only the hero/logo mark on the timeline */
-const TIMELINE_LOGO_ONLY = new Set([
-  "echo-supplements",
-  "goats-coffee",
-  "zen-studio",
-  "femiq",
-  "on-swipe",
-  "onswipe",
-  "dodareh",
-  "dobareh",
-  "awli",
-  "mamrezz",
-  "artemis",
-  "farshid-rahimi",
-  "maanaar",
-  "snow-snack",
-]);
-
-function projectGalleryPhotos(project: Project): GalleryPhoto[] {
-  const srcs = TIMELINE_LOGO_ONLY.has(project.id)
-    ? [project.image]
-    : (project.gallery?.length ? project.gallery : [project.image]).slice(0, 3);
-  return srcs.map((src, i) => ({
-    id: `${project.id}-${i + 1}`,
-    src,
-    alt: TIMELINE_LOGO_ONLY.has(project.id)
-      ? `${project.title} — logo`
-      : `${project.title} — ${i + 1}`,
-  }));
-}
-
 const NOZAD_JOB_PHOTOS: GalleryPhoto[] = [
   { id: "nozad-job-1", src: nozadLogo, alt: "Nozad Publications — logo" },
   { id: "nozad-job-2", src: nozadBookCover1, alt: "Nozad Publications — book cover" },
@@ -180,20 +156,6 @@ const ZEEE_PRODUCTS_PHOTOS: GalleryPhoto[] = [
   { id: "zeeeproducts-2", src: zeeeProduct2, alt: "ZEEEProducts — product photography" },
   { id: "zeeeproducts-3", src: zeeeProduct3, alt: "ZEEEProducts — product photography" },
 ];
-
-/** Named client / brand projects + every visual identity in the portfolio. */
-function isTimelinePortfolioProject(project: Project) {
-  // Already appear on the timeline as Job entries.
-  if (
-    project.id === "nozad-publication" ||
-    project.id === "nozad-publication-visual-identity" ||
-    project.id === "zeee-products"
-  ) {
-    return false;
-  }
-  if (project.category.toLowerCase().includes("visual identity")) return true;
-  return project.id === "atlasi" || project.id === "zeeen" || project.id === "sepidar";
-}
 
 const PROJECT_TITLE_FA: Record<string, string> = {
   meatlab: "میت‌لب",
@@ -231,98 +193,6 @@ const PROJECT_ROLE_FA: Record<string, string> = {
   "Fashion Photography": "عکاسی فشن",
   "Product Design": "طراحی محصول",
 };
-
-const PROJECT_DESC_FA: Record<string, string> = {
-  meatlab: "هویت بصری و طراحی برند مفهومی برای میت‌لب.",
-  shekarchian:
-    "پروژه پیشنهادی هویت بصری برای شیرینی شکرچیان — طرح کانسپت با خوشنویسی زاویه‌دار فارسی، لحن گرم شکلاتی و سیستم بصری پیشنهادی برای بسته‌بندی، شبکه‌های اجتماعی و هویت برند.",
-  "shekarchian-sweets":
-    "پروژه پیشنهادی هویت بصری برای شیرینی شکرچیان — طرح کانسپت با خوشنویسی زاویه‌دار فارسی، لحن گرم شکلاتی و سیستم بصری پیشنهادی برای بسته‌بندی، شبکه‌های اجتماعی و هویت برند.",
-  dodareh:
-    "پروژه هویت بصری برای دوباره اکسسوریز — برند اکسسوری با فرم‌های حروفی مجسمه‌گونه و لحنی بازیگوش.",
-  dobareh:
-    "پروژه هویت بصری برای دوباره اکسسوریز — برند اکسسوری با فرم‌های حروفی مجسمه‌گونه و لحنی بازیگوش.",
-  "ahura-cctv":
-    "پروژه هویت بصری برای اهورا — برند سیستم‌های نظارتی با تایپوگرافی زاویه‌دار فارسی و تصویرسازی سینمایی.",
-  femiq:
-    "پروژه هویت بصری و کاتالوگ محصول برای فمیک — ماشین‌آلات دقیق برش و کار سنگ اسلب، با فرم مهندسی و سیستم بصری صنعتی دوزبانه.",
-  polarity: "پروژه هویت بصری برای پلاریتی — وردمارک هندسی تیز که هم نشان است و هم نگرش.",
-  "echo-supplements":
-    "پروژه هویت بصری برای Echo Supplements — برند مکمل حول سیلوئت شیشه، موتیف موج و بسته‌بندی که برند را به فرم محصول می‌برد.",
-  "goats-coffee":
-    "پروژه هویت بصری برای قهوه‌ی بز — برند قهوه که سیلوئت بز داخل نشان دانه زندگی می‌کند، با بسته‌بندی آرام و برشی به‌یادماندنی.",
-  "nozad-publication":
-    "پروژه هویت بصری برای انتشارات نوزاد — برند نشر با نشان جوانه و تایپ مدرن فارسی.",
-  "nozad-publication-visual-identity":
-    "پروژه هویت بصری برای انتشارات نوزاد — برند نشر با نشان جوانه و تایپ مدرن فارسی.",
-  "on-swipe":
-    "پروژه هویت بصری برای آن سوایپ — نرم‌افزار شغل‌یابی با هوش مصنوعی؛ حروف باز و آیکون سوراخ کلید.",
-  onswipe:
-    "پروژه هویت بصری برای آن سوایپ — نرم‌افزار شغل‌یابی با هوش مصنوعی؛ حروف باز و آیکون سوراخ کلید.",
-  "zen-studio":
-    "پروژه هویت بصری برای محصولات استودیو زن — وردمارک معماری با هندسه شابلونی و صدای صنعتی آرام.",
-  artemis: "پروژه هویت بصری برای آرتمیس — سیستم برند حول نشان، بسته‌بندی شیشه و زبان الگویی متحرک.",
-  cichon:
-    "پروژه هویت بصری برای سیچون — سیستم برند ظریف با حضور تایپوگرافیک قوی در چاپ و بسته‌بندی.",
-  "farshid-rahimi":
-    "پروژه هویت بصری برای فرشید رحیمی — برند شخصی با نشان واضح، سیستم کارت و الگوی پشتیبان.",
-  maanaar:
-    "پروژه هویت بصری برای مانار — سیستم برند آرام و سنجیده با نشان متمرکز و مجموعه کاربردها.",
-  mamrezz:
-    "پروژه هویت بصری برای Mamrezz — سیستم نشان‌محور جسور با مجموعه فشرده‌ای از کاربردهای برند.",
-  "snow-snack":
-    "پروژه هویت بصری برای اسنو اسنک — برند بستنی با بسته‌بندی در طعم‌ها، بطری‌ها و زبان الگویی بازیگوش.",
-  "zeee-products":
-    "پروژه هویت بصری برای محصولات زی — سیستم نشان و تایپ با کاربردهای روشن و نارنجی برای برند محصول.",
-  awli: "پروژه هویت بصری برای AWLI — سیستم نشان گیم‌تگ با مجموعه متمرکز کاربردها و موشن.",
-  atlasi: "داستان مد استودیویی حول پارچه‌های دست‌بافت، سیلوئت‌های مجسمه‌گونه و ژست‌های آرام.",
-  zeeen: "داستان مد ریشه در مکان — پارچه‌های دست‌بافت میراثی و معماری نور پارسی.",
-  sepidar: "سری مد از حضور و پارچه در فضای باز — نور، منظره و ایستایی آرام.",
-};
-
-function portfolioProjectToMilestone(project: Project): Milestone {
-  const roleEn = project.category;
-  return {
-    year: project.year,
-    category: "Project",
-    title: {
-      en: project.title,
-      fa: PROJECT_TITLE_FA[project.id] ?? project.title,
-    },
-    role: {
-      en: roleEn,
-      fa: PROJECT_ROLE_FA[roleEn] ?? roleEn,
-    },
-    lengthYears: 0,
-    description: {
-      en: project.description,
-      fa: PROJECT_DESC_FA[project.id] ?? project.description,
-    },
-    photos: projectGalleryPhotos(project),
-  };
-}
-
-function sortYear(milestone: Milestone) {
-  const match = milestone.year.match(/\d{4}/);
-  return match ? Number(match[0]) : 0;
-}
-
-/** Insert portfolio projects after career items of the same (or earlier) year. */
-function mergeMilestones(career: Milestone[], portfolio: Milestone[]) {
-  const result = [...career];
-  const sorted = [...portfolio].sort((a, b) => {
-    const diff = sortYear(a) - sortYear(b);
-    if (diff !== 0) return diff;
-    return portfolio.indexOf(b) - portfolio.indexOf(a);
-  });
-  for (const item of sorted) {
-    const y = sortYear(item);
-    let i = 0;
-    while (i < result.length && sortYear(result[i]!) <= y) i += 1;
-    result.splice(i, 0, item);
-  }
-  return result;
-}
 
 const CAREER_MILESTONES: Milestone[] = [
   {
@@ -503,18 +373,6 @@ const CAREER_MILESTONES: Milestone[] = [
   },
 ];
 
-const PORTFOLIO_MILESTONES: Milestone[] = projects
-  .filter(isTimelinePortfolioProject)
-  .map(portfolioProjectToMilestone);
-
-const SELECTED_WORK = ["meatlab", "goats-coffee", "atlasi", "snow-snack", "zeeen"].flatMap((id) => {
-  const project = projects.find((item) => item.id === id);
-  const detail = project?.gallery?.find((image) => image !== project.image);
-  return project && detail ? [{ project, detail }] : [];
-});
-
-const MILESTONES: Milestone[] = mergeMilestones(CAREER_MILESTONES, PORTFOLIO_MILESTONES);
-
 const CREATIVE_SKILLS: Skill[] = [
   { name: { en: "Photography", fa: "عکاسی" }, levelOutOf10: 10 },
   { name: { en: "Videography", fa: "فیلم‌برداری" }, levelOutOf10: 8 },
@@ -543,7 +401,7 @@ for (const [category, value] of Object.entries(CATEGORY))
 for (const option of FILTER_OPTIONS)
   registerAboutField(`filter.${option.key}`, "Timeline filters", option.key, option.label);
 const seenMilestoneIds = new Map<string, number>();
-for (const milestone of MILESTONES) {
+for (const milestone of CAREER_MILESTONES) {
   const stem = `${milestone.year}-${milestone.category}-${milestone.title.en}`
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
@@ -672,12 +530,93 @@ function Hero({ reduceMotion, lang }: { reduceMotion: boolean; lang: Lang }) {
         <span className="h-px w-12 bg-foreground/30" />
         {siteField("about", "period", lang).text}
       </motion.div>
-
     </section>
   );
 }
 
+function readPortfolioWork() {
+  const pages = getVaultPages();
+  const pagesByRoute = new Map(pages.map((page) => [page.route, page]));
+  const studioBySlug = new Map(
+    getStudioProjects().map((project) => [getCanonicalProjectSlug(project), project]),
+  );
+  const media = getVaultMedia();
+  const hiddenMedia = new Set(
+    media.filter((item) => item.isHidden).map((item) => filenameKeyFromSrc(item.imgSrc)),
+  );
+  const mediaByRoute = new Map<string, Map<string, string>>();
+  for (const item of media) {
+    if (!item.imgSrc || item.isHidden) continue;
+    const assets = mediaByRoute.get(item.assignedRoute) ?? new Map<string, string>();
+    assets.set(filenameKeyFromSrc(item.imgSrc), item.thumbSrc || item.imgSrc);
+    mediaByRoute.set(item.assignedRoute, assets);
+  }
+
+  return pages.flatMap((page) => {
+    const segments = page.route.split("/").filter(Boolean);
+    const [discipline, specialty, slug] = segments;
+    const flat = FLAT_FIELDS.has(discipline);
+    if (segments.length !== (flat ? 2 : 3) || isRouteOrAncestorHidden(page.route, pages)) return [];
+    const projectSlug = flat ? specialty : slug;
+
+    const studio = studioBySlug.get(projectSlug);
+    const parent = pagesByRoute.get(page.parentRoute);
+    const category = studio?.category || parent?.name || "";
+    const year =
+      page.pairedBoxes?.find(({ key }) => key.trim().toLowerCase() === "year")?.value ||
+      String(studio?.year || "");
+    const assets = mediaByRoute.get(page.route) ?? new Map<string, string>();
+    const sources = [page.coverPhoto, ...(studio?.images ?? []).map(({ url }) => url)]
+      .filter(Boolean)
+      .map((src) => filenameKeyFromSrc(src))
+      .filter((key) => !hiddenMedia.has(key));
+    const coverKey = filenameKeyFromSrc(page.coverPhoto);
+    if (coverKey && !hiddenMedia.has(coverKey) && !assets.has(coverKey)) {
+      assets.set(coverKey, page.coverPhoto);
+    }
+    const [cover, detail = cover] = [...new Set([...sources, ...assets.keys()])]
+      .flatMap((key) => assets.get(key) || [])
+      .slice(0, 2);
+
+    return [{
+      route: page.route,
+      discipline,
+      specialty,
+      slug,
+      flat,
+      title: page.name,
+      titleFa: page.nameFa || studio?.titleFa || PROJECT_TITLE_FA[projectSlug] || page.name,
+      category,
+      categoryFa:
+        PROJECT_ROLE_FA[category] || parent?.nameFa || PROJECT_ROLE_FA[parent?.name ?? ""] || category,
+      year,
+      cover,
+      detail,
+    }];
+  }).sort((a, b) => b.year.localeCompare(a.year));
+}
+
+function WorkImage({ source }: { source?: string }) {
+  const src = useResolvedMediaSrc(source);
+  if (!src) return null;
+  if (/\.(mp4|webm|mov)(\?|#|$)|^data:video\//i.test(source ?? "")) {
+    if (resolveKnownAssetStem(source ?? "") === "video-echo-prime-01") {
+      return <img src="/video-echo-prime-poster.webp" alt="" loading="lazy" />;
+    }
+    return <video src={src} preload="metadata" muted playsInline aria-hidden="true" />;
+  }
+  return <img src={src} alt="" loading="lazy" decoding="async" />;
+}
+
 function SelectedWork({ lang }: { lang: Lang }) {
+  const [projects, setProjects] = useState(readPortfolioWork);
+  useEffect(() => {
+    const update = () => setProjects(readPortfolioWork());
+    update();
+    return subscribeToVaultStore(update);
+  }, []);
+
+  if (!projects.length) return null;
   const isFa = lang === "fa";
   const titleFont = isFa ? "font-farsi" : "font-display";
 
@@ -690,26 +629,43 @@ function SelectedWork({ lang }: { lang: Lang }) {
         id="about-selected-work"
         className={`mx-auto max-w-6xl px-6 pt-12 text-3xl font-bold tracking-tight md:px-10 md:text-4xl ${titleFont}`}
       >
-        {isFa ? "گزیده آثار" : "Selected Work"}
+        {isFa ? "پروژه‌ها" : "Projects"}
       </h2>
       <ol role="list" className="about-work-list mx-auto max-w-[90rem] px-6 md:px-10" dir="ltr">
-        {SELECTED_WORK.map(({ project, detail }) => (
-          <li key={project.id} className="about-work-item">
+        {projects.map((project) => (
+          <li key={project.route} className="about-work-item">
             <div className="about-work-caption text-center" dir={isFa ? "rtl" : "ltr"}>
               <p className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-sm text-foreground/70">
-                <span>{isFa ? (PROJECT_ROLE_FA[project.category] ?? project.category) : project.category}</span>
-                <span aria-hidden="true" className="h-1 w-1 rounded-full bg-secondary" />
-                <span className="tabular-nums">{project.year}</span>
+                <span>{isFa ? project.categoryFa : project.category}</span>
+                {project.year && (
+                  <>
+                    {project.category && (
+                      <span aria-hidden="true" className="h-1 w-1 rounded-full bg-secondary" />
+                    )}
+                    <span className="tabular-nums">{project.year}</span>
+                  </>
+                )}
               </p>
               <h3 className={`mt-2 text-[clamp(1.75rem,3.5vw,3.5rem)] font-extrabold leading-tight tracking-tight ${titleFont}`}>
-                {isFa ? (PROJECT_TITLE_FA[project.id] ?? project.title) : project.title}
+                {isFa ? project.titleFa : project.title}
               </h3>
               <Link
-                to="/$discipline/$specialty/$project"
+                to={project.flat ? "/$discipline/$specialty" : "/$discipline/$specialty/$project"}
                 params={{
                   discipline: project.discipline,
-                  specialty: project.discipline === "photography" ? "fashion-photography" : "visual-identity",
-                  project: project.id,
+                  specialty: project.specialty,
+                  ...(project.slug ? { project: project.slug } : {}),
+                }}
+                onFocus={(event) => {
+                  const link = event.currentTarget;
+                  const caption = link.parentElement;
+                  if (
+                    link.matches(":focus-visible") &&
+                    caption &&
+                    getComputedStyle(caption).animationName === "about-work-center"
+                  ) {
+                    caption.parentElement?.scrollIntoView({ block: "center", behavior: "instant" });
+                  }
                 }}
                 className="mt-4 inline-flex min-h-11 items-center rounded-full border border-foreground/20 px-4 text-sm font-medium transition-colors hover:border-secondary hover:text-secondary focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-secondary"
               >
@@ -717,10 +673,10 @@ function SelectedWork({ lang }: { lang: Lang }) {
               </Link>
             </div>
             <div className="about-work-image about-work-image-primary">
-              <img src={project.image} alt="" loading="lazy" decoding="async" />
+              <WorkImage source={project.cover} />
             </div>
             <div className="about-work-image about-work-image-detail">
-              <img src={detail} alt="" loading="lazy" decoding="async" />
+              <WorkImage source={project.detail} />
             </div>
           </li>
         ))}
@@ -841,7 +797,7 @@ function Timeline({
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const filterKey = CATEGORY_FILTERS.filter((k) => filters.has(k)).join(",");
-  const milestones = filters.size === 0 ? [] : MILESTONES.filter((m) => filters.has(m.category));
+  const milestones = CAREER_MILESTONES.filter((m) => filters.has(m.category));
   const isFa = lang === "fa";
 
   const { scrollYProgress } = useScroll({
@@ -1009,9 +965,7 @@ function TimelineEntry({
     : "md:order-1 md:pr-16 md:justify-end";
   const cardAlign = flip ? "md:order-1 md:pr-16 md:text-right" : "md:order-2 md:pl-16 md:text-left";
 
-  const showGallery =
-    (milestone.category === "Job" || milestone.category === "Project") &&
-    !!milestone.photos?.length;
+  const showGallery = !!milestone.photos?.length;
   const CategoryIcon = CATEGORY_ICON[milestone.category];
 
   return (

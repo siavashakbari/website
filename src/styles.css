@@ -145,11 +145,11 @@
   position: fixed;
   inset: 0 auto auto 0;
   z-index: 2147483647;
-  width: 10px;
-  height: 10px;
+  width: 20px;
+  height: 20px;
   border-radius: 50%;
   background: white;
-  mix-blend-mode: difference;
+  box-shadow: 0 0 0 1px rgb(0 0 0 / 35%);
   pointer-events: none;
 }
 
@@ -433,7 +433,17 @@
 }
 
 .home-hero-cta:active {
-  background: color-mix(in srgb, var(--background), var(--secondary) 18%);
+  background-color: color-mix(in srgb, var(--background), var(--secondary) 18%);
+}
+
+@media (any-hover: hover) and (any-pointer: fine) {
+  .site-cursor-active .home-hero-cta:hover {
+    background-image: radial-gradient(
+      circle 90px at var(--cta-light-x, 50%) var(--cta-light-y, 50%),
+      rgb(63 235 204 / 20%),
+      transparent
+    );
+  }
 }
 
 .home-hero-cta:focus-visible {

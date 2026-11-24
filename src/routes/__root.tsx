@@ -225,16 +225,21 @@ function RootShell({ children }: { children: ReactNode }) {
         return;
       }
 
-      cursor.style.transform = `translate3d(${event.clientX - 5}px, ${event.clientY - 5}px, 0)`;
+      cursor.style.transform = `translate3d(${event.clientX}px, ${event.clientY}px, 0) translate(-50%, -50%)`;
       if (cursor.hidden) {
         cursor.hidden = false;
         root.classList.add("site-cursor-active");
       }
       for (const pill of pills()) {
-        const edge = nearestEdge(pill.getBoundingClientRect(), event.clientX, event.clientY);
+        const rect = pill.getBoundingClientRect();
+        const edge = nearestEdge(rect, event.clientX, event.clientY);
         pill.style.setProperty("--nav-glow-x", `${edge.x}px`);
         pill.style.setProperty("--nav-glow-y", `${edge.y}px`);
         pill.style.setProperty("--nav-glow-opacity", String(Math.max(0, 1 - edge.distance / 70)));
+        if (pill.classList.contains("home-hero-cta")) {
+          pill.style.setProperty("--cta-light-x", `${event.clientX - rect.left}px`);
+          pill.style.setProperty("--cta-light-y", `${event.clientY - rect.top}px`);
+        }
       }
     };
 
