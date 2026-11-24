@@ -7,7 +7,7 @@
 @font-face {
   font-family: "Allo";
   src: url("./assets/fonts/AlloVariable.woff2") format("woff2");
-  font-weight: 400 700;
+  font-weight: 300 700;
   font-style: normal;
   font-display: swap;
 }
@@ -17,6 +17,17 @@
   font-family: "Peyda";
   src: url("./assets/fonts/peyda/peyda-thin.ttf") format("truetype");
   font-weight: 100;
+  font-style: normal;
+  font-display: swap;
+  ascent-override: 101%;
+  descent-override: 24%;
+  line-gap-override: 10%;
+  unicode-range: U+0600-06FF, U+0750-077F, U+08A0-08FF, U+200C-200D, U+FB50-FDFF, U+FE70-FEFF;
+}
+@font-face {
+  font-family: "Peyda";
+  src: url("./assets/fonts/peyda/peyda-light.ttf") format("truetype");
+  font-weight: 300;
   font-style: normal;
   font-display: swap;
   ascent-override: 101%;
@@ -138,7 +149,7 @@
   padding-inline: clamp(12px, 1.4vw, 23px);
   color: var(--foreground);
   font-size: clamp(10px, 0.88vw, 14px);
-  font-weight: 500;
+  font-weight: 400;
 }
 
 .top-nav-link[data-status="active"] {
@@ -154,7 +165,7 @@
   content: "";
   position: absolute;
   inset: 50% 0 auto;
-  height: 24px;
+  height: 33.6px;
   border: 1px solid color-mix(in srgb, currentColor 55%, transparent);
   border-radius: 999px;
   transform: translateY(-50%);
@@ -181,13 +192,13 @@
   }
 
   .site-header-landing .language-switch {
-    width: clamp(69px, 5.75vw, 90px);
-    height: 20px;
+    width: clamp(86px, 7.8vw, 110px);
+    height: 28px;
   }
 
   .site-header-landing .language-switch > span[lang] {
     padding-block: 0;
-    font-size: clamp(8px, 0.67vw, 10px);
+    font-size: clamp(10px, 0.9vw, 13px);
   }
 }
 
@@ -274,7 +285,7 @@
   isolation: isolate;
   display: grid;
   align-items: center;
-  min-height: max(440px, calc(100svh - var(--landing-header-height)));
+  min-height: max(440px, calc(100dvh - var(--landing-header-height)));
   overflow: clip;
   background: #000;
   color: #fff;
@@ -298,7 +309,7 @@
   position: absolute;
   z-index: 1;
   inset-inline-end: 0.2%;
-  bottom: 7.5%;
+  bottom: 0;
   width: 50%;
   height: 103.4%;
   object-fit: contain;
@@ -324,13 +335,13 @@
 .home-hero-intro h1 {
   color: rgb(255 255 255 / 80%);
   font-size: clamp(16px, 1.95vw, 30px);
-  font-weight: 400;
+  font-weight: 300;
   line-height: 1.25;
 }
 
 .home-hero-roles {
   margin-top: clamp(14px, 1.65vw, 26px);
-  font-size: clamp(19px, 2.52vw, 40px);
+  font-size: clamp(20px, 2.7vw, 42px);
   font-weight: 600;
   line-height: 1.4;
 }
@@ -354,28 +365,25 @@
     }
 
     .home-hero-word {
-      position: relative;
       display: inline-block;
-      color: transparent;
-      -webkit-text-stroke: var(--role-outline-width, 1px) rgb(255 255 255 / 85%);
-    }
-
-    .home-hero-word::after {
-      content: attr(data-word);
-      position: absolute;
-      inset: 0;
-      color: #fff;
-      -webkit-text-stroke: 0;
-      animation: home-hero-fill auto steps(1, end) both;
+      -webkit-text-stroke-width: 1px;
+      animation: home-hero-fill auto cubic-bezier(0.2, 0.75, 0.25, 1) both;
       animation-timeline: --home-hero;
-      animation-range: contain 0% contain var(--fill-at);
+      animation-range: contain var(--fill-start) contain var(--fill-end);
     }
   }
 }
 
 @keyframes home-hero-fill {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    color: transparent;
+    -webkit-text-stroke-color: rgb(255 255 255 / 65%);
+  }
+
+  to {
+    color: #fff;
+    -webkit-text-stroke-color: transparent;
+  }
 }
 
 .home-hero-actions {
@@ -532,7 +540,7 @@
 
   .home-hero {
     grid-template-rows: minmax(min-content, 1fr) auto;
-    min-height: max(480px, calc(100svh - var(--landing-header-height)));
+    min-height: max(480px, calc(100dvh - var(--landing-header-height)));
   }
 
   .home-hero-copy {
@@ -543,8 +551,7 @@
   }
 
   .home-hero-roles {
-    --role-outline-width: 0.65px;
-    font-size: clamp(17px, 4.5vw, 27px);
+    font-size: clamp(18px, 4.8vw, 29px);
   }
 
   .home-hero-stats,
@@ -576,7 +583,7 @@
     justify-self: center;
     width: min(100%, 540px);
     height: min(43svh, 370px);
-    margin-block: 6px 3svh;
+    margin-top: 6px;
     object-position: bottom center;
   }
 }

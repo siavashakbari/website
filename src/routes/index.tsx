@@ -81,10 +81,10 @@ function Index() {
                             {lineIndex > 0 && " "}
                             <span
                               className="home-hero-word"
-                              data-word={text}
                               style={
                                 {
-                                  "--fill-at": `${((index + 1) / wordCount) * 100}%`,
+                                  "--fill-start": `${(index / wordCount) * 100}%`,
+                                  "--fill-end": `${((index + 0.62) / wordCount) * 100}%`,
                                 } as CSSProperties
                               }
                             >
