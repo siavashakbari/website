@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState, type FormEvent } from "react";
 import {
   SITE_SEED,
+  appearanceSettings,
   publishSiteContent,
   readSiteContent,
   type SiteContent,
@@ -261,6 +262,26 @@ function SiteContentEditor() {
               />
             )}
           </div>
+        )}
+        {pageId === "landing" && (
+          <fieldset className="grid gap-4 rounded-xl border border-white/10 p-4 sm:grid-cols-2">
+            <legend className="px-1 text-sm text-[#2CE3C0]">Shared header and landing appearance</legend>
+            {appearanceSettings.map(setting => (
+              <label key={setting.id} className="text-xs text-neutral-300">
+                {setting.label}
+                <input type="number" min={setting.min} max={setting.max} step={setting.step}
+                  defaultValue={draft.appearance?.[setting.id] ?? setting.value} required
+                  onChange={event => {
+                    const value = event.currentTarget.valueAsNumber;
+                    if (Number.isFinite(value)) setDraft(current => ({
+                      ...current, appearance: { ...current.appearance, [setting.id]: value },
+                    }));
+                  }}
+                  className="mt-1 block w-full rounded-lg border border-white/15 bg-black/50 p-2 text-sm text-white"
+                />
+              </label>
+            ))}
+          </fieldset>
         )}
         {page.links.map((link) => (
           <fieldset key={link.id} className="rounded-xl border border-white/10 p-4">

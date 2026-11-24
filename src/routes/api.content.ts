@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { readVercelPublishedContent, saveVercelPublishedContent } from "@/lib/vercel-blob-content.server";
 import { requireVaultAdmin } from "@/lib/vault-auth.server";
 import { validateSnapshot } from "@/lib/published-store-core";
+import { SITE_CONTENT_KEY, validateSiteContent } from "@/lib/site-content";
 
 const headers = { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" };
 const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status, headers });
@@ -31,7 +32,13 @@ export const Route = createFileRoute("/api/content")({
           if (!Number.isInteger(expectedRevision) || expectedRevision < 0) {
             return json({ error: "Invalid content revision." }, 400);
           }
-          validateSnapshot(body?.next_content);
+          try {
+            validateSnapshot(body?.next_content);
+            const site = body.next_content[SITE_CONTENT_KEY];
+            if (site !== undefined) validateSiteContent(JSON.parse(site));
+          } catch (error) {
+            return json({ error: error instanceof Error ? error.message : "Invalid content." }, 400);
+          }
           const revision = await saveVercelPublishedContent(body.next_content, expectedRevision);
           return json({ revision });
         } catch (error) {

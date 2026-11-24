@@ -8,11 +8,12 @@ if (!token) throw new Error("A local Vercel Blob read/write token is required fo
 const blob = await get("vault/published-content.json", { access: "private", token, useCache: false });
 assert.ok(blob?.stream);
 const snapshot = await new Response(blob.stream).json();
+const siteContent = JSON.parse(snapshot.content.siavash_site_content_v1);
 const media = JSON.parse(snapshot.content.siavash_vault_media_v2);
 const pages = JSON.parse(snapshot.content.siavash_vault_pages_v2);
 const blogs = JSON.parse(snapshot.content.siavash_studio_custom_blogs);
 const photo = media.find((item) => item.uniqueCode === "1017");
-const project = pages.find((item) => item.route === "/photography/fashion-photography/sepidar");
+const project = pages.find((item) => item.route === photo?.assignedRoute);
 const blog = blogs.find((item) => item.published !== false);
 assert.ok(photo && project && blog);
 
@@ -36,6 +37,21 @@ try {
     assert.equal(response.status, 200, `${path} failed`);
     assert.match(response.headers.get("cache-control") || "", /no-store/);
     assert.ok((await response.text()).toLowerCase().includes(expected.toLowerCase()), `${path} did not render current content in its first HTML`);
+  }
+  for (const locale of ["en", "fa"]) {
+    const response = await fetch(base + "/" + locale);
+    assert.equal(response.status, 200);
+    const html = (await response.text()).replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, "");
+    const heading = /<h1[^>]*id="home-heading"[^>]*>(.*?)<\/h1>/s.exec(html);
+    assert.ok(heading?.[1].trim(), locale + " landing heading missing");
+    const numbers = Array.from(html.matchAll(/<strong class="home-hero-stat-number"[^>]*>(.*?)<\/strong>/gs), match => match[1]);
+    const expectedNumbers = ["statYears", "statProjects", "statAssets"].map(id => {
+      const field = siteContent.landing.fields.find(field => field.id === id);
+      return (field.value[locale] || field.value.en).split(/\s+/)[0];
+    });
+    assert.deepEqual(numbers, expectedNumbers);
+    for (const href of (siteContent.landing.links.length ? siteContent.landing.links.map(link => link.href) : ["/contact", "/brand-discovery"]).filter(href => href.startsWith("/")))
+      assert.ok(html.includes('href="/' + locale + href + '"'), locale + href);
   }
   console.log("Vercel Blob content appears in the first HTML for photo, project, blog, and video routes.");
 } finally {

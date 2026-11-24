@@ -12,7 +12,27 @@ export interface SitePageContent {
   links: SiteLink[];
   imageUrl?: string;
 }
+export const appearanceSettings = [
+  { id: "header-scale", label: "Header height multiplier", value: 0.85, min: 0.65, max: 1.3, step: 0.01 },
+  { id: "nav-gap", label: "Menu spacing multiplier", value: 1, min: 0.5, max: 2, step: 0.05 },
+  { id: "logo-scale", label: "Desktop logo size multiplier", value: 1, min: 0.7, max: 1.3, step: 0.05 },
+  { id: "switch-scale", label: "Desktop language switch size multiplier", value: 1, min: 0.8, max: 1.4, step: 0.05 },
+  { id: "pill-height", label: "Menu pill height (px)", value: 33.6, min: 22, max: 44, step: 0.1 },
+  { id: "nav-weight", label: "Inactive menu weight", value: 300, min: 300, max: 600, step: 100 },
+  { id: "glow", label: "Button glow opacity", value: 0.2, min: 0, max: 0.6, step: 0.01 },
+  { id: "intro-scale", label: "Introduction size multiplier", value: 1, min: 0.75, max: 1.3, step: 0.05 },
+  { id: "intro-weight", label: "Introduction weight", value: 300, min: 300, max: 700, step: 100 },
+  { id: "roles-scale", label: "Services size multiplier", value: 1, min: 0.75, max: 1.3, step: 0.05 },
+  { id: "outline", label: "Service outline width (px)", value: 0.5, min: 0.1, max: 2, step: 0.1 },
+  { id: "fill", label: "Word interval used for filling (%)", value: 62, min: 10, max: 100, step: 1 },
+  { id: "counter-weight", label: "Counter weight", value: 400, min: 300, max: 700, step: 100 },
+  { id: "portrait-width", label: "Desktop portrait width (%)", value: 50, min: 30, max: 65, step: 1 },
+  { id: "copy-inset", label: "Desktop text inset (%)", value: 8.8, min: 2, max: 15, step: 0.1 },
+] as const;
+
 export interface SiteContent {
+  landingCopyRevision?: 2;
+  appearance?: Partial<Record<(typeof appearanceSettings)[number]["id"], number>>;
   version: 1;
   landing: SitePageContent;
   about: SitePageContent;
@@ -23,8 +43,15 @@ export interface SiteContent {
 
 export const SITE_SEED: SiteContent = {
   version: 1,
+  landingCopyRevision: 2,
   landing: {
     fields: [
+      { id: "nav-home", section: "Shared navigation", label: "Home menu label", value: { en: "Home", fa: "خانه" } },
+      { id: "nav-works", section: "Shared navigation", label: "Works menu label", value: { en: "Works", fa: "آثار" } },
+      { id: "nav-brief", section: "Shared navigation", label: "Visual Identity Form menu label", value: { en: "Visual Identity Form", fa: "فرم هویت بصری" } },
+      { id: "nav-blog", section: "Shared navigation", label: "Blog menu label", value: { en: "Blog", fa: "وبلاگ" } },
+      { id: "nav-about", section: "Shared navigation", label: "About menu label", value: { en: "About", fa: "درباره" } },
+      { id: "nav-contact", section: "Shared navigation", label: "Contact menu label", value: { en: "Contact", fa: "تماس" } },
       {
         id: "heading",
         section: "Hero",
@@ -96,7 +123,10 @@ export const SITE_SEED: SiteContent = {
         value: { en: SITE_DESCRIPTION, fa: "" },
       },
     ],
-    links: [],
+    links: [
+      { id: "contact", label: { en: "Tell me how I can help you", fa: "بگویید چطور می‌توانم کمک کنم" }, href: "/contact" },
+      { id: "brief", label: { en: "Create a brief for your brand", fa: "برای برندتان بریف بسازید" }, href: "/brand-discovery" },
+    ],
     imageUrl: "/hero-portrait-transparent-v2.webp",
   },
   about: {
@@ -320,6 +350,16 @@ function isLocalized(value: unknown): value is Localized {
 export function validateSiteContent(value: unknown): asserts value is SiteContent {
   if (!value || typeof value !== "object" || (value as SiteContent).version !== 1)
     throw new Error("Invalid site content version.");
+  const appearance = (value as SiteContent).appearance;
+  if (appearance !== undefined) {
+    if (!appearance || typeof appearance !== "object" || Array.isArray(appearance))
+      throw new Error("Invalid site appearance.");
+    for (const setting of appearanceSettings) {
+      const number = appearance[setting.id];
+      if (number !== undefined && (!Number.isFinite(number) || number < setting.min || number > setting.max))
+        throw new Error("Invalid " + setting.label);
+    }
+  }
   for (const pageId of ["landing", "about", "contact", "notFound"] as const) {
     const page = (value as SiteContent)[pageId];
     if (pageId === "notFound" && !page) continue;
@@ -338,14 +378,17 @@ export function validateSiteContent(value: unknown): asserts value is SiteConten
         throw new Error(`Invalid ${pageId} field.`);
       ids.add(field.id);
     }
+    const linkIds = new Set<string>();
     for (const link of page.links) {
       if (
-        typeof link.id !== "string" ||
+        typeof link.id !== "string" || !link.id || linkIds.has(link.id) ||
         !isLocalized(link.label) ||
         typeof link.href !== "string" ||
-        !/^(?:https:\/\/|mailto:|tel:|\/)/.test(link.href)
+        !/^(?:https:\/\/[^/]|mailto:.|tel:.|\/(?!\/))/.test(link.href) ||
+        /[\\\r\n\t]/.test(link.href)
       )
         throw new Error(`Invalid ${pageId} link.`);
+      linkIds.add(link.id);
     }
     if (page.imageUrl !== undefined && typeof page.imageUrl !== "string")
       throw new Error(`Invalid ${pageId} image.`);
@@ -358,6 +401,10 @@ export function readSiteContent(): SiteContent | null {
   if (!raw) return null; // Older snapshots retain their original hardcoded renderer until explicit migration.
   const value: unknown = JSON.parse(raw);
   validateSiteContent(value);
+  const savedLinks = value.landing.links;
+  value.landing.links = [...savedLinks, ...SITE_SEED.landing.links.filter(link => !savedLinks.some(saved => saved.id === link.id))];
+  if (value.landingCopyRevision === 2) return value;
+  value.landingCopyRevision = 2;
   for (const field of value.landing.fields) {
     const previous = previousLandingCopy.get(field.id);
     if (!previous) continue;

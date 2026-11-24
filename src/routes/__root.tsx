@@ -1,7 +1,6 @@
 import {
   CONTENT_STATUS_EVENT,
   getPublishedHydrationSnapshot,
-  isContentReady,
   refreshPublishedContent,
   seedPublishedContent,
   startPublishedContentSync,
@@ -17,6 +16,8 @@ import {
 } from "@tanstack/react-router";
 import { lazy, Suspense, useEffect, useRef, useState, type ReactNode } from "react";
 import { ChevronDown, House } from "lucide-react";
+import { appearanceSettings, readSiteContent, siteField } from "@/lib/site-content";
+import type { CSSProperties } from "react";
 import { useLocale } from "@/lib/use-locale";
 import { currentLocale, localizedText, withLocale, type Locale } from "@/lib/locale";
 
@@ -341,7 +342,7 @@ function WorksDropdown({ active }: { active: boolean }) {
         data-status={active ? "active" : undefined}
         className={`${navLinkClass} gap-1`}
       >
-        <TopNavLabel>{locale === "fa" ? "آثار" : "Works"}</TopNavLabel>
+        <TopNavLabel>{siteField("landing", "nav-works", locale).text}</TopNavLabel>
         <ChevronDown
           className="size-2.5 shrink-0 transition-transform duration-200 [[data-state=open]_&]:rotate-180"
           aria-hidden
@@ -400,20 +401,20 @@ function Header() {
           </div>
           <nav className="site-header-nav hidden h-full flex-row-reverse items-center lg:flex">
             <Link to="/" activeOptions={{ exact: true }} className={navLinkClass}>
-              <TopNavLabel>{locale === "fa" ? "خانه" : "Home"}</TopNavLabel>
+              <TopNavLabel>{siteField("landing", "nav-home", locale).text}</TopNavLabel>
             </Link>
             <WorksDropdown active={worksActive} />
             <Link to="/brand-discovery" className={navLinkClass}>
-              <TopNavLabel>{locale === "fa" ? "فرم هویت بصری" : "Visual Identity Form"}</TopNavLabel>
+              <TopNavLabel>{siteField("landing", "nav-brief", locale).text}</TopNavLabel>
             </Link>
             <Link to="/blog" className={navLinkClass}>
-              <TopNavLabel>{locale === "fa" ? "وبلاگ" : "Blog"}</TopNavLabel>
+              <TopNavLabel>{siteField("landing", "nav-blog", locale).text}</TopNavLabel>
             </Link>
             <Link to="/about" className={navLinkClass}>
-              <TopNavLabel>{locale === "fa" ? "درباره" : "About"}</TopNavLabel>
+              <TopNavLabel>{siteField("landing", "nav-about", locale).text}</TopNavLabel>
             </Link>
             <Link to="/contact" className={navLinkClass}>
-              <TopNavLabel>{locale === "fa" ? "تماس" : "Contact"}</TopNavLabel>
+              <TopNavLabel>{siteField("landing", "nav-contact", locale).text}</TopNavLabel>
             </Link>
           </nav>
           <MobileNav />
@@ -499,7 +500,7 @@ function MobileNav() {
               onClick={() => setOpen(false)}
               className="menu-hover-glow font-display text-2xl font-normal text-foreground data-[status=active]:font-bold data-[status=active]:text-secondary"
             >
-              {locale === "fa" ? "خانه" : "Home"}
+              {siteField("landing", "nav-home", locale).text}
             </Link>
 
             <div>
@@ -511,7 +512,7 @@ function MobileNav() {
                   worksActive ? "font-bold text-secondary" : ""
                 }`}
               >
-                {locale === "fa" ? "آثار" : "Works"}
+                {siteField("landing", "nav-works", locale).text}
                 <ChevronDown
                   className={`h-5 w-5 shrink-0 transition-transform duration-200 ${
                     worksOpen ? "rotate-180" : ""
@@ -549,7 +550,7 @@ function MobileNav() {
               onClick={() => setOpen(false)}
               className="menu-hover-glow font-display text-2xl font-normal text-foreground data-[status=active]:font-bold data-[status=active]:text-secondary"
             >
-              {locale === "fa" ? "فرم هویت بصری" : "Visual Identity Form"}
+              {siteField("landing", "nav-brief", locale).text}
             </Link>
 
             <Link
@@ -557,7 +558,7 @@ function MobileNav() {
               onClick={() => setOpen(false)}
               className="menu-hover-glow font-display text-2xl font-normal text-foreground data-[status=active]:font-bold data-[status=active]:text-secondary"
             >
-              {locale === "fa" ? "وبلاگ" : "Blog"}
+              {siteField("landing", "nav-blog", locale).text}
             </Link>
 
             <Link
@@ -565,14 +566,14 @@ function MobileNav() {
               onClick={() => setOpen(false)}
               className="menu-hover-glow font-display text-2xl font-normal text-foreground data-[status=active]:font-bold data-[status=active]:text-secondary"
             >
-              {locale === "fa" ? "درباره" : "About"}
+              {siteField("landing", "nav-about", locale).text}
             </Link>
             <Link
               to="/contact"
               onClick={() => setOpen(false)}
               className="menu-hover-glow font-display text-2xl font-normal text-foreground data-[status=active]:font-bold data-[status=active]:text-secondary"
             >
-              {locale === "fa" ? "تماس" : "Contact"}
+              {siteField("landing", "nav-contact", locale).text}
             </Link>
           </nav>
         </div>
@@ -584,9 +585,9 @@ function MobileNav() {
 function RootComponent() {
   seedPublishedContent(Route.useLoaderData());
   useEffect(startPublishedContentSync, []);
-  const [publishedReady, setPublishedReady] = useState(isContentReady);
+  const [publishedRevision, setPublishedRevision] = useState(() => getPublishedHydrationSnapshot().revision);
   useEffect(() => {
-    const update = () => setPublishedReady(isContentReady());
+    const update = () => setPublishedRevision(getPublishedHydrationSnapshot().revision);
     window.addEventListener(CONTENT_STATUS_EVENT, update);
     update();
     return () => window.removeEventListener(CONTENT_STATUS_EVENT, update);
@@ -692,10 +693,16 @@ function RootComponent() {
     };
   }, [pathname]);
 
+  const appearance = isVaultPage ? undefined : readSiteContent()?.appearance;
+  const appearanceStyle = appearance && Object.fromEntries(
+    appearanceSettings.filter(setting => appearance[setting.id] !== undefined)
+      .map(setting => ["--vault-" + setting.id, appearance[setting.id]]),
+  );
   return (
     <QueryClientProvider client={queryClient}>
       <div
-        className={`flex flex-col bg-background ${
+        style={appearanceStyle as CSSProperties}
+        className={`portfolio-shell flex flex-col bg-background ${
           lockProjectScroll ? "h-dvh overflow-hidden overscroll-none" : "min-h-screen"
         }`}
       >
@@ -703,7 +710,7 @@ function RootComponent() {
         <main
           className={`flex-1 ${lockProjectScroll ? "flex min-h-0 flex-col overflow-hidden" : ""}`}
         >
-          {isVaultPage || publishedReady ? <Outlet /> : <PublishedPageLoading />}
+          {isVaultPage || publishedRevision >= 0 ? <Outlet /> : <PublishedPageLoading />}
         </main>
         {!hideFooter && (
           <Suspense fallback={null}>

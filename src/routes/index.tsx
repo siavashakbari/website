@@ -2,9 +2,9 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import type { CSSProperties } from "react";
 import { BinaryBannerCanvas } from "@/components/BinaryBannerCanvas";
 import { DisciplinesMarquee } from "@/components/DisciplinesMarquee";
-import { currentLocale } from "@/lib/locale";
+import { currentLocale, localizedText } from "@/lib/locale";
 import { SITE_DESCRIPTION, SITE_TITLE_DEFAULT, pageHead } from "@/lib/seo";
-import { readSiteContent, siteField } from "@/lib/site-content";
+import { SITE_SEED, readSiteContent, siteField } from "@/lib/site-content";
 import { useLocale } from "@/lib/use-locale";
 
 const PORTRAIT_FALLBACK = "/hero-portrait-transparent-v2.webp";
@@ -46,7 +46,8 @@ function splitStat(value: string) {
 
 function Index() {
   const locale = useLocale();
-  const portraitUrl = portraitSrc(readSiteContent()?.landing.imageUrl);
+  const content = readSiteContent() ?? SITE_SEED;
+  const portraitUrl = portraitSrc(content.landing.imageUrl);
   const heroHeading = siteField("landing", "heading", locale);
   const heroAlt = siteField("landing", "heroAlt", locale);
   let wordCount = 0;
@@ -84,7 +85,7 @@ function Index() {
                               style={
                                 {
                                   "--fill-start": `${(index / wordCount) * 100}%`,
-                                  "--fill-end": `${((index + 0.62) / wordCount) * 100}%`,
+                                  "--fill-end": `${((index + (content.appearance?.fill ?? 62) / 100) / wordCount) * 100}%`,
                                 } as CSSProperties
                               }
                             >
@@ -118,14 +119,14 @@ function Index() {
                   })}
                 </div>
                 <div className="home-hero-links">
-                  <Link to="/contact" className="home-hero-cta">
-                    {locale === "fa"
-                      ? "بگویید چطور می‌توانم کمک کنم"
-                      : "Tell me how I can help you"}
-                  </Link>
-                  <Link to="/brand-discovery" className="home-hero-cta">
-                    {locale === "fa" ? "برای برندتان بریف بسازید" : "Create a brief for your brand"}
-                  </Link>
+                  {content.landing.links.map(link => {
+                    const label = localizedText(link.label.en, link.label.fa, locale);
+                    return link.href.startsWith("/") && !link.href.startsWith("//") ? (
+                      <Link key={link.id} to={link.href} className="home-hero-cta" lang={label.lang}>{label.text}</Link>
+                    ) : (
+                      <a key={link.id} href={link.href} className="home-hero-cta" lang={label.lang}>{label.text}</a>
+                    );
+                  })}
                 </div>
               </div>
             </div>

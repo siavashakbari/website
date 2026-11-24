@@ -130,8 +130,8 @@
   --font-farsi: "Peyda", "Allo", system-ui, sans-serif;
 }
 
-:root {
-  --site-header-height: calc(67.2px * 0.85);
+.portfolio-shell {
+  --site-header-height: calc(67.2px * var(--vault-header-scale, 0.85));
   --site-content-height: calc(100dvh - var(--site-header-height));
 }
 
@@ -145,11 +145,11 @@
 }
 
 .site-header-nav {
-  gap: clamp(0px, 0.18vw, 6px);
+  gap: calc(clamp(0px, 0.18vw, 6px) * var(--vault-nav-gap, 1));
 }
 
 .top-nav-link {
-  --nav-pill-height: 33.6px;
+  --nav-pill-height: calc(var(--vault-pill-height, 33.6) * 1px);
   position: relative;
   isolation: isolate;
   justify-content: center;
@@ -157,7 +157,7 @@
   border-radius: 999px;
   color: var(--foreground);
   font-size: clamp(10px, 0.88vw, 14px);
-  font-weight: 300;
+  font-weight: var(--vault-nav-weight, 300);
 }
 
 .top-nav-link[data-status="active"] {
@@ -174,7 +174,7 @@
   content: attr(data-label);
   display: block;
   visibility: hidden;
-  font-weight: 300;
+  font-weight: var(--vault-nav-weight, 300);
 }
 
 .top-nav-link[data-status="active"] .top-nav-label > span {
@@ -200,8 +200,8 @@
 }
 
 @media (min-width: 1024px) {
-  :root {
-    --site-header-height: calc(clamp(80px, 8.65vw, 112px) * 0.85);
+  .portfolio-shell {
+    --site-header-height: calc(clamp(80px, 8.65vw, 112px) * var(--vault-header-scale, 0.85));
   }
 
   .site-header-bar {
@@ -209,13 +209,13 @@
   }
 
   .site-header-wordmark {
-    width: clamp(122px, 10.25vw, 164px);
+    width: calc(clamp(122px, 10.25vw, 164px) * var(--vault-logo-scale, 1));
     height: auto;
   }
 
   .site-header .language-switch {
-    width: clamp(86px, 7.8vw, 110px);
-    height: 28px;
+    width: calc(clamp(86px, 7.8vw, 110px) * var(--vault-switch-scale, 1));
+    height: calc(28px * var(--vault-switch-scale, 1));
   }
 
   .site-header .language-switch > span[lang] {
@@ -332,7 +332,7 @@
   z-index: 1;
   inset-inline-end: 0.2%;
   bottom: 0;
-  width: 50%;
+  width: calc(var(--vault-portrait-width, 50) * 1%);
   height: 103.4%;
   object-fit: contain;
   object-position: bottom right;
@@ -350,20 +350,20 @@
   flex-direction: column;
   gap: clamp(24px, 3.35vw, 52px);
   width: min(48%, 760px);
-  margin-inline-start: 8.8%;
+  margin-inline-start: calc(var(--vault-copy-inset, 8.8) * 1%);
   padding-block: 24px 58px;
 }
 
 .home-hero-intro h1 {
   color: rgb(255 255 255 / 80%);
-  font-size: clamp(15px, 1.8vw, 28px);
-  font-weight: 300;
+  font-size: calc(clamp(15px, 1.8vw, 28px) * var(--vault-intro-scale, 1));
+  font-weight: var(--vault-intro-weight, 300);
   line-height: 1.25;
 }
 
 .home-hero-roles {
   margin-top: clamp(14px, 1.65vw, 26px);
-  font-size: clamp(20px, 2.7vw, 42px);
+  font-size: calc(clamp(20px, 2.7vw, 42px) * var(--vault-roles-scale, 1));
   font-weight: 600;
   line-height: 1.4;
 }
@@ -388,7 +388,7 @@
 
     .home-hero-word {
       display: inline-block;
-      -webkit-text-stroke-width: 0.5px;
+      -webkit-text-stroke-width: calc(var(--vault-outline, 0.5) * 1px);
       animation: home-hero-fill auto cubic-bezier(0.2, 0.75, 0.25, 1) both;
       animation-timeline: --home-hero;
       animation-range: contain var(--fill-start) contain var(--fill-end);
@@ -426,7 +426,7 @@
   display: block;
   font-family: var(--font-body);
   font-size: clamp(19px, 2vw, 32px);
-  font-weight: 400;
+  font-weight: var(--vault-counter-weight, 400);
   line-height: 1.12;
 }
 
@@ -474,7 +474,7 @@
 
 @media (any-hover: hover) and (any-pointer: fine) {
   .site-cursor-active :is(.home-hero-cta, .top-nav-link) {
-    --interior-glow-opacity: calc(0.2 * var(--pointer-glow-strength, 0));
+    --interior-glow-opacity: calc(var(--vault-glow, 0.2) * var(--pointer-glow-strength, 0));
   }
 
   .site-cursor-active .top-nav-link::before {
@@ -586,7 +586,7 @@
   }
 
   .home-hero-roles {
-    font-size: clamp(18px, 4.8vw, 29px);
+    font-size: calc(clamp(18px, 4.8vw, 29px) * var(--vault-roles-scale, 1));
   }
 
   .home-hero-stats,

@@ -14,7 +14,7 @@ async function browser(server, initialStorage = {}) {
     queueMicrotask,
     setTimeout,
     clearTimeout,
-    window: new EventTarget(),
+    window: Object.assign(new EventTarget(), { location: { pathname: "/en" }, setTimeout, clearTimeout }),
     document: { visibilityState: "visible" },
     localStorage: {
       getItem: (key) => storage.get(key) ?? null,
@@ -50,8 +50,41 @@ async function browser(server, initialStorage = {}) {
   }
   const entry = await module("./published-store");
   await entry.evaluate();
-  return { api: entry.namespace, storage };
+  return { api: entry.namespace, storage, async siteContent() {
+    const site = await module("./site-content");
+    await site.evaluate();
+    return site.namespace;
+  } };
 }
+
+test("landing and shared menu edits survive publication and a fresh visitor load", async () => {
+  const server = { revision: 7, content: {} };
+  const editor = await browser(server);
+  const site = await editor.siteContent();
+  const legacy = structuredClone(site.SITE_SEED);
+  delete legacy.landingCopyRevision;
+  legacy.landing.links = [];
+  legacy.landing.fields.find(field => field.id === "role1").value.en = "Multi-disciplinary Designer";
+  server.content[site.SITE_CONTENT_KEY] = JSON.stringify(legacy);
+  await editor.api.refreshPublishedContent();
+  const draft = site.readSiteContent();
+  const role = draft.landing.fields.find(field => field.id === "role1");
+  assert.equal(role.value.en, "Photography, Visual Identity Design");
+  role.value.en = "Multi-disciplinary Designer";
+  draft.landing.fields.find(field => field.id === "nav-home").value.fa = "خانه من";
+  draft.landing.links[0].href = "/about";
+  draft.landing.links[0].label.en = "Meet me";
+  draft.appearance = { outline: 0.3, "counter-weight": 300, fill: 48 };
+  assert.throws(() => site.publishSiteContent({ ...draft, appearance: { outline: -1 } }));
+  site.publishSiteContent(draft);
+  await editor.api.waitForPublishedContentSave();
+  const visitor = await browser(server);
+  await visitor.api.refreshPublishedContent();
+  const publicSite = await visitor.siteContent();
+  assert.deepEqual(JSON.parse(JSON.stringify(publicSite.readSiteContent())), JSON.parse(JSON.stringify(draft)));
+  assert.equal(publicSite.siteField("landing", "nav-home", "fa").text, "خانه من");
+  assert.equal(server.revision, 8);
+});
 
 test("media metadata survives independent browser loads; visitors do not publish legacy state", async () => {
   const server = { revision: 0, content: {} };
