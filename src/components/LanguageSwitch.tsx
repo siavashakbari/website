@@ -56,13 +56,14 @@ export function LanguageSwitch() {
         }
         if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey)
           return;
-        if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+        if (window.matchMedia("(width < 1024px), (prefers-reduced-motion: reduce)").matches) return;
         event.preventDefault();
         setSwitching(true);
         window.setTimeout(() => window.location.assign(targetUrl), 550);
       }}
       className="language-switch menu-hover-glow relative flex h-[32px] w-[120px] shrink-0 flex-row-reverse items-center rounded-full border border-foreground/20 bg-white/[0.06] p-[3px] text-center no-underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary"
     >
+      <span className="language-switch-current" aria-hidden>{locale.toUpperCase()}</span>
       <span
         aria-hidden
         className={`pointer-events-none absolute inset-y-[3px] w-[calc((100%-6px)*0.68)] rounded-full bg-[#2CE3C0] motion-safe:transition-[left] motion-safe:duration-[280ms] motion-safe:ease-[cubic-bezier(0.22,1,0.36,1)] ${selectedLocale === "en" ? "left-[calc(3px+(100%-6px)*0.32)]" : "left-[3px]"}`}

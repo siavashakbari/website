@@ -230,9 +230,9 @@
     "semantic_hash": "212a2445c58a06ac7de540be9c6c68f6"
   },
   "src/components/LanguageSwitch.tsx": {
-    "mtime": 1795508950.1200838,
-    "seen": 1795508976.5393353,
-    "ast_hash": "b648f0e6f8137c81081884af389deab6",
+    "mtime": 1795545751.3271632,
+    "seen": 1795545786.154914,
+    "ast_hash": "d7de25978ecce1cba9e863a661d347af",
     "semantic_hash": ""
   },
   "src/components/Logo.tsx": {
