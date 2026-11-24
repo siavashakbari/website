@@ -103,7 +103,8 @@
 .about-orbit-image {
   --work-delta: calc(var(--work-index) - var(--work-position, 0));
   --work-angle: calc(clamp(-2.8, var(--work-delta), 2.8) * 34deg);
-  --work-depth: min(1, max(var(--work-delta), -1 * var(--work-delta)) / 2.65);
+  --work-distance: max(var(--work-delta), -1 * var(--work-delta));
+  --work-depth: min(1, var(--work-distance) / 2.65);
   /* Both axes use the same radius so the centers follow circular arcs. */
   --work-x: calc(var(--work-side) * var(--work-radius) * (1 - cos(var(--work-angle))));
   --work-y: calc(var(--work-radius) * sin(var(--work-angle)));
@@ -115,7 +116,12 @@
   transform:
     translate(calc(-50% + var(--work-x)), calc(-50% + var(--work-y)))
     rotate(calc(-0.48 * var(--work-side) * var(--work-angle)))
-    scale(calc(1 - 0.45 * var(--work-depth) * (0.6 + 0.4 * var(--work-depth))));
+    scale(
+      calc(
+        (1 - 0.45 * var(--work-depth) * (0.6 + 0.4 * var(--work-depth))) *
+        max(0.5, 1 - var(--work-distance) / 2)
+      )
+    );
   filter: blur(calc(6px * var(--work-depth)));
   opacity: calc(1 - var(--work-depth));
 }

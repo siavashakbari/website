@@ -230,9 +230,9 @@
     "semantic_hash": "212a2445c58a06ac7de540be9c6c68f6"
   },
   "src/components/LanguageSwitch.tsx": {
-    "mtime": 1794755986.9070258,
-    "seen": 1794756273.990976,
-    "ast_hash": "fdc1396fe593814754988b43f1e4ee73",
+    "mtime": 1795508950.1200838,
+    "seen": 1795508976.5393353,
+    "ast_hash": "b648f0e6f8137c81081884af389deab6",
     "semantic_hash": ""
   },
   "src/components/Logo.tsx": {
@@ -657,15 +657,15 @@
     "semantic_hash": ""
   },
   "src/routes/__root.tsx": {
-    "mtime": 1795507600.8788059,
-    "seen": 1795507682.6534734,
-    "ast_hash": "286c4aac2ba7ab14d5840b1a4692a2e8",
+    "mtime": 1795508949.7133858,
+    "seen": 1795508976.5443206,
+    "ast_hash": "3bf2733c73b3487d50ee57ccbf15a53c",
     "semantic_hash": ""
   },
   "src/routes/about.tsx": {
-    "mtime": 1795507601.235196,
-    "seen": 1795507682.6534748,
-    "ast_hash": "55784710399fb0c9661b1849b2c87a3c",
+    "mtime": 1795509127.2467763,
+    "seen": 1795509143.066739,
+    "ast_hash": "5dc863fe820ecf93e4acded9447fe4c5",
     "semantic_hash": ""
   },
   "src/routes/admin.blog.tsx": {
@@ -948,6 +948,12 @@
     "mtime": 1794755138.813723,
     "seen": 1794756273.997323,
     "ast_hash": "b166b47f75dbdd5baae0f26b810af8eb",
+    "semantic_hash": ""
+  },
+  "src/assets/fonts/Allo-OFL.txt": {
+    "mtime": 1795508691.1957018,
+    "seen": 1795508773.1801808,
+    "ast_hash": "de4fb22e2d97d20cdd4fc2977c7f70a4",
     "semantic_hash": ""
   },
   "package-lock.json": {

@@ -61,7 +61,7 @@ export function LanguageSwitch() {
         setSwitching(true);
         window.setTimeout(() => window.location.assign(targetUrl), 550);
       }}
-      className="language-switch relative flex h-[32px] w-[120px] shrink-0 flex-row-reverse items-center rounded-full border border-foreground/20 bg-white/[0.06] p-[3px] text-center no-underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary"
+      className="language-switch menu-hover-glow relative flex h-[32px] w-[120px] shrink-0 flex-row-reverse items-center rounded-full border border-foreground/20 bg-white/[0.06] p-[3px] text-center no-underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary"
     >
       <span
         aria-hidden

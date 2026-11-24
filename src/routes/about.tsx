@@ -672,10 +672,12 @@ function WorkOrbit({ projects, isFa }: { projects: PortfolioWork[]; isFa: boolea
   const index = Math.min(activeIndex, projects.length - 1);
   const active = projects[index];
   const firstVisible = Math.max(0, index - 3);
-  const titleOffset = useTransform(position, (value) => {
-    const first = Math.floor(value);
-    const transition = Math.max(0, Math.min(1, (value - first - 0.28) / 0.44));
-    return `translateY(calc(var(--work-title-height) * ${-(first + transition)}))`;
+  const titleOffset = useTransform(position, (value) =>
+    `translateY(calc(var(--work-title-height) * ${-value}))`,
+  );
+  const titleBlur = useTransform(position, (value) => {
+    const distance = Math.abs(value - Math.round(value));
+    return `blur(${6 * Math.sin(Math.PI * distance)}px)`;
   });
 
   const goTo = (next: number) => {
@@ -708,7 +710,7 @@ function WorkOrbit({ projects, isFa }: { projects: PortfolioWork[]; isFa: boolea
           <div className="about-orbit-meta">
             <WorkMetadata project={active} isFa={isFa} />
           </div>
-          <h3 className="about-orbit-title reel-window">
+          <motion.h3 className="about-orbit-title reel-window" style={{ filter: titleBlur }}>
             <span className="sr-only">{isFa ? active.titleFa : active.title}</span>
             <motion.span
               aria-hidden="true"
@@ -719,7 +721,7 @@ function WorkOrbit({ projects, isFa }: { projects: PortfolioWork[]; isFa: boolea
                 <span key={project.route}>{isFa ? project.titleFa : project.title}</span>
               ))}
             </motion.span>
-          </h3>
+          </motion.h3>
           <div className="about-orbit-actions">
             <WorkLink project={active} isFa={isFa} />
             {projects.length > 1 && (
@@ -780,9 +782,9 @@ function SelectedWork({ lang }: { lang: Lang }) {
     >
       <h2
         id="about-selected-work"
-        className="mx-auto max-w-6xl px-6 pt-12 text-3xl font-bold tracking-tight md:px-10 md:text-4xl"
+        className="mx-auto max-w-6xl px-6 pt-12 text-center text-[2.25rem] font-semibold leading-tight tracking-tight md:px-10 md:text-[2.7rem]"
       >
-        {isFa ? "پروژه‌ها" : "Projects"}
+        {isFa ? "برندهایی که به من اعتماد کرده‌اند" : "Brands that have trusted me"}
       </h2>
       <WorkOrbit projects={projects} isFa={isFa} />
       <ol role="list" className="about-work-list mx-auto max-w-[90rem] px-6 md:px-10">

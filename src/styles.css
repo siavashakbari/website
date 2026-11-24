@@ -4,25 +4,10 @@
 
 @custom-variant dark (&:is(.dark *));
 
-/* Allo — critical weights only (Regular / Medium / Bold) */
 @font-face {
   font-family: "Allo";
-  src: url("./assets/fonts/Allo-Regular.woff2") format("woff2");
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-@font-face {
-  font-family: "Allo";
-  src: url("./assets/fonts/Allo-Medium.woff2") format("woff2");
-  font-weight: 500;
-  font-style: normal;
-  font-display: swap;
-}
-@font-face {
-  font-family: "Allo";
-  src: url("./assets/fonts/Allo-Bold.woff2") format("woff2");
-  font-weight: 700;
+  src: url("./assets/fonts/AlloVariable.woff2") format("woff2");
+  font-weight: 400 700;
   font-style: normal;
   font-display: swap;
 }
@@ -398,6 +383,7 @@
 }
 
 .home-hero-cta {
+  --interior-glow-opacity: calc(0.2 * var(--pointer-glow-strength, 0));
   position: relative;
   display: inline-flex;
   align-self: flex-start;
@@ -419,10 +405,11 @@
 }
 
 @media (any-hover: hover) and (any-pointer: fine) {
-  .site-cursor-active .home-hero-cta {
+  .site-cursor-active .home-hero-cta,
+  .site-cursor-active .menu-hover-glow:hover {
     background-image: radial-gradient(
-      circle 90px at var(--cta-light-x, 50%) var(--cta-light-y, 50%),
-      rgb(63 235 204 / calc(0.2 * var(--pointer-glow-strength, 0))),
+      circle 90px at var(--pointer-light-x, 50%) var(--pointer-light-y, 50%),
+      rgb(63 235 204 / var(--interior-glow-opacity, 0.15)),
       transparent
     );
   }
@@ -743,6 +730,8 @@
     background-color: var(--color-background);
     color: var(--color-foreground);
     font-family: var(--font-body);
+    font-optical-sizing: none;
+    font-variation-settings: "ROND" 25;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     -webkit-user-select: none;

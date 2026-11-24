@@ -22,9 +22,7 @@ import { currentLocale, localizedText, withLocale, type Locale } from "@/lib/loc
 import { nearestEdge } from "@/lib/pointer-edge";
 
 import appCss from "../styles.css?url";
-import alloMedium from "../assets/fonts/Allo-Medium.woff2?url";
-import alloRegular from "../assets/fonts/Allo-Regular.woff2?url";
-import alloBold from "../assets/fonts/Allo-Bold.woff2?url";
+import alloVariable from "../assets/fonts/AlloVariable.woff2?url";
 import peydaRegular from "../assets/fonts/peyda/peyda-regular.ttf?url";
 import peydaMedium from "../assets/fonts/peyda/peyda-medium.woff2?url";
 import peydaSemibold from "../assets/fonts/peyda/peyda-semibold.woff2?url";
@@ -139,14 +137,7 @@ export const Route = createRootRouteWithContext<{
         { rel: "stylesheet", href: import.meta.env.DEV ? `${appCss}?direct` : appCss },
         {
           rel: "preload",
-          href: alloRegular,
-          as: "font",
-          type: "font/woff2",
-          crossOrigin: "anonymous",
-        },
-        {
-          rel: "preload",
-          href: alloBold,
+          href: alloVariable,
           as: "font",
           type: "font/woff2",
           crossOrigin: "anonymous",
@@ -186,13 +177,6 @@ export const Route = createRootRouteWithContext<{
         { rel: "icon", href: "/favicon.svg", type: "image/svg+xml" },
         { rel: "apple-touch-icon", href: "/favicon.svg" },
         { rel: "manifest", href: "/site.webmanifest" },
-        {
-          rel: "preload",
-          href: alloMedium,
-          as: "font",
-          type: "font/woff2",
-          crossOrigin: "anonymous",
-        },
       ],
       scripts: [jsonLdScript(siteJsonLd())],
     };
@@ -214,6 +198,10 @@ function RootShell({ children }: { children: ReactNode }) {
     const root = document.documentElement;
     const finePointer = window.matchMedia("(any-pointer: fine) and (forced-colors: none)");
     const pills = () => document.querySelectorAll<HTMLElement>(".top-nav-link, .home-hero-cta");
+    const placeLight = (element: HTMLElement, x: number, y: number) => {
+      element.style.setProperty("--pointer-light-x", `${x}px`);
+      element.style.setProperty("--pointer-light-y", `${y}px`);
+    };
     const clear = () => {
       cursor.hidden = true;
       root.classList.remove("site-cursor-active");
@@ -230,14 +218,19 @@ function RootShell({ children }: { children: ReactNode }) {
         cursor.hidden = false;
         root.classList.add("site-cursor-active");
       }
+      const menuControl =
+        event.target instanceof Element ? event.target.closest<HTMLElement>(".menu-hover-glow") : null;
+      if (menuControl) {
+        const rect = menuControl.getBoundingClientRect();
+        placeLight(menuControl, event.clientX - rect.left, event.clientY - rect.top);
+      }
       for (const pill of pills()) {
         const rect = pill.getBoundingClientRect();
         if (pill.classList.contains("home-hero-cta")) {
           const x = event.clientX - rect.left;
           const y = event.clientY - rect.top;
           const distance = Math.hypot(Math.max(0, -x, x - rect.width), Math.max(0, -y, y - rect.height));
-          pill.style.setProperty("--cta-light-x", `${x}px`);
-          pill.style.setProperty("--cta-light-y", `${y}px`);
+          placeLight(pill, x, y);
           pill.style.setProperty("--pointer-glow-strength", String(Math.max(0, 1 - distance / 70)));
           continue;
         }
@@ -278,7 +271,7 @@ function RootShell({ children }: { children: ReactNode }) {
 }
 
 const navLinkClass =
-  "top-nav-link relative flex h-[42px] items-center rounded-full px-3 font-body text-[17.85px] font-normal uppercase leading-none tracking-widest text-foreground transition-colors hover:text-secondary data-[status=active]:font-bold data-[status=active]:text-secondary";
+  "top-nav-link menu-hover-glow relative flex h-[42px] items-center rounded-full px-3 font-body text-[17.85px] font-normal uppercase leading-none tracking-widest text-foreground transition-colors hover:text-secondary data-[status=active]:font-bold data-[status=active]:text-secondary";
 
 function isDisciplinePath(pathname: string) {
   return (
@@ -372,7 +365,7 @@ function WorksDropdown({ active }: { active: boolean }) {
           >
             <Link
               to={discipline.path as any}
-              className="block cursor-pointer px-3 py-2 text-xs font-normal uppercase tracking-widest text-foreground transition-colors hover:text-secondary data-[status=active]:font-bold data-[status=active]:text-secondary"
+              className="menu-hover-glow block cursor-pointer px-3 py-2 text-xs font-normal uppercase tracking-widest text-foreground transition-colors hover:text-secondary data-[status=active]:font-bold data-[status=active]:text-secondary"
             >
               {discipline.label}
             </Link>
@@ -471,7 +464,7 @@ function MobileNav() {
       <button
         aria-expanded={open}
         onClick={() => setOpen(true)}
-        className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center gap-1.5 text-sm font-medium tracking-widest text-foreground"
+        className="menu-hover-glow inline-flex min-h-[44px] min-w-[44px] items-center justify-center gap-1.5 rounded-md text-sm font-medium tracking-widest text-foreground"
       >
         <MenuIcon className="h-[21.6px] w-[21.6px]" />
         <span lang="en">MENU</span>
@@ -496,7 +489,7 @@ function MobileNav() {
             <button
               aria-label={locale === "fa" ? "بستن فهرست" : "Close menu"}
               onClick={() => setOpen(false)}
-              className="inline-flex items-center justify-center p-2 text-foreground"
+              className="menu-hover-glow inline-flex items-center justify-center rounded-md p-2 text-foreground"
             >
               <CloseIcon className="h-[21.6px] w-[21.6px]" />
             </button>
@@ -505,7 +498,7 @@ function MobileNav() {
             <Link
               to="/"
               onClick={() => setOpen(false)}
-              className="font-display text-2xl font-normal text-foreground data-[status=active]:font-bold data-[status=active]:text-secondary"
+              className="menu-hover-glow font-display text-2xl font-normal text-foreground data-[status=active]:font-bold data-[status=active]:text-secondary"
             >
               {locale === "fa" ? "خانه" : "Home"}
             </Link>
@@ -515,7 +508,7 @@ function MobileNav() {
                 type="button"
                 aria-expanded={worksOpen}
                 onClick={() => setWorksOpen((v) => !v)}
-                className={`flex w-full items-center justify-between font-display text-2xl font-normal text-foreground ${
+                className={`menu-hover-glow flex w-full items-center justify-between font-display text-2xl font-normal text-foreground ${
                   worksActive ? "font-bold text-secondary" : ""
                 }`}
               >
@@ -542,7 +535,7 @@ function MobileNav() {
                         key={discipline.key}
                         to={discipline.path as any}
                         onClick={() => setOpen(false)}
-                        className="text-base font-normal uppercase tracking-widest text-foreground/80 data-[status=active]:font-bold data-[status=active]:text-secondary"
+                        className="menu-hover-glow text-base font-normal uppercase tracking-widest text-foreground/80 data-[status=active]:font-bold data-[status=active]:text-secondary"
                       >
                         {discipline.label}
                       </Link>
@@ -555,7 +548,7 @@ function MobileNav() {
             <Link
               to="/brand-discovery"
               onClick={() => setOpen(false)}
-              className="font-display text-2xl font-normal text-foreground data-[status=active]:font-bold data-[status=active]:text-secondary"
+              className="menu-hover-glow font-display text-2xl font-normal text-foreground data-[status=active]:font-bold data-[status=active]:text-secondary"
             >
               {locale === "fa" ? "فرم هویت بصری" : "Visual Identity Form"}
             </Link>
@@ -563,7 +556,7 @@ function MobileNav() {
             <Link
               to="/blog"
               onClick={() => setOpen(false)}
-              className="font-display text-2xl font-normal text-foreground data-[status=active]:font-bold data-[status=active]:text-secondary"
+              className="menu-hover-glow font-display text-2xl font-normal text-foreground data-[status=active]:font-bold data-[status=active]:text-secondary"
             >
               {locale === "fa" ? "وبلاگ" : "Blog"}
             </Link>
@@ -571,14 +564,14 @@ function MobileNav() {
             <Link
               to="/about"
               onClick={() => setOpen(false)}
-              className="font-display text-2xl font-normal text-foreground data-[status=active]:font-bold data-[status=active]:text-secondary"
+              className="menu-hover-glow font-display text-2xl font-normal text-foreground data-[status=active]:font-bold data-[status=active]:text-secondary"
             >
               {locale === "fa" ? "درباره" : "About"}
             </Link>
             <Link
               to="/contact"
               onClick={() => setOpen(false)}
-              className="font-display text-2xl font-normal text-foreground data-[status=active]:font-bold data-[status=active]:text-secondary"
+              className="menu-hover-glow font-display text-2xl font-normal text-foreground data-[status=active]:font-bold data-[status=active]:text-secondary"
             >
               {locale === "fa" ? "تماس" : "Contact"}
             </Link>
