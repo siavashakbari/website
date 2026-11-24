@@ -455,7 +455,7 @@ function Hero({ reduceMotion, lang }: { reduceMotion: boolean; lang: Lang }) {
   const isFa = lang === "fa";
 
   return (
-    <section className="mx-auto flex min-h-[calc(100dvh-3.5rem)] w-full max-w-6xl flex-col justify-center px-6 py-20 md:px-10">
+    <section className="mx-auto flex min-h-[calc(100svh-3.5rem)] w-full max-w-6xl flex-col justify-center px-6 py-20 md:px-10">
       <motion.p
         key={`eyebrow-${lang}`}
         initial={reduceMotion ? false : { opacity: 0, y: 14 }}
@@ -652,11 +652,18 @@ function WorkLink({ project, isFa }: { project: PortfolioWork; isFa: boolean }) 
   );
 }
 
-function WorkOrbit({ projects, isFa }: { projects: PortfolioWork[]; isFa: boolean }) {
-  const track = useRef<HTMLDivElement>(null);
-  const stage = useRef<HTMLDivElement>(null);
+function WorkOrbit({
+  projects,
+  isFa,
+  heading,
+}: {
+  projects: PortfolioWork[];
+  isFa: boolean;
+  heading: string;
+}) {
+  const scrollRange = useRef<HTMLDivElement>(null);
   const steps = Math.max(1, projects.length - 1);
-  const { scrollYProgress } = useScroll({ target: track, offset: ["start start", "end end"] });
+  const { scrollYProgress } = useScroll({ target: scrollRange, offset: ["start start", "end start"] });
   const destination = useTransform(scrollYProgress, (progress) =>
     Math.round(progress * (projects.length - 1)),
   );
@@ -681,15 +688,19 @@ function WorkOrbit({ projects, isFa }: { projects: PortfolioWork[]; isFa: boolea
   });
 
   const goTo = (next: number) => {
-    if (!track.current || !stage.current || next < 0 || next >= projects.length) return;
-    const distance = track.current.clientHeight - stage.current.clientHeight;
-    const start = track.current.getBoundingClientRect().top + window.scrollY;
-    window.scrollTo({ top: start + (next / steps) * distance, behavior: "smooth" });
+    const range = scrollRange.current;
+    if (!range || next < 0 || next >= projects.length) return;
+    const start = range.getBoundingClientRect().top + window.scrollY;
+    window.scrollTo({ top: start + (next / steps) * range.clientHeight, behavior: "smooth" });
   };
 
   return (
-    <div ref={track} className="about-orbit" style={{ "--work-steps": steps } as CSSProperties}>
-      <div ref={stage} className="about-orbit-stage" dir={isFa ? "rtl" : "ltr"}>
+    <div className="about-orbit" style={{ "--work-steps": steps } as CSSProperties}>
+      <div ref={scrollRange} className="about-orbit-scroll-range" aria-hidden="true" />
+      <div className="about-orbit-stage" dir={isFa ? "rtl" : "ltr"}>
+        <p className="about-orbit-heading" aria-hidden="true">
+          {heading}
+        </p>
         <motion.div
           aria-hidden="true"
           className="about-orbit-images"
@@ -774,6 +785,7 @@ function SelectedWork({ lang }: { lang: Lang }) {
 
   if (!projects.length) return null;
   const isFa = lang === "fa";
+  const heading = isFa ? "برندهایی که به من اعتماد کرده‌اند" : "Brands that have trusted me";
 
   return (
     <section
@@ -782,11 +794,11 @@ function SelectedWork({ lang }: { lang: Lang }) {
     >
       <h2
         id="about-selected-work"
-        className="mx-auto max-w-6xl px-6 pt-12 text-center text-[2.25rem] font-semibold leading-tight tracking-tight md:px-10 md:text-[2.7rem]"
+        className="about-work-heading mx-auto max-w-6xl px-6 pt-12 text-center text-[2.25rem] font-semibold leading-tight tracking-tight md:px-10 md:text-[2.7rem]"
       >
-        {isFa ? "برندهایی که به من اعتماد کرده‌اند" : "Brands that have trusted me"}
+        {heading}
       </h2>
-      <WorkOrbit projects={projects} isFa={isFa} />
+      <WorkOrbit projects={projects} isFa={isFa} heading={heading} />
       <ol role="list" className="about-work-list mx-auto max-w-[90rem] px-6 md:px-10">
         {projects.map((project) => (
           <li key={project.route} className="about-work-item">
@@ -944,11 +956,12 @@ function Timeline({
 
     const updateSpineMask = () => {
       const box = el.getBoundingClientRect();
-      const height = box.height || 1;
+      const viewportHeight = window.innerHeight;
+      const height = box.height;
+      if (!height || box.bottom <= 0 || box.top >= viewportHeight) return;
       const viewTop = -box.top;
-      const viewBottom = window.innerHeight - box.top;
-      const visible = Math.max(0, viewBottom - viewTop);
-      const fadePx = Math.min(140, window.innerHeight * 0.14, visible * 0.35);
+      const viewBottom = viewportHeight - box.top;
+      const fadePx = Math.min(140, viewportHeight * 0.14);
       const pct = (y: number) => `${Math.min(100, Math.max(0, (y / height) * 100)).toFixed(2)}%`;
       const mask = `linear-gradient(to bottom, transparent ${pct(viewTop)}, black ${pct(viewTop + fadePx)}, black ${pct(viewBottom - fadePx)}, transparent ${pct(viewBottom)})`;
       spine.style.maskImage = mask;

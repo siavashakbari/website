@@ -54,25 +54,65 @@
 }
 
 .about-orbit {
+  --work-viewport-height: 100svh;
+  display: none;
+  position: relative;
+  overflow-anchor: none;
+}
+
+.about-orbit-scroll-range {
+  position: absolute;
+  inset: 0 0 var(--work-viewport-height);
+  pointer-events: none;
+}
+
+.about-orbit-heading {
   display: none;
 }
 
-@supports (left: calc(1px * cos(1deg))) {
-  @media (prefers-reduced-motion: no-preference) and (min-height: 28rem) {
+@supports (left: calc(1px * cos(1deg))) and (height: 100svh) {
+  @media (prefers-reduced-motion: no-preference) {
     .about-work-list {
       display: none;
     }
 
     .about-orbit {
       display: block;
-      block-size: calc(100dvh + var(--work-steps) * clamp(12rem, 34dvh, 22rem));
+      block-size: calc(var(--work-viewport-height) + var(--work-steps) * clamp(12rem, 34svh, 22rem));
+    }
+  }
+
+  @media (width < 48rem) and (prefers-reduced-motion: no-preference) {
+    .about-work-heading {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      overflow: hidden;
+      clip-path: inset(50%);
+      white-space: nowrap;
+    }
+
+    .about-orbit-heading {
+      display: block;
+      position: absolute;
+      z-index: 1;
+      inset: max(4.25rem, 17%) 1rem auto;
+      color: color-mix(in oklab, var(--foreground) 75%, transparent);
+      font-size: clamp(0.875rem, 4.3vw, 1.0625rem);
+      font-weight: 600;
+      line-height: 1.4;
+      text-align: center;
+      text-decoration: underline;
+      text-decoration-color: color-mix(in oklab, var(--foreground) 30%, transparent);
+      text-underline-offset: 0.35em;
     }
   }
 }
 
 .about-orbit-stage {
-  --work-radius: min(52dvh, 45vw);
-  --work-cover-width: min(43vw, 33rem, 65dvh);
+  --work-radius: min(52svh, 45vw);
+  --work-cover-width: min(43vw, 33rem, 65svh);
   --work-caption-x: 25%;
   --work-caption-y: 50%;
   /* With the inner cover edge centered, the outer gutter is twice its former width. */
@@ -85,7 +125,7 @@
   top: 0;
   isolation: isolate;
   overflow: clip;
-  height: 100dvh;
+  height: var(--work-viewport-height);
 }
 
 .about-orbit-stage[dir="rtl"] {
@@ -137,7 +177,7 @@
   width: min(42vw, 39rem);
   transform: translate(-50%, -50%);
   text-align: center;
-  font-size: calc(1.25 * clamp(1.05rem, min(3.5vw, 8dvh), 3.65rem));
+  font-size: calc(1.25 * clamp(1.05rem, min(3.5vw, 8svh), 3.65rem));
 }
 
 .about-orbit-title {
@@ -217,21 +257,29 @@
 @media (width < 48rem) {
   .about-orbit-stage,
   .about-orbit-stage[dir="rtl"] {
-    --work-radius: min(65vw, 43dvh);
-    --work-cover-width: min(72vw, 42dvh);
+    --work-radius: min(65vw, 43svh);
+    --work-cover-width: min(73vw, 42svh);
+    --work-title-height: clamp(3.6em, 18svh, 4.4em);
     --work-caption-x: 50%;
-    --work-caption-y: 29%;
+    --work-caption-y: 35%;
     --work-wheel-x: 50%;
-    --work-wheel-y: 73%;
+    --work-wheel-y: 74%;
   }
 
   .about-orbit-caption {
     width: 88%;
-    font-size: calc(1.25 * clamp(1.15rem, min(6.8vw, 4.6dvh), 2.25rem));
+    font-size: calc(1.25 * clamp(1.15rem, min(8vw, 4.6svh), 2.25rem));
   }
 
   .about-orbit-image {
     --work-x: calc(var(--work-side) * var(--work-radius) * sin(var(--work-angle)));
     --work-y: calc(var(--work-radius) * (1 - cos(var(--work-angle))));
+  }
+}
+
+@media (width < 48rem) and (pointer: coarse) {
+  .about-orbit-controls:not(:focus-within) {
+    opacity: 0;
+    pointer-events: none;
   }
 }
