@@ -265,6 +265,14 @@ function RootShell({ children }: { children: ReactNode }) {
 const navLinkClass =
   "top-nav-link flex min-h-11 items-center font-body uppercase leading-none tracking-widest focus-visible:outline-2 focus-visible:outline-secondary";
 
+function TopNavLabel({ children }: { children: string }) {
+  return (
+    <span className="top-nav-label" data-label={children}>
+      <span>{children}</span>
+    </span>
+  );
+}
+
 function isDisciplinePath(pathname: string) {
   return (
     pathname === "/photography" ||
@@ -333,7 +341,7 @@ function WorksDropdown({ active }: { active: boolean }) {
         data-status={active ? "active" : undefined}
         className={`${navLinkClass} gap-1`}
       >
-        {locale === "fa" ? "آثار" : "Works"}
+        <TopNavLabel>{locale === "fa" ? "آثار" : "Works"}</TopNavLabel>
         <ChevronDown
           className="size-2.5 shrink-0 transition-transform duration-200 [[data-state=open]_&]:rotate-180"
           aria-hidden
@@ -376,7 +384,7 @@ function Header() {
     <>
       <header
         dir="ltr"
-        className={`site-header sticky inset-x-0 top-0 z-[200] shrink-0 bg-background font-body ${pathname === "/" ? "site-header-landing" : ""}`}
+        className="site-header sticky inset-x-0 top-0 z-[200] shrink-0 bg-background font-body"
       >
         <div className="site-header-bar mx-auto flex w-full items-center justify-between">
           <div className="site-header-brand flex items-center">
@@ -392,20 +400,20 @@ function Header() {
           </div>
           <nav className="site-header-nav hidden h-full flex-row-reverse items-center lg:flex">
             <Link to="/" activeOptions={{ exact: true }} className={navLinkClass}>
-              {locale === "fa" ? "خانه" : "Home"}
+              <TopNavLabel>{locale === "fa" ? "خانه" : "Home"}</TopNavLabel>
             </Link>
             <WorksDropdown active={worksActive} />
             <Link to="/brand-discovery" className={navLinkClass}>
-              {locale === "fa" ? "فرم هویت بصری" : "Visual Identity Form"}
+              <TopNavLabel>{locale === "fa" ? "فرم هویت بصری" : "Visual Identity Form"}</TopNavLabel>
             </Link>
             <Link to="/blog" className={navLinkClass}>
-              {locale === "fa" ? "وبلاگ" : "Blog"}
+              <TopNavLabel>{locale === "fa" ? "وبلاگ" : "Blog"}</TopNavLabel>
             </Link>
             <Link to="/about" className={navLinkClass}>
-              {locale === "fa" ? "درباره" : "About"}
+              <TopNavLabel>{locale === "fa" ? "درباره" : "About"}</TopNavLabel>
             </Link>
             <Link to="/contact" className={navLinkClass}>
-              {locale === "fa" ? "تماس" : "Contact"}
+              <TopNavLabel>{locale === "fa" ? "تماس" : "Contact"}</TopNavLabel>
             </Link>
           </nav>
           <MobileNav />

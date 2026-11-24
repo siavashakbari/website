@@ -407,7 +407,7 @@ function DisciplinePage() {
     <section
       className={`relative w-full bg-background ${
         activeUiType === "UI02"
-          ? "min-h-screen pb-24 pt-3 md:pt-3.5 lg:flex lg:h-[calc(100dvh-67.2px)] lg:flex-col lg:min-h-0 lg:pb-0 lg:overflow-hidden"
+          ? "min-h-screen pb-24 pt-3 md:pt-3.5 lg:flex lg:h-[var(--site-content-height)] lg:flex-col lg:min-h-0 lg:pb-0 lg:overflow-hidden"
           : "min-h-screen pb-40 pt-3 md:pt-3.5"
       }`}
       aria-labelledby="discipline-heading"

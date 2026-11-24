@@ -531,7 +531,7 @@ function ProjectCaseStudyPage({ loaderData }: { loaderData: ProjectRouteLoaderDa
     <article
       className={
         isHorizontalMode
-          ? "flex min-h-screen flex-col pb-24 lg:h-[calc(100dvh-67.2px)] lg:max-h-[calc(100dvh-67.2px)] lg:min-h-0 lg:pb-0 lg:overflow-hidden"
+          ? "flex min-h-screen flex-col pb-24 lg:h-[var(--site-content-height)] lg:max-h-[var(--site-content-height)] lg:min-h-0 lg:pb-0 lg:overflow-hidden"
           : "flex flex-col min-h-screen pb-24"
       }
     >

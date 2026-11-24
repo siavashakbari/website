@@ -130,8 +130,13 @@
   --font-farsi: "Peyda", "Allo", system-ui, sans-serif;
 }
 
+:root {
+  --site-header-height: calc(67.2px * 0.85);
+  --site-content-height: calc(100dvh - var(--site-header-height));
+}
+
 .site-header-bar {
-  height: 67.2px;
+  height: var(--site-header-height);
   padding-inline: clamp(16px, 3vw, 36px);
 }
 
@@ -160,6 +165,25 @@
   font-weight: 700;
 }
 
+.top-nav-label {
+  position: relative;
+  white-space: nowrap;
+}
+
+.top-nav-link[data-status="active"] .top-nav-label::before {
+  content: attr(data-label);
+  display: block;
+  visibility: hidden;
+  font-weight: 300;
+}
+
+.top-nav-link[data-status="active"] .top-nav-label > span {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  translate: -50% 0;
+}
+
 .site-header-nav > .top-nav-link:first-child {
   min-width: clamp(62px, 6.15vw, 84px);
 }
@@ -175,34 +199,26 @@
   pointer-events: none;
 }
 
-:root {
-  --landing-header-height: calc(67.2px * 0.85);
-}
-
-.site-header-landing .site-header-bar {
-  height: var(--landing-header-height);
-}
-
 @media (min-width: 1024px) {
   :root {
-    --landing-header-height: calc(clamp(80px, 8.65vw, 112px) * 0.85);
+    --site-header-height: calc(clamp(80px, 8.65vw, 112px) * 0.85);
   }
 
-  .site-header-landing .site-header-bar {
+  .site-header-bar {
     padding-inline: 3.55vw 2.8vw;
   }
 
-  .site-header-landing .site-header-wordmark {
+  .site-header-wordmark {
     width: clamp(122px, 10.25vw, 164px);
     height: auto;
   }
 
-  .site-header-landing .language-switch {
+  .site-header .language-switch {
     width: clamp(86px, 7.8vw, 110px);
     height: 28px;
   }
 
-  .site-header-landing .language-switch > span[lang] {
+  .site-header .language-switch > span[lang] {
     padding-block: 0;
     font-size: clamp(10px, 0.9vw, 13px);
   }
@@ -291,7 +307,7 @@
   isolation: isolate;
   display: grid;
   align-items: center;
-  min-height: max(440px, calc(100dvh - var(--landing-header-height)));
+  min-height: max(440px, var(--site-content-height));
   overflow: clip;
   background: #000;
   color: #fff;
@@ -356,7 +372,7 @@
   @media (prefers-reduced-motion: no-preference) and (forced-colors: none) {
     .home-hero-scene {
       view-timeline: --home-hero;
-      view-timeline-inset: var(--landing-header-height) 0px;
+      view-timeline-inset: var(--site-header-height) 0px;
     }
 
     .home-hero-scene::after {
@@ -367,7 +383,7 @@
 
     .home-hero-outer {
       position: sticky;
-      top: var(--landing-header-height);
+      top: var(--site-header-height);
     }
 
     .home-hero-word {
@@ -559,7 +575,7 @@
 
   .home-hero {
     grid-template-rows: minmax(min-content, 1fr) auto;
-    min-height: max(480px, calc(100dvh - var(--landing-header-height)));
+    min-height: max(480px, var(--site-content-height));
   }
 
   .home-hero-copy {

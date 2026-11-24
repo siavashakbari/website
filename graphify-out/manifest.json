@@ -206,10 +206,10 @@
     "semantic_hash": "f368ced35739e72c0356ec77d7864d61"
   },
   "src/components/DedicatedPhotoView.tsx": {
-    "mtime": 1794716935.1474936,
-    "seen": 1794753565.8074784,
-    "ast_hash": "b17a19003e4295fcd0fb8c114585908d",
-    "semantic_hash": "b17a19003e4295fcd0fb8c114585908d"
+    "mtime": 1795542515.291381,
+    "seen": 1795542581.4586024,
+    "ast_hash": "f8007d935d83eec06539fd6f1ca30d22",
+    "semantic_hash": ""
   },
   "src/components/DisciplineCircleMap.tsx": {
     "mtime": 1794714060.0628626,
@@ -248,10 +248,10 @@
     "semantic_hash": "d3af5bb4d332ce89c6f6c2cbb373c8f2"
   },
   "src/components/NotFoundPage.tsx": {
-    "mtime": 1794715122.3898625,
-    "seen": 1794753565.8079064,
-    "ast_hash": "647cb1b50a8dbab9c81af29602868c7d",
-    "semantic_hash": "647cb1b50a8dbab9c81af29602868c7d"
+    "mtime": 1795542514.8940513,
+    "seen": 1795542581.4589462,
+    "ast_hash": "a4c3708cd60a3c3e8189412c2ae826b5",
+    "semantic_hash": ""
   },
   "src/components/PublishedPageLoading.tsx": {
     "mtime": 1794668856.118784,
@@ -639,27 +639,27 @@
     "semantic_hash": "b20fe946e0ad626ca903b4efb8fd4bc6"
   },
   "src/routes/$discipline.$specialty.$project.index.tsx": {
-    "mtime": 1795469999.7662938,
-    "seen": 1795470078.7520623,
-    "ast_hash": "2ff04e27e8cedc0bcdd9d752316d8310",
+    "mtime": 1795542516.451456,
+    "seen": 1795542581.4636736,
+    "ast_hash": "a96fc4c9140e0ad58eb9fe66576b598e",
     "semantic_hash": ""
   },
   "src/routes/$discipline.$specialty.index.tsx": {
-    "mtime": 1795469999.411567,
-    "seen": 1795470078.7520638,
-    "ast_hash": "2ce080ae69c4a1808ebb29d8ef74609c",
+    "mtime": 1795542516.061113,
+    "seen": 1795542581.463675,
+    "ast_hash": "a982bc6edea2470aeb24b92dbeda4ed1",
     "semantic_hash": ""
   },
   "src/routes/$discipline.index.tsx": {
-    "mtime": 1795469999.0310047,
-    "seen": 1795470078.752065,
-    "ast_hash": "7c874333c317c93ab00cff486a38d0a0",
+    "mtime": 1795542515.6705127,
+    "seen": 1795542581.463677,
+    "ast_hash": "32a41dae011f546966235b47005d0ddd",
     "semantic_hash": ""
   },
   "src/routes/__root.tsx": {
-    "mtime": 1795541737.5276845,
-    "seen": 1795541762.1242907,
-    "ast_hash": "9e96cacbf53f82e09757ee7296e935fe",
+    "mtime": 1795542561.1392226,
+    "seen": 1795542581.4636781,
+    "ast_hash": "1f9745fbb1c773ddfa5ed60d2f32f721",
     "semantic_hash": ""
   },
   "src/routes/about.tsx": {
