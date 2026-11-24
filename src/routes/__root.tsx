@@ -19,7 +19,6 @@ import { lazy, Suspense, useEffect, useRef, useState, type ReactNode } from "rea
 import { ChevronDown, House } from "lucide-react";
 import { useLocale } from "@/lib/use-locale";
 import { currentLocale, localizedText, withLocale, type Locale } from "@/lib/locale";
-import { nearestEdge } from "@/lib/pointer-edge";
 
 import appCss from "../styles.css?url";
 import alloVariable from "../assets/fonts/AlloVariable.woff2?url";
@@ -226,18 +225,11 @@ function RootShell({ children }: { children: ReactNode }) {
       }
       for (const pill of pills()) {
         const rect = pill.getBoundingClientRect();
-        if (pill.classList.contains("home-hero-cta")) {
-          const x = event.clientX - rect.left;
-          const y = event.clientY - rect.top;
-          const distance = Math.hypot(Math.max(0, -x, x - rect.width), Math.max(0, -y, y - rect.height));
-          placeLight(pill, x, y);
-          pill.style.setProperty("--pointer-glow-strength", String(Math.max(0, 1 - distance / 70)));
-          continue;
-        }
-        const edge = nearestEdge(rect, event.clientX, event.clientY);
-        pill.style.setProperty("--nav-glow-x", `${edge.x}px`);
-        pill.style.setProperty("--nav-glow-y", `${edge.y}px`);
-        pill.style.setProperty("--pointer-glow-strength", String(Math.max(0, 1 - edge.distance / 70)));
+        const x = event.clientX - rect.left;
+        const y = event.clientY - rect.top;
+        const distance = Math.hypot(Math.max(0, -x, x - rect.width), Math.max(0, -y, y - rect.height));
+        placeLight(pill, x, y);
+        pill.style.setProperty("--pointer-glow-strength", String(Math.max(0, 1 - distance / 70)));
       }
     };
 
@@ -271,7 +263,7 @@ function RootShell({ children }: { children: ReactNode }) {
 }
 
 const navLinkClass =
-  "top-nav-link menu-hover-glow relative flex h-[42px] items-center rounded-full px-3 font-body text-[17.85px] font-normal uppercase leading-none tracking-widest text-foreground transition-colors hover:text-secondary data-[status=active]:font-bold data-[status=active]:text-secondary";
+  "top-nav-link relative flex h-[42px] items-center rounded-full px-3 font-body text-[17.85px] font-normal uppercase leading-none tracking-widest text-foreground transition-colors hover:text-secondary data-[status=active]:font-bold data-[status=active]:text-secondary";
 
 function isDisciplinePath(pathname: string) {
   return (

@@ -120,6 +120,7 @@
 }
 
 .top-nav-link {
+  --interior-glow-opacity: calc(0.15 * var(--pointer-glow-strength, 0));
   font-weight: 400;
 }
 .top-nav-link[data-status="active"] {
@@ -143,8 +144,10 @@
   cursor: none !important;
 }
 
-.top-nav-link::before,
 .language-switch::before {
+  --glow-x: var(--switch-edge-x, 50%);
+  --glow-y: var(--switch-edge-y, 50%);
+  --glow-opacity: var(--switch-edge-opacity, 0);
   content: "";
   position: absolute;
   left: var(--glow-x, 50%);
@@ -154,36 +157,6 @@
   border-radius: 50%;
   box-shadow: 0 0 9px 0 rgb(63 235 204 / 90%);
   opacity: var(--glow-opacity, 0);
-  pointer-events: none;
-}
-
-.top-nav-link::before {
-  --glow-x: var(--nav-glow-x, 50%);
-  --glow-y: var(--nav-glow-y, 50%);
-  --glow-opacity: var(--pointer-glow-strength, 0);
-}
-
-.language-switch::before {
-  --glow-x: var(--switch-edge-x, 50%);
-  --glow-y: var(--switch-edge-y, 50%);
-  --glow-opacity: var(--switch-edge-opacity, 0);
-}
-
-.top-nav-link::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border: 1.5px solid transparent;
-  border-radius: inherit;
-  background: radial-gradient(
-      circle 70px at var(--nav-glow-x, 50%) var(--nav-glow-y, 0%),
-      rgb(63 235 204 / var(--pointer-glow-strength, 0)),
-      transparent
-    )
-    border-box;
-  mask:
-    linear-gradient(#000 0 0) padding-box exclude,
-    linear-gradient(#000 0 0) border-box;
   pointer-events: none;
 }
 
@@ -406,6 +379,7 @@
 
 @media (any-hover: hover) and (any-pointer: fine) {
   .site-cursor-active .home-hero-cta,
+  .site-cursor-active .top-nav-link,
   .site-cursor-active .menu-hover-glow:hover {
     background-image: radial-gradient(
       circle 90px at var(--pointer-light-x, 50%) var(--pointer-light-y, 50%),
@@ -567,8 +541,6 @@
 
 @media (max-width: 700px), (hover: none), (pointer: coarse) {
   .home-hero-outer::after,
-  .top-nav-link::before,
-  .top-nav-link::after,
   .language-switch::before,
   .language-switch::after {
     display: none;

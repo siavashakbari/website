@@ -78,7 +78,7 @@
 
     .about-orbit {
       display: block;
-      block-size: calc(var(--work-viewport-height) + var(--work-steps) * clamp(12rem, 34svh, 22rem));
+      block-size: calc(var(--work-viewport-height) + var(--work-steps) * clamp(15.6rem, 44.2svh, 28.6rem));
     }
   }
 
