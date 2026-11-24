@@ -624,7 +624,7 @@ function WorkMetadata({ project, isFa }: { project: PortfolioWork; isFa: boolean
   const category = isFa ? project.categoryFa : project.category;
   const year = isFa ? project.yearFa : project.year;
   return (
-    <p className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-sm text-foreground/70">
+    <p className="about-work-meta flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-foreground/70">
       {category && <span>{category}</span>}
       {category && year && (
         <span aria-hidden="true" className="h-1 w-1 rounded-full bg-secondary" />
@@ -645,7 +645,7 @@ function WorkLink({ project, isFa }: { project: PortfolioWork; isFa: boolean }) 
         ...(project.slug ? { project: project.slug } : {}),
       }}
       aria-label={label + " · " + (isFa ? project.titleFa : project.title)}
-      className="about-work-link inline-flex min-h-11 items-center rounded-full border border-foreground/20 px-4 text-sm font-medium transition-colors hover:border-secondary hover:text-secondary focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-secondary"
+      className="about-work-link inline-flex min-h-11 items-center rounded-full border border-foreground/20 px-4 font-body text-sm font-medium transition-colors hover:border-secondary hover:text-secondary focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-secondary"
     >
       {label}
     </Link>
@@ -790,7 +790,7 @@ function SelectedWork({ lang }: { lang: Lang }) {
           <li key={project.route} className="about-work-item">
             <div className="about-work-caption text-center">
               <WorkMetadata project={project} isFa={isFa} />
-              <h3 className="my-3 text-3xl font-extrabold leading-tight tracking-tight">
+              <h3 className="about-work-title my-3 leading-tight tracking-tight">
                 {isFa ? project.titleFa : project.title}
               </h3>
               <WorkLink project={project} isFa={isFa} />

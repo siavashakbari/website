@@ -278,9 +278,7 @@ function RootShell({ children }: { children: ReactNode }) {
 }
 
 const navLinkClass =
-  "top-nav-link relative flex h-[42px] items-center rounded-full px-3 text-[17.85px] font-normal uppercase leading-none tracking-widest text-foreground transition-colors hover:text-secondary data-[status=active]:font-bold data-[status=active]:text-secondary";
-
-const navFont = { fontFamily: "Peyda, Allo, system-ui, sans-serif" } as const;
+  "top-nav-link relative flex h-[42px] items-center rounded-full px-3 font-body text-[17.85px] font-normal uppercase leading-none tracking-widest text-foreground transition-colors hover:text-secondary data-[status=active]:font-bold data-[status=active]:text-secondary";
 
 function isDisciplinePath(pathname: string) {
   return (
@@ -347,7 +345,7 @@ function WorksDropdown({ active }: { active: boolean }) {
   return (
     <DropdownMenu dir={locale === "fa" ? "rtl" : "ltr"}>
       <DropdownMenuTrigger
-        style={{ ...navFont, fontWeight: active ? 700 : 400 }}
+        style={{ fontWeight: active ? 700 : 400 }}
         className={`${navLinkClass} gap-[6px] outline-none data-[state=open]:text-secondary ${
           active ? "font-bold text-secondary" : ""
         }`}
@@ -361,9 +359,9 @@ function WorksDropdown({ active }: { active: boolean }) {
       <DropdownMenuContent
         align="start"
         sideOffset={0}
-        className="z-[210] min-w-[16rem] rounded-none border-foreground/10 bg-background p-2 shadow-xl"
+        className="z-[210] min-w-[16rem] rounded-none border-foreground/10 bg-background p-2 font-body shadow-xl"
       >
-        <div className="px-3 py-1.5 text-[10px] font-mono uppercase tracking-[0.2em] text-muted-foreground/60">
+        <div className="px-3 py-1.5 text-[10px] uppercase tracking-[0.2em] text-muted-foreground/60">
           {locale === "fa" ? "تخصص‌ها" : "Specialties"}
         </div>
         {navItems.map((discipline) => (
@@ -374,7 +372,6 @@ function WorksDropdown({ active }: { active: boolean }) {
           >
             <Link
               to={discipline.path as any}
-              style={navFont}
               className="block cursor-pointer px-3 py-2 text-xs font-normal uppercase tracking-widest text-foreground transition-colors hover:text-secondary data-[status=active]:font-bold data-[status=active]:text-secondary"
             >
               {discipline.label}
@@ -396,7 +393,7 @@ function Header() {
     <>
       <header
         dir="ltr"
-        className="site-header sticky inset-x-0 top-0 z-[200] shrink-0 bg-background"
+        className="site-header sticky inset-x-0 top-0 z-[200] shrink-0 bg-background font-body"
       >
         <div className="mx-auto flex h-[67.2px] w-full items-center justify-between px-[16px] sm:px-[24px] md:px-[36px]">
           <div className="flex items-center gap-[8px] sm:gap-[24px]">
@@ -411,20 +408,20 @@ function Header() {
             <LanguageSwitch />
           </div>
           <nav className="hidden h-full flex-row-reverse items-center gap-[24px] xl:flex">
-            <Link to="/" style={navFont} className={navLinkClass}>
+            <Link to="/" className={navLinkClass}>
               {locale === "fa" ? "خانه" : "Home"}
             </Link>
             <WorksDropdown active={worksActive} />
-            <Link to="/brand-discovery" style={navFont} className={navLinkClass}>
+            <Link to="/brand-discovery" className={navLinkClass}>
               {locale === "fa" ? "فرم هویت بصری" : "Visual Identity Form"}
             </Link>
-            <Link to="/blog" style={navFont} className={navLinkClass}>
+            <Link to="/blog" className={navLinkClass}>
               {locale === "fa" ? "وبلاگ" : "Blog"}
             </Link>
-            <Link to="/about" style={navFont} className={navLinkClass}>
+            <Link to="/about" className={navLinkClass}>
               {locale === "fa" ? "درباره" : "About"}
             </Link>
-            <Link to="/contact" style={navFont} className={navLinkClass}>
+            <Link to="/contact" className={navLinkClass}>
               {locale === "fa" ? "تماس" : "Contact"}
             </Link>
           </nav>
@@ -537,7 +534,7 @@ function MobileNav() {
               >
                 <div className="overflow-hidden">
                   <div className="flex flex-col gap-3 pt-4 pl-1">
-                    <span className="text-[10px] font-mono uppercase tracking-[0.2em] text-muted-foreground/60">
+                    <span className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground/60">
                       {locale === "fa" ? "تخصص‌ها" : "Specialties"}
                     </span>
                     {navItems.map((discipline) => (
@@ -546,7 +543,6 @@ function MobileNav() {
                         to={discipline.path as any}
                         onClick={() => setOpen(false)}
                         className="text-base font-normal uppercase tracking-widest text-foreground/80 data-[status=active]:font-bold data-[status=active]:text-secondary"
-                        style={navFont}
                       >
                         {discipline.label}
                       </Link>

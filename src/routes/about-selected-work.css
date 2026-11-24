@@ -1,5 +1,20 @@
 .about-work {
+  --work-title-weight: 500;
   overflow: clip;
+}
+
+.about-work:lang(fa) {
+  --work-title-weight: 600;
+}
+
+.about-work-title {
+  font-size: 2.34375rem;
+  font-weight: var(--work-title-weight);
+}
+
+.about-work-meta {
+  font-size: 0.9625rem;
+  line-height: 1.4;
 }
 
 .about-work-list {
@@ -57,9 +72,11 @@
 
 .about-orbit-stage {
   --work-radius: min(52dvh, 45vw);
+  --work-cover-width: min(43vw, 33rem, 65dvh);
   --work-caption-x: 25%;
   --work-caption-y: 50%;
-  --work-wheel-x: 75%;
+  /* With the inner cover edge centered, the outer gutter is twice its former width. */
+  --work-wheel-x: calc(50% + var(--work-side) * var(--work-cover-width) / 2);
   --work-wheel-y: 50%;
   --work-side: 1;
   --work-title-height: 4.4em;
@@ -73,7 +90,6 @@
 
 .about-orbit-stage[dir="rtl"] {
   --work-caption-x: 75%;
-  --work-wheel-x: 25%;
   --work-side: -1;
 }
 
@@ -94,7 +110,7 @@
   position: absolute;
   left: var(--work-wheel-x);
   top: var(--work-wheel-y);
-  width: min(43vw, 33rem, 65dvh);
+  width: var(--work-cover-width);
   aspect-ratio: 5 / 4;
   transform:
     translate(calc(-50% + var(--work-x)), calc(-50% + var(--work-y)))
@@ -115,14 +131,14 @@
   width: min(42vw, 39rem);
   transform: translate(-50%, -50%);
   text-align: center;
-  font-size: clamp(1.05rem, min(3.5vw, 8dvh), 3.65rem);
+  font-size: calc(1.25 * clamp(1.05rem, min(3.5vw, 8dvh), 3.65rem));
 }
 
 .about-orbit-title {
   position: relative;
   block-size: var(--work-title-height);
   font-size: inherit;
-  font-weight: 800;
+  font-weight: var(--work-title-weight);
   line-height: 1.04;
   letter-spacing: -0.035em;
   overflow-wrap: anywhere;
@@ -196,6 +212,7 @@
   .about-orbit-stage,
   .about-orbit-stage[dir="rtl"] {
     --work-radius: min(65vw, 43dvh);
+    --work-cover-width: min(72vw, 42dvh);
     --work-caption-x: 50%;
     --work-caption-y: 29%;
     --work-wheel-x: 50%;
@@ -204,12 +221,11 @@
 
   .about-orbit-caption {
     width: 88%;
-    font-size: clamp(1.15rem, min(6.8vw, 4.6dvh), 2.25rem);
+    font-size: calc(1.25 * clamp(1.15rem, min(6.8vw, 4.6dvh), 2.25rem));
   }
 
   .about-orbit-image {
     --work-x: calc(var(--work-side) * var(--work-radius) * sin(var(--work-angle)));
     --work-y: calc(var(--work-radius) * (1 - cos(var(--work-angle))));
-    width: min(72vw, 42dvh);
   }
 }
