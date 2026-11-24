@@ -28,8 +28,11 @@ export const SITE_SEED: SiteContent = {
       {
         id: "heading",
         section: "Hero",
-        label: "Accessible heading",
-        value: { en: "Siavash Akbari — Photographer, Designer & Creative Director", fa: "" },
+        label: "Introduction",
+        value: {
+          en: "Hi, I’m Siavash and I help people with these:",
+          fa: "سلام، من سیاوشم و در این زمینه‌ها به شما کمک می‌کنم:",
+        },
       },
       {
         id: "heroAlt",
@@ -41,10 +44,20 @@ export const SITE_SEED: SiteContent = {
         id: "role1",
         section: "Hero",
         label: "Role 1",
-        value: { en: "Multi-disciplinary Designer", fa: "" },
+        value: { en: "Photography, Visual Identity Design", fa: "عکاسی، طراحی هویت بصری" },
       },
-      { id: "role2", section: "Hero", label: "Role 2", value: { en: "Photographer", fa: "" } },
-      { id: "role3", section: "Hero", label: "Role 3", value: { en: "Creative Director", fa: "" } },
+      {
+        id: "role2",
+        section: "Hero",
+        label: "Role 2",
+        value: { en: "Social Media Content Creation", fa: "تولید محتوای شبکه‌های اجتماعی" },
+      },
+      {
+        id: "role3",
+        section: "Hero",
+        label: "Role 3",
+        value: { en: "Art Direction, Poster Design", fa: "کارگردانی هنری، طراحی پوستر" },
+      },
       {
         id: "statYears",
         section: "Hero statistics",
@@ -55,13 +68,13 @@ export const SITE_SEED: SiteContent = {
         id: "statProjects",
         section: "Hero statistics",
         label: "Projects done",
-        value: { en: "50+ projects done", fa: "50+ پروژه انجام‌شده" },
+        value: { en: "43+ projects done", fa: "43+ پروژه انجام‌شده" },
       },
       {
         id: "statAssets",
         section: "Hero statistics",
         label: "Assets delivered",
-        value: { en: "2000+ assets delivered", fa: "2000+ خروجی تحویل‌شده" },
+        value: { en: "2130+ assets delivered", fa: "2130+ خروجی تحویل‌شده" },
       },
       { id: "scrollHint", section: "Hero", label: "Scroll hint", value: { en: "scroll", fa: "" } },
       {
@@ -345,8 +358,33 @@ export function readSiteContent(): SiteContent | null {
   if (!raw) return null; // Older snapshots retain their original hardcoded renderer until explicit migration.
   const value: unknown = JSON.parse(raw);
   validateSiteContent(value);
+  for (const field of value.landing.fields) {
+    const previous = previousLandingCopy.get(field.id);
+    if (!previous) continue;
+    const current = SITE_SEED.landing.fields.find(({ id }) => id === field.id);
+    if (!current) continue;
+    if (previous.en.includes(field.value.en)) field.value.en = current.value.en;
+    if (previous.fa.includes(field.value.fa)) field.value.fa = current.value.fa;
+    if (field.label === "Accessible heading") field.label = current.label;
+  }
   return value;
 }
+
+// Carry the landing redesign into older published snapshots while preserving edited copy.
+const previousLandingCopy = new Map([
+  ["heading", {
+    en: [
+      "Siavash Akbari — Photographer, Designer & Art Director",
+      "Siavash Akbari — Photographer, Designer & Creative Director",
+    ],
+    fa: ["سیاوش اکبری — عکاس، طراح و کارگردان هنری", ""],
+  }],
+  ["role1", { en: ["Multi-disciplinary Designer"], fa: ["طراح چندحوزه‌ای", ""] }],
+  ["role2", { en: ["Photographer"], fa: ["عکاس", ""] }],
+  ["role3", { en: ["Art Director", "Creative Director"], fa: ["کارگردان هنری", ""] }],
+  ["statProjects", { en: ["50+ projects done"], fa: ["50+ پروژه انجام‌شده"] }],
+  ["statAssets", { en: ["2000+ assets delivered"], fa: ["2000+ خروجی تحویل‌شده"] }],
+]);
 
 export function publishSiteContent(value: SiteContent): void {
   validateSiteContent(value);

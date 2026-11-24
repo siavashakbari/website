@@ -2,7 +2,6 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import type { CSSProperties } from "react";
 import { BinaryBannerCanvas } from "@/components/BinaryBannerCanvas";
 import { DisciplinesMarquee } from "@/components/DisciplinesMarquee";
-import { Logo } from "@/components/Logo";
 import { currentLocale } from "@/lib/locale";
 import { SITE_DESCRIPTION, SITE_TITLE_DEFAULT, pageHead } from "@/lib/seo";
 import { readSiteContent, siteField } from "@/lib/site-content";
@@ -45,42 +44,17 @@ function splitStat(value: string) {
   return match ? { number: match[1], label: match[2] } : { number: value, label: "" };
 }
 
-function AnimatedStat({ value }: { value: string }) {
-  return (
-    <strong className="home-hero-stat-number" dir="ltr">
-      <span className="sr-only">{value}</span>
-      <span className="home-hero-stat-reels" aria-hidden="true">
-        {Array.from(value, (character, index) => {
-          const digits = ["0123456789", "۰۱۲۳۴۵۶۷۸۹", "٠١٢٣٤٥٦٧٨٩"].find((set) =>
-            set.includes(character),
-          );
-          const frames = digits
-            ? Array.from({ length: digits.indexOf(character) + 11 }, (_, step) => digits[step % 10])
-            : character === "+" ? ["\u00a0", "+", "\u00a0", "+"] : [character];
-          return (
-            <span key={index} className="reel-window home-hero-stat-glyph">
-              <span
-                className="home-hero-stat-strip"
-                style={{ "--reel-delay": (index * 55) + "ms" } as CSSProperties}
-              >
-                {frames.map((frame, step) => <span key={step}>{frame}</span>)}
-              </span>
-            </span>
-          );
-        })}
-      </span>
-    </strong>
-  );
-}
-
 function Index() {
   const locale = useLocale();
   const portraitUrl = portraitSrc(readSiteContent()?.landing.imageUrl);
   const heroHeading = siteField("landing", "heading", locale);
   const heroAlt = siteField("landing", "heroAlt", locale);
-  const roles = (["role1", "role2", "role3"] as const).map((id) =>
-    siteField("landing", id, locale),
-  );
+  let wordCount = 0;
+  const roles = ["role1", "role2", "role3"].map((id) => {
+    const role = siteField("landing", id, locale);
+    const words = (role.text.match(/\S+/g) ?? []).map((text) => ({ text, index: wordCount++ }));
+    return { ...role, id, words };
+  });
   const statistics = (["statYears", "statProjects", "statAssets"] as const).map((id) =>
     siteField("landing", id, locale),
   );
@@ -88,61 +62,84 @@ function Index() {
 
   return (
     <div className="flex flex-col overscroll-y-contain">
-      <section className="home-hero-outer" aria-labelledby="home-heading">
-        <div className="home-hero" dir={locale === "fa" ? "rtl" : "ltr"}>
-          <BinaryBannerCanvas />
-          <div className="home-hero-copy">
-            <div className="home-hero-intro">
-              <Logo className="home-hero-logo" />
-              <h1 id="home-heading" className="sr-only">
-                {heroHeading.text}
-              </h1>
-              <div
-                className="home-hero-roles"
-                aria-label={locale === "fa" ? "حوزه‌های فعالیت" : "Creative roles"}
-              >
-                {roles.map((role, index) => (
-                  <p key={index} lang={role.lang} dir={role.lang === "fa" ? "rtl" : "ltr"}>
-                    {role.text}
-                  </p>
-                ))}
+      <section className="home-hero-scene" aria-labelledby="home-heading">
+        <div className="home-hero-outer">
+          <div className="home-hero" dir={locale === "fa" ? "rtl" : "ltr"}>
+            <BinaryBannerCanvas />
+            <div className="home-hero-copy">
+              <div className="home-hero-intro">
+                <h1 id="home-heading" lang={heroHeading.lang}>
+                  {heroHeading.text}
+                </h1>
+                <div className="home-hero-roles">
+                  {roles.map((role) => (
+                    <p key={role.id} lang={role.lang} dir={role.lang === "fa" ? "rtl" : "ltr"}>
+                      <span className="sr-only">{role.text}</span>
+                      <span aria-hidden="true">
+                        {role.words.map(({ text, index }, lineIndex) => (
+                          <span key={index}>
+                            {lineIndex > 0 && " "}
+                            <span
+                              className="home-hero-word"
+                              data-word={text}
+                              style={
+                                {
+                                  "--fill-at": `${((index + 1) / wordCount) * 100}%`,
+                                } as CSSProperties
+                              }
+                            >
+                              {text}
+                            </span>
+                          </span>
+                        ))}
+                      </span>
+                    </p>
+                  ))}
+                </div>
               </div>
-            </div>
 
-            <div className="home-hero-actions">
-              <div className="home-hero-stats">
-                {statistics.map((stat, index) => {
-                  const { number, label } = splitStat(stat.text);
-                  return (
-                    <div
-                      key={index}
-                      className="home-hero-stat"
-                      lang={stat.lang}
-                      dir={stat.lang === "fa" ? "rtl" : "ltr"}
-                    >
-                      <AnimatedStat key={number} value={number} />
-                      <span>{label}</span>
-                    </div>
-                  );
-                })}
+              <div className="home-hero-actions">
+                <div className="home-hero-stats">
+                  {statistics.map((stat, index) => {
+                    const { number, label } = splitStat(stat.text);
+                    return (
+                      <div
+                        key={index}
+                        className="home-hero-stat"
+                        lang={stat.lang}
+                        dir={stat.lang === "fa" ? "rtl" : "ltr"}
+                      >
+                        <strong className="home-hero-stat-number" dir="ltr">
+                          {number}
+                        </strong>
+                        <span>{label}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+                <div className="home-hero-links">
+                  <Link to="/contact" className="home-hero-cta">
+                    {locale === "fa"
+                      ? "بگویید چطور می‌توانم کمک کنم"
+                      : "Tell me how I can help you"}
+                  </Link>
+                  <Link to="/brand-discovery" className="home-hero-cta">
+                    {locale === "fa" ? "برای برندتان بریف بسازید" : "Create a brief for your brand"}
+                  </Link>
+                </div>
               </div>
-              <Link to="/brand-discovery" className="home-hero-cta">
-                {locale === "fa"
-                  ? "بگذارید به شما در ساخت برندتان کمک کنم"
-                  : "Let me help you build your brand"}
-              </Link>
             </div>
+            <img
+              src={portraitUrl}
+              alt={heroAlt.text}
+              width={1000}
+              height={1000}
+              className="home-hero-portrait"
+              loading="eager"
+              fetchPriority="high"
+              decoding="async"
+            />
           </div>
-          <img
-            src={portraitUrl}
-            alt={heroAlt.text}
-            width={1000}
-            height={1000}
-            className="home-hero-portrait"
-            loading="eager"
-            fetchPriority="high"
-            decoding="async"
-          />
         </div>
       </section>
 

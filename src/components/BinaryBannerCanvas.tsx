@@ -1,5 +1,4 @@
 import { useLayoutEffect, useRef } from "react";
-import { nearestEdge } from "@/lib/pointer-edge";
 
 type Cell = {
   x: number;
@@ -175,12 +174,14 @@ export function BinaryBannerCanvas() {
     };
     const moveEdge = (event: PointerEvent) => {
       if (!hoverEnabled.matches) return;
-      const nearest = nearestEdge(stage.getBoundingClientRect(), event.clientX, event.clientY);
-      frameElement.style.setProperty("--edge-x", `${nearest.x + 1.5}px`);
-      frameElement.style.setProperty("--edge-y", `${nearest.y + 1.5}px`);
+      const { left, bottom, width } = stage.getBoundingClientRect();
+      const x = event.clientX - left;
+      const edgeX = Math.max(0, Math.min(width, x));
+      const distance = Math.hypot(x - edgeX, event.clientY - bottom);
+      frameElement.style.setProperty("--edge-x", `${edgeX}px`);
       frameElement.style.setProperty(
         "--edge-strength",
-        String(1 - smooth(0, 250, nearest.distance)),
+        String(1 - smooth(0, 250, distance)),
       );
     };
     const leave = () => {

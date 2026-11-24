@@ -196,7 +196,7 @@ function RootShell({ children }: { children: ReactNode }) {
 
     const root = document.documentElement;
     const finePointer = window.matchMedia("(any-pointer: fine) and (forced-colors: none)");
-    const pills = () => document.querySelectorAll<HTMLElement>(".top-nav-link, .home-hero-cta");
+    const pills = () => document.querySelectorAll<HTMLElement>(".home-hero-cta");
     const placeLight = (element: HTMLElement, x: number, y: number) => {
       element.style.setProperty("--pointer-light-x", `${x}px`);
       element.style.setProperty("--pointer-light-y", `${y}px`);
@@ -263,7 +263,7 @@ function RootShell({ children }: { children: ReactNode }) {
 }
 
 const navLinkClass =
-  "top-nav-link relative flex h-[42px] items-center rounded-full px-3 font-body text-[17.85px] font-normal uppercase leading-none tracking-widest text-foreground transition-colors hover:text-secondary data-[status=active]:font-bold data-[status=active]:text-secondary";
+  "top-nav-link flex min-h-11 items-center font-body uppercase leading-none tracking-widest focus-visible:outline-2 focus-visible:outline-secondary";
 
 function isDisciplinePath(pathname: string) {
   return (
@@ -330,14 +330,12 @@ function WorksDropdown({ active }: { active: boolean }) {
   return (
     <DropdownMenu dir={locale === "fa" ? "rtl" : "ltr"}>
       <DropdownMenuTrigger
-        style={{ fontWeight: active ? 700 : 400 }}
-        className={`${navLinkClass} gap-[6px] outline-none data-[state=open]:text-secondary ${
-          active ? "font-bold text-secondary" : ""
-        }`}
+        data-status={active ? "active" : undefined}
+        className={`${navLinkClass} gap-1`}
       >
         {locale === "fa" ? "آثار" : "Works"}
         <ChevronDown
-          className="h-[18px] w-[18px] shrink-0 transition-transform duration-200 [[data-state=open]_&]:rotate-180"
+          className="size-2.5 shrink-0 transition-transform duration-200 [[data-state=open]_&]:rotate-180"
           aria-hidden
         />
       </DropdownMenuTrigger>
@@ -357,7 +355,7 @@ function WorksDropdown({ active }: { active: boolean }) {
           >
             <Link
               to={discipline.path as any}
-              className="menu-hover-glow block cursor-pointer px-3 py-2 text-xs font-normal uppercase tracking-widest text-foreground transition-colors hover:text-secondary data-[status=active]:font-bold data-[status=active]:text-secondary"
+              className="menu-hover-glow block cursor-pointer px-3 py-2 text-xs font-normal uppercase tracking-widest text-foreground data-[status=active]:font-bold data-[status=active]:text-secondary"
             >
               {discipline.label}
             </Link>
@@ -378,10 +376,10 @@ function Header() {
     <>
       <header
         dir="ltr"
-        className="site-header sticky inset-x-0 top-0 z-[200] shrink-0 bg-background font-body"
+        className={`site-header sticky inset-x-0 top-0 z-[200] shrink-0 bg-background font-body ${pathname === "/" ? "site-header-landing" : ""}`}
       >
-        <div className="mx-auto flex h-[67.2px] w-full items-center justify-between px-[16px] sm:px-[24px] md:px-[36px]">
-          <div className="flex items-center gap-[8px] sm:gap-[24px]">
+        <div className="site-header-bar mx-auto flex w-full items-center justify-between">
+          <div className="site-header-brand flex items-center">
             <Link
               to="/"
               className="site-header-home-link flex items-center text-foreground"
@@ -392,8 +390,8 @@ function Header() {
             </Link>
             <LanguageSwitch />
           </div>
-          <nav className="hidden h-full flex-row-reverse items-center gap-[24px] xl:flex">
-            <Link to="/" className={navLinkClass}>
+          <nav className="site-header-nav hidden h-full flex-row-reverse items-center lg:flex">
+            <Link to="/" activeOptions={{ exact: true }} className={navLinkClass}>
               {locale === "fa" ? "خانه" : "Home"}
             </Link>
             <WorksDropdown active={worksActive} />
@@ -452,7 +450,7 @@ function MobileNav() {
   const worksActive = isDisciplinePath(router.state.location.pathname);
 
   return (
-    <div className="xl:hidden">
+    <div className="lg:hidden">
       <button
         aria-expanded={open}
         onClick={() => setOpen(true)}
@@ -463,7 +461,7 @@ function MobileNav() {
       </button>
 
       <div
-        className={`fixed inset-0 z-50 bg-foreground/20 backdrop-blur-sm transition-opacity duration-300 xl:hidden ${
+        className={`fixed inset-0 z-50 bg-foreground/20 backdrop-blur-sm transition-opacity duration-300 lg:hidden ${
           open ? "opacity-100" : "pointer-events-none opacity-0"
         }`}
         onClick={() => setOpen(false)}
@@ -489,6 +487,7 @@ function MobileNav() {
           <nav className="flex flex-col gap-6 pt-10">
             <Link
               to="/"
+              activeOptions={{ exact: true }}
               onClick={() => setOpen(false)}
               className="menu-hover-glow font-display text-2xl font-normal text-foreground data-[status=active]:font-bold data-[status=active]:text-secondary"
             >
