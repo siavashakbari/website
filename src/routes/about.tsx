@@ -2,17 +2,34 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useLocale } from "@/lib/use-locale";
 import { currentLocale } from "@/lib/locale";
 import { siteField, siteLocalized, type SiteField } from "@/lib/site-content";
-import { useEffect, useLayoutEffect, useRef, useState, type RefObject } from "react";
+import {
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type CSSProperties,
+  type RefObject,
+} from "react";
 import {
   motion,
   useMotionValue,
+  useMotionValueEvent,
   useReducedMotion,
   useScroll,
   useSpring,
   useTransform,
+  type MotionStyle,
   type MotionValue,
 } from "motion/react";
-import { Briefcase, GraduationCap, Layers, PenTool, type LucideIcon } from "lucide-react";
+import {
+  Briefcase,
+  ChevronDown,
+  ChevronUp,
+  GraduationCap,
+  Layers,
+  PenTool,
+  type LucideIcon,
+} from "lucide-react";
 import { pageHead } from "@/lib/seo";
 import { BackToTop } from "@/components/BackToTop";
 import { ExpandableGallery, type GalleryPhoto } from "@/components/ui/expandable-gallery";
@@ -596,16 +613,141 @@ function readPortfolioWork() {
   }).sort((a, b) => b.year.localeCompare(a.year));
 }
 
-function WorkImage({ source }: { source?: string }) {
+function WorkImage({ source, loading = "lazy" }: { source?: string; loading?: "lazy" | "eager" }) {
   const src = useResolvedMediaSrc(source);
   if (!src) return null;
   if (/\.(mp4|webm|mov)(\?|#|$)|^data:video\//i.test(source ?? "")) {
     if (resolveKnownAssetStem(source ?? "") === "video-echo-prime-01") {
-      return <img src="/video-echo-prime-poster.webp" alt="" loading="lazy" />;
+      return <img src="/video-echo-prime-poster.webp" alt="" loading={loading} />;
     }
     return <video src={src} preload="metadata" muted playsInline aria-hidden="true" />;
   }
-  return <img src={src} alt="" loading="lazy" decoding="async" />;
+  return <img src={src} alt="" loading={loading} decoding="async" />;
+}
+
+type PortfolioWork = ReturnType<typeof readPortfolioWork>[number];
+
+function WorkMetadata({ project, isFa }: { project: PortfolioWork; isFa: boolean }) {
+  return (
+    <p className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-sm text-foreground/70">
+      <span>{isFa ? project.categoryFa : project.category}</span>
+      {project.year && (
+        <>
+          {project.category && (
+            <span aria-hidden="true" className="h-1 w-1 rounded-full bg-secondary" />
+          )}
+          <span className="tabular-nums">{project.year}</span>
+        </>
+      )}
+    </p>
+  );
+}
+
+function WorkLink({ project, isFa }: { project: PortfolioWork; isFa: boolean }) {
+  const label = isFa ? "مشاهده پروژه" : "View project";
+  return (
+    <Link
+      to={project.flat ? "/$discipline/$specialty" : "/$discipline/$specialty/$project"}
+      params={{
+        discipline: project.discipline,
+        specialty: project.specialty,
+        ...(project.slug ? { project: project.slug } : {}),
+      }}
+      aria-label={label + " · " + (isFa ? project.titleFa : project.title)}
+      className="about-work-link inline-flex min-h-11 items-center rounded-full border border-foreground/20 px-4 text-sm font-medium transition-colors hover:border-secondary hover:text-secondary focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-secondary"
+    >
+      {label}
+    </Link>
+  );
+}
+
+function WorkOrbit({ projects, isFa }: { projects: PortfolioWork[]; isFa: boolean }) {
+  const track = useRef<HTMLDivElement>(null);
+  const stage = useRef<HTMLDivElement>(null);
+  const steps = Math.max(1, projects.length - 1);
+  const { scrollYProgress } = useScroll({ target: track, offset: ["start start", "end end"] });
+  const position = useTransform(scrollYProgress, [0, 1], [0, projects.length - 1]);
+  const projectIndex = useTransform(position, Math.round);
+  const [activeIndex, setActiveIndex] = useState(0);
+  useMotionValueEvent(projectIndex, "change", setActiveIndex);
+  const index = Math.min(activeIndex, projects.length - 1);
+  const active = projects[index];
+  const firstVisible = Math.max(0, index - 3);
+  const titleOffset = useTransform(position, (value) => {
+    const first = Math.floor(value);
+    const transition = Math.max(0, Math.min(1, (value - first - 0.28) / 0.44));
+    return `translateY(calc(var(--work-title-height) * ${-(first + transition)}))`;
+  });
+
+  const goTo = (next: number) => {
+    if (!track.current || !stage.current || next < 0 || next >= projects.length) return;
+    const distance = track.current.clientHeight - stage.current.clientHeight;
+    const start = track.current.getBoundingClientRect().top + window.scrollY;
+    window.scrollTo({ top: start + (next / steps) * distance, behavior: "smooth" });
+  };
+
+  return (
+    <div ref={track} className="about-orbit" style={{ "--work-steps": steps } as CSSProperties}>
+      <div ref={stage} className="about-orbit-stage">
+        <motion.div
+          aria-hidden="true"
+          className="about-orbit-images"
+          style={{ "--work-position": position } as MotionStyle}
+        >
+          {projects.slice(firstVisible, index + 4).map((project, offset) => (
+            <div key={project.route} style={{ "--work-index": firstVisible + offset } as CSSProperties}>
+              <div className="about-work-image about-orbit-image about-orbit-image-left">
+                <WorkImage source={project.cover} loading="eager" />
+              </div>
+              <div className="about-work-image about-orbit-image about-orbit-image-right">
+                <WorkImage source={project.detail} loading="eager" />
+              </div>
+            </div>
+          ))}
+        </motion.div>
+        <div className="about-orbit-caption">
+          <div className="about-orbit-meta">
+            <WorkMetadata project={active} isFa={isFa} />
+          </div>
+          <h3 className="about-orbit-title reel-window">
+            <span className="sr-only">{isFa ? active.titleFa : active.title}</span>
+            <motion.span
+              aria-hidden="true"
+              className="about-orbit-title-strip"
+              style={{ transform: titleOffset }}
+            >
+              {projects.map((project) => (
+                <span key={project.route}>{isFa ? project.titleFa : project.title}</span>
+              ))}
+            </motion.span>
+          </h3>
+          <div className="about-orbit-actions">
+            <WorkLink project={active} isFa={isFa} />
+            {projects.length > 1 && (
+              <div className="about-orbit-controls">
+                <button
+                  type="button"
+                  aria-label={isFa ? "پروژه قبلی" : "Previous project"}
+                  aria-disabled={index === 0}
+                  onClick={() => goTo(index - 1)}
+                >
+                  <ChevronUp size={16} aria-hidden="true" />
+                </button>
+                <button
+                  type="button"
+                  aria-label={isFa ? "پروژه بعدی" : "Next project"}
+                  aria-disabled={index === projects.length - 1}
+                  onClick={() => goTo(index + 1)}
+                >
+                  <ChevronDown size={16} aria-hidden="true" />
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 function SelectedWork({ lang }: { lang: Lang }) {
@@ -618,59 +760,28 @@ function SelectedWork({ lang }: { lang: Lang }) {
 
   if (!projects.length) return null;
   const isFa = lang === "fa";
-  const titleFont = isFa ? "font-farsi" : "font-display";
 
   return (
     <section
       aria-labelledby="about-selected-work"
-      className={`about-work border-y border-foreground/10 bg-foreground/[0.025] ${isFa ? "font-farsi" : ""}`}
+      className={`about-work border-y border-foreground/10 bg-foreground/[0.025] ${isFa ? "font-farsi" : "font-display"}`}
     >
       <h2
         id="about-selected-work"
-        className={`mx-auto max-w-6xl px-6 pt-12 text-3xl font-bold tracking-tight md:px-10 md:text-4xl ${titleFont}`}
+        className="mx-auto max-w-6xl px-6 pt-12 text-3xl font-bold tracking-tight md:px-10 md:text-4xl"
       >
         {isFa ? "پروژه‌ها" : "Projects"}
       </h2>
-      <ol role="list" className="about-work-list mx-auto max-w-[90rem] px-6 md:px-10" dir="ltr">
+      <WorkOrbit projects={projects} isFa={isFa} />
+      <ol role="list" className="about-work-list mx-auto max-w-[90rem] px-6 md:px-10">
         {projects.map((project) => (
           <li key={project.route} className="about-work-item">
-            <div className="about-work-caption text-center" dir={isFa ? "rtl" : "ltr"}>
-              <p className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-sm text-foreground/70">
-                <span>{isFa ? project.categoryFa : project.category}</span>
-                {project.year && (
-                  <>
-                    {project.category && (
-                      <span aria-hidden="true" className="h-1 w-1 rounded-full bg-secondary" />
-                    )}
-                    <span className="tabular-nums">{project.year}</span>
-                  </>
-                )}
-              </p>
-              <h3 className={`mt-2 text-[clamp(1.75rem,3.5vw,3.5rem)] font-extrabold leading-tight tracking-tight ${titleFont}`}>
+            <div className="about-work-caption text-center">
+              <WorkMetadata project={project} isFa={isFa} />
+              <h3 className="my-3 text-3xl font-extrabold leading-tight tracking-tight">
                 {isFa ? project.titleFa : project.title}
               </h3>
-              <Link
-                to={project.flat ? "/$discipline/$specialty" : "/$discipline/$specialty/$project"}
-                params={{
-                  discipline: project.discipline,
-                  specialty: project.specialty,
-                  ...(project.slug ? { project: project.slug } : {}),
-                }}
-                onFocus={(event) => {
-                  const link = event.currentTarget;
-                  const caption = link.parentElement;
-                  if (
-                    link.matches(":focus-visible") &&
-                    caption &&
-                    getComputedStyle(caption).animationName === "about-work-center"
-                  ) {
-                    caption.parentElement?.scrollIntoView({ block: "center", behavior: "instant" });
-                  }
-                }}
-                className="mt-4 inline-flex min-h-11 items-center rounded-full border border-foreground/20 px-4 text-sm font-medium transition-colors hover:border-secondary hover:text-secondary focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-secondary"
-              >
-                {isFa ? "مشاهده پروژه" : "View project"}
-              </Link>
+              <WorkLink project={project} isFa={isFa} />
             </div>
             <div className="about-work-image about-work-image-primary">
               <WorkImage source={project.cover} />

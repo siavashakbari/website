@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useLayoutEffect, useState } from "react";
+import type { CSSProperties } from "react";
 import { BinaryBannerCanvas } from "@/components/BinaryBannerCanvas";
 import { DisciplinesMarquee } from "@/components/DisciplinesMarquee";
 import { Logo } from "@/components/Logo";
@@ -46,52 +46,29 @@ function splitStat(value: string) {
 }
 
 function AnimatedStat({ value }: { value: string }) {
-  const [frames, setFrames] = useState<string[]>([]);
-
-  useLayoutEffect(() => {
-    if (
-      !/\p{Decimal_Number}/u.test(value) ||
-      !window.matchMedia("(prefers-reduced-motion: no-preference)").matches
-    ) {
-      setFrames([]);
-      return;
-    }
-
-    const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ!?#%";
-    setFrames(
-      Array.from({ length: 7 }, () =>
-        value.replace(
-          /\p{Decimal_Number}/gu,
-          () => characters[Math.floor(Math.random() * characters.length)],
-        ),
-      ),
-    );
-  }, [value]);
-
   return (
-    <strong
-      className="home-hero-stat-number"
-      dir="ltr"
-      aria-label={value}
-      data-animating={frames.length > 0 || undefined}
-    >
-      <span
-        className="home-hero-stat-final"
-        aria-hidden="true"
-        onAnimationEnd={() => setFrames([])}
-      >
-        {value}
+    <strong className="home-hero-stat-number" dir="ltr">
+      <span className="sr-only">{value}</span>
+      <span className="home-hero-stat-reels" aria-hidden="true">
+        {Array.from(value, (character, index) => {
+          const digits = ["0123456789", "۰۱۲۳۴۵۶۷۸۹", "٠١٢٣٤٥٦٧٨٩"].find((set) =>
+            set.includes(character),
+          );
+          const frames = digits
+            ? Array.from({ length: digits.indexOf(character) + 11 }, (_, step) => digits[step % 10])
+            : character === "+" ? ["\u00a0", "+", "\u00a0", "+"] : [character];
+          return (
+            <span key={index} className="reel-window home-hero-stat-glyph">
+              <span
+                className="home-hero-stat-strip"
+                style={{ "--reel-delay": (index * 55) + "ms" } as CSSProperties}
+              >
+                {frames.map((frame, step) => <span key={step}>{frame}</span>)}
+              </span>
+            </span>
+          );
+        })}
       </span>
-      {frames.map((frame, index) => (
-        <span
-          key={index}
-          className="home-hero-stat-frame"
-          style={{ animationDelay: `${(index - 1) * 145}ms` }}
-          aria-hidden="true"
-        >
-          {frame}
-        </span>
-      ))}
     </strong>
   );
 }
@@ -114,16 +91,6 @@ function Index() {
       <section className="home-hero-outer" aria-labelledby="home-heading">
         <div className="home-hero" dir={locale === "fa" ? "rtl" : "ltr"}>
           <BinaryBannerCanvas />
-          <img
-            src={portraitUrl}
-            alt={heroAlt.text}
-            width={1000}
-            height={1000}
-            className="home-hero-portrait"
-            loading="eager"
-            fetchPriority="high"
-            decoding="async"
-          />
           <div className="home-hero-copy">
             <div className="home-hero-intro">
               <Logo className="home-hero-logo" />
@@ -166,6 +133,16 @@ function Index() {
               </Link>
             </div>
           </div>
+          <img
+            src={portraitUrl}
+            alt={heroAlt.text}
+            width={1000}
+            height={1000}
+            className="home-hero-portrait"
+            loading="eager"
+            fetchPriority="high"
+            decoding="async"
+          />
         </div>
       </section>
 

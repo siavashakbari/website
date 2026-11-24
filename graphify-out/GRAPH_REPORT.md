@@ -1,17 +1,17 @@
 # Graph Report - Creative Showcase Studio  (2026-11-24)
 
 ## Corpus Check
-- 149 files · ~216,354 words
+- 149 files · ~216,739 words
 - Verdict: corpus is large enough that graph structure adds value.
 - Unclassified: 23 file(s) not represented in the graph (top: .ttf 9, .woff2 5, (none) 4)
 
 ## Summary
-- 1492 nodes · 3515 edges · 58 communities (52 shown, 6 thin omitted)
+- 1496 nodes · 3525 edges · 54 communities (53 shown, 1 thin omitted)
 - Extraction: 99% EXTRACTED · 1% INFERRED · 0% AMBIGUOUS · INFERRED: 34 edges (avg confidence: 0.85)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `c008809c`
+- Built from commit: `556b8bac`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -19,8 +19,8 @@
 - $discipline.$specialty.index.tsx
 - normalizeProjectSlug
 - __root.tsx
-- getVaultPages
-- @tanstack/react-router
+- studio-store.ts
+- vercel-private-content.server.ts
 - visual-identity-assets.ts
 - site-content.ts
 - routeTree.gen.ts
@@ -32,12 +32,12 @@
 - dependencies
 - vault-store.ts
 - audit-cross-system.mjs
-- studio-store.ts
+- blog-posts.ts
 - compilerOptions
 - components.json
 - devDependencies
 - test-all-routes-live.mjs
-- index.tsx
+- react
 - ping
 - devDependencies
 - vite.config.ts
@@ -51,28 +51,24 @@
 - api.contact.ts
 - brand-discovery.tsx
 - DedicatedPhotoView.tsx
-- $discipline.$photoId.tsx
-- motion
+- photo-inventory.ts
+- validateSnapshot
 - grow-to-band.mjs
 - AboutPage
-- dedicatedPhotoHead
+- server.ts
 - scripts
 - compress-images.mjs
-- __root.tsx
+- published-store.ts
 - TimelineEntry
 - migrate-bilingual-content.mjs
-- useLocale
+- start.ts
 - package.json
-- server.ts
+- SelectedWork
+- localizedText
 - $discipline.$specialty.$project.index.tsx
 - inventory-assets.ts
-- admin.tsx
 - test-vault-ssr-first-render.mjs
-- admin.index.tsx
-- admin.inventory.tsx
 - react
-- admin.invoices.tsx
-- vault.index.tsx
 
 ## God Nodes (most connected - your core abstractions)
 1. `useLocale()` - 54 edges
@@ -87,61 +83,61 @@
 10. `currentLocale()` - 33 edges
 
 ## Surprising Connections (you probably didn't know these)
-- `RootComponent()` --indirect_call--> `startPublishedContentSync()`  [INFERRED]
-  src/routes/__root.tsx → src/lib/published-store.ts
+- `FileRoutesById` --references--> `Route`  [EXTRACTED]
+  src/routeTree.gen.ts → src/routes/__root.tsx
 - `SpecialtyRouteData` --references--> `VaultPageItem`  [EXTRACTED]
   src/routes/$discipline.$specialty.index.tsx → src/lib/vault-store.ts
+- `PageHeaderProps` --references--> `KeyValuePair`  [EXTRACTED]
+  src/components/ui-types/PageHeader.tsx → src/components/vault/PairedBoxesEditor.tsx
 - `ProjectRouteLoaderData` --references--> `VaultPageItem`  [EXTRACTED]
   src/routes/$discipline.$specialty.$project.index.tsx → src/lib/vault-store.ts
-- `DedicatedPhotoRouteComponent()` --calls--> `DedicatedPhotoView()`  [EXTRACTED]
-  src/routes/$discipline.$specialty.$project.$photoId.tsx → src/components/DedicatedPhotoView.tsx
-- `getRouter()` --indirect_call--> `NotFoundPage()`  [INFERRED]
-  src/router.tsx → src/components/NotFoundPage.tsx
+- `getCustomTaxonomy()` --calls--> `isContentReady()`  [EXTRACTED]
+  src/lib/studio-store.ts → src/lib/published-store.ts
 
 ## Import Cycles
 - None detected.
 
-## Communities (58 total, 6 thin omitted)
+## Communities (54 total, 1 thin omitted)
 
 ### Community 1 - "$discipline.$specialty.index.tsx"
-Cohesion: 0.16
-Nodes (13): isContentReady(), getDeletedProjectIds(), DisciplineMediaItem, LEGACY_SINGLE_SEGMENT_REDIRECTS, ProjectCardItem, ROOT_DISCIPLINE_META, computeClientSpecialtyState(), computeInitialSpecialtyState() (+5 more)
+Cohesion: 0.13
+Nodes (32): resolveInventoryImage(), getPublishedArray(), isContentReady(), getDeletedProjectIds(), getStudioProjects(), getGalleryMediaForRoute(), getVaultPages(), isRouteOrAncestorHidden() (+24 more)
 
 ### Community 2 - "normalizeProjectSlug"
-Cohesion: 0.33
-Nodes (18): looksLikeMediaCode(), redirectToCanonicalPath(), resolveDedicatedPhotoLoader(), synthesizePhotoFromVault(), getCustomPhotoAssets(), getMergedPhotoInventory(), getPhotoDedupeKey(), getPhotoItemBySlugOrCode() (+10 more)
+Cohesion: 0.29
+Nodes (19): looksLikeMediaCode(), redirectToCanonicalPath(), resolveDedicatedPhotoLoader(), getPhotoByCode(), getPhotoBySeoSlug(), getPhotoByStem(), getPhotoItemBySlugOrCode(), buildPhotoUrl() (+11 more)
 
 ### Community 3 - "__root.tsx"
+Cohesion: 0.13
+Nodes (15): LanguageSwitch(), HiddenPageNotice(), HiddenPageNoticeProps, nearestEdge(), useLocale(), CloseIcon(), ErrorComponent(), Header() (+7 more)
+
+### Community 4 - "studio-store.ts"
 Cohesion: 0.11
-Nodes (16): LanguageSwitch(), Logo(), nearestEdge(), seedPublishedContent(), CloseIcon(), ErrorComponent(), Header(), HoverFooter (+8 more)
+Nodes (26): Project, projects, CustomTaxonomyState, DEFAULT_TAXONOMY_DISCIPLINES, DEFAULT_TAXONOMY_SPECIALTIES, defaultProjectToStudioItem(), extractAssetFilename(), getCanonicalProjectSlug() (+18 more)
 
-### Community 4 - "getVaultPages"
-Cohesion: 0.26
-Nodes (19): resolveInventoryImage(), getPublishedArray(), getCanonicalProjectSlug(), getStudioProjects(), isProjectDeleted(), getGalleryMediaForRoute(), getVaultPages(), isRouteOrAncestorHidden() (+11 more)
-
-### Community 5 - "@tanstack/react-router"
-Cohesion: 0.34
-Nodes (10): lucide-react, react, @tanstack/react-router, BackToTop(), HiddenPageNoticeProps, getBlogPostBySlug(), getMergedBlogPosts(), subscribeToStudioStore() (+2 more)
+### Community 5 - "vercel-private-content.server.ts"
+Cohesion: 0.22
+Nodes (15): @supabase/supabase-js, @vercel/blob, blobCredentials(), requireVaultAdmin(), PrivateVaultSnapshot, readVercelPrivateContent(), readWithEtag(), saveVercelPrivateContent() (+7 more)
 
 ### Community 6 - "visual-identity-assets.ts"
 Cohesion: 0.04
 Nodes (3): CoupledOption, CoupledPair, MoodboardItem
 
 ### Community 7 - "site-content.ts"
-Cohesion: 0.13
-Nodes (27): ContactForm(), ContactFormValues, TOPICS, InteractiveHoverButton, InteractiveHoverButtonProps, isLocalized(), Localized, publishSiteContent() (+19 more)
+Cohesion: 0.11
+Nodes (32): ContactForm(), ContactFormValues, TOPICS, NotFoundPage(), InteractiveHoverButton, InteractiveHoverButtonProps, SITE_DESCRIPTION, isLocalized() (+24 more)
 
 ### Community 8 - "routeTree.gen.ts"
 Cohesion: 0.04
-Nodes (47): Route, Route, AboutRoute, AdminBlogRoute, AdminIndexRoute, AdminInventoryRoute, AdminInvoicesRoute, AdminProjectsRoute (+39 more)
+Nodes (57): @tanstack/react-router, Route, Route, Route, Route, Route, Route, Route (+49 more)
 
 ### Community 9 - "about.tsx"
 Cohesion: 0.06
-Nodes (23): ABOUT_EDITORIAL_FIELDS, CAREER_MILESTONES, CARPET_LOVERS_PHOTOS, CATEGORY, CATEGORY_FILTERS, CATEGORY_ICON, CategoryKey, COPY (+15 more)
+Nodes (24): ABOUT_EDITORIAL_FIELDS, CAREER_MILESTONES, CARPET_LOVERS_PHOTOS, CATEGORY, CATEGORY_FILTERS, CATEGORY_ICON, CategoryKey, COPY (+16 more)
 
 ### Community 10 - "media-sizing.ts"
-Cohesion: 0.15
-Nodes (21): mp4box@^2.5.0, mp4box, compressVideoToStudioSpec(), computeStudioVideoDimensions(), getVideoExt(), pickRecorderMimeType(), processImageFile(), ProcessMediaOptions (+13 more)
+Cohesion: 0.18
+Nodes (18): compressVideoToStudioSpec(), computeStudioVideoDimensions(), getVideoExt(), pickRecorderMimeType(), processImageFile(), ProcessMediaOptions, processVideoFile(), resizeCanvas() (+10 more)
 
 ### Community 11 - "generate-sitemap.mjs"
 Cohesion: 0.10
@@ -156,20 +152,20 @@ Cohesion: 0.11
 Nodes (22): arrayStr, buildDynamicCode(), cleanSegment(), __dirname, endMatch, extFromSrc(), __filename, initPagesMatch (+14 more)
 
 ### Community 14 - "dependencies"
-Cohesion: 0.10
-Nodes (21): dependencies, jspdf@^4.2.1, lucide-react@^0.575.0, motion@^12.42.2, mp4-muxer@^5.2.2, @radix-ui/react-dropdown-menu@^2.1.16, react@^19.2.0, @supabase/supabase-js@^2.117.2 (+13 more)
+Cohesion: 0.09
+Nodes (23): dependencies, clsx@^2.1.1, html-to-image@^1.11.13, lucide-react@^0.575.0, motion@^12.42.2, mp4-muxer@^5.2.2, react@^19.2.0, react-dom@^19.2.0 (+15 more)
 
 ### Community 15 - "vault-store.ts"
 Cohesion: 0.06
-Nodes (91): UI_TYPE_LIST, UI_TYPE_REGISTRY, UITypeCode, UITypeDefinition, PageHeaderProps, GalleryMediaItem, HorizontalLightbox(), HorizontalMediaTile() (+83 more)
+Nodes (90): UI_TYPE_LIST, UI_TYPE_REGISTRY, UITypeCode, UITypeDefinition, GalleryMediaItem, HorizontalLightbox(), HorizontalMediaTile(), itemsAlt() (+82 more)
 
 ### Community 16 - "audit-cross-system.mjs"
 Cohesion: 0.11
 Nodes (18): cleanSegment(), __dirname, endMatch, invContent, invItems, issues, normalizeProjectSlug(), prjContent (+10 more)
 
-### Community 17 - "studio-store.ts"
-Cohesion: 0.05
-Nodes (57): SIGNATURE_DATA_URL, BLOG_CATEGORIES, BLOG_POSTS, BlogAuthor, BlogCategory, BlogCategoryMeta, BlogPost, BlogSection (+49 more)
+### Community 17 - "blog-posts.ts"
+Cohesion: 0.13
+Nodes (18): BLOG_CATEGORIES, BLOG_POSTS, BlogAuthor, BlogCategory, BlogCategoryMeta, BlogPost, BlogSection, DEFAULT_AUTHOR (+10 more)
 
 ### Community 18 - "compilerOptions"
 Cohesion: 0.10
@@ -187,9 +183,9 @@ Nodes (12): @eslint/js@^9.32.0, eslint-plugin-prettier@^5.2.6, eslint-plugin-rea
 Cohesion: 0.17
 Nodes (13): cleanSegment(), __dirname, fetchWithTimeout(), __filename, getFreePort(), main(), normalizeProjectSlug(), parseTestRoutes() (+5 more)
 
-### Community 22 - "index.tsx"
-Cohesion: 0.14
-Nodes (17): BinaryBannerCanvas(), Cell, drawShape(), GRID_SHADES, smooth(), OG_IMAGE_HEIGHT, OG_IMAGE_PATH, OG_IMAGE_WIDTH (+9 more)
+### Community 22 - "react"
+Cohesion: 0.15
+Nodes (19): react, BinaryBannerCanvas(), Cell, drawShape(), GRID_SHADES, smooth(), CoverTile(), CoverTileProps (+11 more)
 
 ### Community 23 - "ping"
 Cohesion: 0.12
@@ -220,12 +216,12 @@ Cohesion: 0.18
 Nodes (11): analyze(), assetsRoot, __dirname, EXT, files, isNearWhiteOrBlack(), map, outFile (+3 more)
 
 ### Community 30 - "disciplines.ts"
-Cohesion: 0.20
+Cohesion: 0.18
 Nodes (4): DisciplineCard, DISCIPLINES, Discipline, echoPrimeVideos
 
 ### Community 31 - "FileRoutesByPath"
-Cohesion: 0.23
-Nodes (19): currentLocale(), absoluteUrl(), getSiteUrl(), jsonLdScript(), pageHead(), siteJsonLd(), Route, Route (+11 more)
+Cohesion: 0.16
+Nodes (28): lucide-react, BackToTop(), currentLocale(), absoluteUrl(), getSiteUrl(), jsonLdScript(), OG_IMAGE_HEIGHT, OG_IMAGE_PATH (+20 more)
 
 ### Community 32 - "recover-and-compress.mjs"
 Cohesion: 0.31
@@ -236,32 +232,32 @@ Cohesion: 0.36
 Nodes (7): sendTelegram(), telegramMessageIds(), TelegramMessageRef, TelegramResult, Route, ContactPayload, Route
 
 ### Community 34 - "brand-discovery.tsx"
-Cohesion: 0.27
-Nodes (8): PEYDA_BASE64, COUPLED_LOGO_PAIRS, MOODBOARD_GRID_IMAGES, BrandDiscoveryPage(), submitAutomatically(), getLowQualityBase64(), hasRTL(), renderWhiteLogoDataUrl()
+Cohesion: 0.15
+Nodes (14): motion, PEYDA_BASE64, CustomDatePicker(), CustomDatePickerProps, MONTH_NAMES, WEEK_DAYS, COUPLED_LOGO_PAIRS, MOODBOARD_GRID_IMAGES (+6 more)
 
 ### Community 35 - "DedicatedPhotoView.tsx"
-Cohesion: 0.13
-Nodes (24): buildLivePhotoViewState(), computeClientPhotoState(), computeInitialPhotoState(), DedicatedPhotoLoaderData, DedicatedPhotoView(), extFromSrc(), formatSlugLabel(), isVideoAsset() (+16 more)
+Cohesion: 0.21
+Nodes (17): buildLivePhotoViewState(), computeClientPhotoState(), computeInitialPhotoState(), dedicatedPhotoHead(), DedicatedPhotoView(), extFromSrc(), formatSlugLabel(), isVideoAsset() (+9 more)
 
-### Community 36 - "$discipline.$photoId.tsx"
-Cohesion: 0.19
-Nodes (17): codeMap, computeItemSeoSlug(), CustomCreditField, getPhotoByCode(), getPhotoBySeoSlug(), getPhotoByStem(), PHOTO_INVENTORY, slugifyValue() (+9 more)
+### Community 36 - "photo-inventory.ts"
+Cohesion: 0.12
+Nodes (18): DedicatedPhotoLoaderData, codeMap, computeItemSeoSlug(), CustomCreditField, PHOTO_INVENTORY, PhotoInventoryItem, slugifyValue(), slugMap (+10 more)
 
-### Community 37 - "motion"
-Cohesion: 0.33
-Nodes (6): motion, CustomDatePicker(), CustomDatePickerProps, MONTH_NAMES, WEEK_DAYS, Locale
+### Community 37 - "validateSnapshot"
+Cohesion: 0.34
+Nodes (10): commitSnapshot(), PUBLIC_CONTENT_KEYS, validateSnapshot(), initializeVercelPublishedContent(), readSnapshotWithEtag(), readVercelPublishedContent(), saveVercelPublishedContent(), headers (+2 more)
 
 ### Community 38 - "grow-to-band.mjs"
 Cohesion: 0.22
 Nodes (7): all, EXTS, files, ROOTS, TARGET, under, walk()
 
 ### Community 39 - "AboutPage"
-Cohesion: 0.25
-Nodes (11): AboutPage(), createDefaultFilters(), Hero(), SelectedWork(), SkillColumn(), SkillsSection(), t(), Timeline() (+3 more)
+Cohesion: 0.36
+Nodes (8): AboutPage(), createDefaultFilters(), Hero(), SkillColumn(), SkillsSection(), t(), TimelineFilters(), toFiveScale()
 
-### Community 40 - "dedicatedPhotoHead"
-Cohesion: 0.67
-Nodes (3): dedicatedPhotoHead(), DedicatedPhotoRouteComponent(), Route
+### Community 40 - "server.ts"
+Cohesion: 0.27
+Nodes (8): consumeLastCapturedError(), renderErrorPage(), isNonPublicPath(), fetch(), getServerEntry(), isH3SwallowedErrorBody(), normalizeCatastrophicSsrResponse(), ServerEntry
 
 ### Community 41 - "scripts"
 Cohesion: 0.25
@@ -271,33 +267,37 @@ Nodes (8): scripts, build, build:dev, dev, format, lint, optimize:images, previe
 Cohesion: 0.29
 Nodes (5): EXTS, files, oversized, ROOTS, walk()
 
-### Community 43 - "__root.tsx"
+### Community 43 - "published-store.ts"
 Cohesion: 0.08
-Nodes (50): @supabase/supabase-js, @vercel/blob, PublishedPageLoading(), LiquidWaveSpinner(), LiquidWaveSpinnerProps, sizeClasses, PublishStatus(), blobCredentials() (+42 more)
+Nodes (47): SIGNATURE_DATA_URL, Logo(), PublishedPageLoading(), LiquidWaveSpinner(), PublishStatus(), exportInvoiceToPDF(), loadPrivateVaultContent(), savePrivateVaultContent() (+39 more)
 
 ### Community 44 - "TimelineEntry"
-Cohesion: 0.33
-Nodes (6): durationCapsuleHeight(), fillFromTip(), hasDurationCapsule(), isOngoing(), TimelineEntry(), tipYFromProgress()
+Cohesion: 0.29
+Nodes (7): durationCapsuleHeight(), fillFromTip(), hasDurationCapsule(), isOngoing(), Timeline(), TimelineEntry(), tipYFromProgress()
 
 ### Community 45 - "migrate-bilingual-content.mjs"
 Cohesion: 0.73
 Nodes (4): ifMissing(), isPersian(), migrateBilingualSnapshot(), normalizePairs()
 
-### Community 46 - "useLocale"
-Cohesion: 0.18
-Nodes (19): CoverTile(), CoverTileProps, DisciplineCircleMap(), ROOTS, coverTileImage(), DisciplinesMarquee(), PageHeader(), EqualCardItem (+11 more)
+### Community 46 - "start.ts"
+Cohesion: 0.27
+Nodes (9): withRequestLocale(), ContentSnapshot, loadRequestPublishedSnapshot(), PublishedSnapshot, requestSnapshots, withRequestPublishedSnapshot(), BlobContentSnapshot, errorMiddleware (+1 more)
 
 ### Community 47 - "package.json"
 Cohesion: 0.15
-Nodes (12): clsx@^2.1.1, html-to-image@^1.11.13, react-dom@^19.2.0, @tanstack/router-plugin@^1.168.18, name, private, sideEffects, type (+4 more)
+Nodes (12): jspdf@^4.2.1, mp4box@^2.5.0, @radix-ui/react-dropdown-menu@^2.1.16, @tanstack/router-plugin@^1.168.18, name, private, sideEffects, type (+4 more)
 
-### Community 50 - "server.ts"
-Cohesion: 0.11
-Nodes (28): consumeLastCapturedError(), renderErrorPage(), DEFAULT_LOCALE, detectedScript(), isNonPublicPath(), localeFromPath(), LocaleState, requestLocales (+20 more)
+### Community 48 - "SelectedWork"
+Cohesion: 0.70
+Nodes (5): SelectedWork(), WorkImage(), WorkLink(), WorkMetadata(), WorkOrbit()
+
+### Community 50 - "localizedText"
+Cohesion: 0.21
+Nodes (15): DisciplineCircleMap(), ROOTS, PageHeader(), PageHeaderProps, DEFAULT_LOCALE, detectedScript(), localeFromPath(), LocaleState (+7 more)
 
 ### Community 51 - "$discipline.$specialty.$project.index.tsx"
-Cohesion: 0.23
-Nodes (13): NotFoundPage(), projectBackButtonClass, projectBackButtonMobileClass, buildGalleryItemsForProject(), CombinedLoaderData, computeClientProjectState(), computeInitialProjectState(), findMatchingProject() (+5 more)
+Cohesion: 0.24
+Nodes (12): projectBackButtonClass, projectBackButtonMobileClass, buildGalleryItemsForProject(), CombinedLoaderData, computeClientProjectState(), computeInitialProjectState(), findMatchingProject(), ProjectCaseStudyPage() (+4 more)
 
 ### Community 52 - "inventory-assets.ts"
 Cohesion: 0.29
@@ -308,26 +308,26 @@ Cohesion: 0.13
 Nodes (9): browser(), blog, blogs, media, pages, photo, project, site (+1 more)
 
 ### Community 58 - "react"
-Cohesion: 0.07
-Nodes (40): AdaptiveThumb(), AdaptiveThumbProps, GalleryLoadContext, GalleryLoadContextValue, GalleryLoadProvider(), useGalleryColumnCount(), useGalleryLoad(), HoverFooter() (+32 more)
+Cohesion: 0.06
+Nodes (47): AdaptiveThumb(), AdaptiveThumbProps, GalleryLoadContext, GalleryLoadContextValue, GalleryLoadProvider(), useGalleryColumnCount(), useGalleryLoad(), HoverFooter() (+39 more)
 
 ## Knowledge Gaps
-- **6 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **1 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `react` connect `@tanstack/react-router` to `$discipline.$specialty.index.tsx`, `brand-discovery.tsx`, `DedicatedPhotoView.tsx`, `__root.tsx`, `motion`, `$discipline.$photoId.tsx`, `site-content.ts`, `about.tsx`, `__root.tsx`, `dependencies`, `package.json`, `useLocale`, `vault-store.ts`, `studio-store.ts`, `$discipline.$specialty.$project.index.tsx`, `index.tsx`, `react`, `expandable-gallery.tsx`?**
-  _High betweenness centrality (0.087) - this node is a cross-community bridge._
+- **Why does `@tanstack/react-router` connect `routeTree.gen.ts` to `$discipline.$specialty.index.tsx`, `normalizeProjectSlug`, `__root.tsx`, `vercel-private-content.server.ts`, `site-content.ts`, `about.tsx`, `dependencies`, `vault-store.ts`, `blog-posts.ts`, `react`, `FileRoutesByPath`, `api.contact.ts`, `brand-discovery.tsx`, `DedicatedPhotoView.tsx`, `validateSnapshot`, `published-store.ts`, `package.json`, `localizedText`, `$discipline.$specialty.$project.index.tsx`, `react`?**
+  _High betweenness centrality (0.071) - this node is a cross-community bridge._
 - **Should `projects.ts` be split into smaller, more focused modules?**
   _Cohesion score 0.006711409395973154 - nodes in this community are weakly interconnected._
-- **Why does `@tanstack/react-router` connect `@tanstack/react-router` to `$discipline.$specialty.index.tsx`, `__root.tsx`, `getVaultPages`, `site-content.ts`, `routeTree.gen.ts`, `about.tsx`, `dependencies`, `vault-store.ts`, `studio-store.ts`, `index.tsx`, `FileRoutesByPath`, `api.contact.ts`, `brand-discovery.tsx`, `DedicatedPhotoView.tsx`, `$discipline.$photoId.tsx`, `dedicatedPhotoHead`, `__root.tsx`, `useLocale`, `package.json`, `server.ts`, `$discipline.$specialty.$project.index.tsx`, `admin.tsx`, `admin.index.tsx`, `admin.inventory.tsx`, `react`, `admin.invoices.tsx`, `vault.index.tsx`?**
-  _High betweenness centrality (0.064) - this node is a cross-community bridge._
+- **Why does `react` connect `react` to `$discipline.$specialty.index.tsx`, `brand-discovery.tsx`, `DedicatedPhotoView.tsx`, `__root.tsx`, `normalizeProjectSlug`, `site-content.ts`, `about.tsx`, `published-store.ts`, `dependencies`, `package.json`, `vault-store.ts`, `blog-posts.ts`, `localizedText`, `$discipline.$specialty.$project.index.tsx`, `react`, `expandable-gallery.tsx`, `FileRoutesByPath`?**
+  _High betweenness centrality (0.066) - this node is a cross-community bridge._
+- **Should `$discipline.$specialty.index.tsx` be split into smaller, more focused modules?**
+  _Cohesion score 0.1329268292682927 - nodes in this community are weakly interconnected._
+- **Why does `@tanstack/react-start` connect `vite.config.ts` to `$discipline.$specialty.index.tsx`, `vercel-private-content.server.ts`, `server.ts`, `start.ts`, `package.json`, `FileRoutesByPath`?**
+  _High betweenness centrality (0.043) - this node is a cross-community bridge._
 - **Should `__root.tsx` be split into smaller, more focused modules?**
-  _Cohesion score 0.11494252873563218 - nodes in this community are weakly interconnected._
-- **Why does `@tanstack/react-start` connect `vite.config.ts` to `getVaultPages`, `__root.tsx`, `package.json`, `server.ts`, `FileRoutesByPath`?**
-  _High betweenness centrality (0.058) - this node is a cross-community bridge._
-- **Should `visual-identity-assets.ts` be split into smaller, more focused modules?**
-  _Cohesion score 0.03508771929824561 - nodes in this community are weakly interconnected._
-- **Should `site-content.ts` be split into smaller, more focused modules?**
-  _Cohesion score 0.13257575757575757 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.12807881773399016 - nodes in this community are weakly interconnected._
+- **Should `studio-store.ts` be split into smaller, more focused modules?**
+  _Cohesion score 0.10826210826210826 - nodes in this community are weakly interconnected._

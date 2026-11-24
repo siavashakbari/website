@@ -217,7 +217,7 @@ function RootShell({ children }: { children: ReactNode }) {
     const clear = () => {
       cursor.hidden = true;
       root.classList.remove("site-cursor-active");
-      for (const pill of pills()) pill.style.removeProperty("--nav-glow-opacity");
+      for (const pill of pills()) pill.style.removeProperty("--pointer-glow-strength");
     };
     const move = (event: PointerEvent) => {
       if (!finePointer.matches || event.pointerType !== "mouse") {
@@ -232,14 +232,19 @@ function RootShell({ children }: { children: ReactNode }) {
       }
       for (const pill of pills()) {
         const rect = pill.getBoundingClientRect();
+        if (pill.classList.contains("home-hero-cta")) {
+          const x = event.clientX - rect.left;
+          const y = event.clientY - rect.top;
+          const distance = Math.hypot(Math.max(0, -x, x - rect.width), Math.max(0, -y, y - rect.height));
+          pill.style.setProperty("--cta-light-x", `${x}px`);
+          pill.style.setProperty("--cta-light-y", `${y}px`);
+          pill.style.setProperty("--pointer-glow-strength", String(Math.max(0, 1 - distance / 70)));
+          continue;
+        }
         const edge = nearestEdge(rect, event.clientX, event.clientY);
         pill.style.setProperty("--nav-glow-x", `${edge.x}px`);
         pill.style.setProperty("--nav-glow-y", `${edge.y}px`);
-        pill.style.setProperty("--nav-glow-opacity", String(Math.max(0, 1 - edge.distance / 70)));
-        if (pill.classList.contains("home-hero-cta")) {
-          pill.style.setProperty("--cta-light-x", `${event.clientX - rect.left}px`);
-          pill.style.setProperty("--cta-light-y", `${event.clientY - rect.top}px`);
-        }
+        pill.style.setProperty("--pointer-glow-strength", String(Math.max(0, 1 - edge.distance / 70)));
       }
     };
 
