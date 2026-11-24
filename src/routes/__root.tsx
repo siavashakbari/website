@@ -196,7 +196,7 @@ function RootShell({ children }: { children: ReactNode }) {
 
     const root = document.documentElement;
     const finePointer = window.matchMedia("(any-pointer: fine) and (forced-colors: none)");
-    const pills = () => document.querySelectorAll<HTMLElement>(".home-hero-cta");
+    const pills = () => document.querySelectorAll<HTMLElement>(".home-hero-cta, .top-nav-link");
     const placeLight = (element: HTMLElement, x: number, y: number) => {
       element.style.setProperty("--pointer-light-x", `${x}px`);
       element.style.setProperty("--pointer-light-y", `${y}px`);

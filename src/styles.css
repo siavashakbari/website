@@ -147,9 +147,10 @@
   position: relative;
   justify-content: center;
   padding-inline: clamp(12px, 1.4vw, 23px);
+  border-radius: 999px;
   color: var(--foreground);
   font-size: clamp(10px, 0.88vw, 14px);
-  font-weight: 400;
+  font-weight: 300;
 }
 
 .top-nav-link[data-status="active"] {
@@ -173,16 +174,19 @@
 }
 
 :root {
-  --landing-header-height: 67.2px;
+  --landing-header-height: calc(67.2px * 0.85);
+}
+
+.site-header-landing .site-header-bar {
+  height: var(--landing-header-height);
 }
 
 @media (min-width: 1024px) {
   :root {
-    --landing-header-height: clamp(80px, 8.65vw, 112px);
+    --landing-header-height: calc(clamp(80px, 8.65vw, 112px) * 0.85);
   }
 
   .site-header-landing .site-header-bar {
-    height: var(--landing-header-height);
     padding-inline: 3.55vw 2.8vw;
   }
 
@@ -334,7 +338,7 @@
 
 .home-hero-intro h1 {
   color: rgb(255 255 255 / 80%);
-  font-size: clamp(16px, 1.95vw, 30px);
+  font-size: clamp(15px, 1.8vw, 28px);
   font-weight: 300;
   line-height: 1.25;
 }
@@ -366,7 +370,7 @@
 
     .home-hero-word {
       display: inline-block;
-      -webkit-text-stroke-width: 1px;
+      -webkit-text-stroke-width: 0.5px;
       animation: home-hero-fill auto cubic-bezier(0.2, 0.75, 0.25, 1) both;
       animation-timeline: --home-hero;
       animation-range: contain var(--fill-start) contain var(--fill-end);
@@ -404,7 +408,7 @@
   display: block;
   font-family: var(--font-mono);
   font-size: clamp(19px, 2vw, 32px);
-  font-weight: 700;
+  font-weight: 500;
   line-height: 1.12;
 }
 
@@ -432,7 +436,6 @@
 }
 
 .home-hero-cta {
-  --interior-glow-opacity: calc(0.2 * var(--pointer-glow-strength, 0));
   position: relative;
   display: flex;
   align-items: center;
@@ -452,7 +455,12 @@
 }
 
 @media (any-hover: hover) and (any-pointer: fine) {
+  .site-cursor-active :is(.home-hero-cta, .top-nav-link) {
+    --interior-glow-opacity: calc(0.2 * var(--pointer-glow-strength, 0));
+  }
+
   .site-cursor-active .home-hero-cta,
+  .site-cursor-active .top-nav-link,
   .site-cursor-active .menu-hover-glow:hover {
     background-image: radial-gradient(
       circle 90px at var(--pointer-light-x, 50%) var(--pointer-light-y, 50%),
