@@ -524,6 +524,9 @@ function readPortfolioWork() {
   const pages = getVaultPages();
   const pagesByRoute = new Map(pages.map((page) => [page.route, page]));
   const media = getVaultMedia();
+  const mediaKeys = new Set(
+    media.flatMap((item) => [portfolioMediaKey(item.imgSrc), portfolioMediaKey(item.thumbSrc)]),
+  );
   const hiddenMedia = new Set(
     media.filter((item) => item.isHidden)
       .flatMap((item) => [portfolioMediaKey(item.imgSrc), portfolioMediaKey(item.thumbSrc)]),
@@ -554,10 +557,12 @@ function readPortfolioWork() {
     const assignedCover = assets.find((item) =>
       coverKey && [item.imgSrc, item.thumbSrc].some((src) => portfolioMediaKey(src) === coverKey),
     );
-    const first = assets[0];
-    const availableSources = [assignedCover?.thumbSrc, assignedCover?.imgSrc, first?.thumbSrc, first?.imgSrc]
+    const availableSources = [assignedCover, ...assets]
+      .flatMap((item) => [item?.imgSrc, item?.thumbSrc])
       .filter((src): src is string => Boolean(src) && !hiddenMedia.has(portfolioMediaKey(src)));
-    const cover = coverKey && !hiddenMedia.has(coverKey)
+    // A separately uploaded page cover may have no Vault Media assignment.
+    const canUsePageCover = assignedCover || (page.coverModifiedByUser && !mediaKeys.has(coverKey));
+    const cover = coverKey && canUsePageCover && !hiddenMedia.has(coverKey)
       ? page.coverPhoto
       : availableSources[0];
     const coverFallback = availableSources.find((src) => src !== cover);
@@ -652,27 +657,14 @@ function WorkOrbit({ projects, isFa }: { projects: PortfolioWork[]; isFa: boolea
   const stage = useRef<HTMLDivElement>(null);
   const steps = Math.max(1, projects.length - 1);
   const { scrollYProgress } = useScroll({ target: track, offset: ["start start", "end end"] });
-  const scrollStep = useMotionValue(0);
-  useLayoutEffect(() => {
-    const trackElement = track.current;
-    const stageElement = stage.current;
-    if (!trackElement || !stageElement) return;
-
-    const measure = () => scrollStep.set((trackElement.clientHeight - stageElement.clientHeight) / steps);
-    const observer = new ResizeObserver(measure);
-    observer.observe(trackElement);
-    observer.observe(stageElement);
-    measure();
-    return () => observer.disconnect();
-  }, [scrollStep, steps]);
-
-  const position = useTransform(() => {
-    const progress = scrollYProgress.get() * (projects.length - 1);
-    const current = Math.floor(progress);
-    const halfHold = Math.min(0.25, 45 / (scrollStep.get() || Infinity));
-    const travel = Math.max(0, Math.min(1, (progress - current - halfHold) / (1 - 2 * halfHold)));
-    // Each project holds for up to 90px of scroll before the next turn begins.
-    return current + travel * travel * (3 - 2 * travel);
+  const destination = useTransform(scrollYProgress, (progress) =>
+    Math.round(progress * (projects.length - 1)),
+  );
+  // The wheel and title share an animation whose destination is always a whole project.
+  const position = useSpring(destination, {
+    stiffness: 240,
+    damping: 30,
+    restDelta: 0.001,
   });
   const projectIndex = useTransform(position, Math.round);
   const [activeIndex, setActiveIndex] = useState(0);

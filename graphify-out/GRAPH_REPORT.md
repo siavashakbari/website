@@ -1,7 +1,7 @@
 # Graph Report - Creative Showcase Studio  (2026-11-24)
 
 ## Corpus Check
-- 149 files · ~216,843 words
+- 149 files · ~216,796 words
 - Verdict: corpus is large enough that graph structure adds value.
 - Unclassified: 23 file(s) not represented in the graph (top: .ttf 9, .woff2 5, (none) 4)
 
@@ -11,7 +11,7 @@
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `8de9d386`
+- Built from commit: `c7a89059`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -76,14 +76,14 @@
 6. `getVaultPages()` - 36 edges
 7. `FileRoutesByPath` - 35 edges
 8. `isContentReady()` - 34 edges
-9. `getVaultMedia()` - 33 edges
-10. `currentLocale()` - 33 edges
+9. `currentLocale()` - 33 edges
+10. `getVaultMedia()` - 33 edges
 
 ## Surprising Connections (you probably didn't know these)
-- `getCustomTaxonomy()` --calls--> `isContentReady()`  [EXTRACTED]
-  src/lib/studio-store.ts → src/lib/published-store.ts
 - `getRouter()` --indirect_call--> `NotFoundPage()`  [INFERRED]
   src/router.tsx → src/components/NotFoundPage.tsx
+- `getCustomTaxonomy()` --calls--> `isContentReady()`  [EXTRACTED]
+  src/lib/studio-store.ts → src/lib/published-store.ts
 - `Route` --calls--> `currentLocale()`  [EXTRACTED]
   src/routes/about.tsx → src/lib/locale.ts
 - `Route` --calls--> `pageHead()`  [EXTRACTED]
@@ -303,15 +303,15 @@ Nodes (48): AdaptiveThumb(), AdaptiveThumbProps, GalleryLoadContext, GalleryLoad
 _Questions this graph is uniquely positioned to answer:_
 
 - **Why does `react` connect `react` to `DedicatedPhotoView.tsx`, `brand-discovery.tsx`, `__root.tsx`, `index.tsx`, `site-content.ts`, `about.tsx`, `vault.invoices.tsx`, `vault.blog.tsx`, `dependencies`, `vault-store.ts`, `vault.tsx`, `published-store.ts`, `BinaryBannerCanvas.tsx`, `package.json`, `react`, `expandable-gallery.tsx`?**
-  _High betweenness centrality (0.080) - this node is a cross-community bridge._
+  _High betweenness centrality (0.072) - this node is a cross-community bridge._
 - **Should `projects.ts` be split into smaller, more focused modules?**
   _Cohesion score 0.006711409395973154 - nodes in this community are weakly interconnected._
-- **Why does `@tanstack/react-router` connect `vercel-private-content.server.ts` to `DedicatedPhotoView.tsx`, `react`, `__root.tsx`, `site-content.ts`, `routeTree.gen.ts`, `about.tsx`, `dependencies`, `vault-store.ts`, `BinaryBannerCanvas.tsx`, `package.json`, `api.contact.ts`, `brand-discovery.tsx`, `validateSnapshot`, `index.tsx`, `server.ts`, `vault.invoices.tsx`, `vault.blog.tsx`, `vault.tsx`, `react`?**
-  _High betweenness centrality (0.067) - this node is a cross-community bridge._
+- **Why does `@tanstack/react-start` connect `server.ts` to `DedicatedPhotoView.tsx`, `vercel-private-content.server.ts`, `routeTree.gen.ts`, `start.ts`, `package.json`, `vite.config.ts`?**
+  _High betweenness centrality (0.063) - this node is a cross-community bridge._
 - **Should `DedicatedPhotoView.tsx` be split into smaller, more focused modules?**
   _Cohesion score 0.05400943396226415 - nodes in this community are weakly interconnected._
-- **Why does `@tanstack/react-start` connect `server.ts` to `DedicatedPhotoView.tsx`, `vercel-private-content.server.ts`, `routeTree.gen.ts`, `start.ts`, `package.json`, `vite.config.ts`?**
-  _High betweenness centrality (0.058) - this node is a cross-community bridge._
+- **Why does `@tanstack/react-router` connect `vercel-private-content.server.ts` to `DedicatedPhotoView.tsx`, `react`, `__root.tsx`, `site-content.ts`, `routeTree.gen.ts`, `about.tsx`, `dependencies`, `vault-store.ts`, `BinaryBannerCanvas.tsx`, `package.json`, `api.contact.ts`, `brand-discovery.tsx`, `validateSnapshot`, `index.tsx`, `server.ts`, `vault.invoices.tsx`, `vault.blog.tsx`, `vault.tsx`, `react`?**
+  _High betweenness centrality (0.062) - this node is a cross-community bridge._
 - **Should `__root.tsx` be split into smaller, more focused modules?**
   _Cohesion score 0.11076923076923077 - nodes in this community are weakly interconnected._
 - **Should `studio-store.ts` be split into smaller, more focused modules?**
