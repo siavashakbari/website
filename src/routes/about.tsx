@@ -666,7 +666,28 @@ function WorkOrbit({ projects, isFa }: { projects: PortfolioWork[]; isFa: boolea
   const stage = useRef<HTMLDivElement>(null);
   const steps = Math.max(1, projects.length - 1);
   const { scrollYProgress } = useScroll({ target: track, offset: ["start start", "end end"] });
-  const position = useTransform(scrollYProgress, [0, 1], [0, projects.length - 1]);
+  const scrollStep = useMotionValue(0);
+  useLayoutEffect(() => {
+    const trackElement = track.current;
+    const stageElement = stage.current;
+    if (!trackElement || !stageElement) return;
+
+    const measure = () => scrollStep.set((trackElement.clientHeight - stageElement.clientHeight) / steps);
+    const observer = new ResizeObserver(measure);
+    observer.observe(trackElement);
+    observer.observe(stageElement);
+    measure();
+    return () => observer.disconnect();
+  }, [scrollStep, steps]);
+
+  const position = useTransform(() => {
+    const progress = scrollYProgress.get() * (projects.length - 1);
+    const current = Math.floor(progress);
+    const halfHold = Math.min(0.25, 15 / (scrollStep.get() || Infinity));
+    const travel = Math.max(0, Math.min(1, (progress - current - halfHold) / (1 - 2 * halfHold)));
+    // Ease out of one 30px hold and into the next while the page scrolls normally.
+    return current + travel * travel * (3 - 2 * travel);
+  });
   const projectIndex = useTransform(position, Math.round);
   const [activeIndex, setActiveIndex] = useState(0);
   useMotionValueEvent(projectIndex, "change", setActiveIndex);

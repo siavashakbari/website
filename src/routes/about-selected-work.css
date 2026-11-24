@@ -71,7 +71,8 @@
 .about-orbit-stage {
   --work-radius: min(54dvh, 70vw);
   --work-image-offset: min(33vw, 35rem);
-  --work-title-height: 2.2em;
+  --work-title-height: 4.4em;
+  --work-meta-inset: 0.5em;
   position: sticky;
   top: 0;
   isolation: isolate;
@@ -98,7 +99,7 @@
   transform:
     translate(calc(-50% + var(--work-x)), calc(-50% + var(--work-y)))
     rotate(calc(-0.48 * var(--work-side) * var(--work-angle)))
-    scale(calc(1 - 0.45 * var(--work-depth)));
+    scale(calc(1 - 0.45 * var(--work-depth) * (0.6 + 0.4 * var(--work-depth))));
   filter: blur(calc(6px * var(--work-depth)));
   opacity: calc(1 - var(--work-depth));
 }
@@ -121,7 +122,7 @@
   width: min(42vw, 39rem);
   transform: translate(-50%, -50%);
   text-align: center;
-  font-size: clamp(1.05rem, 3.5vw, 3.65rem);
+  font-size: clamp(1.05rem, min(3.5vw, 8dvh), 3.65rem);
 }
 
 .about-orbit-title {
@@ -132,6 +133,13 @@
   line-height: 1.04;
   letter-spacing: -0.035em;
   overflow-wrap: anywhere;
+  mask-image: linear-gradient(
+    to bottom,
+    transparent var(--work-meta-inset),
+    #000 calc(var(--work-meta-inset) + 0.2em),
+    #000 calc(100% - 0.2em),
+    transparent
+  );
 }
 
 .about-orbit-title-strip,
@@ -152,11 +160,11 @@
 }
 
 .about-orbit-meta {
-  bottom: calc(100% - 0.25em);
+  bottom: calc(100% - var(--work-meta-inset));
 }
 
 .about-orbit-actions {
-  top: calc(100% - 0.25em);
+  top: 100%;
 }
 
 .about-orbit-controls {
@@ -191,6 +199,6 @@
 @media (max-width: 48rem) {
   .about-orbit-stage {
     --work-image-offset: 34vw;
-    --work-title-height: 3.2em;
+    --work-title-height: 6.4em;
   }
 }

@@ -1,7 +1,7 @@
 # Graph Report - Creative Showcase Studio  (2026-11-24)
 
 ## Corpus Check
-- 149 files · ~216,739 words
+- 149 files · ~216,846 words
 - Verdict: corpus is large enough that graph structure adds value.
 - Unclassified: 23 file(s) not represented in the graph (top: .ttf 9, .woff2 5, (none) 4)
 
@@ -11,7 +11,7 @@
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `556b8bac`
+- Built from commit: `4306a439`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -83,14 +83,14 @@
 10. `currentLocale()` - 33 edges
 
 ## Surprising Connections (you probably didn't know these)
-- `FileRoutesById` --references--> `Route`  [EXTRACTED]
-  src/routeTree.gen.ts → src/routes/__root.tsx
 - `SpecialtyRouteData` --references--> `VaultPageItem`  [EXTRACTED]
   src/routes/$discipline.$specialty.index.tsx → src/lib/vault-store.ts
 - `PageHeaderProps` --references--> `KeyValuePair`  [EXTRACTED]
   src/components/ui-types/PageHeader.tsx → src/components/vault/PairedBoxesEditor.tsx
 - `ProjectRouteLoaderData` --references--> `VaultPageItem`  [EXTRACTED]
   src/routes/$discipline.$specialty.$project.index.tsx → src/lib/vault-store.ts
+- `FileRoutesById` --references--> `Route`  [EXTRACTED]
+  src/routeTree.gen.ts → src/routes/__root.tsx
 - `getCustomTaxonomy()` --calls--> `isContentReady()`  [EXTRACTED]
   src/lib/studio-store.ts → src/lib/published-store.ts
 
@@ -317,16 +317,16 @@ Nodes (47): AdaptiveThumb(), AdaptiveThumbProps, GalleryLoadContext, GalleryLoad
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `@tanstack/react-router` connect `routeTree.gen.ts` to `$discipline.$specialty.index.tsx`, `normalizeProjectSlug`, `__root.tsx`, `vercel-private-content.server.ts`, `site-content.ts`, `about.tsx`, `dependencies`, `vault-store.ts`, `blog-posts.ts`, `react`, `FileRoutesByPath`, `api.contact.ts`, `brand-discovery.tsx`, `DedicatedPhotoView.tsx`, `validateSnapshot`, `published-store.ts`, `package.json`, `localizedText`, `$discipline.$specialty.$project.index.tsx`, `react`?**
+- **Why does `react` connect `react` to `$discipline.$specialty.index.tsx`, `brand-discovery.tsx`, `DedicatedPhotoView.tsx`, `__root.tsx`, `normalizeProjectSlug`, `site-content.ts`, `about.tsx`, `published-store.ts`, `dependencies`, `package.json`, `vault-store.ts`, `blog-posts.ts`, `localizedText`, `$discipline.$specialty.$project.index.tsx`, `react`, `expandable-gallery.tsx`, `FileRoutesByPath`?**
   _High betweenness centrality (0.071) - this node is a cross-community bridge._
 - **Should `projects.ts` be split into smaller, more focused modules?**
   _Cohesion score 0.006711409395973154 - nodes in this community are weakly interconnected._
-- **Why does `react` connect `react` to `$discipline.$specialty.index.tsx`, `brand-discovery.tsx`, `DedicatedPhotoView.tsx`, `__root.tsx`, `normalizeProjectSlug`, `site-content.ts`, `about.tsx`, `published-store.ts`, `dependencies`, `package.json`, `vault-store.ts`, `blog-posts.ts`, `localizedText`, `$discipline.$specialty.$project.index.tsx`, `react`, `expandable-gallery.tsx`, `FileRoutesByPath`?**
-  _High betweenness centrality (0.066) - this node is a cross-community bridge._
+- **Why does `@tanstack/react-start` connect `vite.config.ts` to `$discipline.$specialty.index.tsx`, `vercel-private-content.server.ts`, `server.ts`, `start.ts`, `package.json`, `FileRoutesByPath`?**
+  _High betweenness centrality (0.061) - this node is a cross-community bridge._
 - **Should `$discipline.$specialty.index.tsx` be split into smaller, more focused modules?**
   _Cohesion score 0.1329268292682927 - nodes in this community are weakly interconnected._
-- **Why does `@tanstack/react-start` connect `vite.config.ts` to `$discipline.$specialty.index.tsx`, `vercel-private-content.server.ts`, `server.ts`, `start.ts`, `package.json`, `FileRoutesByPath`?**
-  _High betweenness centrality (0.043) - this node is a cross-community bridge._
+- **Why does `@tanstack/react-router` connect `routeTree.gen.ts` to `$discipline.$specialty.index.tsx`, `normalizeProjectSlug`, `__root.tsx`, `vercel-private-content.server.ts`, `site-content.ts`, `about.tsx`, `dependencies`, `vault-store.ts`, `blog-posts.ts`, `react`, `FileRoutesByPath`, `api.contact.ts`, `brand-discovery.tsx`, `DedicatedPhotoView.tsx`, `validateSnapshot`, `published-store.ts`, `package.json`, `localizedText`, `$discipline.$specialty.$project.index.tsx`, `react`?**
+  _High betweenness centrality (0.058) - this node is a cross-community bridge._
 - **Should `__root.tsx` be split into smaller, more focused modules?**
   _Cohesion score 0.12807881773399016 - nodes in this community are weakly interconnected._
 - **Should `studio-store.ts` be split into smaller, more focused modules?**
