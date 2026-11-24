@@ -663,9 +663,9 @@
     "semantic_hash": ""
   },
   "src/routes/about.tsx": {
-    "mtime": 1795505460.1192572,
-    "seen": 1795505479.8201737,
-    "ast_hash": "139a3e1a4ea75a9948beb2e3fe69c376",
+    "mtime": 1795506169.7840135,
+    "seen": 1795506347.4342897,
+    "ast_hash": "bc6aa32e9972baefd62fc4191839a5cd",
     "semantic_hash": ""
   },
   "src/routes/admin.blog.tsx": {

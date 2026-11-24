@@ -8,15 +8,13 @@
 
 .about-work-item {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 0.8fr);
-  grid-template-areas: "caption caption" "primary detail";
   align-items: center;
   gap: 1rem;
   padding-block: 1.75rem;
 }
 
-.about-work-caption {
-  grid-area: caption;
+.about-work-item > .about-work-image {
+  aspect-ratio: 5 / 4;
 }
 
 .about-work-image {
@@ -33,20 +31,9 @@
   object-fit: cover;
 }
 
-.about-work-image-primary {
-  grid-area: primary;
-  aspect-ratio: 5 / 4;
-}
-
-.about-work-image-detail {
-  grid-area: detail;
-  aspect-ratio: 1;
-}
-
 @media (min-width: 48rem) {
   .about-work-item {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    grid-template-areas: "primary caption detail";
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: clamp(1.25rem, 4vw, 4rem);
   }
 }
@@ -56,7 +43,7 @@
 }
 
 @supports (left: calc(1px * cos(1deg))) {
-  @media (prefers-reduced-motion: no-preference) {
+  @media (prefers-reduced-motion: no-preference) and (min-height: 28rem) {
     .about-work-list {
       display: none;
     }
@@ -69,10 +56,14 @@
 }
 
 .about-orbit-stage {
-  --work-radius: min(54dvh, 70vw);
-  --work-image-offset: min(33vw, 35rem);
+  --work-radius: min(52dvh, 45vw);
+  --work-caption-x: 25%;
+  --work-caption-y: 50%;
+  --work-wheel-x: 75%;
+  --work-wheel-y: 50%;
+  --work-side: 1;
   --work-title-height: 4.4em;
-  --work-meta-inset: 0.5em;
+  --work-reel-inset: 0.5em;
   position: sticky;
   top: 0;
   isolation: isolate;
@@ -80,9 +71,16 @@
   height: 100dvh;
 }
 
+.about-orbit-stage[dir="rtl"] {
+  --work-caption-x: 75%;
+  --work-wheel-x: 25%;
+  --work-side: -1;
+}
+
 .about-orbit-images {
   position: absolute;
   inset: 0;
+  z-index: 0;
   pointer-events: none;
 }
 
@@ -91,11 +89,13 @@
   --work-angle: calc(clamp(-2.8, var(--work-delta), 2.8) * 34deg);
   --work-depth: min(1, max(var(--work-delta), -1 * var(--work-delta)) / 2.65);
   /* Both axes use the same radius so the centers follow circular arcs. */
-  --work-x: calc(var(--work-side) * (var(--work-image-offset) + var(--work-radius) * (1 - cos(var(--work-angle)))));
+  --work-x: calc(var(--work-side) * var(--work-radius) * (1 - cos(var(--work-angle))));
   --work-y: calc(var(--work-radius) * sin(var(--work-angle)));
   position: absolute;
-  left: 50%;
-  top: 50%;
+  left: var(--work-wheel-x);
+  top: var(--work-wheel-y);
+  width: min(43vw, 33rem, 65dvh);
+  aspect-ratio: 5 / 4;
   transform:
     translate(calc(-50% + var(--work-x)), calc(-50% + var(--work-y)))
     rotate(calc(-0.48 * var(--work-side) * var(--work-angle)))
@@ -104,21 +104,14 @@
   opacity: calc(1 - var(--work-depth));
 }
 
-.about-orbit-image-left {
-  --work-side: -1;
-  width: min(27vw, 26rem);
-  aspect-ratio: 5 / 4;
-}
-
-.about-orbit-image-right {
-  --work-side: 1;
-  width: min(22vw, 19rem);
-  aspect-ratio: 1;
+.about-orbit-image[data-active] {
+  z-index: 1;
 }
 
 .about-orbit-caption {
   position: absolute;
-  inset: 50% auto auto 50%;
+  z-index: 1;
+  inset: var(--work-caption-y) auto auto var(--work-caption-x);
   width: min(42vw, 39rem);
   transform: translate(-50%, -50%);
   text-align: center;
@@ -135,10 +128,10 @@
   overflow-wrap: anywhere;
   mask-image: linear-gradient(
     to bottom,
-    transparent var(--work-meta-inset),
-    #000 calc(var(--work-meta-inset) + 0.2em),
-    #000 calc(100% - 0.2em),
-    transparent
+    transparent var(--work-reel-inset),
+    #000 calc(var(--work-reel-inset) + 0.2em),
+    #000 calc(100% - var(--work-reel-inset) - 0.2em),
+    transparent calc(100% - var(--work-reel-inset))
   );
 }
 
@@ -160,11 +153,14 @@
 }
 
 .about-orbit-meta {
-  bottom: calc(100% - var(--work-meta-inset));
+  bottom: calc(100% - var(--work-reel-inset));
 }
 
 .about-orbit-actions {
-  top: 100%;
+  top: calc(100% - var(--work-reel-inset));
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .about-orbit-controls {
@@ -196,9 +192,24 @@
   opacity: 0.35;
 }
 
-@media (max-width: 48rem) {
-  .about-orbit-stage {
-    --work-image-offset: 34vw;
-    --work-title-height: 6.4em;
+@media (width < 48rem) {
+  .about-orbit-stage,
+  .about-orbit-stage[dir="rtl"] {
+    --work-radius: min(65vw, 43dvh);
+    --work-caption-x: 50%;
+    --work-caption-y: 29%;
+    --work-wheel-x: 50%;
+    --work-wheel-y: 73%;
+  }
+
+  .about-orbit-caption {
+    width: 88%;
+    font-size: clamp(1.15rem, min(6.8vw, 4.6dvh), 2.25rem);
+  }
+
+  .about-orbit-image {
+    --work-x: calc(var(--work-side) * var(--work-radius) * sin(var(--work-angle)));
+    --work-y: calc(var(--work-radius) * (1 - cos(var(--work-angle))));
+    width: min(72vw, 42dvh);
   }
 }

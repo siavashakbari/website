@@ -33,9 +33,8 @@ import {
 import { pageHead } from "@/lib/seo";
 import { BackToTop } from "@/components/BackToTop";
 import { ExpandableGallery, type GalleryPhoto } from "@/components/ui/expandable-gallery";
-import { resolveKnownAssetStem } from "@/lib/inventory-assets";
-import { useResolvedMediaSrc } from "@/lib/local-media-db";
-import { getCanonicalProjectSlug, getStudioProjects } from "@/lib/studio-store";
+import { resolveImmediateMediaSrc, resolveVideoPoster } from "@/lib/local-media-db";
+import { refreshPublishedContent } from "@/lib/published-store";
 import {
   filenameKeyFromSrc,
   FLAT_FIELDS,
@@ -43,6 +42,7 @@ import {
   getVaultPages,
   isRouteOrAncestorHidden,
   subscribeToVaultStore,
+  type VaultMediaItem,
 } from "@/lib/vault-store";
 import nozadLogo from "@/assets/graphic-design/nozad-publication/graphic-design-nozad-publication-01.jpg";
 import nozadBookCover1 from "@/assets/graphic-design/book-covers/graphic-design-book-covers-01.jpg";
@@ -173,43 +173,6 @@ const ZEEE_PRODUCTS_PHOTOS: GalleryPhoto[] = [
   { id: "zeeeproducts-2", src: zeeeProduct2, alt: "ZEEEProducts — product photography" },
   { id: "zeeeproducts-3", src: zeeeProduct3, alt: "ZEEEProducts — product photography" },
 ];
-
-const PROJECT_TITLE_FA: Record<string, string> = {
-  meatlab: "میت‌لب",
-  shekarchian: "شیرینی شکرچیان",
-  "shekarchian-sweets": "شیرینی شکرچیان",
-  dodareh: "دوباره",
-  dobareh: "دوباره",
-  "ahura-cctv": "اهورا",
-  femiq: "فمیک",
-  polarity: "پلاریتی",
-  "echo-supplements": "Echo Supplements",
-  "goats-coffee": "قهوه‌ی بز",
-  "nozad-publication": "انتشارات نوزاد",
-  "nozad-publication-visual-identity": "انتشارات نوزاد",
-  "on-swipe": "آن سوایپ",
-  onswipe: "آن سوایپ",
-  "zen-studio": "محصولات استودیو زن",
-  artemis: "آرتمیس",
-  cichon: "سیچون",
-  "farshid-rahimi": "فرشید رحیمی",
-  maanaar: "مانار",
-  mamrezz: "Mamrezz",
-  "snow-snack": "اسنو اسنک",
-  "zeee-products": "محصولات زی",
-  awli: "AWLI",
-  atlasi: "اطلسی",
-  zeeen: "زین",
-  sepidar: "سپیدار",
-};
-
-const PROJECT_ROLE_FA: Record<string, string> = {
-  "Visual Identity": "هویت بصری",
-  "Visual Identity (Proposal)": "هویت بصری (طرح پیشنهادی)",
-  "Visual Identity & Catalogue": "هویت بصری و کاتالوگ",
-  "Fashion Photography": "عکاسی فشن",
-  "Product Design": "طراحی محصول",
-};
 
 const CAREER_MILESTONES: Milestone[] = [
   {
@@ -551,21 +514,25 @@ function Hero({ reduceMotion, lang }: { reduceMotion: boolean; lang: Lang }) {
   );
 }
 
+function portfolioMediaKey(src?: string) {
+  const proxyQuery = src?.match(/^(?:https?:\/\/[^/]+)?\/api\/blob-media\?([^#]*)/i)?.[1];
+  const pathname = proxyQuery && new URLSearchParams(proxyQuery).get("pathname");
+  return pathname ? "/api/blob-media:" + pathname : filenameKeyFromSrc(src);
+}
+
 function readPortfolioWork() {
   const pages = getVaultPages();
   const pagesByRoute = new Map(pages.map((page) => [page.route, page]));
-  const studioBySlug = new Map(
-    getStudioProjects().map((project) => [getCanonicalProjectSlug(project), project]),
-  );
   const media = getVaultMedia();
   const hiddenMedia = new Set(
-    media.filter((item) => item.isHidden).map((item) => filenameKeyFromSrc(item.imgSrc)),
+    media.filter((item) => item.isHidden)
+      .flatMap((item) => [portfolioMediaKey(item.imgSrc), portfolioMediaKey(item.thumbSrc)]),
   );
-  const mediaByRoute = new Map<string, Map<string, string>>();
+  const mediaByRoute = new Map<string, VaultMediaItem[]>();
   for (const item of media) {
     if (!item.imgSrc || item.isHidden) continue;
-    const assets = mediaByRoute.get(item.assignedRoute) ?? new Map<string, string>();
-    assets.set(filenameKeyFromSrc(item.imgSrc), item.thumbSrc || item.imgSrc);
+    const assets = mediaByRoute.get(item.assignedRoute) ?? [];
+    assets.push(item);
     mediaByRoute.set(item.assignedRoute, assets);
   }
 
@@ -574,26 +541,28 @@ function readPortfolioWork() {
     const [discipline, specialty, slug] = segments;
     const flat = FLAT_FIELDS.has(discipline);
     if (segments.length !== (flat ? 2 : 3) || isRouteOrAncestorHidden(page.route, pages)) return [];
-    const projectSlug = flat ? specialty : slug;
 
-    const studio = studioBySlug.get(projectSlug);
     const parent = pagesByRoute.get(page.parentRoute);
-    const category = studio?.category || parent?.name || "";
-    const year =
-      page.pairedBoxes?.find(({ key }) => key.trim().toLowerCase() === "year")?.value ||
-      String(studio?.year || "");
-    const assets = mediaByRoute.get(page.route) ?? new Map<string, string>();
-    const sources = [page.coverPhoto, ...(studio?.images ?? []).map(({ url }) => url)]
-      .filter(Boolean)
-      .map((src) => filenameKeyFromSrc(src))
-      .filter((key) => !hiddenMedia.has(key));
-    const coverKey = filenameKeyFromSrc(page.coverPhoto);
-    if (coverKey && !hiddenMedia.has(coverKey) && !assets.has(coverKey)) {
-      assets.set(coverKey, page.coverPhoto);
-    }
-    const [cover, detail = cover] = [...new Set([...sources, ...assets.keys()])]
-      .flatMap((key) => assets.get(key) || [])
-      .slice(0, 2);
+    const category = page.pairedBoxes?.find(({ key, keyFa }) =>
+      key?.trim().toLowerCase() === "category" || keyFa?.trim() === "دسته‌بندی",
+    );
+    const year = page.pairedBoxes?.find(({ key, keyFa }) =>
+      key?.trim().toLowerCase() === "year" || keyFa?.trim() === "سال",
+    );
+    const assets = mediaByRoute.get(page.route) ?? [];
+    const coverKey = portfolioMediaKey(page.coverPhoto);
+    const assignedCover = assets.find((item) =>
+      coverKey && [item.imgSrc, item.thumbSrc].some((src) => portfolioMediaKey(src) === coverKey),
+    );
+    const first = assets[0];
+    const availableSources = [assignedCover?.thumbSrc, assignedCover?.imgSrc, first?.thumbSrc, first?.imgSrc]
+      .filter((src): src is string => Boolean(src) && !hiddenMedia.has(portfolioMediaKey(src)));
+    const cover = coverKey && !hiddenMedia.has(coverKey)
+      ? page.coverPhoto
+      : availableSources[0];
+    const coverFallback = availableSources.find((src) => src !== cover);
+    const categoryEn = category?.value?.trim() || parent?.name || "";
+    const yearEn = year?.value?.trim() || assignedCover?.year || assets.find((item) => item.year)?.year || "";
 
     return [{
       route: page.route,
@@ -602,43 +571,60 @@ function readPortfolioWork() {
       slug,
       flat,
       title: page.name,
-      titleFa: page.nameFa || studio?.titleFa || PROJECT_TITLE_FA[projectSlug] || page.name,
-      category,
-      categoryFa:
-        PROJECT_ROLE_FA[category] || parent?.nameFa || PROJECT_ROLE_FA[parent?.name ?? ""] || category,
-      year,
+      titleFa: page.nameFa?.trim() || page.name,
+      category: categoryEn,
+      categoryFa: category?.valueFa?.trim() || category?.value?.trim() || parent?.nameFa?.trim() || categoryEn,
+      year: yearEn,
+      yearFa: year?.valueFa?.trim() || yearEn,
       cover,
-      detail,
+      coverFallback,
+      order: page.order,
     }];
-  }).sort((a, b) => b.year.localeCompare(a.year));
+  }).sort((a, b) => b.year.localeCompare(a.year, undefined, { numeric: true }) || a.order - b.order);
 }
 
-function WorkImage({ source, loading = "lazy" }: { source?: string; loading?: "lazy" | "eager" }) {
-  const src = useResolvedMediaSrc(source);
+function WorkImage({
+  source,
+  fallback,
+  loading = "lazy",
+}: {
+  source?: string;
+  fallback?: string;
+  loading?: "lazy" | "eager";
+}) {
+  const [failed, setFailed] = useState<string>();
+  const activeSource = failed === source ? fallback : source;
+  const src = resolveImmediateMediaSrc(activeSource);
   if (!src) return null;
-  if (/\.(mp4|webm|mov)(\?|#|$)|^data:video\//i.test(source ?? "")) {
-    if (resolveKnownAssetStem(source ?? "") === "video-echo-prime-01") {
-      return <img src="/video-echo-prime-poster.webp" alt="" loading={loading} />;
-    }
-    return <video src={src} preload="metadata" muted playsInline aria-hidden="true" />;
+  const onError = source === activeSource && fallback ? () => setFailed(source) : undefined;
+  if (/\.(mp4|webm|mov)(\?|#|$)|^data:video\//i.test(activeSource ?? "")) {
+    return (
+      <video
+        src={src}
+        poster={resolveVideoPoster(fallback)}
+        onError={onError}
+        preload="metadata"
+        muted
+        playsInline
+        aria-hidden="true"
+      />
+    );
   }
-  return <img src={src} alt="" loading={loading} decoding="async" />;
+  return <img src={src} alt="" onError={onError} loading={loading} decoding="async" />;
 }
 
 type PortfolioWork = ReturnType<typeof readPortfolioWork>[number];
 
 function WorkMetadata({ project, isFa }: { project: PortfolioWork; isFa: boolean }) {
+  const category = isFa ? project.categoryFa : project.category;
+  const year = isFa ? project.yearFa : project.year;
   return (
     <p className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-sm text-foreground/70">
-      <span>{isFa ? project.categoryFa : project.category}</span>
-      {project.year && (
-        <>
-          {project.category && (
-            <span aria-hidden="true" className="h-1 w-1 rounded-full bg-secondary" />
-          )}
-          <span className="tabular-nums">{project.year}</span>
-        </>
+      {category && <span>{category}</span>}
+      {category && year && (
+        <span aria-hidden="true" className="h-1 w-1 rounded-full bg-secondary" />
       )}
+      {year && <span className="tabular-nums">{year}</span>}
     </p>
   );
 }
@@ -683,9 +669,9 @@ function WorkOrbit({ projects, isFa }: { projects: PortfolioWork[]; isFa: boolea
   const position = useTransform(() => {
     const progress = scrollYProgress.get() * (projects.length - 1);
     const current = Math.floor(progress);
-    const halfHold = Math.min(0.25, 15 / (scrollStep.get() || Infinity));
+    const halfHold = Math.min(0.25, 45 / (scrollStep.get() || Infinity));
     const travel = Math.max(0, Math.min(1, (progress - current - halfHold) / (1 - 2 * halfHold)));
-    // Ease out of one 30px hold and into the next while the page scrolls normally.
+    // Each project holds for up to 90px of scroll before the next turn begins.
     return current + travel * travel * (3 - 2 * travel);
   });
   const projectIndex = useTransform(position, Math.round);
@@ -709,20 +695,20 @@ function WorkOrbit({ projects, isFa }: { projects: PortfolioWork[]; isFa: boolea
 
   return (
     <div ref={track} className="about-orbit" style={{ "--work-steps": steps } as CSSProperties}>
-      <div ref={stage} className="about-orbit-stage">
+      <div ref={stage} className="about-orbit-stage" dir={isFa ? "rtl" : "ltr"}>
         <motion.div
           aria-hidden="true"
           className="about-orbit-images"
           style={{ "--work-position": position } as MotionStyle}
         >
           {projects.slice(firstVisible, index + 4).map((project, offset) => (
-            <div key={project.route} style={{ "--work-index": firstVisible + offset } as CSSProperties}>
-              <div className="about-work-image about-orbit-image about-orbit-image-left">
-                <WorkImage source={project.cover} loading="eager" />
-              </div>
-              <div className="about-work-image about-orbit-image about-orbit-image-right">
-                <WorkImage source={project.detail} loading="eager" />
-              </div>
+            <div
+              key={project.route}
+              className="about-work-image about-orbit-image"
+              data-active={project.route === active.route || undefined}
+              style={{ "--work-index": firstVisible + offset } as CSSProperties}
+            >
+              <WorkImage source={project.cover} fallback={project.coverFallback} loading="eager" />
             </div>
           ))}
         </motion.div>
@@ -775,8 +761,21 @@ function SelectedWork({ lang }: { lang: Lang }) {
   const [projects, setProjects] = useState(readPortfolioWork);
   useEffect(() => {
     const update = () => setProjects(readPortfolioWork());
+    const refresh = () => {
+      if (document.visibilityState === "visible") void refreshPublishedContent();
+    };
+    const unsubscribe = subscribeToVaultStore(update);
     update();
-    return subscribeToVaultStore(update);
+    refresh();
+    window.addEventListener("focus", refresh);
+    document.addEventListener("visibilitychange", refresh);
+    const timer = window.setInterval(refresh, 60_000);
+    return () => {
+      unsubscribe();
+      window.clearInterval(timer);
+      window.removeEventListener("focus", refresh);
+      document.removeEventListener("visibilitychange", refresh);
+    };
   }, []);
 
   if (!projects.length) return null;
@@ -804,11 +803,8 @@ function SelectedWork({ lang }: { lang: Lang }) {
               </h3>
               <WorkLink project={project} isFa={isFa} />
             </div>
-            <div className="about-work-image about-work-image-primary">
-              <WorkImage source={project.cover} />
-            </div>
-            <div className="about-work-image about-work-image-detail">
-              <WorkImage source={project.detail} />
+            <div className="about-work-image">
+              <WorkImage source={project.cover} fallback={project.coverFallback} />
             </div>
           </li>
         ))}
