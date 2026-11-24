@@ -248,8 +248,8 @@
 
 @media (width < 1024px) {
   .site-header .language-switch {
-    width: 44px;
-    height: 44px;
+    width: 35.2px;
+    height: 35.2px;
     justify-content: center;
     color: var(--secondary);
   }
@@ -260,7 +260,7 @@
 
   .language-switch > .language-switch-current {
     display: inline;
-    font: 600 12px/1 var(--font-body);
+    font: 600 10.8px/1 var(--font-body);
   }
 }
 
