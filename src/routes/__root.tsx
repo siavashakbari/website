@@ -205,6 +205,54 @@ export const Route = createRootRouteWithContext<{
 
 function RootShell({ children }: { children: ReactNode }) {
   const locale = useLocale();
+  const cursorRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const cursor = cursorRef.current;
+    if (!cursor) return;
+
+    const root = document.documentElement;
+    const finePointer = window.matchMedia("(any-pointer: fine) and (forced-colors: none)");
+    const pills = () => document.querySelectorAll<HTMLElement>(".top-nav-link, .home-hero-cta");
+    const clear = () => {
+      cursor.hidden = true;
+      root.classList.remove("site-cursor-active");
+      for (const pill of pills()) pill.style.removeProperty("--nav-glow-opacity");
+    };
+    const move = (event: PointerEvent) => {
+      if (!finePointer.matches || event.pointerType !== "mouse") {
+        if (!cursor.hidden) clear();
+        return;
+      }
+
+      cursor.style.transform = `translate3d(${event.clientX - 5}px, ${event.clientY - 5}px, 0)`;
+      if (cursor.hidden) {
+        cursor.hidden = false;
+        root.classList.add("site-cursor-active");
+      }
+      for (const pill of pills()) {
+        const edge = nearestEdge(pill.getBoundingClientRect(), event.clientX, event.clientY);
+        pill.style.setProperty("--nav-glow-x", `${edge.x}px`);
+        pill.style.setProperty("--nav-glow-y", `${edge.y}px`);
+        pill.style.setProperty("--nav-glow-opacity", String(Math.max(0, 1 - edge.distance / 70)));
+      }
+    };
+
+    window.addEventListener("pointermove", move, { passive: true });
+    window.addEventListener("pointerdown", move, { passive: true });
+    window.addEventListener("blur", clear);
+    root.addEventListener("pointerleave", clear);
+    finePointer.addEventListener("change", clear);
+    return () => {
+      window.removeEventListener("pointermove", move);
+      window.removeEventListener("pointerdown", move);
+      window.removeEventListener("blur", clear);
+      root.removeEventListener("pointerleave", clear);
+      finePointer.removeEventListener("change", clear);
+      clear();
+    };
+  }, []);
+
   return (
     <html lang={locale} dir={locale === "fa" ? "rtl" : "ltr"} className="dark">
       <head>
@@ -212,6 +260,7 @@ function RootShell({ children }: { children: ReactNode }) {
       </head>
       <body>
         {children}
+        <div ref={cursorRef} className="site-cursor" aria-hidden="true" hidden />
         <Scripts />
       </body>
     </html>
@@ -329,47 +378,13 @@ function WorksDropdown({ active }: { active: boolean }) {
 
 function Header() {
   const router = useRouter();
-  const headerRef = useRef<HTMLElement>(null);
   const locale = useLocale();
   const pathname = router.state.location.pathname;
   const worksActive = isDisciplinePath(pathname);
 
-  useEffect(() => {
-    const header = headerRef.current;
-    if (!header) return;
-    const hoverEnabled = window.matchMedia(
-      "(min-width: 1280px) and (hover: hover) and (pointer: fine)",
-    );
-    const move = (event: PointerEvent) => {
-      if (!hoverEnabled.matches) return;
-      for (const pill of header.querySelectorAll<HTMLElement>(".top-nav-link")) {
-        const edge = nearestEdge(pill.getBoundingClientRect(), event.clientX, event.clientY);
-        pill.style.setProperty("--nav-glow-x", `${edge.x}px`);
-        pill.style.setProperty("--nav-glow-y", `${edge.y}px`);
-        pill.style.setProperty("--nav-glow-opacity", String(Math.max(0, 1 - edge.distance / 70)));
-      }
-    };
-    const clear = () => {
-      for (const pill of header.querySelectorAll<HTMLElement>(".top-nav-link")) {
-        pill.style.setProperty("--nav-glow-opacity", "0");
-      }
-    };
-    window.addEventListener("pointermove", move, { passive: true });
-    window.addEventListener("blur", clear);
-    document.documentElement.addEventListener("pointerleave", clear);
-    hoverEnabled.addEventListener("change", clear);
-    return () => {
-      window.removeEventListener("pointermove", move);
-      window.removeEventListener("blur", clear);
-      document.documentElement.removeEventListener("pointerleave", clear);
-      hoverEnabled.removeEventListener("change", clear);
-    };
-  }, []);
-
   return (
     <>
       <header
-        ref={headerRef}
         dir="ltr"
         className="site-header sticky inset-x-0 top-0 z-[200] shrink-0 bg-background"
       >

@@ -1,0 +1,128 @@
+.about-work {
+  overflow: clip;
+}
+
+.about-work-list {
+  padding-block: 2rem 3rem;
+}
+
+.about-work-item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 0.8fr);
+  grid-template-areas: "caption caption" "primary detail";
+  align-items: center;
+  gap: 1rem;
+  padding-block: 1.75rem;
+}
+
+.about-work-caption {
+  grid-area: caption;
+  z-index: 1;
+}
+
+.about-work-image {
+  overflow: hidden;
+  border-radius: 0.75rem;
+  border: 1px solid color-mix(in oklab, var(--foreground) 14%, transparent);
+  background: var(--background);
+}
+
+.about-work-image img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.about-work-image-primary {
+  grid-area: primary;
+  aspect-ratio: 5 / 4;
+  --turn: 1;
+}
+
+.about-work-image-detail {
+  grid-area: detail;
+  aspect-ratio: 1;
+  --turn: -1;
+}
+
+@media (min-width: 48rem) {
+  .about-work-item {
+    grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-areas: "primary caption detail";
+    gap: clamp(1.25rem, 4vw, 4rem);
+  }
+
+  .about-work-image {
+    width: 100%;
+    height: min(34svh, 21rem);
+    justify-self: end;
+  }
+
+  .about-work-image-detail {
+    width: 82%;
+    height: min(28svh, 16rem);
+    justify-self: start;
+  }
+}
+
+@supports ((animation-timeline: scroll()) and (animation-range: 0% 100%)) {
+  @media (prefers-reduced-motion: no-preference) {
+    .about-work-item {
+      view-timeline: --about-work-item block;
+    }
+
+    .about-work-image {
+      animation: about-work-turn auto linear both;
+      animation-timeline: --about-work-item;
+    }
+
+    @media (min-width: 48rem) and (min-height: 42rem) {
+      .about-work-item {
+        min-block-size: 50svh;
+        padding-block: 0;
+      }
+
+      .about-work-list {
+        padding-block: 12svh 25svh;
+      }
+
+      .about-work-caption {
+        animation: about-work-center auto linear both;
+        animation-timeline: --about-work-item;
+        animation-range: contain 0% contain 100%;
+      }
+
+      .about-work-caption:focus-within {
+        animation: none;
+      }
+    }
+  }
+}
+
+@keyframes about-work-turn {
+  0% {
+    transform: perspective(850px) translateX(calc(var(--turn) * -16%))
+      rotateY(calc(var(--turn) * -52deg)) rotateZ(calc(var(--turn) * 25deg)) scale(0.82);
+    opacity: 0.46;
+  }
+
+  44%, 56% {
+    transform: perspective(850px) translateX(0) rotateY(0deg) rotateZ(0deg) scale(1);
+    opacity: 1;
+  }
+
+  100% {
+    transform: perspective(850px) translateX(calc(var(--turn) * -16%))
+      rotateY(calc(var(--turn) * 52deg)) rotateZ(calc(var(--turn) * -25deg)) scale(0.82);
+    opacity: 0.46;
+  }
+}
+
+/* Each row occupies half the viewport, so counter its travel during the contain range. */
+@keyframes about-work-center {
+  from { transform: translateY(-25svh); }
+  to { transform: translateY(25svh); }
+  0%, 100% { opacity: 0; }
+  8%, 92% { opacity: 1; }
+}

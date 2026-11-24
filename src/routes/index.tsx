@@ -46,42 +46,52 @@ function splitStat(value: string) {
 }
 
 function AnimatedStat({ value }: { value: string }) {
-  const [scrambled, setScrambled] = useState<string>();
+  const [frames, setFrames] = useState<string[]>([]);
 
   useLayoutEffect(() => {
     if (
       !/\p{Decimal_Number}/u.test(value) ||
       !window.matchMedia("(prefers-reduced-motion: no-preference)").matches
     ) {
-      setScrambled(undefined);
+      setFrames([]);
       return;
     }
 
     const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ!?#%";
-    const scramble = () =>
-      setScrambled(
+    setFrames(
+      Array.from({ length: 7 }, () =>
         value.replace(
           /\p{Decimal_Number}/gu,
           () => characters[Math.floor(Math.random() * characters.length)],
         ),
-      );
-
-    scramble();
-    const interval = window.setInterval(scramble, 70);
-    const timeout = window.setTimeout(() => {
-      window.clearInterval(interval);
-      setScrambled(undefined);
-    }, 1000);
-
-    return () => {
-      window.clearInterval(interval);
-      window.clearTimeout(timeout);
-    };
+      ),
+    );
   }, [value]);
 
   return (
-    <strong className="home-hero-stat-number" dir="ltr" aria-label={value}>
-      <span aria-hidden="true">{scrambled ?? value}</span>
+    <strong
+      className="home-hero-stat-number"
+      dir="ltr"
+      aria-label={value}
+      data-animating={frames.length > 0 || undefined}
+    >
+      <span
+        className="home-hero-stat-final"
+        aria-hidden="true"
+        onAnimationEnd={() => setFrames([])}
+      >
+        {value}
+      </span>
+      {frames.map((frame, index) => (
+        <span
+          key={index}
+          className="home-hero-stat-frame"
+          style={{ animationDelay: `${(index - 1) * 145}ms` }}
+          aria-hidden="true"
+        >
+          {frame}
+        </span>
+      ))}
     </strong>
   );
 }
@@ -132,36 +142,29 @@ function Index() {
               </div>
             </div>
 
-            <div className="home-hero-stats">
-              {statistics.map((stat, index) => {
-                const { number, label } = splitStat(stat.text);
-                return (
-                  <div
-                    key={index}
-                    className="home-hero-stat"
-                    lang={stat.lang}
-                    dir={stat.lang === "fa" ? "rtl" : "ltr"}
-                  >
-                    <AnimatedStat value={number} />
-                    <span>{label}</span>
-                  </div>
-                );
-              })}
+            <div className="home-hero-actions">
+              <div className="home-hero-stats">
+                {statistics.map((stat, index) => {
+                  const { number, label } = splitStat(stat.text);
+                  return (
+                    <div
+                      key={index}
+                      className="home-hero-stat"
+                      lang={stat.lang}
+                      dir={stat.lang === "fa" ? "rtl" : "ltr"}
+                    >
+                      <AnimatedStat key={number} value={number} />
+                      <span>{label}</span>
+                    </div>
+                  );
+                })}
+              </div>
+              <Link to="/brand-discovery" className="home-hero-cta">
+                {locale === "fa"
+                  ? "بگذارید به شما در ساخت برندتان کمک کنم"
+                  : "Let me help you build your brand"}
+              </Link>
             </div>
-            <Link
-              to="/brand-discovery"
-              className="home-hero-cta"
-              onPointerMove={(event) => {
-                const pill = event.currentTarget;
-                const rect = pill.getBoundingClientRect();
-                pill.style.setProperty("--edge-x", `${event.clientX - rect.left}px`);
-                pill.style.setProperty("--edge-y", `${event.clientY - rect.top}px`);
-              }}
-            >
-              {locale === "fa"
-                ? "بگذارید به شما در ساخت برندتان کمک کنم"
-                : "Let me help you build your brand"}
-            </Link>
           </div>
         </div>
       </section>

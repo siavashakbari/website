@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useLocale } from "@/lib/use-locale";
 import { currentLocale } from "@/lib/locale";
 import { siteField, siteLocalized, type SiteField } from "@/lib/site-content";
@@ -26,6 +26,7 @@ import zeeeProduct3 from "@/assets/product/objects/product-objects-57.jpg";
 import carpet1 from "@/assets/product/objects/product-objects-31.jpg";
 import carpet2 from "@/assets/product/objects/product-objects-30.jpg";
 import carpet3 from "@/assets/product/objects/product-objects-27.jpg";
+import "./about-selected-work.css";
 
 export const Route = createFileRoute("/about")({
   head: () =>
@@ -506,6 +507,12 @@ const PORTFOLIO_MILESTONES: Milestone[] = projects
   .filter(isTimelinePortfolioProject)
   .map(portfolioProjectToMilestone);
 
+const SELECTED_WORK = ["meatlab", "goats-coffee", "atlasi", "snow-snack", "zeeen"].flatMap((id) => {
+  const project = projects.find((item) => item.id === id);
+  const detail = project?.gallery?.find((image) => image !== project.image);
+  return project && detail ? [{ project, detail }] : [];
+});
+
 const MILESTONES: Milestone[] = mergeMilestones(CAREER_MILESTONES, PORTFOLIO_MILESTONES);
 
 const CREATIVE_SKILLS: Skill[] = [
@@ -585,16 +592,20 @@ function AboutPage() {
 
   return (
     <div
-      className="w-full overflow-x-hidden bg-background text-foreground"
+      className="w-full overflow-x-clip bg-background text-foreground"
       lang={lang}
       dir={isFa ? "rtl" : "ltr"}
     >
-      <Hero
-        reduceMotion={!!reduceMotion}
-        lang={lang}
-        filters={filters}
-        onFiltersChange={setFilters}
-      />
+      <Hero reduceMotion={!!reduceMotion} lang={lang} />
+      <SelectedWork lang={lang} />
+      <div className="mx-auto w-full max-w-6xl px-6 pb-12 md:px-10">
+        <TimelineFilters
+          lang={lang}
+          filters={filters}
+          onFiltersChange={setFilters}
+          reduceMotion={!!reduceMotion}
+        />
+      </div>
       <Timeline reduceMotion={!!reduceMotion} lang={lang} filters={filters} />
       <SkillsSection reduceMotion={!!reduceMotion} lang={lang} />
       <BackToTop />
@@ -602,17 +613,7 @@ function AboutPage() {
   );
 }
 
-function Hero({
-  reduceMotion,
-  lang,
-  filters,
-  onFiltersChange,
-}: {
-  reduceMotion: boolean;
-  lang: Lang;
-  filters: Set<CategoryKey>;
-  onFiltersChange: (filters: Set<CategoryKey>) => void;
-}) {
+function Hero({ reduceMotion, lang }: { reduceMotion: boolean; lang: Lang }) {
   const isFa = lang === "fa";
 
   return (
@@ -672,12 +673,58 @@ function Hero({
         {siteField("about", "period", lang).text}
       </motion.div>
 
-      <TimelineFilters
-        lang={lang}
-        filters={filters}
-        onFiltersChange={onFiltersChange}
-        reduceMotion={reduceMotion}
-      />
+    </section>
+  );
+}
+
+function SelectedWork({ lang }: { lang: Lang }) {
+  const isFa = lang === "fa";
+  const titleFont = isFa ? "font-farsi" : "font-display";
+
+  return (
+    <section
+      aria-labelledby="about-selected-work"
+      className={`about-work border-y border-foreground/10 bg-foreground/[0.025] ${isFa ? "font-farsi" : ""}`}
+    >
+      <h2
+        id="about-selected-work"
+        className={`mx-auto max-w-6xl px-6 pt-12 text-3xl font-bold tracking-tight md:px-10 md:text-4xl ${titleFont}`}
+      >
+        {isFa ? "گزیده آثار" : "Selected Work"}
+      </h2>
+      <ol role="list" className="about-work-list mx-auto max-w-[90rem] px-6 md:px-10" dir="ltr">
+        {SELECTED_WORK.map(({ project, detail }) => (
+          <li key={project.id} className="about-work-item">
+            <div className="about-work-caption text-center" dir={isFa ? "rtl" : "ltr"}>
+              <p className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-sm text-foreground/70">
+                <span>{isFa ? (PROJECT_ROLE_FA[project.category] ?? project.category) : project.category}</span>
+                <span aria-hidden="true" className="h-1 w-1 rounded-full bg-secondary" />
+                <span className="tabular-nums">{project.year}</span>
+              </p>
+              <h3 className={`mt-2 text-[clamp(1.75rem,3.5vw,3.5rem)] font-extrabold leading-tight tracking-tight ${titleFont}`}>
+                {isFa ? (PROJECT_TITLE_FA[project.id] ?? project.title) : project.title}
+              </h3>
+              <Link
+                to="/$discipline/$specialty/$project"
+                params={{
+                  discipline: project.discipline,
+                  specialty: project.discipline === "photography" ? "fashion-photography" : "visual-identity",
+                  project: project.id,
+                }}
+                className="mt-4 inline-flex min-h-11 items-center rounded-full border border-foreground/20 px-4 text-sm font-medium transition-colors hover:border-secondary hover:text-secondary focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-secondary"
+              >
+                {isFa ? "مشاهده پروژه" : "View project"}
+              </Link>
+            </div>
+            <div className="about-work-image about-work-image-primary">
+              <img src={project.image} alt="" loading="lazy" decoding="async" />
+            </div>
+            <div className="about-work-image about-work-image-detail">
+              <img src={detail} alt="" loading="lazy" decoding="async" />
+            </div>
+          </li>
+        ))}
+      </ol>
     </section>
   );
 }
