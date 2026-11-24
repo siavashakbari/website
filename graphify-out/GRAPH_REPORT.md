@@ -1,36 +1,36 @@
 # Graph Report - Creative Showcase Studio  (2026-11-24)
 
 ## Corpus Check
-- 150 files · ~216,911 words
+- 149 files · ~216,567 words
 - Verdict: corpus is large enough that graph structure adds value.
-- Unclassified: 34 file(s) not represented in the graph (top: .otf 10, .ttf 9, .woff2 7)
+- Unclassified: 22 file(s) not represented in the graph (top: .ttf 9, .woff2 5, (none) 4)
 
 ## Summary
-- 1501 nodes · 3507 edges · 59 communities (55 shown, 4 thin omitted)
+- 1497 nodes · 3499 edges · 57 communities (54 shown, 3 thin omitted)
 - Extraction: 99% EXTRACTED · 1% INFERRED · 0% AMBIGUOUS · INFERRED: 35 edges (avg confidence: 0.85)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `ede0f9f4`
+- Built from commit: `ee88cfc3`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
 ## Community Hubs (Navigation)
 - DedicatedPhotoView.tsx
-- vercel-private-content.server.ts
+- blobCredentials
 - __root.tsx
 - locale.ts
-- react
+- AdaptiveThumb.tsx
 - visual-identity-assets.ts
 - site-content.ts
 - routeTree.gen.ts
 - about.tsx
-- validateSnapshot
+- media-sizing.ts
 - generate-sitemap.mjs
 - test-all-vault-connectivity.mjs
 - generate-architecture-map.mjs
 - dependencies
-- vault.media.tsx
+- vault-store.ts
 - audit-cross-system.mjs
 - studio-store.ts
 - compilerOptions
@@ -42,7 +42,7 @@
 - devDependencies
 - vite.config.ts
 - blog-posts.ts
-- taxonomy.ts
+- cn
 - ref_node_fs
 - extract-dominant-colors.mjs
 - disciplines.ts
@@ -62,18 +62,16 @@
 - TimelineEntry
 - migrate-bilingual-content.mjs
 - useLocale
-- vault-store.ts
+- LogoHoverEffect.tsx
 - mergeMilestones
 - portfolioProjectToMilestone
 - server.ts
-- react
-- $discipline.$specialty.index.tsx
-- vault.pages.tsx
-- $discipline.$specialty.$project.index.tsx
+- useResolvedMediaSrc
+- UI02_HorizontalScroll.tsx
+- morphing-text.tsx
+- CustomDatePicker.tsx
 - test-vault-ssr-first-render.mjs
-- package.json
 - expandable-gallery.tsx
-- inventory-assets.ts
 
 ## God Nodes (most connected - your core abstractions)
 1. `useLocale()` - 54 edges
@@ -82,67 +80,67 @@
 4. `react` - 43 edges
 5. `normalizeProjectSlug()` - 38 edges
 6. `FileRoutesByPath` - 35 edges
-7. `isContentReady()` - 34 edges
-8. `getVaultPages()` - 34 edges
+7. `getVaultPages()` - 34 edges
+8. `isContentReady()` - 34 edges
 9. `currentLocale()` - 33 edges
 10. `withLocale()` - 31 edges
 
 ## Surprising Connections (you probably didn't know these)
-- `PageHeaderProps` --references--> `KeyValuePair`  [EXTRACTED]
-  src/components/ui-types/PageHeader.tsx → src/components/vault/PairedBoxesEditor.tsx
 - `FileRoutesById` --references--> `Route`  [EXTRACTED]
   src/routeTree.gen.ts → src/routes/__root.tsx
+- `RootComponent()` --indirect_call--> `startPublishedContentSync()`  [INFERRED]
+  src/routes/__root.tsx → src/lib/published-store.ts
+- `PageNodeCardProps` --references--> `VaultPageItem`  [EXTRACTED]
+  src/routes/vault.pages.tsx → src/lib/vault-store.ts
 - `getCustomTaxonomy()` --calls--> `isContentReady()`  [EXTRACTED]
   src/lib/studio-store.ts → src/lib/published-store.ts
-- `errorMiddleware` --calls--> `renderErrorPage()`  [EXTRACTED]
-  src/start.ts → src/lib/error-page.ts
-- `RootShell()` --calls--> `useLocale()`  [EXTRACTED]
-  src/routes/__root.tsx → src/lib/use-locale.ts
+- `getRouter()` --indirect_call--> `NotFoundPage()`  [INFERRED]
+  src/router.tsx → src/components/NotFoundPage.tsx
 
 ## Import Cycles
 - None detected.
 
-## Communities (59 total, 4 thin omitted)
+## Communities (57 total, 3 thin omitted)
 
 ### Community 1 - "DedicatedPhotoView.tsx"
-Cohesion: 0.17
-Nodes (31): buildLivePhotoViewState(), computeClientPhotoState(), computeInitialPhotoState(), dedicatedPhotoHead(), DedicatedPhotoView(), extFromSrc(), formatSlugLabel(), isVideoAsset() (+23 more)
+Cohesion: 0.05
+Nodes (121): buildLivePhotoViewState(), computeClientPhotoState(), computeInitialPhotoState(), dedicatedPhotoHead(), DedicatedPhotoView(), extFromSrc(), formatSlugLabel(), isVideoAsset() (+113 more)
 
-### Community 2 - "vercel-private-content.server.ts"
-Cohesion: 0.24
-Nodes (14): @supabase/supabase-js, @vercel/blob, blobCredentials(), requireVaultAdmin(), readVercelPrivateContent(), readWithEtag(), saveVercelPrivateContent(), validatePrivateData() (+6 more)
+### Community 2 - "blobCredentials"
+Cohesion: 0.22
+Nodes (17): @supabase/supabase-js@^2.117.2, @vercel/blob@^2.4.0, @supabase/supabase-js, @vercel/blob, blobCredentials(), validateSnapshot(), requireVaultAdmin(), initializeVercelPublishedContent() (+9 more)
 
 ### Community 3 - "__root.tsx"
-Cohesion: 0.09
-Nodes (21): LanguageSwitch(), nearestEdge(), OG_IMAGE_HEIGHT, OG_IMAGE_PATH, OG_IMAGE_WIDTH, PageSeoInput, SITE_DESCRIPTION, SITE_NAME (+13 more)
+Cohesion: 0.12
+Nodes (14): LanguageSwitch(), Logo(), switchLocaleUrl(), nearestEdge(), seedPublishedContent(), CloseIcon(), Header(), HoverFooter (+6 more)
 
 ### Community 4 - "locale.ts"
-Cohesion: 0.25
-Nodes (12): NotFoundPage(), DEFAULT_LOCALE, detectedScript(), localeFromPath(), LocaleState, requestLocales, stripLocale(), switchLocaleUrl() (+4 more)
+Cohesion: 0.16
+Nodes (18): DEFAULT_LOCALE, detectedScript(), localeFromPath(), LocaleState, requestLocales, withRequestLocale(), stripLocale(), ContentSnapshot (+10 more)
 
-### Community 5 - "react"
-Cohesion: 0.06
-Nodes (47): AdaptiveThumb(), AdaptiveThumbProps, GalleryLoadContext, GalleryLoadContextValue, GalleryLoadProvider(), useGalleryColumnCount(), useGalleryLoad(), HoverFooter() (+39 more)
+### Community 5 - "AdaptiveThumb.tsx"
+Cohesion: 0.18
+Nodes (15): AdaptiveThumb(), AdaptiveThumbProps, GalleryLoadContext, GalleryLoadContextValue, GalleryLoadProvider(), useGalleryColumnCount(), useGalleryLoad(), UI01_VerticalScroll() (+7 more)
 
 ### Community 6 - "visual-identity-assets.ts"
-Cohesion: 0.03
-Nodes (5): COUPLED_LOGO_PAIRS, CoupledOption, CoupledPair, MOODBOARD_GRID_IMAGES, MoodboardItem
+Cohesion: 0.04
+Nodes (3): CoupledOption, CoupledPair, MoodboardItem
 
 ### Community 7 - "site-content.ts"
-Cohesion: 0.22
-Nodes (17): ContactForm(), ContactFormValues, TOPICS, CustomDatePicker(), Localized, readSiteContent(), SITE_CONTENT_KEY, SITE_SEED (+9 more)
+Cohesion: 0.13
+Nodes (30): ContactForm(), ContactFormValues, TOPICS, CustomDatePicker(), NotFoundPage(), SITE_DESCRIPTION, isLocalized(), Localized (+22 more)
 
 ### Community 8 - "routeTree.gen.ts"
 Cohesion: 0.04
-Nodes (56): Route, Route, Route, Route, Route, Route, Route, Route (+48 more)
+Nodes (59): Route, Route, Route, Route, Route, Route, Route, Route (+51 more)
 
 ### Community 9 - "about.tsx"
 Cohesion: 0.05
 Nodes (27): ABOUT_EDITORIAL_FIELDS, CAREER_MILESTONES, CARPET_LOVERS_PHOTOS, CATEGORY, CATEGORY_FILTERS, CATEGORY_ICON, CategoryKey, COPY (+19 more)
 
-### Community 10 - "validateSnapshot"
-Cohesion: 0.20
-Nodes (18): withRequestLocale(), commitSnapshot(), ContentSnapshot, validateSnapshot(), loadRequestPublishedSnapshot(), PublishedSnapshot, requestSnapshots, withRequestPublishedSnapshot() (+10 more)
+### Community 10 - "media-sizing.ts"
+Cohesion: 0.18
+Nodes (19): compressVideoToStudioSpec(), computeStudioVideoDimensions(), getVideoExt(), pickRecorderMimeType(), processImageFile(), ProcessMediaOptions, processMediaUpload(), processVideoFile() (+11 more)
 
 ### Community 11 - "generate-sitemap.mjs"
 Cohesion: 0.10
@@ -157,12 +155,12 @@ Cohesion: 0.11
 Nodes (22): arrayStr, buildDynamicCode(), cleanSegment(), __dirname, endMatch, extFromSrc(), __filename, initPagesMatch (+14 more)
 
 ### Community 14 - "dependencies"
-Cohesion: 0.10
-Nodes (21): dependencies, jspdf@^4.2.1, lucide-react@^0.575.0, motion@^12.42.2, mp4-muxer@^5.2.2, @radix-ui/react-dropdown-menu@^2.1.16, react@^19.2.0, @supabase/supabase-js@^2.117.2 (+13 more)
+Cohesion: 0.08
+Nodes (32): dependencies, clsx@^2.1.1, html-to-image@^1.11.13, jspdf@^4.2.1, lucide-react@^0.575.0, mp4-muxer@^5.2.2, mp4box@^2.5.0, @radix-ui/react-dropdown-menu@^2.1.16 (+24 more)
 
-### Community 15 - "vault.media.tsx"
+### Community 15 - "vault-store.ts"
 Cohesion: 0.06
-Nodes (61): mp4box@^2.5.0, mp4box, PairedBoxesEditor(), PairedBoxesEditorProps, parsePairs(), serializedPairs(), CloudUploadResult, getSupabaseConfig() (+53 more)
+Nodes (78): UI_TYPE_LIST, PageHeader(), PageHeaderProps, KeyValuePair, PairedBoxesEditor(), PairedBoxesEditorProps, parsePairs(), serializedPairs() (+70 more)
 
 ### Community 16 - "audit-cross-system.mjs"
 Cohesion: 0.11
@@ -170,7 +168,7 @@ Nodes (18): cleanSegment(), __dirname, endMatch, invContent, invItems, issues, n
 
 ### Community 17 - "studio-store.ts"
 Cohesion: 0.11
-Nodes (21): Project, contentStorage, CustomTaxonomyState, DEFAULT_TAXONOMY_DISCIPLINES, DEFAULT_TAXONOMY_SPECIALTIES, defaultProjectToStudioItem(), deleteCustomPhotoAsset(), extractAssetFilename() (+13 more)
+Nodes (18): Project, contentStorage, CustomTaxonomyState, DEFAULT_TAXONOMY_DISCIPLINES, DEFAULT_TAXONOMY_SPECIALTIES, defaultProjectToStudioItem(), extractAssetFilename(), getCustomTaxonomy() (+10 more)
 
 ### Community 18 - "compilerOptions"
 Cohesion: 0.10
@@ -189,8 +187,8 @@ Cohesion: 0.17
 Nodes (13): cleanSegment(), __dirname, fetchWithTimeout(), __filename, getFreePort(), main(), normalizeProjectSlug(), parseTestRoutes() (+5 more)
 
 ### Community 22 - "index.tsx"
-Cohesion: 0.20
-Nodes (12): BinaryBannerCanvas(), Cell, drawShape(), GRID_SHADES, smooth(), GROUPS, HorizontalSkillTree(), SkillGroup (+4 more)
+Cohesion: 0.26
+Nodes (10): BinaryBannerCanvas(), Cell, drawShape(), GRID_SHADES, smooth(), AnimatedStat(), Index(), portraitSrc() (+2 more)
 
 ### Community 23 - "ping"
 Cohesion: 0.12
@@ -201,23 +199,23 @@ Cohesion: 0.13
 Nodes (15): devDependencies, eslint@^9.32.0, eslint-config-prettier@^10.1.1, prettier@^3.7.3, @types/node@^22.16.5, @types/react@^19.2.0, @types/react-dom@^19.2.0, typescript@^5.8.3 (+7 more)
 
 ### Community 25 - "vite.config.ts"
-Cohesion: 0.12
-Nodes (15): @tailwindcss/vite@^4.2.1, @tanstack/react-start@^1.169.4, vite-tsconfig-paths@^6.0.2, nitro@3.0.260603-beta, vite@^8.0.16, @vitejs/plugin-react@^5.2.0, nitro, @tailwindcss/vite (+7 more)
+Cohesion: 0.13
+Nodes (13): @tailwindcss/vite@^4.2.1, vite-tsconfig-paths@^6.0.2, nitro@3.0.260603-beta, vite@^8.0.16, @vitejs/plugin-react@^5.2.0, nitro, @tailwindcss/vite, vite (+5 more)
 
 ### Community 26 - "blog-posts.ts"
 Cohesion: 0.17
 Nodes (10): BLOG_CATEGORIES, BLOG_POSTS, BlogAuthor, BlogCategory, BlogCategoryMeta, BlogPost, BlogSection, DEFAULT_AUTHOR (+2 more)
 
-### Community 27 - "taxonomy.ts"
-Cohesion: 0.21
-Nodes (13): DISCIPLINE_4_MAP, DISCIPLINE_ALIASES, generate4PartPhotoCode(), getDiscipline4Code(), getProject4Code(), getSpecialty4Code(), KNOWN_DISCIPLINES, KNOWN_SPECIALTIES (+5 more)
+### Community 27 - "cn"
+Cohesion: 0.32
+Nodes (11): DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuRadioItem, DropdownMenuSeparator, DropdownMenuShortcut(), DropdownMenuSubContent (+3 more)
 
 ### Community 28 - "ref_node_fs"
 Cohesion: 0.17
 Nodes (4): EXTS, files, ROOT, walk()
 
 ### Community 29 - "extract-dominant-colors.mjs"
-Cohesion: 0.18
+Cohesion: 0.20
 Nodes (11): analyze(), assetsRoot, __dirname, EXT, files, isNearWhiteOrBlack(), map, outFile (+3 more)
 
 ### Community 30 - "disciplines.ts"
@@ -225,8 +223,8 @@ Cohesion: 0.20
 Nodes (3): DisciplineCard, Discipline, echoPrimeVideos
 
 ### Community 31 - "seo.ts"
-Cohesion: 0.24
-Nodes (19): lucide-react, BackToTop(), localizedText(), absoluteUrl(), getSiteUrl(), jsonLdScript(), siteJsonLd(), getBlogPostBySlug() (+11 more)
+Cohesion: 0.18
+Nodes (26): lucide-react, BackToTop(), withLocale(), absoluteUrl(), getSiteUrl(), jsonLdScript(), OG_IMAGE_HEIGHT, OG_IMAGE_PATH (+18 more)
 
 ### Community 32 - "recover-and-compress.mjs"
 Cohesion: 0.31
@@ -238,15 +236,19 @@ Nodes (7): sendTelegram(), telegramMessageIds(), TelegramMessageRef, TelegramRes
 
 ### Community 34 - "brand-discovery.tsx"
 Cohesion: 0.24
-Nodes (12): PEYDA_BASE64, currentLocale(), pageHead(), Route, BrandDiscoveryPage(), submitAutomatically(), getLowQualityBase64(), hasRTL() (+4 more)
+Nodes (9): PEYDA_BASE64, COUPLED_LOGO_PAIRS, MOODBOARD_GRID_IMAGES, BrandDiscoveryPage(), submitAutomatically(), getLowQualityBase64(), hasRTL(), renderWhiteLogoDataUrl() (+1 more)
 
 ### Community 35 - "portfolio-schema.ts"
 Cohesion: 0.22
 Nodes (9): Window, DISCIPLINE_CODE_MAP, DISCIPLINE_QUICK_TAGS, DISCIPLINE_ROLE_MATRIX, DisciplineCode, DisciplineRoleDefinition, DisciplineSlug, ProjectCaseStudy (+1 more)
 
 ### Community 36 - "photo-inventory.ts"
-Cohesion: 0.19
-Nodes (13): codeMap, computeItemSeoSlug(), CustomCreditField, getPhotoByCode(), getPhotoBySeoSlug(), getPhotoByStem(), PHOTO_INVENTORY, PhotoInventoryItem (+5 more)
+Cohesion: 0.22
+Nodes (10): DedicatedPhotoLoaderData, codeMap, computeItemSeoSlug(), CustomCreditField, PHOTO_INVENTORY, PhotoInventoryItem, slugifyValue(), slugMap (+2 more)
+
+### Community 37 - "ref_node_assert"
+Cohesion: 0.25
+Nodes (3): browser(), commitSnapshot(), PUBLIC_CONTENT_KEYS
 
 ### Community 38 - "grow-to-band.mjs"
 Cohesion: 0.22
@@ -257,8 +259,8 @@ Cohesion: 0.36
 Nodes (8): AboutPage(), createDefaultFilters(), Hero(), SkillColumn(), SkillsSection(), t(), TimelineFilters(), toFiveScale()
 
 ### Community 40 - "vault.blog.tsx"
-Cohesion: 0.46
-Nodes (7): deleteStudioBlogPost(), getStudioBlogPosts(), notifyStudioStoreUpdated(), saveCustomTaxonomy(), saveStudioBlogPost(), AdminBlogView(), Route
+Cohesion: 0.39
+Nodes (8): deleteCustomPhotoAsset(), deleteStudioBlogPost(), getStudioBlogPosts(), notifyStudioStoreUpdated(), saveCustomTaxonomy(), saveStudioBlogPost(), AdminBlogView(), Route
 
 ### Community 41 - "scripts"
 Cohesion: 0.25
@@ -269,78 +271,70 @@ Cohesion: 0.29
 Nodes (5): EXTS, files, oversized, ROOTS, walk()
 
 ### Community 43 - "__root.tsx"
-Cohesion: 0.07
-Nodes (50): SIGNATURE_DATA_URL, Logo(), PublishedPageLoading(), LiquidWaveSpinner(), LiquidWaveSpinnerProps, sizeClasses, PublishStatus(), exportInvoiceToPDF() (+42 more)
+Cohesion: 0.08
+Nodes (46): SIGNATURE_DATA_URL, PublishStatus(), exportInvoiceToPDF(), loadPrivateVaultContent(), savePrivateVaultContent(), announceContent(), content, CONTENT_STATUS_EVENT (+38 more)
 
 ### Community 44 - "TimelineEntry"
 Cohesion: 0.29
 Nodes (7): durationCapsuleHeight(), fillFromTip(), hasDurationCapsule(), isOngoing(), Timeline(), TimelineEntry(), tipYFromProgress()
 
 ### Community 45 - "migrate-bilingual-content.mjs"
-Cohesion: 0.73
+Cohesion: 0.57
 Nodes (4): ifMissing(), isPersian(), migrateBilingualSnapshot(), normalizePairs()
 
 ### Community 46 - "useLocale"
-Cohesion: 0.17
-Nodes (17): @tanstack/react-router, CoverTile(), CoverTileProps, DisciplineCircleMap(), ROOTS, coverTileImage(), DisciplinesMarquee(), HiddenPageNotice() (+9 more)
+Cohesion: 0.20
+Nodes (13): @tanstack/react-router, CoverTile(), CoverTileProps, PublishedPageLoading(), LiquidWaveSpinner(), HiddenPageNotice(), HiddenPageNoticeProps, EqualCardItem (+5 more)
 
-### Community 47 - "vault-store.ts"
-Cohesion: 0.18
-Nodes (30): addDeletedKeys(), buildAssignedRoute(), buildDynamicMediaCode(), cleanSegment(), computeVaultDiagnostics(), deleteVaultMedia(), deleteVaultPage(), ensureMediaItemDynamicFields() (+22 more)
+### Community 47 - "LogoHoverEffect.tsx"
+Cohesion: 0.39
+Nodes (6): HoverFooter(), clientToSvgPoint(), LOGO_PATHS, LogoHoverEffect(), screenPxToSvgRadius(), FooterBackgroundGradient()
 
 ### Community 50 - "server.ts"
-Cohesion: 0.27
-Nodes (8): consumeLastCapturedError(), renderErrorPage(), isNonPublicPath(), fetch(), getServerEntry(), isH3SwallowedErrorBody(), normalizeCatastrophicSsrResponse(), ServerEntry
+Cohesion: 0.20
+Nodes (11): @tanstack/react-start@^1.169.4, @tanstack/react-start, consumeLastCapturedError(), renderErrorPage(), isNonPublicPath(), fetch(), getServerEntry(), isH3SwallowedErrorBody() (+3 more)
 
-### Community 51 - "react"
-Cohesion: 0.16
-Nodes (12): motion, react, CustomDatePickerProps, MONTH_NAMES, WEEK_DAYS, InteractiveHoverButton, InteractiveHoverButtonProps, UI04_VideoShowcase() (+4 more)
+### Community 51 - "useResolvedMediaSrc"
+Cohesion: 0.26
+Nodes (11): motion@^12.42.2, motion, UI04_VideoShowcase(), UI04_VideoShowcaseProps, VideoShowcaseCard(), VideoShowcaseItem, CustomSlider(), formatTime() (+3 more)
 
-### Community 52 - "$discipline.$specialty.index.tsx"
-Cohesion: 0.16
-Nodes (26): projects, resolveInventoryImage(), getPublishedArray(), getDeletedProjectIds(), getStudioProjects(), FLAT_FIELDS, getGalleryMediaForRoute(), getPageByRoute() (+18 more)
+### Community 52 - "UI02_HorizontalScroll.tsx"
+Cohesion: 0.36
+Nodes (7): GalleryMediaItem, UI01_VerticalScrollProps, HorizontalLightbox(), HorizontalMediaTile(), itemsAlt(), UI02_HorizontalScroll(), UI02_HorizontalScrollProps
 
-### Community 53 - "vault.pages.tsx"
-Cohesion: 0.12
-Nodes (27): DedicatedPhotoLoaderData, UI_TYPE_LIST, UI_TYPE_REGISTRY, UITypeCode, UITypeDefinition, KeyValuePair, deleteMediaBlob(), getMediaObjectUrl() (+19 more)
+### Community 53 - "morphing-text.tsx"
+Cohesion: 0.53
+Nodes (5): MorphingText(), MorphingTextProps, SvgFilters(), Texts(), useMorphingText()
 
-### Community 54 - "$discipline.$specialty.$project.index.tsx"
-Cohesion: 0.23
-Nodes (16): looksLikeMediaCode(), redirectToCanonicalPath(), projectBackButtonClass, projectBackButtonMobileClass, isContentReady(), Route, buildGalleryItemsForProject(), CombinedLoaderData (+8 more)
+### Community 54 - "CustomDatePicker.tsx"
+Cohesion: 0.50
+Nodes (4): CustomDatePickerProps, MONTH_NAMES, WEEK_DAYS, Locale
 
 ### Community 55 - "test-vault-ssr-first-render.mjs"
 Cohesion: 0.25
 Nodes (7): blog, blogs, media, pages, photo, project, site
 
-### Community 57 - "package.json"
-Cohesion: 0.15
-Nodes (12): clsx@^2.1.1, html-to-image@^1.11.13, react-dom@^19.2.0, @tanstack/router-plugin@^1.168.18, name, private, sideEffects, type (+4 more)
-
 ### Community 58 - "expandable-gallery.tsx"
-Cohesion: 0.24
-Nodes (8): COMPACT_STACK_LAYOUT, COMPACT_STACK_MOBILE, ExpandableGallery(), ExpandableGalleryProps, GalleryPhoto, STACK_LAYOUT, transition, useOutsideClick()
-
-### Community 59 - "inventory-assets.ts"
-Cohesion: 0.20
-Nodes (10): assetEntries, AssetEntry, assetModules, byFileLower, byStem, matchAssetEntry(), resolveKnownAssetFile(), escapeXml() (+2 more)
+Cohesion: 0.14
+Nodes (13): react, COMPACT_STACK_LAYOUT, COMPACT_STACK_MOBILE, ExpandableGallery(), ExpandableGalleryProps, GalleryPhoto, STACK_LAYOUT, transition (+5 more)
 
 ## Knowledge Gaps
-- **4 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **3 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `react` connect `react` to `DedicatedPhotoView.tsx`, `__root.tsx`, `locale.ts`, `react`, `site-content.ts`, `about.tsx`, `dependencies`, `vault.media.tsx`, `index.tsx`, `seo.ts`, `brand-discovery.tsx`, `vault.blog.tsx`, `__root.tsx`, `useLocale`, `$discipline.$specialty.index.tsx`, `vault.pages.tsx`, `$discipline.$specialty.$project.index.tsx`, `package.json`, `expandable-gallery.tsx`?**
-  _High betweenness centrality (0.068) - this node is a cross-community bridge._
+- **Why does `react` connect `expandable-gallery.tsx` to `DedicatedPhotoView.tsx`, `__root.tsx`, `AdaptiveThumb.tsx`, `site-content.ts`, `about.tsx`, `dependencies`, `vault-store.ts`, `index.tsx`, `cn`, `seo.ts`, `brand-discovery.tsx`, `vault.blog.tsx`, `__root.tsx`, `useLocale`, `LogoHoverEffect.tsx`, `useResolvedMediaSrc`, `UI02_HorizontalScroll.tsx`, `morphing-text.tsx`, `CustomDatePicker.tsx`?**
+  _High betweenness centrality (0.090) - this node is a cross-community bridge._
 - **Should `projects.ts` be split into smaller, more focused modules?**
   _Cohesion score 0.006711409395973154 - nodes in this community are weakly interconnected._
-- **Why does `@tanstack/react-router` connect `useLocale` to `DedicatedPhotoView.tsx`, `vercel-private-content.server.ts`, `__root.tsx`, `locale.ts`, `react`, `site-content.ts`, `routeTree.gen.ts`, `about.tsx`, `validateSnapshot`, `dependencies`, `vault.media.tsx`, `index.tsx`, `seo.ts`, `api.contact.ts`, `brand-discovery.tsx`, `vault.blog.tsx`, `__root.tsx`, `$discipline.$specialty.index.tsx`, `vault.pages.tsx`, `$discipline.$specialty.$project.index.tsx`, `package.json`, `inventory-assets.ts`?**
+- **Why does `@tanstack/react-router` connect `useLocale` to `DedicatedPhotoView.tsx`, `blobCredentials`, `__root.tsx`, `locale.ts`, `api.contact.ts`, `brand-discovery.tsx`, `site-content.ts`, `routeTree.gen.ts`, `about.tsx`, `vault.blog.tsx`, `__root.tsx`, `dependencies`, `vault-store.ts`, `UI02_HorizontalScroll.tsx`, `index.tsx`, `seo.ts`?**
   _High betweenness centrality (0.062) - this node is a cross-community bridge._
+- **Should `DedicatedPhotoView.tsx` be split into smaller, more focused modules?**
+  _Cohesion score 0.053237410071942444 - nodes in this community are weakly interconnected._
+- **Why does `@tanstack/react-start` connect `server.ts` to `DedicatedPhotoView.tsx`, `blobCredentials`, `locale.ts`, `routeTree.gen.ts`, `dependencies`, `vite.config.ts`?**
+  _High betweenness centrality (0.061) - this node is a cross-community bridge._
 - **Should `__root.tsx` be split into smaller, more focused modules?**
-  _Cohesion score 0.0907563025210084 - nodes in this community are weakly interconnected._
-- **Why does `@tanstack/react-start` connect `vite.config.ts` to `vercel-private-content.server.ts`, `validateSnapshot`, `server.ts`, `package.json`, `inventory-assets.ts`, `seo.ts`?**
-  _High betweenness centrality (0.057) - this node is a cross-community bridge._
-- **Should `react` be split into smaller, more focused modules?**
-  _Cohesion score 0.061581920903954805 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.12169312169312169 - nodes in this community are weakly interconnected._
 - **Should `visual-identity-assets.ts` be split into smaller, more focused modules?**
-  _Cohesion score 0.03389830508474576 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.03508771929824561 - nodes in this community are weakly interconnected._

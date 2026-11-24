@@ -1,7 +1,6 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useLayoutEffect, useState } from "react";
 import { BinaryBannerCanvas } from "@/components/BinaryBannerCanvas";
-import { HorizontalSkillTree } from "@/components/HorizontalSkillTree";
 import { DisciplinesMarquee } from "@/components/DisciplinesMarquee";
 import { Logo } from "@/components/Logo";
 import { currentLocale } from "@/lib/locale";
@@ -47,51 +46,42 @@ function splitStat(value: string) {
 }
 
 function AnimatedStat({ value }: { value: string }) {
-  const [progress, setProgress] = useState(1);
-  const match = value.match(/[0-9۰-۹٠-٩][0-9۰-۹٠-٩,٬]*/);
-  const raw = match?.[0] || "";
-  const normalize = (char: string) => {
-    const code = char.charCodeAt(0);
-    if (code >= 0x06f0 && code <= 0x06f9) return String(code - 0x06f0);
-    if (code >= 0x0660 && code <= 0x0669) return String(code - 0x0660);
-    return char;
-  };
-  const target = Number([...raw].map(normalize).join("").replace(/[,٬]/g, ""));
+  const [scrambled, setScrambled] = useState<string>();
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (
-      !raw ||
-      !Number.isFinite(target) ||
-      window.matchMedia("(prefers-reduced-motion: reduce)").matches
+      !/\p{Decimal_Number}/u.test(value) ||
+      !window.matchMedia("(prefers-reduced-motion: no-preference)").matches
     ) {
-      setProgress(1);
+      setScrambled(undefined);
       return;
     }
-    setProgress(0);
-    let frame = 0;
-    let start: number | undefined;
-    const tick = (now: number) => {
-      start ??= now;
-      const t = Math.min((now - start) / 1200, 1);
-      setProgress(1 - Math.pow(1 - t, 3));
-      if (t < 1) frame = requestAnimationFrame(tick);
-    };
-    frame = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(frame);
-  }, [raw, target]);
 
-  const format = (fraction: number) => {
-    if (!match || !Number.isFinite(target) || fraction >= 1) return value;
-    const digits = String(Math.floor(target * fraction));
-    const base = /[۰-۹]/.test(raw) ? 0x06f0 : /[٠-٩]/.test(raw) ? 0x0660 : 0x30;
-    return value.replace(
-      raw,
-      [...digits].map((digit) => String.fromCharCode(base + Number(digit))).join(""),
-    );
-  };
+    const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ!?#%";
+    const scramble = () =>
+      setScrambled(
+        value.replace(
+          /\p{Decimal_Number}/gu,
+          () => characters[Math.floor(Math.random() * characters.length)],
+        ),
+      );
+
+    scramble();
+    const interval = window.setInterval(scramble, 70);
+    const timeout = window.setTimeout(() => {
+      window.clearInterval(interval);
+      setScrambled(undefined);
+    }, 1000);
+
+    return () => {
+      window.clearInterval(interval);
+      window.clearTimeout(timeout);
+    };
+  }, [value]);
+
   return (
     <strong className="home-hero-stat-number" dir="ltr" aria-label={value}>
-      <span aria-hidden="true">{format(progress)}</span>
+      <span aria-hidden="true">{scrambled ?? value}</span>
     </strong>
   );
 }
@@ -158,9 +148,20 @@ function Index() {
                 );
               })}
             </div>
-            <div className="home-hero-map">
-              <HorizontalSkillTree locale={locale} />
-            </div>
+            <Link
+              to="/brand-discovery"
+              className="home-hero-cta"
+              onPointerMove={(event) => {
+                const pill = event.currentTarget;
+                const rect = pill.getBoundingClientRect();
+                pill.style.setProperty("--edge-x", `${event.clientX - rect.left}px`);
+                pill.style.setProperty("--edge-y", `${event.clientY - rect.top}px`);
+              }}
+            >
+              {locale === "fa"
+                ? "بگذارید به شما در ساخت برندتان کمک کنم"
+                : "Let me help you build your brand"}
+            </Link>
           </div>
         </div>
       </section>

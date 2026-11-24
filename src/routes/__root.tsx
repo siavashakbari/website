@@ -22,9 +22,9 @@ import { currentLocale, localizedText, withLocale, type Locale } from "@/lib/loc
 import { nearestEdge } from "@/lib/pointer-edge";
 
 import appCss from "../styles.css?url";
-import satoshiMedium from "../assets/fonts/Satoshi-Medium.woff2?url";
-import satoshiRegular from "../assets/fonts/Satoshi-Regular.woff2?url";
-import satoshiBold from "../assets/fonts/Satoshi-Bold.woff2?url";
+import alloMedium from "../assets/fonts/Allo-Medium.woff2?url";
+import alloRegular from "../assets/fonts/Allo-Regular.woff2?url";
+import alloBold from "../assets/fonts/Allo-Bold.woff2?url";
 import peydaRegular from "../assets/fonts/peyda/peyda-regular.ttf?url";
 import peydaMedium from "../assets/fonts/peyda/peyda-medium.woff2?url";
 import peydaSemibold from "../assets/fonts/peyda/peyda-semibold.woff2?url";
@@ -139,14 +139,14 @@ export const Route = createRootRouteWithContext<{
         { rel: "stylesheet", href: import.meta.env.DEV ? `${appCss}?direct` : appCss },
         {
           rel: "preload",
-          href: satoshiRegular,
+          href: alloRegular,
           as: "font",
           type: "font/woff2",
           crossOrigin: "anonymous",
         },
         {
           rel: "preload",
-          href: satoshiBold,
+          href: alloBold,
           as: "font",
           type: "font/woff2",
           crossOrigin: "anonymous",
@@ -188,7 +188,7 @@ export const Route = createRootRouteWithContext<{
         { rel: "manifest", href: "/site.webmanifest" },
         {
           rel: "preload",
-          href: satoshiMedium,
+          href: alloMedium,
           as: "font",
           type: "font/woff2",
           crossOrigin: "anonymous",
@@ -221,7 +221,7 @@ function RootShell({ children }: { children: ReactNode }) {
 const navLinkClass =
   "top-nav-link relative flex h-[42px] items-center rounded-full px-3 text-[17.85px] font-normal uppercase leading-none tracking-widest text-foreground transition-colors hover:text-secondary data-[status=active]:font-bold data-[status=active]:text-secondary";
 
-const navFont = { fontFamily: "Peyda, Satoshi, system-ui, sans-serif" } as const;
+const navFont = { fontFamily: "Peyda, Allo, system-ui, sans-serif" } as const;
 
 function isDisciplinePath(pathname: string) {
   return (
@@ -447,12 +447,12 @@ function MobileNav() {
   return (
     <div className="xl:hidden">
       <button
-        aria-label={locale === "fa" ? "باز کردن فهرست" : "Open menu"}
         aria-expanded={open}
         onClick={() => setOpen(true)}
-        className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center text-foreground"
+        className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center gap-1.5 text-sm font-medium tracking-widest text-foreground"
       >
         <MenuIcon className="h-[21.6px] w-[21.6px]" />
+        <span lang="en">MENU</span>
       </button>
 
       <div

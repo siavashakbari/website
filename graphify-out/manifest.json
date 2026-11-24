@@ -223,12 +223,6 @@
     "ast_hash": "17b794b7c30737ef2bf3d5faafcf32c7",
     "semantic_hash": "17b794b7c30737ef2bf3d5faafcf32c7"
   },
-  "src/components/HorizontalSkillTree.tsx": {
-    "mtime": 1794733587.4163432,
-    "seen": 1794753565.8076386,
-    "ast_hash": "16ab0d2afdfbe0b6a8b5e5df8c3d8175",
-    "semantic_hash": "16ab0d2afdfbe0b6a8b5e5df8c3d8175"
-  },
   "src/components/HoverFooter.tsx": {
     "mtime": 1790589367.1893327,
     "seen": 1794753565.8076923,
@@ -663,9 +657,9 @@
     "semantic_hash": ""
   },
   "src/routes/__root.tsx": {
-    "mtime": 1794758657.9712884,
-    "seen": 1794758732.9482586,
-    "ast_hash": "95e4717808f75cc70b3aa3bd332357bc",
+    "mtime": 1795501205.3302698,
+    "seen": 1795501273.9201872,
+    "ast_hash": "12ac6ae130d2f47d08b8710b2fa1e319",
     "semantic_hash": ""
   },
   "src/routes/about.tsx": {
@@ -777,10 +771,10 @@
     "semantic_hash": "08d67fbd288b1fba32c2ef36871409e7"
   },
   "src/routes/index.tsx": {
-    "mtime": 1794732373.368254,
-    "seen": 1794753565.813228,
-    "ast_hash": "ef7ea4b88acc5caa10db68fa3308a630",
-    "semantic_hash": "ef7ea4b88acc5caa10db68fa3308a630"
+    "mtime": 1795501244.6640534,
+    "seen": 1795501273.9212024,
+    "ast_hash": "5cf6a9c65918b5494d3c79a6f16205a9",
+    "semantic_hash": ""
   },
   "src/routes/robots[.]txt.ts": {
     "mtime": 1790589367.200567,
