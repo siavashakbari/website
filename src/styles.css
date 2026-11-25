@@ -161,13 +161,13 @@
   gap: calc(clamp(0px, 0.18vw, 6px) * var(--vault-nav-gap, 1));
 }
 
-:is(button, a).rounded-full:not(.language-switch):not(.justify-between) {
+:is(button, a).rounded-full:not(.language-switch, .justify-between, [role="switch"]) {
   align-items: center;
   justify-content: center;
   text-align: center;
 }
 
-:is(button, a).rounded-full:not(.language-switch):not(.justify-between):not(.flex):not(.inline-flex) {
+:is(button, a).rounded-full:not(.language-switch, .justify-between, [role="switch"], .flex, .inline-flex) {
   display: inline-flex;
 }
 
@@ -197,6 +197,8 @@
 
 .top-nav-label > span {
   grid-area: 1 / 1;
+  /* The font's visible glyphs sit above the centered line box. */
+  translate: 0 0.12em;
 }
 
 .top-nav-link[data-status="active"] .top-nav-label::before {

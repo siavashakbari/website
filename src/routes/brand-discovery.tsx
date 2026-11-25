@@ -841,7 +841,7 @@ export function BrandDiscoveryPage() {
                 <div className="md:col-span-2 rounded-3xl border border-foreground/15 bg-foreground/[0.02] p-6 transition-all">
                   <div className="flex items-center justify-between">
                     <div>
-                      <span className="text-sm font-semibold text-foreground">
+                      <span id="mascot-switch-label" className="text-sm font-semibold text-foreground">
                         {isFa ? "آیا مایل به طراحی مسکات (کاراکتر برند) هستید؟" : "Want a Mascot?"}
                       </span>
                       <p className="text-xs text-muted-foreground mt-0.5">
@@ -854,6 +854,7 @@ export function BrandDiscoveryPage() {
                     <button
                       type="button"
                       role="switch"
+                      aria-labelledby="mascot-switch-label"
                       aria-checked={formData.wantMascot}
                       onClick={() =>
                         setFormData((prev) => ({
@@ -861,16 +862,16 @@ export function BrandDiscoveryPage() {
                           wantMascot: !prev.wantMascot,
                         }))
                       }
-                      className={`relative inline-flex h-7 w-12 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                      className={`relative inline-flex h-7 w-12 shrink-0 cursor-pointer items-center justify-start rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary ${
                         formData.wantMascot ? "bg-secondary" : "bg-foreground/20"
                       }`}
                     >
                       <span
-                        className={`pointer-events-none inline-block h-6 w-6 transform rounded-full bg-background shadow-lg ring-0 transition duration-200 ease-in-out ${
+                        className={`pointer-events-none inline-block size-6 shrink-0 transform rounded-full bg-background shadow-lg ring-0 transition duration-200 ease-in-out ${
                           formData.wantMascot
                             ? isFa
-                              ? "-translate-x-5"
-                              : "translate-x-5"
+                              ? "translate-x-[calc(4px-1.5rem)]"
+                              : "translate-x-[calc(1.5rem-4px)]"
                             : "translate-x-0"
                         }`}
                       />

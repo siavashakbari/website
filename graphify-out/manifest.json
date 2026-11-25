@@ -759,10 +759,10 @@
     "semantic_hash": "bbc156ab64348bc7e6dc8860e090b9c3"
   },
   "src/routes/brand-discovery.tsx": {
-    "mtime": 1794685025.7488787,
-    "seen": 1794753565.8131263,
-    "ast_hash": "9aafb06ccdb04c6d289984137bf8c877",
-    "semantic_hash": "9aafb06ccdb04c6d289984137bf8c877"
+    "mtime": 1795570666.242074,
+    "seen": 1795570691.3987377,
+    "ast_hash": "47a60f2be32de53576e23ce6c1125683",
+    "semantic_hash": ""
   },
   "src/routes/contact.tsx": {
     "mtime": 1794668943.435032,
