@@ -158,7 +158,7 @@
 }
 
 .site-header-nav {
-  gap: calc(clamp(0px, 0.18vw, 6px) * var(--vault-nav-gap, 1));
+  gap: calc(clamp(0px, 0.54vw, 18px) * var(--vault-nav-gap, 1));
 }
 
 :is(button, a).rounded-full:not(.language-switch, .justify-between, [role="switch"]) {
