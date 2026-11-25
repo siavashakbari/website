@@ -30,6 +30,10 @@ export interface StudioProjectItem {
   createdAt: string;
 }
 
+export type BlogBlock =
+  | { id: string; kind: "text"; en: string; fa: string }
+  | { id: string; kind: "image" | "video" | "gif"; url: string; en: string; fa: string };
+
 export interface StudioBlogItem {
   slug: string;
   title: string;
@@ -47,6 +51,7 @@ export interface StudioBlogItem {
   readTimeFa?: string;
   contentMarkdown: string;
   contentMarkdownFa?: string;
+  blocks?: BlogBlock[];
   published: boolean;
   featured?: boolean;
   seoDescription?: string;

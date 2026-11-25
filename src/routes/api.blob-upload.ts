@@ -14,7 +14,7 @@ export const Route = createFileRoute("/api/blob-upload")({
             body: await request.json() as HandleUploadPresignedBody,
             getSignedToken: async (pathname) => {
               await requireVaultAdmin(request);
-              if (!/^images\/[a-zA-Z0-9._-]+$/.test(pathname)) {
+              if (!/^(?:images|blog-images)\/[a-zA-Z0-9._-]+$/.test(pathname)) {
                 throw new Error("Invalid image path.");
               }
               const allowedContentTypes = ["image/jpeg", "image/png", "image/webp", "image/gif", "image/avif"];

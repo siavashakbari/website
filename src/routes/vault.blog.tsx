@@ -7,7 +7,10 @@ import {
   deleteStudioBlogPost,
   subscribeToStudioStore,
 } from "@/lib/studio-store";
-import type { StudioBlogItem } from "@/types/admin";
+import type { BlogBlock, StudioBlogItem } from "@/types/admin";
+import { BlogBlocksEditor } from "@/components/vault/BlogBlocksEditor";
+import { blogMediaUrls, uploadBlogMedia } from "@/lib/blog-media";
+import { queueMediaCleanup, retryPendingMediaCleanup } from "@/lib/media-cleanup";
 import { waitForPublishedContentSave } from "@/lib/published-store";
 import { BLOG_CATEGORIES, type BlogCategory } from "@/data/blog-posts";
 
@@ -30,8 +33,10 @@ function AdminBlogView() {
   const [coverImage, setCoverImage] = useState("");
   const [excerpt, setExcerpt] = useState("");
   const [excerptFa, setExcerptFa] = useState("");
-  const [contentMarkdown, setContentMarkdown] = useState("");
-  const [contentMarkdownFa, setContentMarkdownFa] = useState("");
+  const [blocks, setBlocks] = useState<BlogBlock[]>([]);
+  const [uploadProgress, setUploadProgress] = useState("");
+  const [uploadedUrls, setUploadedUrls] = useState<string[]>([]);
+  const [cleanupError, setCleanupError] = useState("");
   const [readTime, setReadTime] = useState("4 min read");
   const [isPublished, setIsPublished] = useState(true);
   const [aiSummary, setAiSummary] = useState("");
@@ -55,6 +60,9 @@ function AdminBlogView() {
 
   useEffect(() => {
     setPosts(getStudioBlogPosts());
+    void retryPendingMediaCleanup().catch(error => {
+      setCleanupError(error instanceof Error ? error.message : "Could not remove unused uploads.");
+    });
     return subscribeToStudioStore(() => setPosts(getStudioBlogPosts()));
   }, []);
 
@@ -68,8 +76,8 @@ function AdminBlogView() {
     setCoverImage("https://images.unsplash.com/photo-1507238691740-187a5b1d37b8?auto=format&fit=crop&w=1200&q=80");
     setExcerpt("");
     setExcerptFa("");
-    setContentMarkdown("");
-    setContentMarkdownFa("");
+    setBlocks([]);
+    setUploadedUrls([]);
     setReadTime("4 min read");
     setIsPublished(true);
     setAiSummary("");
@@ -91,8 +99,10 @@ function AdminBlogView() {
     setCoverImage(post.coverImage);
     setExcerpt(post.excerpt);
     setExcerptFa(post.excerptFa || "");
-    setContentMarkdown(post.contentMarkdown || "");
-    setContentMarkdownFa(post.contentMarkdownFa || "");
+    setBlocks(post.blocks ?? (post.contentMarkdown || post.contentMarkdownFa ? [{
+      id: crypto.randomUUID(), kind: "text", en: post.contentMarkdown || "", fa: post.contentMarkdownFa || "",
+    }] : []));
+    setUploadedUrls([]);
     setReadTime(post.readTime);
     setIsPublished(post.published);
     setAiSummary(post.aiSummary || "");
@@ -119,16 +129,49 @@ function AdminBlogView() {
     }
   };
 
-  const handleContentChange = (text: string) => {
-    setContentMarkdown(text);
-    const words = text.trim().split(/\s+/).length;
-    const minutes = Math.max(1, Math.ceil(words / 180));
-    setReadTime(`${minutes} min read`);
+  const changeBlocks = (next: BlogBlock[]) => {
+    setBlocks(next);
+    const text = next.filter(block => block.kind === "text").map(block => block.en).join(" ");
+    setReadTime(`${Math.max(1, Math.ceil((text.match(/\S+/g)?.length ?? 0) / 180))} min read`);
+  };
+
+  const uploadMedia = async (file: File, cover = false) => {
+    setSaveError("");
+    setUploadProgress("Preparing media…");
+    try {
+      const media = await uploadBlogMedia(file, setUploadProgress);
+      setUploadedUrls(urls => [...urls, media.url]);
+      if (cover) setCoverImage(media.url);
+      else setBlocks(current => [...current, { ...media, id: crypto.randomUUID(), en: "", fa: "" }]);
+    } catch (error) {
+      setSaveError(error instanceof Error ? error.message : "Upload failed.");
+    } finally {
+      setUploadProgress("");
+    }
+  };
+
+  const cleanupMedia = async (urls: string[]) => {
+    try {
+      queueMediaCleanup(urls);
+      await retryPendingMediaCleanup();
+      setCleanupError("");
+    } catch (error) {
+      setCleanupError(error instanceof Error ? error.message : "Could not remove unused uploads.");
+    }
+  };
+
+  const closeEditor = () => {
+    setIsEditorOpen(false);
+    void cleanupMedia(uploadedUrls);
   };
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (saving || !title.trim() || !slug.trim()) return;
+    if (saving || uploadProgress || !title.trim() || !slug.trim()) return;
+    if (slug.trim() !== editingPost?.slug && getStudioBlogPosts().some(post => post.slug === slug.trim())) {
+      setSaveError("An article already uses this URL slug.");
+      return;
+    }
 
     const matchedCat = BLOG_CATEGORIES.find((c) => c.key === category);
 
@@ -158,8 +201,9 @@ function AdminBlogView() {
       publishedAt: editingPost ? editingPost.publishedAt : new Date().toISOString().split("T")[0],
       readTime,
       readTimeFa: readTimeFa.trim() || undefined,
-      contentMarkdown: contentMarkdown.trim(),
-      contentMarkdownFa: contentMarkdownFa.trim() || undefined,
+      contentMarkdown: "",
+      contentMarkdownFa: undefined,
+      blocks,
       published: isPublished,
       aiSummary: aiSummary.trim() || undefined,
       aiSummaryFa: aiSummaryFa.trim() || undefined,
@@ -181,6 +225,11 @@ function AdminBlogView() {
     try {
       saveStudioBlogPost(postToSave, editingPost?.slug);
       await waitForPublishedContentSave();
+      const retained = new Set(blogMediaUrls(postToSave));
+      await cleanupMedia([
+        ...uploadedUrls,
+        ...(editingPost ? blogMediaUrls(editingPost) : []),
+      ].filter(url => !retained.has(url)));
     } catch (error) {
       setSaveError(error instanceof Error ? error.message : "Article could not be saved.");
       return;
@@ -195,10 +244,17 @@ function AdminBlogView() {
     }, 800);
   };
 
-  const handleDelete = (postSlug: string, postTitle: string) => {
+  const handleDelete = async (postSlug: string, postTitle: string) => {
     if (window.confirm(`Are you sure you want to delete blog post "${postTitle}"?`)) {
-      deleteStudioBlogPost(postSlug);
-      setPosts(getStudioBlogPosts());
+      const post = posts.find(item => item.slug === postSlug);
+      try {
+        deleteStudioBlogPost(postSlug);
+        await waitForPublishedContentSave();
+        setPosts(getStudioBlogPosts());
+        if (post) await cleanupMedia(blogMediaUrls(post));
+      } catch (error) {
+        setSaveError(error instanceof Error ? error.message : "Article could not be deleted.");
+      }
     }
   };
 
@@ -224,6 +280,13 @@ function AdminBlogView() {
 
   return (
     <div className="space-y-8">
+      {cleanupError && (
+        <div role="status" className="flex flex-wrap items-center gap-3 rounded-lg border border-amber-400/30 p-3 text-amber-200">
+          {cleanupError}
+          <button type="button" className="underline" onClick={() => void cleanupMedia([])}>Retry removal</button>
+        </div>
+      )}
+      {!isEditorOpen && saveError && <p role="alert" className="text-red-300">{saveError}</p>}
       {/* Header and Action */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
@@ -304,7 +367,7 @@ function AdminBlogView() {
                   <td className="py-4 px-4">
                     <div className="flex items-center gap-3">
                       <img
-                        src={post.coverImage}
+                        src={post.coverImage || "/og.jpg"}
                         alt=""
                         className="w-12 h-12 rounded-lg object-cover bg-black shrink-0 border border-white/10"
                       />
@@ -387,7 +450,8 @@ function AdminBlogView() {
                 </p>
               </div>
               <button
-                onClick={() => setIsEditorOpen(false)}
+                onClick={closeEditor}
+                disabled={saving || !!uploadProgress || saveSuccess}
                 className="p-1.5 rounded-lg text-neutral-400 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
               >
                 <X className="w-4 h-4" />
@@ -460,6 +524,16 @@ function AdminBlogView() {
 
               {/* Cover Image URL */}
               <div>
+                {coverImage && <img src={coverImage} alt={coverAltEn || "Cover preview"} className="mb-3 max-h-48 rounded-lg object-contain" />}
+                <div className="mb-3 flex flex-wrap items-center gap-3">
+                  <label>Upload or replace cover <input type="file" accept="image/*" disabled={!!uploadProgress || saving}
+                    onChange={event => {
+                      const file = event.currentTarget.files?.[0];
+                      event.currentTarget.value = "";
+                      if (file?.type.startsWith("image/")) void uploadMedia(file, true);
+                    }} /></label>
+                  {coverImage && <button type="button" onClick={() => setCoverImage("")}>Remove cover</button>}
+                </div>
                 <label className="block font-mono uppercase tracking-wider text-neutral-400 mb-1.5">
                   Cover Image URL
                 </label>
@@ -612,46 +686,10 @@ function AdminBlogView() {
                 </div>
               </div>
 
-              {/* Main Content Markdown Editors (Dual English & Farsi) */}
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <span className="font-mono uppercase tracking-wider text-neutral-300 font-semibold">
-                    Article Body (Markdown Supported)
-                  </span>
-                  <span className="text-[11px] text-[#2CE3C0] font-mono">
-                    Estimated {readTime}
-                  </span>
-                </div>
-
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                  <div className="space-y-1.5">
-                    <label className="block font-mono uppercase tracking-wider text-neutral-400 text-[11px]">
-                      Article Body (English) *
-                    </label>
-                    <textarea
-                      rows={10}
-                      value={contentMarkdown}
-                      onChange={(e) => handleContentChange(e.target.value)}
-                      placeholder="## Introduction&#10;&#10;Write your article here using standard Markdown headers (##), bullet points, and paragraphs..."
-                      className="w-full bg-black/50 border border-white/10 rounded-xl p-4 font-mono text-xs leading-relaxed text-white focus:outline-none focus:border-[#2CE3C0]"
-                    />
-                  </div>
-
-                  <div className="space-y-1.5">
-                    <label className="block font-mono uppercase tracking-wider text-neutral-400 text-[11px]">
-                      متن کامل مقاله (فارسی)
-                    </label>
-                    <textarea
-                      rows={10}
-                      dir="rtl"
-                      value={contentMarkdownFa}
-                      onChange={(e) => setContentMarkdownFa(e.target.value)}
-                      placeholder="## مقدمه&#10;&#10;متن کامل مقاله به زبان فارسی را با پشتیبانی کامل مارک‌داون، تیترها و پاراگراف‌ها اینجا بنویسید..."
-                      className="w-full bg-black/50 border border-white/10 rounded-xl p-4 font-mono text-xs leading-relaxed text-white focus:outline-none focus:border-[#2CE3C0]"
-                    />
-                  </div>
-                </div>
-              </div>
+              <fieldset disabled={saving || !!uploadProgress}>
+                <BlogBlocksEditor blocks={blocks} onChange={changeBlocks} onUpload={uploadMedia} />
+              </fieldset>
+              {uploadProgress && <p role="status">{uploadProgress}</p>}
 
               {/* Publication Status */}
               <div className="flex items-center gap-2 pt-2">
@@ -672,14 +710,15 @@ function AdminBlogView() {
               <div className="pt-4 border-t border-white/10 flex items-center justify-end gap-3">
                 <button
                   type="button"
-                  onClick={() => setIsEditorOpen(false)}
+                  onClick={closeEditor}
+                  disabled={saving || !!uploadProgress || saveSuccess}
                   className="px-4 py-2.5 rounded-lg border border-white/15 text-neutral-400 hover:text-white transition-colors cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  disabled={saving || saveSuccess}
+                  disabled={saving || saveSuccess || !!uploadProgress}
                   className="px-5 py-2.5 rounded-lg bg-[#2CE3C0] hover:bg-[#2CE3C0]/90 text-black font-bold flex items-center gap-1.5 cursor-pointer shadow-[0_0_15px_rgba(44,227,192,0.3)]"
                 >
                   {saveSuccess ? (

@@ -86,6 +86,38 @@ test("landing and shared menu edits survive publication and a fresh visitor load
   assert.equal(server.revision, 8);
 });
 
+test("blog covers and ordered bilingual blocks publish outside the media library", async () => {
+  const server = { revision: 0, content: { siavash_vault_media_v2: "[]" } };
+  const key = "siavash_studio_custom_blogs";
+  const editor = await browser(server);
+  await editor.api.refreshPublishedContent();
+  const coverImage = "/api/blob-media?pathname=blog-images%2Fcover.jpg";
+  const media = { id: "clip", kind: "video", url: "https://example.com/clip.mp4", en: "Clip", fa: "ویدیو" };
+  const post = {
+    slug: "studio-news",
+    coverImage,
+    blocks: [
+      { id: "intro", kind: "text", en: "Introduction", fa: "مقدمه" },
+      media,
+      { id: "end", kind: "text", en: "Closing notes", fa: "یادداشت پایانی" },
+    ],
+  };
+  const publish = async () => {
+    editor.api.contentStorage.setItem(key, JSON.stringify([post]));
+    editor.api.queueContentSave();
+    await editor.api.waitForPublishedContentSave();
+  };
+  await publish();
+  const visitor = await browser(server);
+  await visitor.api.refreshPublishedContent();
+  assert.deepEqual(JSON.parse(visitor.api.contentStorage.getItem(key)), [post]);
+  post.blocks = post.blocks.filter(block => block.id !== media.id);
+  await publish();
+  await visitor.api.refreshPublishedContent();
+  assert.deepEqual(JSON.parse(visitor.api.contentStorage.getItem(key)), [post]);
+  assert.equal(visitor.api.contentStorage.getItem("siavash_vault_media_v2"), "[]");
+});
+
 test("media metadata survives independent browser loads; visitors do not publish legacy state", async () => {
   const server = { revision: 0, content: {} };
   const editor = await browser(server);

@@ -198,7 +198,7 @@ function BlogIndexPage() {
                 {/* 16:9 Visual Preview */}
                 <div className="relative aspect-[16/10] w-full overflow-hidden rounded-lg bg-foreground/5 lg:col-span-7">
                   <img
-                    src={featuredPost.coverImage}
+                    src={featuredPost.coverImage || "/og.jpg"}
                     alt={localizedText(featuredPost.coverAltEn || featuredPost.title, featuredPost.coverAltFa || featuredPost.titleFa, lang).text}
                     className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
                   />
@@ -329,7 +329,7 @@ function BlogIndexPage() {
                       {/* Visual Card Image */}
                       <div className="relative aspect-[16/10] w-full overflow-hidden bg-foreground/5">
                         <img
-                          src={post.coverImage}
+                          src={post.coverImage || "/og.jpg"}
                           alt={localizedText(post.coverAltEn || post.title, post.coverAltFa || post.titleFa, lang).text}
                           className="h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-105"
                           loading="lazy"

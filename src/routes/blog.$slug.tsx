@@ -1,5 +1,6 @@
 import { subscribeToStudioStore } from "@/lib/studio-store";
 import { useLocale } from "@/lib/use-locale";
+import type { BlogBlock } from "@/types/admin";
 import { currentLocale, localizedText, withLocale } from "@/lib/locale";
 import { useState, useEffect } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
@@ -60,7 +61,7 @@ export const Route = createFileRoute("/blog/$slug")({
       "@type": "BlogPosting",
       headline: title,
       description,
-      image: absoluteUrl(post.coverImage),
+      image: absoluteUrl(post.coverImage || "/og.jpg"),
       datePublished: post.publishedAt,
       dateModified: post.publishedAt,
       url: url,
@@ -345,7 +346,7 @@ function BlogPostDetailPage() {
         <div className="mx-auto max-w-5xl overflow-hidden rounded-2xl border border-foreground/15 shadow-[0_20px_50px_rgba(0,0,0,0.6)]">
           <div className="relative aspect-[16/9] w-full bg-foreground/5 sm:aspect-[21/9]">
             <img
-              src={post.coverImage}
+              src={post.coverImage || "/og.jpg"}
               alt={
                 localizedText(post.coverAltEn || post.title, post.coverAltFa || post.titleFa, lang)
                   .text
@@ -405,7 +406,7 @@ function BlogPostDetailPage() {
         )}
 
         {/* Table of Contents for structured posts */}
-        {post.sections && post.sections.length > 1 && (
+        {post.blocks === undefined && post.sections && post.sections.length > 1 && (
           <nav
             aria-label="Table of Contents"
             className="mb-12 rounded-xl border border-foreground/10 bg-foreground/[0.02] p-6"
@@ -434,7 +435,7 @@ function BlogPostDetailPage() {
         )}
 
         {/* Body Content Sections */}
-        {post.sections && post.sections.length > 0 ? (
+        {post.blocks === undefined && post.sections && post.sections.length > 0 ? (
           <article className="space-y-12">
             {post.sections.map((section: any, idx: number) => {
               const headingText = isFa ? section.headingFa || section.heading : section.heading;
@@ -517,17 +518,24 @@ function BlogPostDetailPage() {
             })}
           </article>
         ) : (
-          /* Render contentMarkdown for admin studio posts */
           <article className="space-y-6 text-base leading-relaxed text-foreground/85 md:text-lg">
-            {(() => {
-              const activeMarkdown = isFa
-                ? post.contentMarkdownFa ||
-                  post.excerptFa ||
-                  post.contentMarkdown ||
-                  post.excerpt ||
-                  ""
-                : post.contentMarkdown || post.excerpt || "";
-              return activeMarkdown.split("\n\n").map((block: string, idx: number) => {
+            {(post.blocks ?? [{
+              id: "legacy-body", kind: "text" as const,
+              en: post.contentMarkdown || post.excerpt,
+              fa: post.contentMarkdownFa || post.excerptFa || "",
+            }]).map((entry: BlogBlock) => {
+              const copy = localizedText(entry.en, entry.fa, lang);
+              const attributes = { lang: copy.lang, dir: copy.lang === "fa" ? "rtl" : "ltr" };
+              if (entry.kind !== "text") return (
+                <figure key={entry.id} className="my-8">
+                  {entry.kind === "video"
+                    ? <video src={entry.url} controls playsInline preload="metadata" className="w-full rounded-xl" aria-label={copy.text || undefined} />
+                    : <img src={entry.url} alt={copy.text} loading="lazy" className="mx-auto max-w-full rounded-xl" />}
+                  {copy.text && <figcaption {...attributes} className="mt-3 text-center text-sm text-foreground/60">{copy.text}</figcaption>}
+                </figure>
+              );
+              return <div key={entry.id} {...attributes} className="space-y-6">
+                {copy.text.split(/\r?\n\s*\r?\n/).map((block, idx) => {
                 const trimmed = block.trim();
                 if (!trimmed) return null;
                 if (trimmed.startsWith("### ")) {
@@ -573,8 +581,9 @@ function BlogPostDetailPage() {
                   );
                 }
                 return <p key={idx}>{trimmed}</p>;
-              });
-            })()}
+                })}
+              </div>;
+            })}
           </article>
         )}
 
@@ -678,7 +687,7 @@ function BlogPostDetailPage() {
                 >
                   <div className="relative aspect-[16/10] w-full overflow-hidden bg-foreground/5">
                     <img
-                      src={related.coverImage}
+                      src={related.coverImage || "/og.jpg"}
                       alt={relTitle}
                       className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                     />

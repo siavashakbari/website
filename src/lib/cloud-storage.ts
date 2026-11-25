@@ -50,12 +50,12 @@ export async function publishInlineMedia(src: string, name: string): Promise<str
 export async function uploadToCloudStorage(
   blob: Blob,
   fileName: string,
-  options: { contentType?: string; onProgress?: (percent: number) => void } = {},
+  options: { contentType?: string; onProgress?: (percent: number) => void; blog?: boolean } = {},
 ): Promise<CloudUploadResult> {
   const contentType = options.contentType || blob.type || "application/octet-stream";
   if (contentType.startsWith("image/")) {
     const clean = sanitizeFileName(fileName);
-    const pathname = `images/${crypto.randomUUID()}-${clean}`;
+    const pathname = `${options.blog ? "blog-images" : "images"}/${crypto.randomUUID()}-${clean}`;
     const uploaded = await uploadPresigned(pathname, blob, {
       access: "private",
       contentType,
@@ -77,7 +77,7 @@ export async function uploadToCloudStorage(
 
   const clean = sanitizeFileName(fileName);
   const token = await requireVaultToken();
-  const objectPath = `${crypto.randomUUID()}-${clean}`;
+  const objectPath = `${crypto.randomUUID()}-${options.blog ? "blog-video-" : ""}${clean}`;
   const endpoint = `${cfg.url}/storage/v1/object/${cfg.bucket}/${encodeURIComponent(objectPath)}`;
 
   options.onProgress?.(5);

@@ -31,7 +31,7 @@ export const Route = createFileRoute("/api/media-cleanup")({
               { status: 400 },
             );
           }
-          const snapshot = await readVercelPublishedContent();
+          const snapshot = await readVercelPublishedContent(true);
           const values = Object.values(snapshot.content);
           for (const file of files) {
             if (!file) continue;

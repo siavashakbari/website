@@ -13,7 +13,7 @@ export function managedMediaFromUrl(
     const url = new URL(source, "https://local.invalid");
     if (url.origin === "https://local.invalid" && url.pathname === "/api/blob-media") {
       const path = url.searchParams.get("pathname") || "";
-      const name = path.startsWith("images/") ? path.slice("images/".length) : "";
+      const name = /^(?:images|blog-images)\/([^/]+)$/.exec(path)?.[1] ?? "";
       return uploadName.test(name) ? { storage: "blob", path } : null;
     }
     if (!supabaseUrl || url.origin !== new URL(supabaseUrl).origin) return null;

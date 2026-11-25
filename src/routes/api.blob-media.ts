@@ -7,7 +7,7 @@ export const Route = createFileRoute("/api/blob-media")({
     handlers: {
       GET: async ({ request }) => {
         const pathname = new URL(request.url).searchParams.get("pathname") || "";
-        if (!/^images\/[a-zA-Z0-9._-]+$/.test(pathname)) {
+        if (!/^(?:images|blog-images)\/[a-zA-Z0-9._-]+$/.test(pathname)) {
           return new Response("Not found", { status: 404 });
         }
         try {
@@ -20,7 +20,7 @@ export const Route = createFileRoute("/api/blob-media")({
               "content-type": result.blob.contentType,
               // Uploaded image pathnames contain UUIDs. Cache this public portfolio
               // response at the edge so each visitor does not trigger a Blob GET.
-              "cache-control": "public, max-age=31536000, s-maxage=86400, immutable",
+              "cache-control": pathname.startsWith("blog-images/") ? "no-store" : "public, max-age=31536000, s-maxage=86400, immutable",
               "x-content-type-options": "nosniff",
               etag: result.blob.etag,
             },
