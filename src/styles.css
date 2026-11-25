@@ -180,21 +180,20 @@
 
 .top-nav-label {
   position: relative;
+  display: grid;
+  place-items: center;
   white-space: nowrap;
+}
+
+.top-nav-label > span {
+  grid-area: 1 / 1;
 }
 
 .top-nav-link[data-status="active"] .top-nav-label::before {
   content: attr(data-label);
-  display: block;
+  grid-area: 1 / 1;
   visibility: hidden;
   font-weight: var(--vault-nav-weight, 300);
-}
-
-.top-nav-link[data-status="active"] .top-nav-label > span {
-  position: absolute;
-  top: 0;
-  left: 50%;
-  translate: -50% 0;
 }
 
 .site-header-nav > .top-nav-link:first-child {
@@ -349,6 +348,11 @@
 
 .home-hero-outer {
   position: relative;
+}
+
+html:has(.home-hero-scene) {
+  scroll-behavior: auto;
+  overflow-anchor: none;
 }
 
 .home-hero {
