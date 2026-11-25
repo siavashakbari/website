@@ -161,6 +161,16 @@
   gap: calc(clamp(0px, 0.18vw, 6px) * var(--vault-nav-gap, 1));
 }
 
+:is(button, a).rounded-full:not(.language-switch):not(.justify-between) {
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+:is(button, a).rounded-full:not(.language-switch):not(.justify-between):not(.flex):not(.inline-flex) {
+  display: inline-flex;
+}
+
 .top-nav-link {
   --nav-pill-height: calc(var(--vault-pill-height, 33.6) * 1px);
   position: relative;
@@ -431,7 +441,7 @@ html:has(.home-hero-scene) {
     .home-hero-scene::after {
       content: "";
       display: block;
-      height: calc(clamp(240px, 48svh, 440px) * 2 + 350px);
+      height: calc(clamp(240px, 48svh, 440px) * 2 + 250px);
     }
 
     .home-hero-outer {
