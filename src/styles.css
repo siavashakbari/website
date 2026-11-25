@@ -141,6 +141,18 @@
   padding-inline: clamp(16px, 3vw, 36px);
 }
 
+@media (max-width: 700px) {
+  .portfolio-shell {
+    --site-header-original-height: calc(var(--site-header-base-height) * 0.9 * var(--vault-header-scale, 0.85));
+    --site-header-extra-top: max(0px, calc(var(--site-header-original-height) - 44px));
+    --site-header-height: calc(var(--site-header-original-height) + var(--site-header-extra-top));
+  }
+
+  .site-header-bar {
+    padding-top: var(--site-header-extra-top);
+  }
+}
+
 .site-header-brand {
   gap: clamp(8px, 1vw, 16px);
 }
@@ -405,7 +417,7 @@
   line-height: 1.4;
 }
 
-@supports ((animation-timeline: scroll()) and (animation-range: 0% 100%) and (-webkit-text-stroke: 1px white)) {
+@supports ((animation-timeline: scroll()) and (animation-range: 0% 100%)) {
   @media (prefers-reduced-motion: no-preference) and (forced-colors: none) {
     .home-hero-scene {
       view-timeline: --home-hero;
@@ -415,7 +427,7 @@
     .home-hero-scene::after {
       content: "";
       display: block;
-      height: clamp(240px, 48svh, 440px);
+      height: calc(clamp(240px, 48svh, 440px) + 200px);
     }
 
     .home-hero-outer {
@@ -425,7 +437,6 @@
 
     .home-hero-word {
       display: inline-block;
-      -webkit-text-stroke-width: calc(var(--vault-outline, 0.5) * 1px);
       animation: home-hero-fill auto cubic-bezier(0.2, 0.75, 0.25, 1) both;
       animation-timeline: --home-hero;
       animation-range: contain var(--fill-start) contain var(--fill-end);
@@ -435,13 +446,11 @@
 
 @keyframes home-hero-fill {
   from {
-    color: transparent;
-    -webkit-text-stroke-color: rgb(255 255 255 / 65%);
+    opacity: 0.25;
   }
 
   to {
-    color: #fff;
-    -webkit-text-stroke-color: transparent;
+    opacity: 1;
   }
 }
 

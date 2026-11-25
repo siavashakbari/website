@@ -84,8 +84,8 @@ function Index() {
                               className="home-hero-word"
                               style={
                                 {
-                                  "--fill-start": `${(index / wordCount) * 100}%`,
-                                  "--fill-end": `${((index + (content.appearance?.fill ?? 62) / 100) / wordCount) * 100}%`,
+                                  "--fill-start": `calc(${(index / wordCount) * 100}% - ${(index / wordCount) * 200}px)`,
+                                  "--fill-end": `calc(${((index + (content.appearance?.fill ?? 62) / 100) / wordCount) * 100}% - ${((index + (content.appearance?.fill ?? 62) / 100) / wordCount) * 200}px)`,
                                 } as CSSProperties
                               }
                             >

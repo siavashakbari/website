@@ -771,9 +771,9 @@
     "semantic_hash": "08d67fbd288b1fba32c2ef36871409e7"
   },
   "src/routes/index.tsx": {
-    "mtime": 1795543514.3775606,
-    "seen": 1795543824.8584814,
-    "ast_hash": "18f82977a4c9f363a6374d41c3cbe133",
+    "mtime": 1795569216.4221764,
+    "seen": 1795569256.8035839,
+    "ast_hash": "a57edaa2dcd9a42715bec5407924d8cb",
     "semantic_hash": ""
   },
   "src/routes/robots[.]txt.ts": {
