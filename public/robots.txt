@@ -1,5 +1,7 @@
 User-agent: *
 Allow: /
+Disallow: /api/
+Allow: /api/blob-media
 
 Sitemap: https://www.siavashakbari.ir/sitemap.xml
 
