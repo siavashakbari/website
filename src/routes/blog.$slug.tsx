@@ -175,6 +175,7 @@ function BlogPostDetailPage() {
 
   const titleInfo = localizedText(post.title, post.titleFa, lang);
   const excerptInfo = localizedText(post.excerpt, post.excerptFa, lang);
+  const rawSummary = isFa ? post.aiSummaryFa : post.aiSummary;
   const postTitle = titleInfo.text;
   const postExcerpt = excerptInfo.text;
   const postCategoryLabel = localizedText(
@@ -359,7 +360,7 @@ function BlogPostDetailPage() {
       {/* Article Container */}
       <div className="mx-auto max-w-4xl px-6 py-12 md:px-12 md:py-16">
         {/* Generative AI & Executive Summary Box (GEO / AEO Optimized) */}
-        {((isFa && (post.aiSummaryFa || post.aiSummary)) || post.aiSummary) && (
+        {rawSummary && (
           <section
             aria-label="Executive and AI Search Summary"
             className="relative mb-12 overflow-hidden rounded-xl border border-secondary/30 bg-gradient-to-b from-secondary/[0.07] to-secondary/[0.02] p-6 backdrop-blur-sm md:p-8"
@@ -381,7 +382,6 @@ function BlogPostDetailPage() {
 
             <ul className="mt-5 space-y-3">
               {(() => {
-                const rawSummary = isFa ? post.aiSummaryFa || post.aiSummary : post.aiSummary;
                 const points = Array.isArray(rawSummary)
                   ? rawSummary
                   : typeof rawSummary === "string"

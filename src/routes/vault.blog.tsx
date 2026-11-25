@@ -8,6 +8,7 @@ import {
   subscribeToStudioStore,
 } from "@/lib/studio-store";
 import type { StudioBlogItem } from "@/types/admin";
+import { waitForPublishedContentSave } from "@/lib/published-store";
 import { BLOG_CATEGORIES, type BlogCategory } from "@/data/blog-posts";
 
 export const Route = createFileRoute("/vault/blog")({
@@ -49,6 +50,8 @@ function AdminBlogView() {
   const [categoryLabelFa, setCategoryLabelFa] = useState("");
   const [readTimeFa, setReadTimeFa] = useState("");
   const [saveSuccess, setSaveSuccess] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState("");
 
   useEffect(() => {
     setPosts(getStudioBlogPosts());
@@ -56,6 +59,7 @@ function AdminBlogView() {
   }, []);
 
   const openNewPostForm = () => {
+    setSaveError("");
     setEditingPost(null);
     setTitle("");
     setTitleFa("");
@@ -78,6 +82,7 @@ function AdminBlogView() {
   };
 
   const openEditPostForm = (post: StudioBlogItem) => {
+    setSaveError("");
     setEditingPost(post);
     setTitle(post.title);
     setTitleFa(post.titleFa || "");
@@ -86,8 +91,8 @@ function AdminBlogView() {
     setCoverImage(post.coverImage);
     setExcerpt(post.excerpt);
     setExcerptFa(post.excerptFa || "");
-    setContentMarkdown(post.contentMarkdown || post.excerpt);
-    setContentMarkdownFa(post.contentMarkdownFa || post.excerptFa || "");
+    setContentMarkdown(post.contentMarkdown || "");
+    setContentMarkdownFa(post.contentMarkdownFa || "");
     setReadTime(post.readTime);
     setIsPublished(post.published);
     setAiSummary(post.aiSummary || "");
@@ -121,9 +126,9 @@ function AdminBlogView() {
     setReadTime(`${minutes} min read`);
   };
 
-  const handleSave = (e: React.FormEvent) => {
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!title.trim() || !slug.trim()) return;
+    if (saving || !title.trim() || !slug.trim()) return;
 
     const matchedCat = BLOG_CATEGORIES.find((c) => c.key === category);
 
@@ -138,6 +143,7 @@ function AdminBlogView() {
       .filter(Boolean);
 
     const postToSave: StudioBlogItem = {
+      ...editingPost,
       slug: slug.trim(),
       title: title.trim(),
       titleFa: titleFa.trim() || undefined,
@@ -170,7 +176,17 @@ function AdminBlogView() {
       }), name: authorNameEn.trim() || "Siavash Akbari", bio: authorBioEn.trim() || undefined, nameFa: authorNameFa.trim() || undefined, bioFa: authorBioFa.trim() || undefined },
     };
 
-    saveStudioBlogPost(postToSave, editingPost?.slug);
+    setSaving(true);
+    setSaveError("");
+    try {
+      saveStudioBlogPost(postToSave, editingPost?.slug);
+      await waitForPublishedContentSave();
+    } catch (error) {
+      setSaveError(error instanceof Error ? error.message : "Article could not be saved.");
+      return;
+    } finally {
+      setSaving(false);
+    }
     setPosts(getStudioBlogPosts());
     setSaveSuccess(true);
     setTimeout(() => {
@@ -652,6 +668,7 @@ function AdminBlogView() {
               </div>
 
               {/* Footer Buttons */}
+              {saveError && <p role="alert" className="text-red-300">{saveError}</p>}
               <div className="pt-4 border-t border-white/10 flex items-center justify-end gap-3">
                 <button
                   type="button"
@@ -662,6 +679,7 @@ function AdminBlogView() {
                 </button>
                 <button
                   type="submit"
+                  disabled={saving || saveSuccess}
                   className="px-5 py-2.5 rounded-lg bg-[#2CE3C0] hover:bg-[#2CE3C0]/90 text-black font-bold flex items-center gap-1.5 cursor-pointer shadow-[0_0_15px_rgba(44,227,192,0.3)]"
                 >
                   {saveSuccess ? (
@@ -670,7 +688,7 @@ function AdminBlogView() {
                       <span>Article Saved!</span>
                     </>
                   ) : (
-                    <span>{editingPost ? "Update Article" : "Publish Article"}</span>
+                    <span>{saving ? "Saving…" : editingPost ? "Update Article" : "Publish Article"}</span>
                   )}
                 </button>
               </div>
