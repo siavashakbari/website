@@ -84,8 +84,8 @@ function Index() {
                               className="home-hero-word"
                               style={
                                 {
-                                  "--fill-start": `calc(${(index / wordCount) * 100}% - ${(index / wordCount) * 200}px)`,
-                                  "--fill-end": `calc(${((index + (content.appearance?.fill ?? 62) / 100) / wordCount) * 100}% - ${((index + (content.appearance?.fill ?? 62) / 100) / wordCount) * 200}px)`,
+                                  "--fill-start": `calc(${(index / wordCount) * 100}% - ${(index / wordCount) * 350}px)`,
+                                  "--fill-end": `calc(${((index + (content.appearance?.fill ?? 62) / 100) / wordCount) * 100}% - ${((index + (content.appearance?.fill ?? 62) / 100) / wordCount) * 350}px)`,
                                 } as CSSProperties
                               }
                             >
