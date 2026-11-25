@@ -463,10 +463,10 @@ function MobileNav() {
       <button
         aria-expanded={open}
         onClick={() => setOpen(true)}
-        className="menu-hover-glow inline-flex min-h-[44px] min-w-[44px] items-center justify-center gap-1.5 rounded-md text-sm font-medium tracking-widest text-foreground"
+        className="mobile-menu-trigger menu-hover-glow inline-flex min-h-[44px] min-w-[44px] items-center justify-center gap-1.5 rounded-md text-sm font-medium tracking-widest text-foreground"
       >
-        <MenuIcon className="h-[21.6px] w-[21.6px]" />
         <span lang="en">MENU</span>
+        <MenuIcon className="h-[21.6px] w-[21.6px]" />
       </button>
 
       <div

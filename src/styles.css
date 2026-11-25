@@ -252,6 +252,14 @@
     height: 35.2px;
     justify-content: center;
     color: var(--secondary);
+    border: 0;
+    background: transparent;
+    padding: 0;
+  }
+
+  .site-header .language-switch::before,
+  .site-header .language-switch::after {
+    display: none;
   }
 
   .language-switch > span {
@@ -588,6 +596,10 @@
     justify-content: center;
   }
 
+  .mobile-menu-trigger {
+    padding-inline-end: 10px;
+  }
+
   .site-header-wordmark {
     display: none;
   }
@@ -603,12 +615,13 @@
 
   .home-hero-copy {
     width: auto;
-    gap: 22px;
+    gap: 44px;
     margin: 0;
     padding: 24px clamp(16px, 5vw, 34px) 0;
   }
 
   .home-hero-roles {
+    margin-top: 28px;
     font-size: calc(clamp(18px, 4.8vw, 29px) * var(--vault-roles-scale, 1));
   }
 
@@ -619,7 +632,11 @@
   }
 
   .home-hero-actions {
-    gap: 18px;
+    gap: 36px;
+  }
+
+  .home-hero-links {
+    gap: 16px;
   }
 
   .home-hero-cta {

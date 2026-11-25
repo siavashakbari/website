@@ -657,9 +657,9 @@
     "semantic_hash": ""
   },
   "src/routes/__root.tsx": {
-    "mtime": 1795543724.9710312,
-    "seen": 1795543824.857522,
-    "ast_hash": "5eaab11da1230b155e999d426188d128",
+    "mtime": 1795567479.880004,
+    "seen": 1795567507.4349608,
+    "ast_hash": "b7978d578b4266ea26765b32f40bcbec",
     "semantic_hash": ""
   },
   "src/routes/about.tsx": {
