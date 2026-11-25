@@ -140,8 +140,8 @@ const COPY = {
 /** Map duration years → capsule height (px). Only for finite (non-Present) jobs. */
 function durationCapsuleHeight(years: number) {
   if (years <= 0) return 0;
-  const min = 40;
-  const max = 128;
+  const min = 32;
+  const max = 102;
   const t = Math.min(1, Math.max(0, years / 5));
   return Math.round(min + t * (max - min));
 }
@@ -435,8 +435,7 @@ function AboutPage() {
       dir={isFa ? "rtl" : "ltr"}
     >
       <Hero reduceMotion={!!reduceMotion} lang={lang} />
-      <SelectedWork lang={lang} />
-      <div className="mx-auto w-full max-w-6xl px-6 pb-12 md:px-10">
+      <div className="mx-auto w-full max-w-6xl px-6 pb-8 md:px-10">
         <TimelineFilters
           lang={lang}
           filters={filters}
@@ -445,6 +444,7 @@ function AboutPage() {
         />
       </div>
       <Timeline reduceMotion={!!reduceMotion} lang={lang} filters={filters} />
+      <SelectedWork lang={lang} />
       <SkillsSection reduceMotion={!!reduceMotion} lang={lang} />
       <BackToTop />
     </div>
@@ -993,7 +993,7 @@ function Timeline({
 
   return (
     <section
-      className="mx-auto w-full max-w-6xl px-6 pb-32 md:px-10"
+      className="mx-auto w-full max-w-6xl px-6 pb-20 md:px-10"
       aria-label={t(COPY.timelineAria, lang)}
       dir="ltr"
     >
@@ -1021,7 +1021,7 @@ function Timeline({
           </motion.div>
         </div>
 
-        <ol className="relative z-[2] flex flex-col gap-24 py-4 md:gap-36">
+        <ol className="relative z-[2] flex flex-col gap-16 py-3 md:gap-24">
           {milestones.map((m, i) => (
             <TimelineEntry
               key={`${m.year}-${m.title.en}`}
@@ -1096,15 +1096,15 @@ function TimelineEntry({
   );
 
   const yearAlign = flip
-    ? "md:order-2 md:pl-16 md:justify-start"
-    : "md:order-1 md:pr-16 md:justify-end";
-  const cardAlign = flip ? "md:order-1 md:pr-16 md:text-right" : "md:order-2 md:pl-16 md:text-left";
+    ? "md:order-2 md:pl-12 md:justify-start"
+    : "md:order-1 md:pr-12 md:justify-end";
+  const cardAlign = flip ? "md:order-1 md:pr-12 md:text-right" : "md:order-2 md:pl-12 md:text-left";
 
   const showGallery = !!milestone.photos?.length;
   const CategoryIcon = CATEGORY_ICON[milestone.category];
 
   return (
-    <li className="relative" style={{ paddingBottom: capsuleH > 48 ? capsuleH - 28 : undefined }}>
+    <li className="relative" style={{ paddingBottom: capsuleH > 38 ? capsuleH - 22 : undefined }}>
       {useCapsule ? (
         <span
           ref={markerRef}
@@ -1160,7 +1160,7 @@ function TimelineEntry({
           {!flip && showGallery && (
             <ExpandableGallery photos={milestone.photos!} compact expandable={false} />
           )}
-          <p className="font-display text-[clamp(3.6rem,8.4vw,7.2rem)] font-bold leading-none tracking-tight text-foreground/[0.14]">
+          <p className="font-display text-[clamp(2.88rem,6.72vw,5.76rem)] font-bold leading-none tracking-tight text-foreground/[0.14]">
             {milestone.year}
           </p>
           {flip && showGallery && (
@@ -1176,8 +1176,8 @@ function TimelineEntry({
           className={`pl-8 md:pl-0 ${cardAlign}`}
           dir={isFa ? "rtl" : "ltr"}
         >
-          <div className="mb-3 flex flex-col items-start gap-3 md:hidden">
-            <p className="font-display text-[2.7rem] font-bold leading-none tracking-tight text-foreground/[0.16]">
+          <div className="mb-2 flex flex-col items-start gap-2 md:hidden">
+            <p className="font-display text-[2.16rem] font-bold leading-none tracking-tight text-foreground/[0.16]">
               {milestone.year}
             </p>
             {showGallery && (
@@ -1186,29 +1186,29 @@ function TimelineEntry({
           </div>
 
           <p
-            className={`inline-flex items-center gap-2 text-[0.99rem] font-medium text-secondary ${
+            className={`inline-flex items-center gap-1.5 text-[0.8rem] font-medium text-secondary ${
               isFa ? "font-farsi tracking-normal" : "uppercase tracking-[0.3em]"
             }`}
           >
             <CategoryIcon
               aria-hidden
-              className="h-[1.12rem] w-[1.12rem] shrink-0"
+              className="size-[0.9rem] shrink-0"
               strokeWidth={1.75}
             />
             {t(CATEGORY[milestone.category], lang)}
           </p>
           <h2
-            className={`mt-3 font-extrabold tracking-tight text-foreground ${
+            className={`mt-2 font-extrabold tracking-tight text-foreground ${
               isFa
-                ? "font-farsi text-[1.65rem] md:text-[1.98rem]"
-                : "font-display text-[1.98rem] md:text-[2.475rem]"
+                ? "font-farsi text-[1.32rem] md:text-[1.584rem]"
+                : "font-display text-[1.584rem] md:text-[1.98rem]"
             }`}
           >
             {t(milestone.title, lang)}
           </h2>
 
           {(milestone.role || milestone.period) && (
-            <div className={`mt-2 space-y-1 text-[1.05rem] ${isFa ? "font-farsi" : ""}`}>
+            <div className={`mt-1.5 space-y-0.5 text-[0.84rem] ${isFa ? "font-farsi" : ""}`}>
               {milestone.role && (
                 <p className="font-medium text-foreground/75">{t(milestone.role, lang)}</p>
               )}
@@ -1219,7 +1219,7 @@ function TimelineEntry({
           )}
 
           <p
-            className={`mt-5 max-w-md border-t border-foreground/10 pt-4 text-[1.14rem] leading-relaxed text-foreground/65 ${
+            className={`mt-3.5 max-w-md border-t border-foreground/10 pt-3 text-[0.92rem] leading-relaxed text-foreground/65 ${
               isFa ? "font-farsi" : ""
             } ${flip ? "md:ml-auto" : ""}`}
           >

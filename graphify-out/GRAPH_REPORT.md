@@ -1,7 +1,7 @@
 # Graph Report - Creative Showcase Studio  (2026-11-25)
 
 ## Corpus Check
-- 149 files · ~218,519 words
+- 149 files · ~218,542 words
 - Verdict: corpus is large enough that graph structure adds value.
 - Unclassified: 21 file(s) not represented in the graph (top: .ttf 9, (none) 4, .woff2 3)
 
@@ -11,7 +11,7 @@
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `f55378b7`
+- Built from commit: `9fad3087`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -84,16 +84,16 @@
 10. `isContentReady()` - 32 edges
 
 ## Surprising Connections (you probably didn't know these)
-- `RootShell()` --calls--> `useLocale()`  [EXTRACTED]
-  src/routes/__root.tsx → src/lib/use-locale.ts
-- `RootComponent()` --indirect_call--> `startPublishedContentSync()`  [INFERRED]
-  src/routes/__root.tsx → src/lib/published-store.ts
 - `PageHeaderProps` --references--> `KeyValuePair`  [EXTRACTED]
   src/components/ui-types/PageHeader.tsx → src/components/vault/PairedBoxesEditor.tsx
 - `getRouter()` --indirect_call--> `NotFoundPage()`  [INFERRED]
   src/router.tsx → src/components/NotFoundPage.tsx
-- `ErrorComponent()` --calls--> `withLocale()`  [EXTRACTED]
-  src/routes/__root.tsx → src/lib/locale.ts
+- `RootComponent()` --indirect_call--> `startPublishedContentSync()`  [INFERRED]
+  src/routes/__root.tsx → src/lib/published-store.ts
+- `RootShell()` --calls--> `useLocale()`  [EXTRACTED]
+  src/routes/__root.tsx → src/lib/use-locale.ts
+- `Route` --calls--> `currentLocale()`  [EXTRACTED]
+  src/routes/about.tsx → src/lib/locale.ts
 
 ## Import Cycles
 - None detected.
@@ -318,16 +318,16 @@ Nodes (5): CustomDatePicker(), CustomDatePickerProps, MONTH_NAMES, WEEK_DAYS, Lo
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `@tanstack/react-start` connect `server.ts` to `@tanstack/react-router`, `vite.config.ts`, `package.json`, `blobCredentials`?**
-  _High betweenness centrality (0.079) - this node is a cross-community bridge._
+- **Why does `react` connect `useLocale` to `brand-discovery.tsx`, `$discipline.$specialty.index.tsx`, `react`, `normalizeDisciplineSlug`, `site-content.ts`, `about.tsx`, `published-store.ts`, `index.tsx`, `dependencies`, `expandable-gallery.tsx`, `vault-store.ts`, `blog-posts.ts`, `seo.ts`, `CustomDatePicker.tsx`, `__root.tsx`, `DedicatedPhotoView.tsx`, `package.json`, `$discipline.$specialty.$project.index.tsx`?**
+  _High betweenness centrality (0.074) - this node is a cross-community bridge._
 - **Should `projects.ts` be split into smaller, more focused modules?**
   _Cohesion score 0.006711409395973154 - nodes in this community are weakly interconnected._
 - **Why does `@tanstack/react-router` connect `@tanstack/react-router` to `$discipline.$specialty.index.tsx`, `blobCredentials`, `site-content.ts`, `about.tsx`, `dependencies`, `vault-store.ts`, `blog-posts.ts`, `seo.ts`, `__root.tsx`, `DedicatedPhotoView.tsx`, `package.json`, `$discipline.$specialty.$project.index.tsx`, `api.contact.ts`, `brand-discovery.tsx`, `normalizeDisciplineSlug`, `react`, `useLocale`, `server.ts`, `published-store.ts`, `index.tsx`, `vercel-private-content.server.ts`?**
-  _High betweenness centrality (0.074) - this node is a cross-community bridge._
+  _High betweenness centrality (0.062) - this node is a cross-community bridge._
 - **Should `$discipline.$specialty.index.tsx` be split into smaller, more focused modules?**
   _Cohesion score 0.1452991452991453 - nodes in this community are weakly interconnected._
-- **Why does `react` connect `useLocale` to `brand-discovery.tsx`, `$discipline.$specialty.index.tsx`, `react`, `normalizeDisciplineSlug`, `site-content.ts`, `about.tsx`, `published-store.ts`, `index.tsx`, `dependencies`, `expandable-gallery.tsx`, `vault-store.ts`, `blog-posts.ts`, `seo.ts`, `CustomDatePicker.tsx`, `__root.tsx`, `DedicatedPhotoView.tsx`, `package.json`, `$discipline.$specialty.$project.index.tsx`?**
-  _High betweenness centrality (0.068) - this node is a cross-community bridge._
+- **Why does `@tanstack/react-start` connect `server.ts` to `@tanstack/react-router`, `vite.config.ts`, `package.json`, `blobCredentials`?**
+  _High betweenness centrality (0.058) - this node is a cross-community bridge._
 - **Should `studio-store.ts` be split into smaller, more focused modules?**
   _Cohesion score 0.10507246376811594 - nodes in this community are weakly interconnected._
 - **Should `visual-identity-assets.ts` be split into smaller, more focused modules?**
