@@ -63,7 +63,7 @@ export const Route = createFileRoute("/blog/$slug")({
       description,
       image: absoluteUrl(post.coverImage || "/og.jpg"),
       datePublished: post.publishedAt,
-      dateModified: post.publishedAt,
+      dateModified: post.updatedAt || post.publishedAt,
       url: url,
       author: {
         "@type": "Person",

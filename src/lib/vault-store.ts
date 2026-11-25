@@ -21,6 +21,7 @@ import { notifyStudioStoreUpdated } from "@/lib/studio-store";
 import { resolveMediaTitle } from "@/lib/media-title";
 
 export interface VaultPageItem {
+  updatedAt?: string;
   id: string;
   route: string; // e.g. "/photography/fashion-photography/sepidar"
   name: string;  // e.g. "Sepidar" -> tab title "Siavash Akbari - Sepidar"
@@ -38,6 +39,7 @@ export interface VaultPageItem {
 }
 
 export interface VaultMediaItem {
+  updatedAt?: string;
   id: string;
   uniqueCode: string;   // 4-digit unique code, e.g. "5826"
   dynamicCode: string;  // e.g. "5826-PHOTOGRAPHY-FASHION-SEPIDAR"

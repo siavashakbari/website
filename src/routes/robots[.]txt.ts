@@ -10,6 +10,8 @@ export const Route = createFileRoute("/robots.txt")({
         const body = [
           "User-agent: *",
           "Allow: /",
+          "Disallow: /api/",
+          "Allow: /api/blob-media",
           "",
           `Sitemap: ${baseUrl}/sitemap.xml`,
           "",
@@ -18,7 +20,7 @@ export const Route = createFileRoute("/robots.txt")({
         return new Response(body, {
           headers: {
             "Content-Type": "text/plain; charset=utf-8",
-            "Cache-Control": "public, max-age=86400",
+            "Cache-Control": "public, max-age=3600",
           },
         });
       },

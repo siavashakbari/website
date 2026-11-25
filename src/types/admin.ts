@@ -47,6 +47,7 @@ export interface StudioBlogItem {
   coverAltEn?: string;
   coverAltFa?: string;
   publishedAt: string;
+  updatedAt?: string;
   readTime: string;
   readTimeFa?: string;
   contentMarkdown: string;

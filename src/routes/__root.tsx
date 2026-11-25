@@ -174,8 +174,8 @@ export const Route = createRootRouteWithContext<{
               },
             ] as const)
           : []),
-        { rel: "icon", href: "/favicon.svg", type: "image/svg+xml" },
-        { rel: "apple-touch-icon", href: "/favicon.svg" },
+        { rel: "icon", href: "/favicon.png", type: "image/png", sizes: "96x96" },
+        { rel: "apple-touch-icon", href: "/favicon.png" },
         { rel: "manifest", href: "/site.webmanifest" },
       ],
       scripts: [jsonLdScript(siteJsonLd())],

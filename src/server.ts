@@ -61,6 +61,9 @@ export default {
       const normalized = await normalizeCatastrophicSsrResponse(response);
       if (!normalized.headers.get("content-type")?.includes("text/html")) return normalized;
       const headers = new Headers(normalized.headers);
+      if (/^\/(?:en\/|fa\/)?(?:vault|admin)(?:\/|$)/.test(requestedUrl.pathname)) {
+        headers.set("x-robots-tag", "noindex");
+      }
       headers.set("cache-control", "no-store, max-age=0");
       return new Response(normalized.body, {
         status: normalized.status,

@@ -1,6 +1,7 @@
 import { BlobNotFoundError, BlobPreconditionFailedError, get, head, put } from "@vercel/blob";
 import { validateSnapshot, type ContentSnapshot } from "./published-store-core";
 import { blobCredentials } from "./blob-credentials.server";
+import { notifyIndexNow, preparePublishedSeo } from "./published-seo.server";
 
 export interface BlobContentSnapshot {
   revision: number;
@@ -73,8 +74,9 @@ export async function saveVercelPublishedContent(
     throw new Error("Newer changes exist on the server. Reload before saving.");
   }
   const nextRevision = expectedRevision + 1;
+  const seo = preparePublishedSeo(current.snapshot.content, nextContent, new Date().toISOString());
   try {
-    await put(PUBLIC_CONTENT_PATH, JSON.stringify({ revision: nextRevision, content: nextContent }), {
+    await put(PUBLIC_CONTENT_PATH, JSON.stringify({ revision: nextRevision, content: seo.content }), {
       access: "private",
       ...blobCredentials(),
       contentType: "application/json",
@@ -88,9 +90,10 @@ export async function saveVercelPublishedContent(
     throw error;
   }
   cacheGeneration++;
-  cachedSnapshot = { revision: nextRevision, content: nextContent };
+  cachedSnapshot = { revision: nextRevision, content: seo.content };
   cachedUntil = Date.now() + PUBLIC_CACHE_MS;
   pendingRead = undefined;
+  await notifyIndexNow(seo.paths);
   return nextRevision;
 }
 

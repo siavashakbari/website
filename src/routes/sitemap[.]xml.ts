@@ -10,7 +10,7 @@ import {
 import { resolveInventoryImage } from "@/lib/inventory-assets";
 import { getSiteUrl } from "@/lib/seo";
 import { isContentReady } from "@/lib/published-store";
-import { withLocale } from "@/lib/locale";
+import { isNonPublicPath, withLocale } from "@/lib/locale";
 import { siteField } from "@/lib/site-content";
 
 interface SitemapEntry {
@@ -19,11 +19,7 @@ interface SitemapEntry {
   lastmod?: string;
   changefreq?: "always" | "hourly" | "daily" | "weekly" | "monthly" | "yearly" | "never";
   priority?: string;
-  image?: {
-    loc: string;
-    title: string;
-    caption: string;
-  };
+  images?: string[];
 }
 
 function escapeXml(str: string): string {
@@ -36,6 +32,13 @@ function escapeXml(str: string): string {
 }
 
 function buildEntries(baseUrl: string): SitemapEntry[] {
+  const imageUrls = (sources: (string | undefined)[]) => [...new Set(sources.flatMap(source => {
+    if (!source) return [];
+    const image = resolveInventoryImage(source);
+    if (!image || !/^(?:https?:\/\/|\/(?!\/))/i.test(image)) return [];
+    const url = URL.parse(image, baseUrl);
+    return url ? [url.href] : [];
+  }))];
   const vaultPages = getVaultPages();
   const allStaticPages: SitemapEntry[] = [
     {
@@ -71,12 +74,14 @@ function buildEntries(baseUrl: string): SitemapEntry[] {
 
   const vaultRouteEntries: SitemapEntry[] = [];
   for (const vp of vaultPages) {
-    if (isRouteOrAncestorHidden(vp.route, vaultPages) || !vp.route || seenPaths.has(vp.route))
+    if (!vp.route || isNonPublicPath(vp.route) || isRouteOrAncestorHidden(vp.route, vaultPages) || seenPaths.has(vp.route))
       continue;
     seenPaths.add(vp.route);
     const depth = vp.route.split("/").filter(Boolean).length;
     vaultRouteEntries.push({
       path: vp.route,
+      lastmod: vp.updatedAt,
+      images: imageUrls([vp.coverPhoto]),
       hasPersian: Boolean(vp.nameFa?.trim() || vp.descriptionFa?.trim()),
       changefreq: depth <= 2 ? "weekly" : "monthly",
       priority: depth <= 2 ? "0.85" : "0.8",
@@ -90,7 +95,10 @@ function buildEntries(baseUrl: string): SitemapEntry[] {
       hasPersian: Boolean(bp.titleFa?.trim()),
       changefreq: "weekly" as const,
       priority: "0.8",
-      lastmod: bp.publishedAt,
+      lastmod: bp.updatedAt || bp.publishedAt,
+      images: imageUrls([bp.coverImage, ...(bp.blocks ?? []).flatMap(block =>
+        block.kind === "image" || block.kind === "gif" ? [block.url] : [],
+      )]),
     }));
 
   const assetPages: SitemapEntry[] = [];
@@ -106,27 +114,13 @@ function buildEntries(baseUrl: string): SitemapEntry[] {
     if (!livePath || seenPaths.has(livePath)) continue;
     seenPaths.add(livePath);
 
-    const resolvedImg = resolveInventoryImage(item.imgSrc);
-    const imageLoc =
-      resolvedImg && !resolvedImg.startsWith("data:") && !resolvedImg.startsWith("src/")
-        ? resolvedImg.startsWith("http")
-          ? resolvedImg
-          : `${baseUrl}${resolvedImg.startsWith("/") ? resolvedImg : `/${resolvedImg}`}`
-        : undefined;
-
     assetPages.push({
       path: livePath,
       hasPersian: Boolean(item.titleFa?.trim() || item.captionFa?.trim()),
       changefreq: "monthly",
       priority: "0.75",
-      lastmod: item.year ? `${item.year}-01-01` : undefined,
-      image: imageLoc
-        ? {
-            loc: imageLoc,
-            title: `${item.project || item.category || item.field} — ${item.dynamicCode}`,
-            caption: `${item.title || item.dynamicCode} by Siavash Akbari`,
-          }
-        : undefined,
+      lastmod: item.updatedAt,
+      images: imageUrls([item.imgSrc]),
     });
   }
 
@@ -158,9 +152,7 @@ export const Route = createFileRoute("/sitemap.xml")({
               e.lastmod ? `    <lastmod>${escapeXml(e.lastmod)}</lastmod>` : null,
               e.changefreq ? `    <changefreq>${e.changefreq}</changefreq>` : null,
               e.priority ? `    <priority>${e.priority}</priority>` : null,
-              e.image
-                ? `    <image:image>\n      <image:loc>${escapeXml(e.image.loc)}</image:loc>\n      <image:title>${escapeXml(e.image.title)}</image:title>\n      <image:caption>${escapeXml(e.image.caption)}</image:caption>\n    </image:image>`
-                : null,
+              ...(e.images ?? []).map(image => `    <image:image><image:loc>${escapeXml(image)}</image:loc></image:image>`),
               `  </url>`,
             ]
               .filter(Boolean)
@@ -178,7 +170,7 @@ export const Route = createFileRoute("/sitemap.xml")({
         return new Response(xml, {
           headers: {
             "Content-Type": "application/xml; charset=utf-8",
-            "Cache-Control": "public, max-age=3600",
+            "Cache-Control": "public, max-age=60",
           },
         });
       },
